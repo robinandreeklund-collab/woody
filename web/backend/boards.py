@@ -252,6 +252,7 @@ def _height_png_b64(z_img: np.ndarray) -> str:
 
 GUI_NAMES = {1: "Kvist", 2: "Spricka", 3: "Blånad", 4: "Vankant", 5: "Röta", 6: "Hål"}
 NOMINAL_LENGTH_MM = 5400.0
+LENGTH_TOL_MM = 10.0      # tolerans: |avvikelse| <= -> godkänd längd
 
 
 def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board_id):
@@ -280,6 +281,8 @@ def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board
         "id": board_id, "source": source, "mmPerPx": mm_per_px,
         "lengthMm": measured_len, "nominalLengthMm": NOMINAL_LENGTH_MM,
         "lengthDevMm": round(measured_len - NOMINAL_LENGTH_MM, 1),
+        "lengthTolMm": LENGTH_TOL_MM,
+        "lengthOk": bool(abs(measured_len - NOMINAL_LENGTH_MM) <= LENGTH_TOL_MM),
         "defects": defects[:6],
         "color_png": _png_b64(color_s),
         "label_png": _labelid_png_b64(label_s),

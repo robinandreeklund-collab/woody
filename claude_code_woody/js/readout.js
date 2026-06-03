@@ -85,6 +85,29 @@
     for (let m = 1; m < L; m++) { const x = m / L * W; ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, o.labels ? 6 : 4); ctx.stroke(); }
     // skannlinje sveper tvärs bredden (horisontell, hela längden)
     if (rev < 1 && rev > 0) { ctx.fillStyle = "#e8542c"; ctx.fillRect(0, rh - 1.5, W, 3); }
+    // defektmarkörer – "var ligger felet" (endast aktuell bräda)
+    if (o.labels && data.stats && data.stats.features) {
+      const C = window.LineConfig.CLASSES;
+      const Lmm = (data.plan ? data.plan.L : 5.4) * 1000;
+      const feats = data.stats.features.filter(f => f.cls >= 1);
+      for (const f of feats) {
+        const x = f.u * W, col = (C[f.cls] || {}).rgb || [40, 40, 40];
+        ctx.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+        ctx.beginPath(); ctx.moveTo(x - 4, 0); ctx.lineTo(x + 4, 0); ctx.lineTo(x, 8); ctx.closePath(); ctx.fill();
+      }
+      const top = [...feats].sort((a, b) => (b.area || 0) - (a.area || 0)).slice(0, 3);
+      ctx.font = "600 10px 'IBM Plex Mono', monospace"; ctx.textAlign = "left";
+      let ty = 19;
+      for (const f of top) {
+        const pos = (f.posMm != null ? f.posMm : f.u * Lmm) / 1000;
+        const name = (C[f.cls] || {}).namn || "?";
+        const txt = `${name} @${pos.toFixed(2)} m`;
+        const x = Math.min(W - ctx.measureText(txt).width - 6, f.u * W + 6);
+        ctx.fillStyle = "rgba(0,0,0,0.62)"; ctx.fillRect(x - 2, ty - 9, ctx.measureText(txt).width + 5, 12);
+        ctx.fillStyle = "#fff"; ctx.fillText(txt, x, ty);
+        ty += 14;
+      }
+    }
     ctx.strokeStyle = "rgba(0,0,0,0.14)"; ctx.strokeRect(0.5, 0.5, W - 1, H - 1);
   }
 

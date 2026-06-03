@@ -85,9 +85,9 @@ class SegConfig:
     dataset: str = "synthetic"       # "synthetic" | "kodytek"
     data_root: str = ""              # rastrerad Kodytek-root (images/ + masks/)
     val_frac: float = 0.15           # tränings-/valdelning för kodytek
-    extra_channels: tuple = ()       # extra ingångar utöver RGB, t.ex.
-    #                                  ("relief", "grain_dev"). Bäst på subtil/
-    #                                  färgtvetydig data – se run_ablation.py.
+    extra_channels: tuple = ("nir",)  # utöver RGB: NIR-strobe (blånad/röta syns
+    #                                   bäst där). Lägg till "relief"/"grain_dev"
+    #                                   för sprickor/kvist – se run_ablation.py.
     mm_per_px: float = 0.5
     board_length_mm: float = 1200.0
     board_width_mm: float = 125.0

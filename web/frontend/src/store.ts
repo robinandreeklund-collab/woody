@@ -24,6 +24,7 @@ export interface SimState {
   source: string;
   lengthMm: number;       // uppmätt brädlängd (laser)
   lengthDevMm: number;    // avvikelse mot nominell
+  lengthOk: boolean;      // inom tolerans?
   defects: { name: string; posMm: number }[];
 }
 
@@ -48,5 +49,6 @@ export const useSimStore = create<SimState>(() => ({
   source: "startar …",
   lengthMm: 0,
   lengthDevMm: 0,
+  lengthOk: true,
   defects: [],
 }));

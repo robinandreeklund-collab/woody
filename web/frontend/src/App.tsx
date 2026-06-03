@@ -9,6 +9,7 @@ function RoundHud() {
   const source = useSimStore((s) => s.source);
   const lengthMm = useSimStore((s) => s.lengthMm);
   const lengthDevMm = useSimStore((s) => s.lengthDevMm);
+  const lengthOk = useSimStore((s) => s.lengthOk);
   const defects = useSimStore((s) => s.defects);
   const dev = lengthDevMm > 0 ? `+${lengthDevMm}` : `${lengthDevMm}`;
   return (
@@ -18,6 +19,9 @@ function RoundHud() {
       </div>
       {lengthMm > 0 && (
         <div className="phase" style={{ marginTop: 2 }}>
+          <span style={{ color: lengthOk ? "#2f9e6e" : "#e8542c", fontWeight: 600 }}>
+            {lengthOk ? "✓" : "✗"}
+          </span>{" "}
           Uppmätt längd: {(lengthMm / 1000).toFixed(3)} m ({dev} mm)
           {defects.length > 0 && (
             <>
