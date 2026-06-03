@@ -97,7 +97,7 @@ def main():
                       "(kanterna isär = vrid, gemensam båge = böj)", fontsize=9)
 
     fig.suptitle(f"Linjelaser-array ({rig.laser.name}, {rig.laser.fan_angle_deg:.0f}°, "
-                 f"{rig.laser.working_distance_mm:.0f} mm håll) + "
+                 f"{rig.laser_working_distance_mm:.0f} mm håll) + "
                  f"{rig.profile_cam.name} profilkameror", fontsize=10)
     fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(OUT / "9_laser_array.png", dpi=100)

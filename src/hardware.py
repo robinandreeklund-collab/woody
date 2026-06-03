@@ -1,16 +1,16 @@
-"""Riktiga hårdvaruspecar för riggen, som driver den fysikaliska sensor-simmen.
+"""Riggens hårdvara + självkonsistent optik/placering för den fysikaliska simmen.
 
-Varje fält är märkt [datablad] (från produkten) eller [designval] (vårt val av
-optik/montering – beror inte på produkten utan på hur vi bygger riggen).
+Varje fält är märkt [datablad] (produktspec) eller [designval] (vår optik/
+montering). Geometrin är härledd så den hänger ihop: lins ↔ arbetsavstånd ↔ FOV
+↔ trianguleringsvinkel ↔ höjdupplösning ↔ baslinje. Cross-feed (alt A): brädan
+matas i sidled förbi 6 stationära laser+kamera-moduler längs längden; varje
+laserlinje löper LÄNGS sitt längdsegment.
 
-Valda produkter (passar jobbet bäst):
-  LineLaser   – iadiy LM9R650H100L60: 650 nm, 100 mW, 60° linje. Billig
-                prototyplaser; array tvärs bredden längs hela längden.
-  SurfaceCam  – Hikrobot 8K-linjekamera (10GigE, 109 kHz), FÄRG-variant av den
-                länkade MV-XGLC83BM (mono duger ej för färgdefekter som blånad).
-                Två kameror tilas -> 0,33 mm/px över 5,4 m.
-  ProfileCam  – Hikrobot MV-CS050-10: 5 MP global shutter (2448×2048, 3,45 µm).
-                Ser laserstrippen i vinkel; global shutter krävs i rörelse.
+Valda produkter:
+  LineLaser   – iadiy LM9R650H100L60 (650 nm, 100 mW, 60° linje).
+  SurfaceCam  – Hikrobot 8K FÄRG-linjekamera, 10GigE (färgvariant av den länkade
+                mono MV-XGLC83BM; bekräfta suffix MV-XGLC83BC + pixel hos Hikrobot).
+  ProfileCam  – Hikrobot MV-CS050-10UC (USB3, 5 MP global shutter, IMX264).
 """
 from __future__ import annotations
 
@@ -26,58 +26,64 @@ class LineLaser:
     fan_angle_deg: float = 60.0           # [datablad] "L60"
     diameter_mm: float = 9.0              # [datablad] "LM9"
     voltage_v: float = 3.0                # [datablad]
-    working_distance_mm: float = 1000.0   # [designval] ~1 m -> ren, tunn linje
     line_width_mm: float = 0.25           # [designval] strippens bredd vid fokus
 
-    @property
-    def line_length_mm(self) -> float:
-        """Belyst linjelängd vid working_distance (2·WD·tan(fan/2)) [härlett]."""
-        return 2.0 * self.working_distance_mm * math.tan(math.radians(self.fan_angle_deg / 2))
+    def working_distance_for(self, line_len_mm: float) -> float:
+        """Arbetsavstånd som ger en linje av önskad längd (2·WD·tan(fan/2))."""
+        return line_len_mm / (2.0 * math.tan(math.radians(self.fan_angle_deg / 2)))
 
 
 @dataclass
 class SurfaceCam:
-    """Färg-linjekamera för ytan (8K-familjen, färgvariant av MV-XGLC83BM)."""
-    name: str = "Hikrobot 8K färg-linjekamera (10GigE)"
+    name: str = "Hikrobot 8K färg-linjekamera (10GigE)"   # bekräfta MV-XGLC83BC
     px_across: int = 8192                 # [datablad] 8K
-    tdi_stages: int = 4                   # [datablad] 8192×4
-    line_rate_hz: float = 109_000.0       # [datablad] max radtakt
-    pixel_um: float = 5.0                 # [datablad] (8K-familjen ~5 µm)
-    channels: int = 3                     # [designval] färg (RGB)
+    line_rate_hz: float = 109_000.0       # [datablad] (mono-max; färg begränsas av 10GigE)
+    pixel_um: float = 5.0                 # [datablad] (8K-familjen ~5 µm – bekräfta)
+    channels: int = 3                     # [designval] färg (RGB tri-linjär)
     bit_depth: int = 8                    # [datablad] per kanal
     interface: str = "10GigE"             # [datablad]
 
 
 @dataclass
 class ProfileCam:
-    """Area-kamera som ser laserstrippen (triangulering)."""
-    name: str = "Hikrobot MV-CS050-10"
-    width_px: int = 2448                  # [datablad]
-    height_px: int = 2048                 # [datablad] (Sony IMX264, 5 MP)
-    pixel_um: float = 3.45                # [datablad]
+    name: str = "Hikrobot MV-CS050-10UC"
+    width_px: int = 2448                  # [datablad] (lång axel = längs segmentet)
+    height_px: int = 2048                 # [datablad] (kort axel = höjd/triangulering)
+    pixel_um: float = 3.45                # [datablad] Sony IMX264
     global_shutter: bool = True           # [datablad]
-    interface: str = "GigE/USB3"          # [datablad] (GC/GM = GigE, UC/UM = USB3)
-    frame_rate_hz: float = 35.0           # [datablad] full bild (snabbare med ROI)
+    frame_rate_full_hz: float = 35.0      # [datablad] full bild (USB3)
+    interface: str = "USB3"               # [datablad] UC = USB3
+
+    @property
+    def sensor_w_mm(self) -> float:
+        return self.width_px * self.pixel_um / 1000.0
+
+    @property
+    def sensor_h_mm(self) -> float:
+        return self.height_px * self.pixel_um / 1000.0
 
 
 @dataclass
 class Rig:
-    """Hela mätuppställningen (laser- och kamera-array) + härledda mått.
-
-    Lasrar + profilkameror sitter i array längs LÄNGDEN, var och en täcker ett
-    segment med överlapp (fusion). Brädan matas in med kortsidan; varje laser-
-    stripe går TVÄRS de ~150 mm bredden. Ytan täcks av tilade färg-linjekameror.
-    """
     laser: LineLaser = None
     surface_cam: SurfaceCam = None
     profile_cam: ProfileCam = None
-    board_length_mm: float = 5400.0       # [designval] brädlängd
-    board_width_mm: float = 150.0         # [designval] brädbredd
+    board_length_mm: float = 5400.0       # [designval]
+    board_width_mm: float = 150.0         # [designval]
+    board_thickness_mm: float = 22.0      # [designval]
+
+    # --- ytkanal ---
     surface_target_mm_per_px: float = 0.33  # [designval] önskad ytupplösning
-    tri_angle_deg: float = 30.0           # [designval] vinkel laser–kamera
+
+    # --- profil/triangulering: optik som hänger ihop ---
+    profile_lens_mm: float = 8.0          # [designval] objektiv (8 mm -> ~1,1 m FOV/modul)
+    profile_wd_mm: float = 1040.0         # [designval] arbetsavstånd profilkamera
+    tri_angle_deg: float = 30.0           # [designval] trianguleringsvinkel (Scheimpflug)
+    depth_range_mm: float = 50.0          # [designval] mätrange i höjd (±25 mm)
     overlap_mm: float = 150.0             # [designval] överlapp mellan segment
-    profile_len_fov_mm: float = 1100.0    # [designval] profilkamerans FOV längs längden
-    profile_rate_hz: float = 500.0        # [designval] profiler/s (area-kamera m. ROI)
+
+    # --- drift ---
+    profile_rate_hz: float = 500.0        # [designval] profiler/s (kamera m. ROI-band)
     feed_mps: float = 0.25                # [designval] matningshastighet
 
     def __post_init__(self):
@@ -85,10 +91,9 @@ class Rig:
         self.surface_cam = self.surface_cam or SurfaceCam()
         self.profile_cam = self.profile_cam or ProfileCam()
 
-    # --- ytkanal (färg-linjekameror tilade över längden) ---
+    # ---------- ytkanal (färg-linjekameror tilade över längden) ----------
     @property
     def n_surface_cams(self) -> int:
-        """Antal färg-linjekameror för att nå önskad upplösning över längden."""
         per_cam_mm = self.surface_cam.px_across * self.surface_target_mm_per_px
         return max(1, math.ceil(self.board_length_mm / per_cam_mm))
 
@@ -101,21 +106,35 @@ class Rig:
         return self.feed_mps * 1000.0 / self.surface_mm_per_px
 
     @property
-    def surface_gbit_s_per_cam(self) -> float:
-        """Dataflöde/kamera vid drift (vår matning), färg [härlett]."""
-        bits = self.surface_cam.px_across * self.surface_cam.bit_depth * self.surface_cam.channels
-        return bits * self.surface_line_rate_at_feed / 1e9
-
-    @property
     def surface_max_color_line_rate_hz(self) -> float:
-        """Max färg-radtakt som ryms i 10GigE (~10 Gbit/s) [härlett]."""
         bits = self.surface_cam.px_across * self.surface_cam.bit_depth * self.surface_cam.channels
         return 10e9 / bits
 
-    # --- laser-/kamera-array (triangulering, tvärs bredden, längs längden) ---
+    # ---------- profil/triangulering (härledd optik) ----------
     @property
     def seg_len_mm(self) -> float:
-        return self.profile_len_fov_mm
+        """Längdsegment/modul = profilkamerans FOV (sensor·WD/lins)."""
+        return self.profile_cam.sensor_w_mm * self.profile_wd_mm / self.profile_lens_mm
+
+    @property
+    def lateral_res_mm(self) -> float:
+        """Upplösning längs längden = FOV / px."""
+        return self.seg_len_mm / self.profile_cam.width_px
+
+    @property
+    def height_resolution_mm(self) -> float:
+        """Höjdupplösning ur trianguleringen: lateral_res / tan(θ)."""
+        return self.lateral_res_mm / math.tan(math.radians(self.tri_angle_deg))
+
+    @property
+    def baseline_mm(self) -> float:
+        """Sidledsavstånd laser↔kamera (WD·tan θ) – fysisk monteringsbaslinje."""
+        return self.profile_wd_mm * math.tan(math.radians(self.tri_angle_deg))
+
+    @property
+    def laser_working_distance_mm(self) -> float:
+        """Laserns WD vald så linjelängden ≈ segmentlängden."""
+        return self.laser.working_distance_for(self.seg_len_mm)
 
     @property
     def n_lasers(self) -> int:
@@ -124,10 +143,9 @@ class Rig:
 
     @property
     def n_profile_cams(self) -> int:
-        return self.n_lasers                  # en profilkamera per lasersegment
+        return self.n_lasers
 
     def segments(self):
-        """[(start_mm, end_mm, center_mm)] per laser/kamera längs längden."""
         step = self.seg_len_mm - self.overlap_mm
         segs = []
         for i in range(self.n_lasers):
@@ -139,36 +157,20 @@ class Rig:
 
     @property
     def profile_mm_per_px_len(self) -> float:
-        """Upplösning längs längden per profilkamera (lång axel över segmentet)."""
-        return self.seg_len_mm / self.profile_cam.width_px
+        return self.lateral_res_mm
 
-    @property
-    def height_resolution_mm(self) -> float:
-        """Höjdupplösning: objektpixel / tan(θ). Grov (~mm) med den billiga
-        prototyplasern + 5 MP-kamera över ett ~1 m-segment; dedikerad
-        profilsensor ger finare. Range begränsas av DOF (lins/Scheimpflug)."""
-        return self.profile_mm_per_px_len / math.tan(math.radians(self.tri_angle_deg))
-
-    # --- mätpunkter (cross-feed: brädan rör sig i sidled, sensorer längs längden) ---
-    # En profil/pixelrad per exponering; tätheten i matningsled = hastighet/takt.
+    # ---------- mätpunkter (cross-feed, beror på hastigheten) ----------
     def feed_for_takt(self, boards_per_min: float, pitch_mm: float = 250.0) -> float:
-        """Matningshastighet (m/s) för en given takt och brädpitch."""
         return pitch_mm / 1000.0 * boards_per_min / 60.0
 
     def measurement_points(self, feed_mps: float | None = None) -> dict:
-        """Mätpunkter per bräda vid given matning (cross-feed: brädan matas i
-        sidled förbi de stationära modulerna; varje laserlinje löper LÄNGS sitt
-        längdsegment). Tätheten tvärs matningen (bredden) beror på hastigheten."""
         v = feed_mps if feed_mps is not None else self.feed_mps
-        prof_pitch_mm = v * 1000.0 / self.profile_rate_hz   # profilavstånd i matningsled
-        width_profiles = self.board_width_mm / prof_pitch_mm  # profiler medan bredden passerar
-        # PER LASER/MODUL: punkter längs sitt segment (kamerans px) × profiler
+        prof_pitch_mm = v * 1000.0 / self.profile_rate_hz
+        width_profiles = self.board_width_mm / prof_pitch_mm
         per_laser_pts = self.profile_cam.width_px * width_profiles
-        # höjd/laser totalt: alla moduler
         length_pts = self.n_profile_cams * self.profile_cam.width_px
-        # yta/färg: px tvärs längden × pixelrader medan bredden passerar
         surf_px_across = self.n_surface_cams * self.surface_cam.px_across
-        surf_rows = self.board_width_mm / self.surface_mm_per_px   # kvadratiska px
+        surf_rows = self.board_width_mm / self.surface_mm_per_px
         return {
             "feed_mps": round(v, 3),
             "laser_width_pitch_mm": round(prof_pitch_mm, 3),
@@ -182,26 +184,43 @@ class Rig:
             "surface_px_per_board": round(surf_px_across * surf_rows),
         }
 
+    def placement(self) -> dict:
+        """Optimerad, självkonsistent placering (för montering/beställning)."""
+        return {
+            "feed": "cross-feed (brädan i sidled förbi stationära moduler)",
+            "n_modules": self.n_lasers,
+            "seg_len_mm": round(self.seg_len_mm),
+            "overlap_mm": self.overlap_mm,
+            "profile_lens_mm": self.profile_lens_mm,
+            "profile_wd_mm": self.profile_wd_mm,
+            "laser_wd_mm": round(self.laser_working_distance_mm),
+            "tri_angle_deg": self.tri_angle_deg,
+            "baseline_laser_cam_mm": round(self.baseline_mm),
+            "lateral_res_mm": round(self.lateral_res_mm, 3),
+            "height_res_mm": round(self.height_resolution_mm, 3),
+            "depth_range_mm": self.depth_range_mm,
+            "surface_cams": self.n_surface_cams,
+            "surface_mm_per_px": round(self.surface_mm_per_px, 3),
+        }
+
     def summary(self) -> dict:
         return {
-            # yta
             "surface_cam": self.surface_cam.name,
             "n_surface_cams": self.n_surface_cams,
             "surface_mm_per_px": round(self.surface_mm_per_px, 3),
-            "surface_line_rate_hz@feed": round(self.surface_line_rate_at_feed),
-            "surface_gbit_s_per_cam@feed": round(self.surface_gbit_s_per_cam, 3),
             "surface_max_color_line_rate_kHz@10GigE": round(self.surface_max_color_line_rate_hz / 1e3),
-            # laser/höjd
             "laser": self.laser.name,
-            "fan_deg": self.laser.fan_angle_deg,
-            "working_distance_mm": self.laser.working_distance_mm,
-            "laser_line_capability_mm": round(self.laser.line_length_mm),
-            "laser_covers_width_mm": self.board_width_mm,
+            "laser_wd_mm": round(self.laser_working_distance_mm),
             "profile_cam": self.profile_cam.name,
-            "seg_len_mm (kamera-FOV/längd)": round(self.seg_len_mm),
+            "profile_lens_mm": self.profile_lens_mm,
+            "profile_wd_mm": self.profile_wd_mm,
+            "seg_len_mm": round(self.seg_len_mm),
             "overlap_mm": self.overlap_mm,
             "n_lasers": self.n_lasers,
             "n_profile_cams": self.n_profile_cams,
             "tri_angle_deg": self.tri_angle_deg,
-            "height_resolution_mm": round(self.height_resolution_mm, 4),
+            "baseline_mm": round(self.baseline_mm),
+            "lateral_res_mm": round(self.lateral_res_mm, 3),
+            "height_resolution_mm": round(self.height_resolution_mm, 3),
+            "depth_range_mm": self.depth_range_mm,
         }
