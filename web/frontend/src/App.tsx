@@ -11,8 +11,12 @@ function RoundHud() {
   const lengthMm = useSimStore((s) => s.lengthMm);
   const lengthDevMm = useSimStore((s) => s.lengthDevMm);
   const lengthOk = useSimStore((s) => s.lengthOk);
+  const strength = useSimStore((s) => s.strength);
   const defects = useSimStore((s) => s.defects);
   const dev = lengthDevMm > 0 ? `+${lengthDevMm}` : `${lengthDevMm}`;
+  const cColor: Record<string, string> = {
+    C30: "#2f9e6e", C24: "#2f9e6e", C18: "#d6a23e", C14: "#cf6b46", Vrak: "#e8542c",
+  };
   return (
     <>
       <div className="phase" style={{ marginTop: 4 }}>
@@ -24,6 +28,15 @@ function RoundHud() {
             {lengthOk ? "✓" : "✗"}
           </span>{" "}
           Uppmätt längd: {(lengthMm / 1000).toFixed(3)} m ({dev} mm)
+          {strength && (
+            <>
+              {" · hållfasthet: "}
+              <span style={{ color: cColor[strength.cclass] || "#25282c", fontWeight: 600 }}>
+                {strength.cclass}
+              </span>{" "}
+              <span style={{ color: "#9a9ea4" }}>({strength.limiting})</span>
+            </>
+          )}
           {defects.length > 0 && (
             <>
               {" · fel: "}

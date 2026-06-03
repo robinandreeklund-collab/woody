@@ -24,6 +24,7 @@ export interface SimState {
   lengthMm: number;       // uppmätt brädlängd (laser)
   lengthDevMm: number;    // avvikelse mot nominell
   lengthOk: boolean;      // inom tolerans?
+  strength: { cclass: string; limiting: string } | null;  // hållfasthetsklass
   defects: { name: string; posMm: number }[];
   // sensorvy (aktuell bräda) + rundstatistik
   sensorBoard: {
@@ -55,6 +56,7 @@ export const useSimStore = create<SimState>(() => ({
   lengthMm: 0,
   lengthDevMm: 0,
   lengthOk: true,
+  strength: null,
   defects: [],
   sensorBoard: null,
   roundStats: { n: 0, rejected: 0, valueSum: 0, defects: {} },

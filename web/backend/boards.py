@@ -10,10 +10,13 @@ from __future__ import annotations
 
 import base64
 import io
+import math
 from pathlib import Path
 
 import numpy as np
 from scipy import ndimage
+
+from src.grading import grade_board, GradeInput
 
 from src.board import make_board
 from src.features import build_features
@@ -241,7 +244,9 @@ def measured_height(label_img, mm_per_px, seed):
               "surfaceOverlapFrac": 0.06,
               "segLenMm": round(rig.seg_len_mm), "overlapMm": rig.overlap_mm,
               "heightResMm": round(rig.height_resolution_mm, 2),
-              "coverage": round(res["coverage"], 3), "warp": warp_summary(p)}
+              "coverage": round(res["coverage"], 3), "warp": warp_summary(p),
+              "bowMm": round(p.bow_mm, 1), "springMm": round(p.spring_mm, 1),
+              "twistDeg": round(p.twist_deg, 1)}
     return z_img, layout
 
 
@@ -280,12 +285,32 @@ def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board
     color_s = _downscale_len(np.ascontiguousarray(color_img))
     label_s = _downscale_len(np.ascontiguousarray(label_img.astype(np.uint8)))
     z_img, layout = measured_height(label_img, mm_per_px, board_id)
+
+    # hållfasthetssortering (SS 230120 -> C14..C30). Blånad ingår ej.
+    width_mm = label_img.shape[0] * mm_per_px
+    length_m = max(0.1, measured_len / 1000.0)
+    knot_areas = [f["area"] for f in feats if f["cls"] == 1]
+    knot_ratio = (2 * math.sqrt(max(knot_areas) / math.pi) / width_mm) if knot_areas else 0.0
+    crack_areas = [f["area"] for f in feats if f["cls"] == 2]
+    crack_len_m = (max(crack_areas) / 5.0 / 1000.0) if crack_areas else 0.0   # ~5 mm bred
+    wane_area = sum(f["area"] for f in feats if f["cls"] == 4)
+    wane_frac = (wane_area / measured_len) / width_mm if measured_len else 0.0
+    grade = grade_board(GradeInput(
+        knot_w_ratio=knot_ratio,
+        bow_mm_2m=layout["bowMm"] * (2.0 / length_m) ** 2,
+        spring_mm_2m=layout["springMm"] * (2.0 / length_m) ** 2,
+        twist_mm=width_mm * math.sin(math.radians(abs(layout["twistDeg"]) * 2.0 / length_m)),
+        width_mm=width_mm, wane_frac=wane_frac, crack_len_m=crack_len_m,
+        rot_present=any(f["cls"] == 5 for f in feats), rot_in_knot_only=False,
+    ))
+
     return {
         "id": board_id, "source": source, "mmPerPx": mm_per_px,
         "lengthMm": measured_len, "nominalLengthMm": NOMINAL_LENGTH_MM,
         "lengthDevMm": round(measured_len - NOMINAL_LENGTH_MM, 1),
         "lengthTolMm": LENGTH_TOL_MM,
         "lengthOk": bool(abs(measured_len - NOMINAL_LENGTH_MM) <= LENGTH_TOL_MM),
+        "strength": {"cclass": grade["cclass"], "limiting": grade["limiting"]},
         "defects": defects[:6],
         "color_png": _png_b64(color_s),
         "label_png": _labelid_png_b64(label_s),
