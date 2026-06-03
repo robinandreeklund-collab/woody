@@ -1,0 +1,10 @@
+**/node_modules
+**/dist
+.venv
+data
+outputs
+*.pt
+**/__pycache__
+.git
+claude_code_woody
+docs

@@ -1,0 +1,16 @@
+# Render Blueprint – CPU-deploy av virkesskanner-GUI:t (syntetiska 3D-brädor).
+# "New + -> Blueprint" i Render och peka på repot, eller använd deploy-knappen
+# i README. Free-planen sover efter inaktivitet (första laddningen blir långsam).
+services:
+  - type: web
+    name: woody-virkesskanner
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    branch: claude/stoic-newton-CMsDC
+    plan: free
+    autoDeploy: false
+    envVars:
+      - key: WOODY_KODYTEK_ROOT
+        value: ""
+      - key: WOODY_CKPT
+        value: seg_unet.pt

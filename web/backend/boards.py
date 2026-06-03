@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import io
+from pathlib import Path
 
 import numpy as np
 from scipy import ndimage
@@ -18,7 +19,13 @@ from src.board import make_board
 from src.features import build_features
 from src.config import SegConfig
 from src.photometric import surface_normals, relief_map
-from src.infer import find_checkpoint, load_model, predict_board
+
+
+def find_checkpoint(cfg: SegConfig):
+    """Torch-fri checkpoint-koll (så backenden kan köras utan torch när ingen
+    modell finns – t.ex. CPU-deploy på Render)."""
+    p = Path(cfg.out_dir) / cfg.ckpt_name
+    return p if p.exists() else None
 
 # modellklass (0..6) -> GUI-klass (0..6)
 MODEL_TO_GUI = {0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}
@@ -110,6 +117,7 @@ def segment_board(board: dict, seg_cfg: SegConfig | None = None):
     seg_cfg = seg_cfg or SegConfig()
     ckpt = find_checkpoint(seg_cfg)
     if ckpt is not None:
+        from src.infer import load_model, predict_board   # lazy: torch krävs bara här
         model, mcfg = load_model(str(ckpt))
         pred = predict_board(model, board, mcfg)
         source = "unet"
@@ -287,6 +295,7 @@ class BoardSource:
         self.mcfg = None
         ckpt = find_checkpoint(self.cfg)
         if ckpt is not None:
+            from src.infer import load_model        # lazy: torch krävs bara med modell
             self.model, self.mcfg = load_model(str(ckpt))
         self.kodytek = sorted(glob.glob(str(self.cfg.data_root) + "/images/*")) \
             if self.cfg.data_root else []
@@ -299,6 +308,7 @@ class BoardSource:
     def _synthetic(self, seed, lengths):
         b = make_board_for(seed, length_m=5.4, mm_per_px=1.0)  # grövre = snabbare (fallback)
         if self.model is not None:
+            from src.infer import predict_board
             pred = predict_board(self.model, b, self.mcfg)
         else:
             pred = b["label"]
@@ -315,6 +325,7 @@ class BoardSource:
         photo = np.asarray(Image.open(path).convert("RGB"))   # (width,längd,3)
         mm = 5000.0 / photo.shape[1]                          # 500 cm över längden
         if self.model is not None:
+            from src.infer import predict_board
             board = {"color": photo, "height": np.zeros(photo.shape[:2], np.float32),
                      "fiber_angle": np.zeros(photo.shape[:2], np.float32),
                      "mm_per_px": mm}

@@ -51,6 +51,20 @@ powershell -ExecutionPolicy Bypass -File .\start.ps1 -WithKodytek -Train   # GPU
 React/Vite-frontend (`web/frontend`) mot en FastAPI-backend (`web/backend`) som
 återanvänder `src/`. Träning på Kodytek: se `docs/kodytek-gpu-training.md`.
 
+### Deploy till molnet (CPU-demo)
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/robinandreeklund-collab/woody)
+
+En lätt CPU-deploy (Docker, **ingen GPU/torch/Kodytek**) för att se att allt
+lirar: syntetiska **3D-brädor med vridningar/böjar**, laser-array och kapoptimering
+– utan riktig textur. `Dockerfile` bygger frontenden (Node) och kör backenden
+(Python); `render.yaml` är blueprinten. Free-planen sover efter inaktivitet
+(första laddningen tar en stund).
+
+> Knappen/blueprinten läser `render.yaml` – som ligger på utvecklingsbranchen.
+> Merga till `main` *eller* välj branchen i Renders "New + → Blueprint" när du
+> deployar.
+
 ## Köra
 
 ```bash
