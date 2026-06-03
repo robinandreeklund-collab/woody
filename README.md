@@ -22,6 +22,8 @@ tränas skarpt på GPU.
 5. **Kompletterande sensorkanaler**: fotometrisk stereo (riktade LED →
    relief/sprickor), tracheid-effekten (laserspridning → fiberriktning och
    snedfibrighet) och undersidesavbildning genom springorna mellan kedjorna.
+6. **Kapoptimering**: utifrån klassningen avgör en DP-optimering var varje bräda
+   ska kapas i tillåtna längder (3,0/2,7/2,4 m) för att maximera totalvärdet.
 
 ## Geometri som modelleras
 
@@ -36,6 +38,7 @@ pip install -r requirements.txt
 
 python run_demo.py        # bara förvärvssimuleringen (numpy + matplotlib)
 python run_sensors.py     # fotometrisk stereo, tracheid, undersida (figur 5–7)
+python run_cutting.py     # kapoptimering: var ska brädan sågas (figur 8)
 python run_pipeline.py    # hela flödet: förvärv -> data -> träning -> inferens
 python run_pipeline.py --smoke   # minimal rökverifiering på sekunder
 
@@ -53,6 +56,7 @@ Figurer hamnar i `outputs/`:
 - `5_photometric.png` – fotometrisk stereo: riktade LED → relief/sprickor
 - `6_tracheid.png` – tracheid: fiberriktning + snedfibrighet (kvistindikator)
 - `7_underside.png` – undersida synlig genom kedjespringorna
+- `8_cut_plan.png` – kapplan: var brädan sågas, bitarnas klass och värde
 
 ## Struktur
 
@@ -70,8 +74,10 @@ src/infer.py         kakla + sy ihop prediktion över en hel bräda
 src/photometric.py   fotometrisk stereo: normaler + relief ur höjdkartan
 src/tracheid.py      fiberriktning + snedfibrighet ur fiberfältet
 src/underside.py     undersida + ocklusion från kedjespringorna
+src/cutting.py       kapoptimering (DP) + kvalitetsklassning och värdemodell
 run_demo.py          kör förvärvssimuleringen och genererar figur 1–3
 run_sensors.py       genererar sensorfigurerna 5–7
+run_cutting.py       kapoptimering på en hel bräda och genererar figur 8
 run_pipeline.py      hela flödet end-to-end och genererar figur 4
 run_ablation.py      ablation: nyttan av sensorkanalerna som modellingång
 ```
@@ -89,6 +95,19 @@ defekten *inte* syns i färg: i den **subtila** regimen (`subtle_defects=True`,
 spricka osynlig i färg men full grop i höjd) går sprick-IoU från **0,00 (RGB) till
 0,68 (RGB+relief)** – skillnaden mellan att missa defekten helt och att hitta den.
 Standard är därför `extra_channels=()`; slå på fusionen för subtil/verklig data.
+
+## Kapoptimering (värde)
+
+Efter klassningen avgör `src/cutting.py` var brädan ska kapas. En dynamisk
+programmering går längs brädan och väljer bitar ur de tillåtna längderna
+(`CutConfig.allowed_lengths_m`), får kapa bort defektzoner som spill, klassar
+varje bit (A/B/C/vrak) ur defekterna inom den och maximerar totalvärdet enligt
+pris-per-meter-tabellen. Allt i `CutConfig` är tänkt att justeras mot en verklig
+prislista. Optimeringen kan offra material för att höja klassen: i demon ger
+seed 7 **324 kr** mot en naiv längsta-först-strategis 135 kr (+140 %).
+
+Fysiskt motsvarar varje kapposition att sidoknuffarna skjuter brädan i sidled
+så att positionen ställs i linje med den fasta kapbalken.
 
 ## Träna skarpt mot Kodytek på GPU
 

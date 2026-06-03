@@ -5,7 +5,7 @@ Alla värden speglar uppställningen vi resonerat fram:
   - brädans LÄNGD spänner över mätzonen
   - brädans BREDD passerar genom zonen i sidled (= skanningsaxeln)
 """
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 
 @dataclass
@@ -155,3 +155,33 @@ class SensorRig:
     n_chains: int = 6                 # antal transportkedjor under brädan
     chain_width_mm: float = 25.0      # bredd per kedja (ockluderar undersidan)
     underside_seed_offset: int = 4096  # eget frö -> undersidan har egna defekter
+
+
+# Defektkategorier för kvalitetsklassning (klass-id enligt CLASSES)
+SEVERE_DEFECTS = (2, 3, 6)      # död kvist, spricka, märg
+MODERATE_DEFECTS = (1, 4)       # levande kvist, blånad
+WANE_DEFECT = 5                 # vankant
+
+
+@dataclass
+class CutConfig:
+    """Kap- och värdemodell. Efter klassningen avgör en DP-optimering var varje
+    bräda kapas i tillåtna längder för att maximera totalvärdet. Alla siffror
+    är tänkta att justeras mot en verklig prislista."""
+    # Tillåtna kaplängder (m). Bör vara multiplar av step_mm.
+    allowed_lengths_m: tuple = (3.0, 2.7, 2.4)
+    step_mm: float = 30.0             # upplösning för kapositioner i DP:n
+    kerf_mm: float = 4.0              # sågsnittets bredd (spill per kap)
+
+    # Pris (SEK) per meter och kvalitetsklass
+    grade_prices_per_m: dict = field(default_factory=lambda: {
+        "A": 120.0, "B": 80.0, "C": 45.0, "reject": 8.0})
+
+    # Klassningsregler (andel av bitens yta per defektkategori)
+    reject_severe_frac: float = 0.05  # > så mycket allvarlig defekt -> vrak
+    w_severe: float = 3.0             # vikter i defektpoängen
+    w_moderate: float = 1.0
+    w_wane: float = 0.5
+    a_max_score: float = 0.004        # poäng <= -> klass A
+    b_max_score: float = 0.030        #            -> klass B
+    c_max_score: float = 0.120        #            -> klass C, annars vrak
