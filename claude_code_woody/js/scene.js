@@ -245,21 +245,26 @@
       g.add(led); ledRing.push(led);
     }
 
-    // Laser-array: NLAS stripar TVÄRS bredden (X), tilade längs längden (Z) med
-    // överlapp. Brädan matas in med kortsidan; varje laser går över de 150 mm,
-    // och tillsammans täcker modulerna hela längden.
+    // Laser-array (cross-feed, alt A): NLAS moduler längs LÄNGDEN (Z). Varje
+    // laserlinje löper LÄNGS sitt längdsegment (~1100 mm) med överlapp; brädan
+    // matas i -X genom planet och varje modul profilerar sitt segment.
     laserStripes = []; laserFans = [];
+    const segWu = (1100 / 5400) * BOARD_LEN;              // segmentlängd i wu
+    const stepWu = ((1100 - 150) / 5400) * BOARD_LEN;     // steg (segment − överlapp)
     for (let i = 0; i < NLAS; i++) {
-      const z = (-0.5 + (i + 0.5) / NLAS) * BOARD_LEN;     // segmentcentrum längs längden
-      const strip = new T.Mesh(new T.BoxGeometry(1.0, 0.01, 0.05),
+      let zc = -BOARD_LEN / 2 + segWu / 2 + i * stepWu;   // segmentcentrum längs Z
+      zc = Math.min(zc, BOARD_LEN / 2 - segWu / 2);
+      // ljusstripe på ytan, LÄNGS längdsegmentet (tunn i X = laserlinjebredd)
+      const strip = new T.Mesh(new T.BoxGeometry(0.014, 0.01, segWu),
         new T.MeshBasicMaterial({ color: COL.laser, transparent: true, opacity: 0.95, depthWrite: false }));
-      strip.position.set(SCAN_X, 0.034, z); strip.scale.x = curW;
+      strip.position.set(SCAN_X, 0.034, zc);
       g.add(strip); laserStripes.push(strip);
-      // laserblad (vertikal sheet tvärs bredden) som triangulerar
-      const fan = new T.Mesh(new T.PlaneGeometry(1.0, 1.9),
+      // laserblad (vertikal sheet längs segmentet) som triangulerar
+      const fan = new T.Mesh(new T.PlaneGeometry(segWu, 1.9),
         new T.MeshBasicMaterial({ color: COL.laser, transparent: true, opacity: 0.1,
           side: T.DoubleSide, depthWrite: false }));
-      fan.position.set(SCAN_X, 0.98, z); fan.scale.x = curW;
+      fan.rotation.y = Math.PI / 2;                       // planet spänner Z (längd) × Y (höjd)
+      fan.position.set(SCAN_X, 0.98, zc);
       g.add(fan); laserFans.push(fan);
     }
     tracheidBeam = sheet(SCAN_X + 0.25, 1.78, SCAN_X + 0.05, 0.03, BOARD_LEN / 2 * 0.92, COL.tracheid, 0.1); g.add(tracheidBeam);
@@ -368,8 +373,7 @@
   function setWidth(wu) {
     curW = wu;
     for (const s of slots) s.group.scale.z = wu;
-    for (const m of laserStripes) m.scale.x = wu;   // stripen = brädans bredd
-    for (const m of laserFans) m.scale.x = wu;
+    // laserlinjerna ligger längs längden i mätplanet -> oberoende av brädbredden
   }
 
   function update(state) {

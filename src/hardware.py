@@ -156,21 +156,26 @@ class Rig:
         return pitch_mm / 1000.0 * boards_per_min / 60.0
 
     def measurement_points(self, feed_mps: float | None = None) -> dict:
-        """Mätpunkter per bräda vid given matning (cross-feed). Brädans bredd
-        passerar skanningsplanet; tätheten tvärs matningen beror på hastigheten."""
+        """Mätpunkter per bräda vid given matning (cross-feed: brädan matas i
+        sidled förbi de stationära modulerna; varje laserlinje löper LÄNGS sitt
+        längdsegment). Tätheten tvärs matningen (bredden) beror på hastigheten."""
         v = feed_mps if feed_mps is not None else self.feed_mps
-        # höjd/laser: punkter längs längden (alla profilkameror) × profiler tvärs bredden
+        prof_pitch_mm = v * 1000.0 / self.profile_rate_hz   # profilavstånd i matningsled
+        width_profiles = self.board_width_mm / prof_pitch_mm  # profiler medan bredden passerar
+        # PER LASER/MODUL: punkter längs sitt segment (kamerans px) × profiler
+        per_laser_pts = self.profile_cam.width_px * width_profiles
+        # höjd/laser totalt: alla moduler
         length_pts = self.n_profile_cams * self.profile_cam.width_px
-        prof_pitch_mm = v * 1000.0 / self.profile_rate_hz
-        width_profiles = self.board_width_mm / prof_pitch_mm
         # yta/färg: px tvärs längden × pixelrader medan bredden passerar
         surf_px_across = self.n_surface_cams * self.surface_cam.px_across
         surf_rows = self.board_width_mm / self.surface_mm_per_px   # kvadratiska px
         return {
             "feed_mps": round(v, 3),
-            "laser_length_pts": length_pts,
-            "laser_width_profiles": round(width_profiles),
             "laser_width_pitch_mm": round(prof_pitch_mm, 3),
+            "laser_width_profiles": round(width_profiles),
+            "per_laser_length_pts": self.profile_cam.width_px,
+            "per_laser_points_per_board": round(per_laser_pts),
+            "laser_length_pts_total": length_pts,
             "laser_points_per_board": round(length_pts * width_profiles),
             "surface_px_across": surf_px_across,
             "surface_rows": round(surf_rows),
