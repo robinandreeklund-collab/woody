@@ -88,7 +88,7 @@ class Rig:
 
     # --- ytkanal ---
     surface_target_mm_per_px: float = 0.33  # [designval] önskad ytupplösning
-    surface_wd_mm: float = 1500.0           # [designval] arbetsavstånd ytkamera
+    surface_wd_mm: float = 0.0              # [designval] 0 => auto: ytkameran på SAMMA nivå som linjelasern
 
     # --- profil/triangulering: optik som hänger ihop ---
     profile_lens_mm: float = 8.0          # [designval] objektiv (8 mm -> ~1,1 m FOV/modul)
@@ -105,6 +105,9 @@ class Rig:
         self.laser = self.laser or LineLaser()
         self.surface_cam = self.surface_cam or SurfaceCam()
         self.profile_cam = self.profile_cam or ProfileCam()
+        # ytkameran monteras på samma nivå som linjelasern (förskjuten i matningsled)
+        if not self.surface_wd_mm:
+            self.surface_wd_mm = round(self.laser_working_distance_mm)
 
     # ---------- ytkanal (färg-linjekameror tilade över längden) ----------
     @property

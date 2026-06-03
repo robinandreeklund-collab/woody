@@ -161,6 +161,8 @@ SC = 1 / 4.1                       # px per mm (höjd/sida)
 cxL = 470                          # laserns x (mätpunkt)
 yb = 470                           # brädans ovansida (lokal y)
 def UP(mm): return yb - mm * SC    # höjd över brädan
+surf_wd = round(P["surface_wd_mm"]); surf_lens = round(P["surface_lens_mm"])
+xs = cxL - 300                     # ytkamerans x (förskjuten i matningsled)
 # portalbalk
 rect(120, 40, 1000, 22, "#cfd2d6", "#9aa0a6", 1.2, 3)
 txt(130, 56, "PORTALBALK", 11, "start", MUTED, 700)
@@ -168,28 +170,35 @@ txt(130, 56, "PORTALBALK", 11, "start", MUTED, 700)
 bw, bt = BW * SC, BT * SC
 rect(cxL - bw / 2, yb, bw, bt, "#e9e1cf", "#b9a96f", 1.4)
 txt(cxL, yb + bt + 16, "bräda 150×22 mm", 11, "middle", "#8a7d4e")
-rect(cxL - bw / 2 - 40, yb + bt, bw + 80, 16, "#d7d4cc", "#aaa79e", 1)   # band
+bandL, bandR = xs - bw / 2 - 20, cxL + bw / 2 + 40
+rect(bandL, yb + bt, bandR - bandL, 16, "#d7d4cc", "#aaa79e", 1)   # band
 for dz in (-50, -16, 18, 52):
     circle(cxL + dz, yb + bt + 8, 4, "#cfae3e", "#8a7d4e", 1)
-txt(cxL - bw / 2 - 40, yb + bt + 42, "kedjetransport + medbringare", 10, "start", MUTED)
+txt(bandL, yb + bt + 42, "kedjetransport + medbringare", 10, "start", MUTED)
 
-# --- ytkamera (rakt ner, WD 1500) ---
-ys = UP(1500)
-rect(cxL - 30, ys - 26, 60, 30, "#dce8f4", C_SURF, 1.8, 3)
-txt(cxL, ys - 32, "YTKAMERA", 11, "middle", C_SURF, 700)
-poly([(cxL - 18, ys + 4), (cxL + 18, ys + 4), (cxL + 6, ys + 16), (cxL - 6, ys + 16)], "#dce8f4", C_SURF, 1.4)
-line(cxL - 7, ys + 16, cxL - bw / 2 + 4, yb, C_SURF, 0.9, "4 3")
-line(cxL + 7, ys + 16, cxL + bw / 2 - 4, yb, C_SURF, 0.9, "4 3")
-vdim(ys + 4, yb, cxL - bw / 2 - 70, "WD 1500 mm")
+# --- ytkamera: SAMMA nivå som lasern, förskjuten i matningsled ---
+ys = UP(surf_wd)                   # = laserns nivå
+rect(xs - 30, ys - 26, 60, 30, "#dce8f4", C_SURF, 1.8, 3)
+txt(xs, ys - 32, "YTKAMERA", 11, "middle", C_SURF, 700)
+poly([(xs - 18, ys + 4), (xs + 18, ys + 4), (xs + 6, ys + 16), (xs - 6, ys + 16)], "#dce8f4", C_SURF, 1.4)
+rect(xs - bw / 2, yb, bw, bt, "none", C_SURF, 1.1, 0, "4 3")        # egen (förskjuten) avläsningslinje
+line(xs - 7, ys + 16, xs - bw / 2, yb, C_SURF, 0.9, "4 3")
+line(xs + 7, ys + 16, xs + bw / 2, yb, C_SURF, 0.9, "4 3")
+vdim(ys + 4, yb, xs - bw / 2 - 40, f"WD {surf_wd} mm")
+txt(xs, yb + bt + 16, "egen avläsningslinje", 9.5, "middle", C_SURF)
+txt(xs, yb + bt + 28, "(förskjuten i matningsled)", 9.5, "middle", C_SURF)
+# gemensam monteringsnivå (yta + laser på samma höjd)
+line(xs, ys - 26, cxL, ys - 26, DIMC, 0.9, "5 3")
+txt((xs + cxL) / 2, ys - 31, "yta + laser: samma monteringsnivå", 10, "middle", MUTED, 700)
 
-# --- laser (rakt ner, WD 951) ---
+# --- laser (rakt ner, SAMMA nivå som ytkameran) ---
 yl = UP(951)
-rect(cxL - 16, yl - 22, 32, 24, "#fde3da", C_LAS, 1.8, 3)
-txt(cxL, yl - 28, "LASER", 11, "middle", C_LAS, 700)
-add(f'<polygon points="{cxL-2:.1f},{yl+2:.1f} {cxL+2:.1f},{yl+2:.1f} {cxL+9:.1f},{yb:.1f} {cxL-9:.1f},{yb:.1f}" '
+rect(cxL - 16, yl - 26, 32, 30, "#fde3da", C_LAS, 1.8, 3)
+txt(cxL, yl - 32, "LASER", 11, "middle", C_LAS, 700)
+add(f'<polygon points="{cxL-2:.1f},{yl+4:.1f} {cxL+2:.1f},{yl+4:.1f} {cxL+9:.1f},{yb:.1f} {cxL-9:.1f},{yb:.1f}" '
     f'fill="{C_LAS}" opacity="0.5"/>')
 circle(cxL, yb, 3.5, C_LAS, C_LAS, 0)
-vdim(yl + 2, yb, cxL + bw / 2 + 16, "laser-WD 951 mm")
+vdim(yl + 4, yb, cxL + bw / 2 + 16, "laser-WD 951 mm")
 
 # --- profilkamera (offset = baslinje 600, lutad 30°) ---
 cxC = cxL + 600 * SC
@@ -268,7 +277,7 @@ cols = [
         ("Färgtakt (RGB+NIR strobe)", "÷4 → 27,5 kHz effektiv"),
         ("Behövd takt @0,25 m/s", f"{surf_needed_hz} Hz  (stor marginal)"),
         ("Bandbredd @max", "7,2 Gbit/s  (ryms i 10GigE)"),
-        ("Upplösning / WD / lins", "0,33 mm/px · 1500 mm · M72 ~32 mm"),
+        ("Upplösning / WD / lins", f"0,33 mm/px · {surf_wd} mm · M72 ~{surf_lens} mm"),
         ("Px tvärs / rader per bräda", "16 384 px · ~455 rader"),
     ]),
     (600, C_PROF, "HÖJD — LASERTRIANGULERING", [
