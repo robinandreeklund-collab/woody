@@ -35,13 +35,23 @@ class LineLaser:
 
 @dataclass
 class SurfaceCam:
-    name: str = "Hikrobot 8K färg-linjekamera (10GigE)"   # bekräfta MV-XGLC83BC
+    """MindVision MV-XGLC83BM-T4-90 (verifierat datablad). Mono 4-line TDI; färg
+    fås via kamerans 3 strobade ljuskälle-utgångar (sekventiell RGB-belysning)."""
+    name: str = "MindVision MV-XGLC83BM-T4-90"  # [datablad]
     px_across: int = 8192                 # [datablad] 8K
-    line_rate_hz: float = 109_000.0       # [datablad] (mono-max; färg begränsas av 10GigE)
-    pixel_um: float = 5.0                 # [datablad] (8K-familjen ~5 µm – bekräfta)
-    channels: int = 3                     # [designval] färg (RGB tri-linjär)
-    bit_depth: int = 8                    # [datablad] per kanal
-    interface: str = "10GigE"             # [datablad]
+    tdi_stages: int = 4                   # [datablad] 4-line TDI
+    pixel_um: float = 7.0                 # [datablad] 7×7 µm (sensor 57,344 mm)
+    mono: bool = True                     # [datablad] (färg via 3 strobade ljus)
+    color_strobe_lights: int = 3          # [datablad] 3 ljuskälle-utgångar -> RGB
+    line_rate_hz: float = 109_890.0       # [datablad] mono 8-bit (87,7 kHz @ 12-bit)
+    bit_depth: int = 8                    # [datablad] (10/12-bit möjligt)
+    interface: str = "10GBase-T (10GigE)" # [datablad]
+    mount: str = "M72, fläns 12 mm"       # [datablad]
+    power_w: float = 10.0                 # [datablad] <10 W
+
+    @property
+    def sensor_w_mm(self) -> float:
+        return self.px_across * self.pixel_um / 1000.0   # 57.344 mm
 
 
 @dataclass
@@ -74,6 +84,7 @@ class Rig:
 
     # --- ytkanal ---
     surface_target_mm_per_px: float = 0.33  # [designval] önskad ytupplösning
+    surface_wd_mm: float = 1500.0           # [designval] arbetsavstånd ytkamera
 
     # --- profil/triangulering: optik som hänger ihop ---
     profile_lens_mm: float = 8.0          # [designval] objektiv (8 mm -> ~1,1 m FOV/modul)
@@ -102,13 +113,28 @@ class Rig:
         return self.board_length_mm / (self.n_surface_cams * self.surface_cam.px_across)
 
     @property
+    def surface_fov_per_cam_mm(self) -> float:
+        return self.board_length_mm / self.n_surface_cams
+
+    @property
+    def surface_lens_mm(self) -> float:
+        """M72-objektiv för önskad FOV: f = sensor·WD/FOV."""
+        return self.surface_cam.sensor_w_mm * self.surface_wd_mm / self.surface_fov_per_cam_mm
+
+    @property
     def surface_line_rate_at_feed(self) -> float:
         return self.feed_mps * 1000.0 / self.surface_mm_per_px
 
     @property
-    def surface_max_color_line_rate_hz(self) -> float:
-        bits = self.surface_cam.px_across * self.surface_cam.bit_depth * self.surface_cam.channels
-        return 10e9 / bits
+    def surface_color_line_rate_hz(self) -> float:
+        """Effektiv färg-radtakt via 3 strobade ljus (3 mono-pass/rad)."""
+        return self.surface_cam.line_rate_hz / self.surface_cam.color_strobe_lights
+
+    @property
+    def surface_gbit_s(self) -> float:
+        """Bandbredd vid max radtakt (mono 8-bit) – ryms i 10GigE?"""
+        return self.surface_cam.px_across * self.surface_cam.bit_depth * \
+            self.surface_cam.line_rate_hz / 1e9
 
     # ---------- profil/triangulering (härledd optik) ----------
     @property
@@ -200,6 +226,8 @@ class Rig:
             "height_res_mm": round(self.height_resolution_mm, 3),
             "depth_range_mm": self.depth_range_mm,
             "surface_cams": self.n_surface_cams,
+            "surface_lens_mm": round(self.surface_lens_mm),
+            "surface_wd_mm": self.surface_wd_mm,
             "surface_mm_per_px": round(self.surface_mm_per_px, 3),
         }
 
@@ -208,7 +236,10 @@ class Rig:
             "surface_cam": self.surface_cam.name,
             "n_surface_cams": self.n_surface_cams,
             "surface_mm_per_px": round(self.surface_mm_per_px, 3),
-            "surface_max_color_line_rate_kHz@10GigE": round(self.surface_max_color_line_rate_hz / 1e3),
+            "surface_lens_mm (M72)": round(self.surface_lens_mm),
+            "surface_wd_mm": self.surface_wd_mm,
+            "surface_color_line_rate_kHz (strobe RGB)": round(self.surface_color_line_rate_hz / 1e3, 1),
+            "surface_gbit_s@max": round(self.surface_gbit_s, 1),
             "laser": self.laser.name,
             "laser_wd_mm": round(self.laser_working_distance_mm),
             "profile_cam": self.profile_cam.name,
