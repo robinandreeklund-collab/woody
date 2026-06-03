@@ -300,7 +300,7 @@
   function makeSlot() {
     const group = new T.Group();
     group.rotation.y = Math.PI / 2;        // brädans längd längs Z
-    const topGeo = new T.PlaneGeometry(BOARD_LEN, REF_W, 220, 16);
+    const topGeo = new T.PlaneGeometry(BOARD_LEN, REF_W, 240, 48);  // fler segment tvärs bredden -> vrid/skål syns
     topGeo.rotateX(-Math.PI / 2);
     const mat = new T.ShaderMaterial({
       uniforms: {
@@ -377,7 +377,7 @@
       const u = s.mat.uniforms;
       u.uChannel.value = state.channel; u.uOverlay.value = state.overlay;
       u.uDistort.value = state.distort; u.uTime.value = state.time;
-      u.uDisp.value = 0.16 * state.dispScale; u.uCoarse.value = state.coarse;
+      u.uDisp.value = 0.55 * state.dispScale; u.uCoarse.value = state.coarse;  // överdriven warp för synlighet
       u.uCutOverlay.value = state.cutOverlay;
       if (state.channel === 1) {
         const a = state.time * 1.6;

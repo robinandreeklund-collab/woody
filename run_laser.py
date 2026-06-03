@@ -49,6 +49,14 @@ def main():
     print(f"Array: {rig.n_lasers} lasrar + {rig.n_profile_cams} profilkameror, "
           f"segment {rig.seg_len_mm:.0f} mm, överlapp {rig.overlap_mm:.0f} mm, "
           f"täckning {res['coverage']*100:.0f} %")
+    print("\nMätpunkter per bräda (cross-feed), vid olika takt:")
+    for bpm in (30, 60, 90):
+        v = rig.feed_for_takt(bpm)
+        mp = rig.measurement_points(v)
+        print(f"  {bpm:3d} brädor/min ({v:.2f} m/s): laser "
+              f"{mp['laser_length_pts']}×{mp['laser_width_profiles']} "
+              f"= {mp['laser_points_per_board']:,} pkt  |  yta "
+              f"{mp['surface_px_across']}×{mp['surface_rows']} px")
 
     # ägar-/överlappskarta (varje laser en färg; överlapp markeras)
     owner_img = np.repeat(res["owner"][:, None], W, axis=1).astype(float)
@@ -72,20 +80,21 @@ def main():
     axes[2].set_title(f"Fusionerad uppmätt höjd (höjdupplösning "
                       f"≈ {rig.height_resolution_mm:.2f} mm)", fontsize=9)
 
-    # längsprofil vid mittbredd: sann vs uppmätt + lasergränser
-    cmid = W // 2
+    # längsprofiler vid mitten OCH kanterna: vrid syns som gap mellan kanterna,
+    # böj som gemensam båge (mittlinjen ensam döljer vrid).
     x_mm = np.arange(H) * MM_PER_PX / 1000.0
-    axes[3].plot(x_mm, z_true[:, cmid], color="#2f9e6e", lw=1.2, label="sann")
-    axes[3].plot(x_mm, res["z_fused"][:, cmid], color="#e8542c", lw=0.9,
-                 label="uppmätt (fusion)")
-    for (s, e, c) in res["segments"]:
-        axes[3].axvline(c / 1000.0, color="#3f86c4", lw=0.5, alpha=0.4)
+    axes[3].plot(x_mm, z_true[:, 1], color="#3f86c4", lw=1.0, label="kant A")
+    axes[3].plot(x_mm, z_true[:, W // 2], color="#2f9e6e", lw=1.2, label="mitten (böj)")
+    axes[3].plot(x_mm, z_true[:, -2], color="#a060d0", lw=1.0, label="kant B")
+    axes[3].plot(x_mm, res["z_fused"][:, W // 2], color="#e8542c", lw=0.7,
+                 alpha=0.7, label="uppmätt mitt")
     axes[3].set_xlim(0, x_mm[-1])
     axes[3].set_xlabel("position längs brädan (m)")
     axes[3].set_ylabel("höjd (mm)")
-    axes[3].legend(fontsize=8, loc="upper right")
+    axes[3].legend(fontsize=7, loc="upper right", ncol=2)
     axes[3].grid(alpha=0.3)
-    axes[3].set_title("Längsprofil vid mittbredd (blå = lasercentrum)", fontsize=9)
+    axes[3].set_title("Längsprofiler: kant A / mitten / kant B "
+                      "(kanterna isär = vrid, gemensam båge = böj)", fontsize=9)
 
     fig.suptitle(f"Linjelaser-array ({rig.laser.name}, {rig.laser.fan_angle_deg:.0f}°, "
                  f"{rig.laser.working_distance_mm:.0f} mm håll) + "

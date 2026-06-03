@@ -25,14 +25,16 @@ class WarpParams:
     cup_mm: float = 0.0       # skålning tvärs bredden
 
 
-def random_warp(rng: np.random.Generator, defect_prob: float = 0.25) -> WarpParams:
-    """Slumpar realistiska deformationer (mestadels milda, ibland kraftiga)."""
+def random_warp(rng: np.random.Generator, defect_prob: float = 0.3) -> WarpParams:
+    """Slumpar realistiska deformationer (mestadels milda, ibland kraftiga).
+    Magnituderna är i mm – synliga i datan/höjdkartan, men små mot 5,4 m
+    (därför överdrivs de i 3D-vyn för synlighet, se scene.js)."""
     scale = 3.0 if rng.random() < defect_prob else 1.0   # ibland en "skräpbräda"
     return WarpParams(
-        bow_mm=float(abs(rng.normal(0, 4.0)) * scale),
-        spring_mm=float(abs(rng.normal(0, 3.0)) * scale),
-        twist_deg=float(rng.normal(0, 1.5) * scale),
-        cup_mm=float(rng.normal(0, 0.8) * scale),
+        bow_mm=float(abs(rng.normal(0, 6.0)) * scale),
+        spring_mm=float(abs(rng.normal(0, 5.0)) * scale),
+        twist_deg=float(rng.normal(0, 3.0) * scale),
+        cup_mm=float(rng.normal(0, 1.2) * scale),
     )
 
 

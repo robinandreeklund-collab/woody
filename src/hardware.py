@@ -57,6 +57,7 @@ class ProfileCam:
     pixel_um: float = 3.45                # [datablad]
     global_shutter: bool = True           # [datablad]
     interface: str = "GigE/USB3"          # [datablad] (GC/GM = GigE, UC/UM = USB3)
+    frame_rate_hz: float = 35.0           # [datablad] full bild (snabbare med ROI)
 
 
 @dataclass
@@ -76,6 +77,7 @@ class Rig:
     tri_angle_deg: float = 30.0           # [designval] vinkel laser–kamera
     overlap_mm: float = 150.0             # [designval] överlapp mellan segment
     profile_len_fov_mm: float = 1100.0    # [designval] profilkamerans FOV längs längden
+    profile_rate_hz: float = 500.0        # [designval] profiler/s (area-kamera m. ROI)
     feed_mps: float = 0.25                # [designval] matningshastighet
 
     def __post_init__(self):
@@ -146,6 +148,34 @@ class Rig:
         prototyplasern + 5 MP-kamera över ett ~1 m-segment; dedikerad
         profilsensor ger finare. Range begränsas av DOF (lins/Scheimpflug)."""
         return self.profile_mm_per_px_len / math.tan(math.radians(self.tri_angle_deg))
+
+    # --- mätpunkter (cross-feed: brädan rör sig i sidled, sensorer längs längden) ---
+    # En profil/pixelrad per exponering; tätheten i matningsled = hastighet/takt.
+    def feed_for_takt(self, boards_per_min: float, pitch_mm: float = 250.0) -> float:
+        """Matningshastighet (m/s) för en given takt och brädpitch."""
+        return pitch_mm / 1000.0 * boards_per_min / 60.0
+
+    def measurement_points(self, feed_mps: float | None = None) -> dict:
+        """Mätpunkter per bräda vid given matning (cross-feed). Brädans bredd
+        passerar skanningsplanet; tätheten tvärs matningen beror på hastigheten."""
+        v = feed_mps if feed_mps is not None else self.feed_mps
+        # höjd/laser: punkter längs längden (alla profilkameror) × profiler tvärs bredden
+        length_pts = self.n_profile_cams * self.profile_cam.width_px
+        prof_pitch_mm = v * 1000.0 / self.profile_rate_hz
+        width_profiles = self.board_width_mm / prof_pitch_mm
+        # yta/färg: px tvärs längden × pixelrader medan bredden passerar
+        surf_px_across = self.n_surface_cams * self.surface_cam.px_across
+        surf_rows = self.board_width_mm / self.surface_mm_per_px   # kvadratiska px
+        return {
+            "feed_mps": round(v, 3),
+            "laser_length_pts": length_pts,
+            "laser_width_profiles": round(width_profiles),
+            "laser_width_pitch_mm": round(prof_pitch_mm, 3),
+            "laser_points_per_board": round(length_pts * width_profiles),
+            "surface_px_across": surf_px_across,
+            "surface_rows": round(surf_rows),
+            "surface_px_per_board": round(surf_px_across * surf_rows),
+        }
 
     def summary(self) -> dict:
         return {

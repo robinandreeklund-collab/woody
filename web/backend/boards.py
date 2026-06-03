@@ -243,8 +243,9 @@ def measured_height(label_img, mm_per_px, seed):
 
 
 def _height_png_b64(z_img: np.ndarray) -> str:
-    """Höjdavvikelse (mm) -> gråskala-PNG (motorns t = 22 + (r/255−0.5)·12)."""
-    g = np.clip(z_img / 12.0 + 0.5, 0.0, 1.0)
+    """Höjdavvikelse (mm) -> gråskala-PNG. Range ±12 mm så warp (böj/vrid) inte
+    klipps; 0.5 = plant. (3D-vyn överdriver displacementet för synlighet.)"""
+    g = np.clip(z_img / 24.0 + 0.5, 0.0, 1.0)
     rgb = np.repeat((g * 255).astype(np.uint8)[..., None], 3, axis=2)
     return _png_b64(rgb)
 
