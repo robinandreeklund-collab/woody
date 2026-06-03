@@ -57,6 +57,7 @@ const makeData = () => {
     lengthDevMm: patch && patch.lengthDevMm != null ? patch.lengthDevMm : 0,
     lengthOk: patch ? patch.lengthOk !== false : true,
     strength: patch && patch.strength ? patch.strength : null,
+    straightness: patch && patch.straightness ? patch.straightness : null,
     defects: patch && patch.defects ? patch.defects : [],
   });
   return d;

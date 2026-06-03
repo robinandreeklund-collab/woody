@@ -33,6 +33,12 @@ export interface SimState {
     laserOverlapFrac: number; surfaceOverlapFrac: number;
   } | null;
   roundStats: { n: number; rejected: number; valueSum: number; defects: Record<string, number> };
+  straightness: {
+    springCenterMm: number[]; bowCenterMm: number[]; win2mFrac: number;
+    worstSpring: { a: number; b: number; sag: number };
+    worstBow: { a: number; b: number; sag: number };
+    springMm2m: number; bowMm2m: number; twistMm2m: number;
+  } | null;
 }
 
 export const useSimStore = create<SimState>(() => ({
@@ -60,4 +66,5 @@ export const useSimStore = create<SimState>(() => ({
   defects: [],
   sensorBoard: null,
   roundStats: { n: 0, rejected: 0, valueSum: 0, defects: {} },
+  straightness: null,
 }));

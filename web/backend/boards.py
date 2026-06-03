@@ -240,10 +240,9 @@ def measured_height(label_img, mm_per_px, seed):
     zf = res["z_fused"]                                    # (längd, bredd) uppmätt höjd
     z_img = np.ascontiguousarray(zf.T)                     # tillbaka till bildorient.
 
-    # Deformationer mätta som VÄRSTA värde över en 2 m-mätsträcka ur profilen
-    # (planböj = mittlinjens sagitta, skevhet = ändring i kant-höjdskillnad).
-    bow2m, twist2m = _deformations_2m(zf, sim_mmpx)              # ur laserhöjden
-    spring2m = _measure_kantkrok(p, length_mm, width_mm)         # ur silhuettens kanter
+    # Rakhet: kantkrok ur silhuetten, planböj/skevhet ur laserhöjden, med
+    # centerlinjer + värsta 2 m-fönster (för rakhetsvyn i panelen).
+    st = _straightness(zf, p, length_mm, width_mm, sim_mmpx)
 
     layout = {"nLasers": rig.n_lasers, "nCams": rig.n_profile_cams,
               "nSurfaceCams": rig.n_surface_cams,
@@ -252,54 +251,61 @@ def measured_height(label_img, mm_per_px, seed):
               "segLenMm": round(rig.seg_len_mm), "overlapMm": rig.overlap_mm,
               "heightResMm": round(rig.height_resolution_mm, 2),
               "coverage": round(res["coverage"], 3), "warp": warp_summary(p),
-              "bowMm2m": round(bow2m, 1), "springMm2m": round(spring2m, 1),
-              "twistMm2m": round(twist2m, 1)}
+              "bowMm2m": st["bowMm2m"], "springMm2m": st["springMm2m"],
+              "twistMm2m": st["twistMm2m"], "straightness": st}
     return z_img, layout
 
 
-def _measure_kantkrok(p, length_mm: float, width_mm: float,
-                      lat_res_mm: float = 0.45, n: int = 700) -> float:
-    """Mäter kantkrok (lateral krok) ur brädans SILHUETT: detekterar de två
-    långsidornas läge per längdrad (kvantiserat till kamerans pixel + kantbrus),
-    bildar centerlinjen och tar värsta sagitta över en 2 m-mätsträcka."""
-    from src.geometry import lateral_offset
-    c = lateral_offset(n, p).astype(np.float64)        # sann lateral centerlinje (mm)
-    rng = np.random.default_rng(int(abs(p.spring_mm) * 1000) + 1)
-    left = c - width_mm / 2.0
-    right = c + width_mm / 2.0
-    # kamerans kantdetektion: kvantisera kanterna till pixelraster + brus
-    qL = np.round((left + rng.normal(0, lat_res_mm * 0.4, n)) / lat_res_mm) * lat_res_mm
-    qR = np.round((right + rng.normal(0, lat_res_mm * 0.4, n)) / lat_res_mm) * lat_res_mm
-    cm = (qL + qR) / 2.0                                # uppmätt centerlinje
-    mm_per_row = length_mm / n
-    win = max(4, int(round(2000.0 / mm_per_row)))
-    best = 0.0
-    for i in range(0, max(1, n - win), max(1, win // 4)):
-        seg = cm[i:i + win]
+def _worst_window(arr: np.ndarray, win: int):
+    """Värsta sagitta (avvikelse från kordan) över ett glidande fönster.
+    Returnerar (sagitta, startfrac, slutfrac)."""
+    best, bi = 0.0, 0
+    step = max(1, win // 4)
+    for i in range(0, max(1, len(arr) - win), step):
+        seg = arr[i:i + win]
         if len(seg) < 3:
             continue
         chord = np.linspace(seg[0], seg[-1], len(seg))
-        best = max(best, float(np.max(np.abs(seg - chord))))
-    return best
+        s = float(np.max(np.abs(seg - chord)))
+        if s > best:
+            best, bi = s, i
+    return best, bi / len(arr), min(1.0, (bi + win) / len(arr))
 
 
-def _deformations_2m(zf: np.ndarray, mm_per_row: float):
-    """Värsta planböj (mittlinjens sagitta) och skevhet (kant-höjdskillnadens
-    ändring) över ett 2 m-fönster, ur den uppmätta höjdkartan."""
+def _straightness(zf: np.ndarray, p, length_mm: float, width_mm: float,
+                  mm_per_row: float, lat_res_mm: float = 0.45, n_out: int = 160):
+    """Rakhetsmått + centerlinjer: kantkrok ur silhuettens kanter (lateral),
+    planböj + skevhet ur laserhöjden, med värsta 2 m-fönster för var och en."""
+    from src.geometry import lateral_offset
     H, W = zf.shape
     win = max(4, int(round(2000.0 / mm_per_row)))
-    mid = zf[:, W // 2]
-    edge = zf[:, min(3, W - 1)] - zf[:, max(0, W - 4)]     # kant-till-kant-höjd
-    bow = twist = 0.0
-    step = max(1, win // 4)
-    for i in range(0, max(1, H - win), step):
-        seg = mid[i:i + win]
-        if len(seg) < 3:
-            continue
-        chord = np.linspace(seg[0], seg[-1], len(seg))
-        bow = max(bow, float(np.max(np.abs(seg - chord))))
-        twist = max(twist, float(abs(edge[i + len(seg) - 1] - edge[i])))
-    return bow, twist
+
+    # kantkrok (lateral) ur silhuettens detekterade kanter
+    c = lateral_offset(H, p).astype(np.float64)
+    rng = np.random.default_rng(int(abs(p.spring_mm) * 1000) + 1)
+    qL = np.round(((c - width_mm / 2) + rng.normal(0, lat_res_mm * 0.4, H)) / lat_res_mm) * lat_res_mm
+    qR = np.round(((c + width_mm / 2) + rng.normal(0, lat_res_mm * 0.4, H)) / lat_res_mm) * lat_res_mm
+    spring_c = (qL + qR) / 2.0
+    # planböj (höjd, mittlinjen) + skevhet (kant-höjdskillnad)
+    bow_c = zf[:, W // 2].astype(np.float64)
+    edge = zf[:, min(3, W - 1)] - zf[:, max(0, W - 4)]
+
+    s_sag, s_a, s_b = _worst_window(spring_c, win)
+    b_sag, b_a, b_b = _worst_window(bow_c, win)
+    t_sag, t_a, t_b = _worst_window(edge, win)
+
+    def ds(a):
+        idx = np.linspace(0, len(a) - 1, n_out).astype(int)
+        v = a[idx] - float(a.mean())
+        return [round(float(x), 2) for x in v]
+
+    return {
+        "bowMm2m": round(b_sag, 1), "springMm2m": round(s_sag, 1), "twistMm2m": round(t_sag, 1),
+        "springCenterMm": ds(spring_c), "bowCenterMm": ds(bow_c),
+        "win2mFrac": round(win / H, 3),
+        "worstSpring": {"a": round(s_a, 3), "b": round(s_b, 3), "sag": round(s_sag, 1)},
+        "worstBow": {"a": round(b_a, 3), "b": round(b_b, 3), "sag": round(b_sag, 1)},
+    }
 
 
 def _height_png_b64(z_img: np.ndarray) -> str:
@@ -365,6 +371,7 @@ def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board
         "lengthTolMm": LENGTH_TOL_MM,
         "lengthOk": bool(abs(measured_len - NOMINAL_LENGTH_MM) <= LENGTH_TOL_MM),
         "strength": {"cclass": grade["cclass"], "limiting": grade["limiting"]},
+        "straightness": layout.get("straightness"),
         "defects": defects[:6],
         "color_png": _png_b64(color_s),
         "label_png": _labelid_png_b64(label_s),
