@@ -2,3 +2,6 @@ __pycache__/
 *.pyc
 .venv/
 venv/
+
+# Modellvikter – tränas vid behov av run_pipeline.py, inte versionerade
+*.pt

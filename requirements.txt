@@ -1,2 +1,11 @@
+# Förvärvssimulering (run_demo.py)
 numpy>=1.24
 matplotlib>=3.7
+
+# Segmenteringsmodell + träning (src/model.py, src/train.py, run_pipeline.py)
+# CPU-hjul räcker för verifiering; installera GPU-bygge för skarp träning:
+#   pip install torch --index-url https://download.pytorch.org/whl/cu121
+torch>=2.0
+
+# Valfritt: behövs bara av KodytekDataset för att läsa riktiga bild/mask-par
+# pillow>=10.0

@@ -69,3 +69,59 @@ CLASS_COLORS = {  # för etikettöverlägg (RGB 0-1)
     5: (0.65, 0.45, 0.85),
     6: (0.95, 0.85, 0.10),
 }
+
+
+@dataclass
+class SegConfig:
+    """Hyperparametrar för segmenteringsmodellen och dess träning.
+
+    Standardvärdena är satta för att köra och verifieras på CPU mot den
+    syntetiska generatorn på några minuter. För skarp träning mot Kodytek
+    på GPU: höj n_train_boards/epochs/base_channels och peka loaders mot
+    KodytekDataset (se src/dataset.py).
+    """
+    # Data (samma geometri som demobrädan i run_demo)
+    n_classes: int = 7
+    mm_per_px: float = 0.5
+    board_length_mm: float = 1200.0
+    board_width_mm: float = 125.0
+    tile: int = 160                  # kvadratisk träningsruta (px); delbar med 2**depth
+    n_train_boards: int = 12         # antal syntetiska brädor i träningsmängden
+    n_val_boards: int = 3
+    train_seed: int = 1000           # fröoffset så tränings-/valbrädor aldrig krockar
+    val_seed: int = 9000
+    p_defect_tile: float = 0.5       # andel rutor som centreras kring en defekt
+
+    # Modell (kompakt U-Net)
+    base_channels: int = 24
+    depth: int = 3                   # antal ned-/uppsamplingssteg
+
+    # Träning
+    epochs: int = 8
+    steps_per_epoch: int = 50
+    batch_size: int = 8
+    lr: float = 1e-3
+    weight_decay: float = 1e-4
+    dice_weight: float = 0.3         # total = CE + dice_weight * Dice
+    use_class_weights: bool = True   # väg upp sällsynta defektklasser i CE
+    augment: bool = True
+    num_workers: int = 0
+
+    # Körning / utdata
+    device: str = "auto"             # "auto" | "cpu" | "cuda"
+    out_dir: str = "outputs"
+    ckpt_name: str = "seg_unet.pt"
+    seed: int = 0
+
+    def resolved_device(self) -> str:
+        if self.device != "auto":
+            return self.device
+        import torch
+        return "cuda" if torch.cuda.is_available() else "cpu"
+
+    @classmethod
+    def smoke(cls) -> "SegConfig":
+        """Minimal konfig för snabb rökverifiering (sekunder–någon minut)."""
+        return cls(tile=128, n_train_boards=4, n_val_boards=2,
+                   base_channels=16, depth=3, epochs=2, steps_per_epoch=15,
+                   batch_size=6)
