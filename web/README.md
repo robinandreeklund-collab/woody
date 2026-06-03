@@ -16,7 +16,13 @@ i repo-roten `src/`. Vald väg: **full React + react-three-fiber-frontend** mot 
   - `POST /api/cutplan` – `cutplan.py`, en **trogen port av js/cutplan.js**
     (verifierad identisk mot JS-originalet via node).
   - `WS /ws/stream` – driver animationen, en bräda/s (board → segment → cutplan).
-- **Frontend (`web/frontend/`) – React/r3f-port pågår.**
+- **Frontend (`web/frontend/`) – React + Vite + TypeScript, byggbar.**
+  Skal + state (Zustand) i React; prototypens beprövade motor (Three.js-scen,
+  panel/readout-canvas, kapalgoritm) körs oförändrad under `src/engine/` så
+  look/feel bevaras exakt. `npm run build` går igenom. Drivs just nu av
+  klientside-generatorn; återstår att byta datakällan till backendens endpoints
+  (kräver att backenden levererar samtliga lager motorn konsumerar). Se
+  `web/frontend/README.md`.
 
 ## Köra backenden
 
