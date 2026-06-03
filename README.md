@@ -38,8 +38,14 @@ segmentering och kapoptimering – i rundor om 120 brädor. Ett kommando fixar
 miljö, beroenden, bygge och startar GUI:t:
 
 ```bash
+# macOS / Linux
 ./start.sh                          # http://localhost:8000 (syntetisk data)
 ./start.sh --with-kodytek --train   # riktig Kodytek-data + träna modellen (GPU)
+```
+```powershell
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -File .\start.ps1
+powershell -ExecutionPolicy Bypass -File .\start.ps1 -WithKodytek -Train   # GPU (installerar CUDA-torch)
 ```
 
 React/Vite-frontend (`web/frontend`) mot en FastAPI-backend (`web/backend`) som
