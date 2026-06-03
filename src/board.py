@@ -1,9 +1,15 @@
 """Genererar en syntetisk bräda: procedurell träyta + defekter.
 
-Returnerar tre lager som motsvarar de fysiska kanalerna i riggen:
-  - color  : HxWx3 uint8   (färgkamera -> kvist, blånad, märg)
-  - label  : HxW   uint8   (facit/ground truth, klass-id enligt config.CLASSES)
-  - height : HxW   float   (laserprofil -> mått, vankant; mm över banan)
+Returnerar lager som motsvarar de fysiska kanalerna i riggen:
+  - color       : HxWx3 uint8   (färgkamera -> kvist, blånad, märg)
+  - label       : HxW   uint8   (facit/ground truth, klass-id enligt config.CLASSES)
+  - height      : HxW   float   (laserprofil -> mått, vankant; mm över banan)
+  - fiber_angle : HxW   float32 (fiberriktning för tracheid; vinkel mot längdaxeln)
+  - knots       : lista (r, c, radie_px, dead) – kvistarnas lägen
+
+color/height/fiber_angle matar i sin tur de kompletterande sensorkanalerna:
+fotometrisk stereo (photometric.py), tracheid (tracheid.py) och undersidan
+(underside.py).
 
 Axlar: axel 0 = längs brädans LÄNGD (raderna), axel 1 = tvärs BREDDEN (kolumnerna).
 Kolumnaxeln är samma som matningsriktningen i sidled -> blir skanningsaxeln.
@@ -51,6 +57,7 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
     height = np.full((H, W), thickness_mm, float)
 
     # --- Kvistar (levande + döda) ---
+    knots = []  # (r0, c0, radie_px, dead) – används för fiberriktningen nedan
     n_knots = rng.integers(3, 6)
     for _ in range(n_knots):
         r0 = rng.integers(int(0.05 * H), int(0.95 * H))
@@ -58,6 +65,7 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
         ra = rng.integers(int(8 / mm_per_px), int(20 / mm_per_px))
         rc = int(ra * rng.uniform(0.6, 1.0))
         dead = rng.random() < 0.4
+        knots.append((r0, c0, max(ra, rc), dead))
         m = _ellipse_mask(H, W, r0, c0, ra, rc)
         if dead:
             color[m] = np.array([70, 45, 30], float)
@@ -118,6 +126,20 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
         color[:, c0 - half:c0 + half] = np.array([90, 60, 40], float)
         label[:, c0 - half:c0 + half] = 6
 
+    # --- Fiberriktning (grund för tracheid-effekten) ---
+    # Ådringen löper längs längden (axel 0) men böjer av kring kvistar som
+    # strömlinjer kring ett hinder. fiber_angle = vinkel mot längdaxeln (rad);
+    # 0 = perfekt längs längden, |vinkel| stor nära kvist = störd fiber.
+    fiber_angle = 0.05 * np.sin(2 * np.pi * rr / max(40.0, H / 5.0))  # mild vingling
+    for (kr, kc, kR, _dead) in knots:
+        dr = rr - kr
+        dc = cc - kc
+        falloff = (kR * kR) / (dr * dr + dc * dc + kR * kR)   # 1 vid centrum -> 0 (1/r^2)
+        swirl = np.arctan2(dc, dr)                            # radiell vinkel
+        fiber_angle += np.radians(40.0) * falloff * np.sin(swirl)
+    fiber_angle = fiber_angle.astype(np.float32)
+
     color = np.clip(color, 0, 255).astype(np.uint8)
     return {"color": color, "label": label, "height": height,
+            "fiber_angle": fiber_angle, "knots": knots,
             "mm_per_px": mm_per_px}

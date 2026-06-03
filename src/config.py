@@ -125,3 +125,25 @@ class SegConfig:
         return cls(tile=128, n_train_boards=4, n_val_boards=2,
                    base_channels=16, depth=3, epochs=2, steps_per_epoch=15,
                    batch_size=6)
+
+
+@dataclass
+class SensorRig:
+    """Parametrar för de kompletterande sensorkanalerna (utöver färg+laser).
+
+    Fotometrisk stereo: riktade LED för relief/sprickor.
+    Tracheid:           laserspridning -> fiberriktning/hållfasthet.
+    Undersida:          kamera underifrån genom springorna mellan kedjorna.
+    """
+    # Fotometrisk stereo
+    ps_n_lights: int = 4              # antal riktade LED runt brädan
+    ps_elevation_deg: float = 30.0    # ljusets höjd över ytan
+    ps_start_deg: float = 0.0
+
+    # Tracheid-effekt
+    tracheid_clear_aspect: float = 2.6  # spotens längd/bredd i ren ved (kvist -> ~1)
+
+    # Undersida via kedjespringor
+    n_chains: int = 6                 # antal transportkedjor under brädan
+    chain_width_mm: float = 25.0      # bredd per kedja (ockluderar undersidan)
+    underside_seed_offset: int = 4096  # eget frö -> undersidan har egna defekter

@@ -19,6 +19,9 @@ tränas skarpt på GPU.
    distorsion) och tjocklek/vankant ur en laserhöjdprofil.
 4. **Segmenteringsmodell**: kompakt U-Net, träningsloop med CE + Dice och
    per-klass-IoU, samt inferens som kaklar och syr ihop en hel bräda.
+5. **Kompletterande sensorkanaler**: fotometrisk stereo (riktade LED →
+   relief/sprickor), tracheid-effekten (laserspridning → fiberriktning och
+   snedfibrighet) och undersidesavbildning genom springorna mellan kedjorna.
 
 ## Geometri som modelleras
 
@@ -32,6 +35,7 @@ tränas skarpt på GPU.
 pip install -r requirements.txt
 
 python run_demo.py        # bara förvärvssimuleringen (numpy + matplotlib)
+python run_sensors.py     # fotometrisk stereo, tracheid, undersida (figur 5–7)
 python run_pipeline.py    # hela flödet: förvärv -> data -> träning -> inferens
 python run_pipeline.py --smoke   # minimal rökverifiering på sekunder
 
@@ -45,6 +49,9 @@ Figurer hamnar i `outputs/`:
 - `2_encoder_vs_time.png` – encoder-trigger vs tids-trigger (distorsion)
 - `3_laser_profile.png` – tjocklek och vankant ur laserprofilen
 - `4_segmentation.png` – facit vs modellens prediktion på en osedd bräda
+- `5_photometric.png` – fotometrisk stereo: riktade LED → relief/sprickor
+- `6_tracheid.png` – tracheid: fiberriktning + snedfibrighet (kvistindikator)
+- `7_underside.png` – undersida synlig genom kedjespringorna
 
 ## Struktur
 
@@ -58,7 +65,11 @@ src/dataset.py       syntetiskt dataset (+ Kodytek-redo loader)
 src/losses.py        CE + Dice, klassvikter, IoU-metrik
 src/train.py         träningsloop med checkpointing
 src/infer.py         kakla + sy ihop prediktion över en hel bräda
+src/photometric.py   fotometrisk stereo: normaler + relief ur höjdkartan
+src/tracheid.py      fiberriktning + snedfibrighet ur fiberfältet
+src/underside.py     undersida + ocklusion från kedjespringorna
 run_demo.py          kör förvärvssimuleringen och genererar figur 1–3
+run_sensors.py       genererar sensorfigurerna 5–7
 run_pipeline.py      hela flödet end-to-end och genererar figur 4
 ```
 
@@ -76,6 +87,7 @@ Modell- och träningskoden är ramverksidentisk på CPU och GPU. För skarp kör
 
 ## Nästa steg (konceptuellt, ej i koden ännu)
 
-- Fotometrisk stereo (riktade LED för sprickor/relief).
-- Tracheid-effekten (laserspridning för fiberriktning/hållfasthet).
-- Undersida via springorna mellan kedjorna; röntgen för inre defekter.
+- Stacka sensorkanalerna (relief, fiberavvikelse) som extra ingångar till
+  segmenteringsnätet utöver färg.
+- Röntgen för inre defekter (märgspricka, inre kvist).
+- Webbgränssnitt som visar hela flödet i 3D – se `web/DESIGN.md`.
