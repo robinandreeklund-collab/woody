@@ -139,6 +139,60 @@ def defect_fraction_per_row(label: np.ndarray, n_classes: int = 7) -> np.ndarray
     return (label != 0).mean(1)
 
 
+def plot_cut_plan(board: dict, label: np.ndarray, plan: dict, naive: dict,
+                  source: str, path) -> None:
+    """Ritar kapplanen: brädan med kapsnitt + bitarnas klass/längd/värde, och en
+    defektkurva som visar varför kapen ligger där de gör. Lazy matplotlib-import
+    så att kärnan i modulen kan användas utan plottberoenden."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+
+    color = board["color"].astype(np.float32) / 255.0
+    H, W = label.shape
+    mm = board["mm_per_px"]
+    board_m = H * mm / 1000.0
+    dev = defect_fraction_per_row(label)
+    x_m = np.arange(H) * mm / 1000.0
+
+    fig, axes = plt.subplots(2, 1, figsize=(11, 5),
+                             gridspec_kw={"height_ratios": [2, 1]})
+    axes[0].imshow(np.transpose(color, (1, 0, 2)), aspect="auto",
+                   extent=(0, board_m, 0, W))
+    for pc in plan["pieces"]:
+        x0, x1 = pc["start_mm"] / 1000, pc["end_mm"] / 1000
+        axes[0].axvspan(x0, x1, color=GRADE_COLORS[pc["grade"]], alpha=0.32)
+        axes[0].axvline(x0, color="k", lw=1.2)
+        axes[0].axvline(x1, color="k", lw=1.2)
+        axes[0].text((x0 + x1) / 2, W * 0.5,
+                     f"{pc['length_m']:.1f} m\nklass {pc['grade']}\n{pc['value']:.0f} kr",
+                     ha="center", va="center", fontsize=8, weight="bold")
+    axes[0].set_yticks([])
+    axes[0].set_xlabel("position längs brädan (m)")
+    gain = plan["total_value"] - naive["total_value"]
+    axes[0].set_title(f"Kapplan ({source}) – totalt {plan['total_value']:.0f} kr "
+                      f"(+{gain:.0f} kr mot naiv längsta-först), "
+                      f"utbyte {plan['yield_frac']*100:.0f} %, "
+                      f"spill {plan['waste_mm']/1000:.2f} m")
+
+    axes[1].fill_between(x_m, dev, color="#c0392b", alpha=0.5)
+    for pc in plan["pieces"]:
+        axes[1].axvspan(pc["start_mm"] / 1000, pc["end_mm"] / 1000,
+                        color=GRADE_COLORS[pc["grade"]], alpha=0.18)
+    axes[1].set_xlim(0, board_m)
+    axes[1].set_ylabel("defektandel")
+    axes[1].set_xlabel("position längs brädan (m)")
+    axes[1].grid(alpha=0.3)
+
+    handles = [Patch(facecolor=GRADE_COLORS[g], edgecolor="0.3", label=f"klass {g}")
+               for g in ("A", "B", "C", "reject")]
+    fig.legend(handles=handles, loc="lower center", ncol=4, fontsize=8, frameon=False)
+    fig.tight_layout(rect=(0, 0.05, 1, 1))
+    fig.savefig(path, dpi=100)
+    plt.close(fig)
+
+
 def format_plan(plan: dict) -> str:
     lines = [f"Kapplan: {len(plan['pieces'])} bitar, totalvärde "
              f"{plan['total_value']:.0f} kr, utbyte {plan['yield_frac']*100:.0f} %"]

@@ -38,8 +38,9 @@ pip install -r requirements.txt
 
 python run_demo.py        # bara förvärvssimuleringen (numpy + matplotlib)
 python run_sensors.py     # fotometrisk stereo, tracheid, undersida (figur 5–7)
-python run_cutting.py     # kapoptimering: var ska brädan sågas (figur 8)
-python run_pipeline.py    # hela flödet: förvärv -> data -> träning -> inferens
+python run_cutting.py     # kapoptimering fristående: var ska brädan sågas (figur 8)
+python run_pipeline.py    # hela flödet på samma bräda: förvärv -> träning ->
+                          # segmentering -> kapoptimering (figur 4 + 8)
 python run_pipeline.py --smoke   # minimal rökverifiering på sekunder
 
 python -m src.train             # träna bara modellen (full config)
@@ -77,8 +78,8 @@ src/underside.py     undersida + ocklusion från kedjespringorna
 src/cutting.py       kapoptimering (DP) + kvalitetsklassning och värdemodell
 run_demo.py          kör förvärvssimuleringen och genererar figur 1–3
 run_sensors.py       genererar sensorfigurerna 5–7
-run_cutting.py       kapoptimering på en hel bräda och genererar figur 8
-run_pipeline.py      hela flödet end-to-end och genererar figur 4
+run_cutting.py       fristående kapoptimering på en hel bräda (figur 8)
+run_pipeline.py      hela flödet på samma bräda: segmentering + kapplan (fig 4+8)
 run_ablation.py      ablation: nyttan av sensorkanalerna som modellingång
 ```
 
