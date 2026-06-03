@@ -82,6 +82,9 @@ class SegConfig:
     """
     # Data (samma geometri som demobrädan i run_demo)
     n_classes: int = 7
+    dataset: str = "synthetic"       # "synthetic" | "kodytek"
+    data_root: str = ""              # rastrerad Kodytek-root (images/ + masks/)
+    val_frac: float = 0.15           # tränings-/valdelning för kodytek
     extra_channels: tuple = ()       # extra ingångar utöver RGB, t.ex.
     #                                  ("relief", "grain_dev"). Bäst på subtil/
     #                                  färgtvetydig data – se run_ablation.py.
@@ -133,6 +136,16 @@ class SegConfig:
         return cls(tile=128, n_train_boards=4, n_val_boards=2,
                    base_channels=16, depth=3, epochs=2, steps_per_epoch=15,
                    batch_size=6)
+
+    @classmethod
+    def gpu_kodytek(cls, data_root: str) -> "SegConfig":
+        """Skarp träning mot rastrerad Kodytek på GPU (t.ex. RTX 5090).
+        device='auto' plockar upp GPU:n. Justera fritt."""
+        return cls(dataset="kodytek", data_root=data_root,
+                   tile=320, base_channels=48, depth=4,
+                   epochs=40, steps_per_epoch=200, batch_size=16,
+                   num_workers=8, extra_channels=(), device="auto",
+                   ckpt_name="seg_kodytek.pt")
 
 
 @dataclass

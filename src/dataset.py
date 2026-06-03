@@ -130,22 +130,24 @@ class SyntheticBoardDataset(Dataset):
         return counts
 
 
+_IMG_EXTS = ("*.png", "*.bmp", "*.jpg", "*.jpeg")
+
+
 class KodytekDataset(Dataset):
-    """Riktiga bild/mask-par. Förväntad katalogstruktur::
+    """Riktiga Kodytek-bilder + rastrerade klass-id-masker. Katalogstruktur::
 
         root/
-          images/ <namn>.png        (RGB)
-          masks/  <namn>.png         (gråskala, pixelvärde = klass-id 0..6)
+          images/ <namn>.(png|bmp|jpg)   (RGB-foton, t.ex. 2800x1024)
+          masks/  <namn>.png              (gråskala, pixelvärde = klass-id 0..6)
 
-    Kodyteks egna annoteringar (polygoner/boxar) rasteriseras först till
-    sådana klass-id-masker; klasserna mappas till config.CLASSES. Byt till
-    denna i make_loaders() när data finns på disk.
+    Masker skapas av src/kodytek.py (Kodyteks semantiska kartor/boxar -> GUI:ts
+    7 klasser). Tränings-/valdelning sker deterministiskt per filnamn.
     """
 
     def __init__(self, cfg: SegConfig, root: str, split: str = "train"):
         try:
             from PIL import Image
-        except ImportError as e:  # pragma: no cover - bara relevant med riktig data
+        except ImportError as e:  # pragma: no cover
             raise ImportError("KodytekDataset kräver Pillow: pip install pillow") from e
         self._Image = Image
         self.cfg = cfg
@@ -153,36 +155,83 @@ class KodytekDataset(Dataset):
         self.tile = cfg.tile
         self.augment = cfg.augment and split == "train"
         root = Path(root)
-        self.images = sorted((root / "images").glob("*.png"))
         self.masks_dir = root / "masks"
-        if not self.images:
-            raise FileNotFoundError(f"Inga bilder i {root/'images'}")
-        self.rng = np.random.default_rng(cfg.seed)
+        files = []
+        for ext in _IMG_EXTS:
+            files += (root / "images").glob(ext)
+        files = sorted(p for p in files if (self.masks_dir / (p.stem + ".png")).exists())
+        if not files:
+            raise FileNotFoundError(f"Inga bild/mask-par i {root}")
+
+        # deterministisk split per filnamn (hash) -> stabil mellan körningar
+        import hashlib
+        def in_val(p):
+            h = int(hashlib.md5(p.stem.encode()).hexdigest(), 16) % 1000
+            return h < cfg.val_frac * 1000
+        self.files = [p for p in files if in_val(p) == (split == "val")] or files
+        self.rng = np.random.default_rng(cfg.seed + (0 if split == "train" else 1))
 
     def __len__(self) -> int:
-        return len(self.images)
+        if self.split == "train":
+            return self.cfg.steps_per_epoch * self.cfg.batch_size
+        return len(self.files)
+
+    def _load(self, path):
+        color = np.asarray(self._Image.open(path).convert("RGB"))
+        label = np.asarray(self._Image.open(self.masks_dir / (path.stem + ".png")))
+        if label.ndim == 3:
+            label = label[..., 0]
+        return color, label
 
     def __getitem__(self, idx: int):
-        img_path = self.images[idx]
-        color = np.asarray(self._Image.open(img_path).convert("RGB"))
-        label = np.asarray(self._Image.open(self.masks_dir / img_path.name))
-        h, w = label.shape[:2]
+        if self.split == "train":
+            path = self.files[int(self.rng.integers(0, len(self.files)))]
+        else:
+            path = self.files[idx % len(self.files)]
+        color, label = self._load(path)
+        h, w = label.shape
         t = self.tile
-        r0 = int(self.rng.integers(0, max(1, h - t + 1)))
-        c0 = int(self.rng.integers(0, max(1, w - t + 1)))
-        # Riktig sensordata saknar relief/fiber-lager -> nollfyll extrakanalerna.
-        # (Byt till verkliga sensorbilder här när de finns.)
+        if self.split == "train":
+            ys, xs = np.where(label > 0)
+            if len(ys) and self.rng.random() < self.cfg.p_defect_tile:
+                k = int(self.rng.integers(0, len(ys)))
+                r0 = int(np.clip(ys[k] - t // 2, 0, max(0, h - t)))
+                c0 = int(np.clip(xs[k] - t // 2, 0, max(0, w - t)))
+            else:
+                r0 = int(self.rng.integers(0, max(1, h - t + 1)))
+                c0 = int(self.rng.integers(0, max(1, w - t + 1)))
+        else:
+            r0, c0 = max(0, (h - t) // 2), max(0, (w - t) // 2)
+
         feat = zero_filled_features(color, self.cfg.extra_channels)
         ct, lt = _crop(feat, r0, c0, t), _crop(label, r0, c0, t)
-        if self.augment and self.rng.random() < 0.5:
-            ct, lt = ct[:, ::-1], lt[:, ::-1]
+        if self.augment:
+            if self.rng.random() < 0.5:
+                ct, lt = ct[:, ::-1], lt[:, ::-1]
+            if self.rng.random() < 0.5:
+                ct, lt = ct[::-1], lt[::-1]
         return _to_tensors(np.ascontiguousarray(ct), np.ascontiguousarray(lt))
+
+    def class_pixel_counts(self, sample: int = 200) -> np.ndarray:
+        """Klassfrekvens från ett urval masker (snabbt även för stora dataset)."""
+        counts = np.zeros(self.cfg.n_classes, dtype=np.float64)
+        for path in self.files[:sample]:
+            _, label = self._load(path)
+            binc = np.bincount(label.ravel(), minlength=self.cfg.n_classes)
+            counts += binc[: self.cfg.n_classes]
+        return counts
 
 
 def make_loaders(cfg: SegConfig):
-    """Returnerar (train_loader, val_loader, train_dataset) för syntetisk data."""
-    train_ds = SyntheticBoardDataset(cfg, split="train")
-    val_ds = SyntheticBoardDataset(cfg, split="val")
+    """Returnerar (train_loader, val_loader, train_dataset) enligt cfg.dataset."""
+    if cfg.dataset == "kodytek":
+        if not cfg.data_root:
+            raise ValueError("cfg.data_root måste peka på rastrerad Kodytek-root")
+        train_ds = KodytekDataset(cfg, cfg.data_root, "train")
+        val_ds = KodytekDataset(cfg, cfg.data_root, "val")
+    else:
+        train_ds = SyntheticBoardDataset(cfg, split="train")
+        val_ds = SyntheticBoardDataset(cfg, split="val")
     train_loader = DataLoader(train_ds, batch_size=cfg.batch_size, shuffle=True,
                               num_workers=cfg.num_workers, drop_last=True)
     val_loader = DataLoader(val_ds, batch_size=cfg.batch_size, shuffle=False,

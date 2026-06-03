@@ -58,8 +58,10 @@ def fit(cfg: SegConfig, verbose: bool = True):
     ckpt_path = out_dir / cfg.ckpt_name
 
     if verbose:
+        src = (f"kodytek ({len(train_ds.files)} bilder)"
+               if cfg.dataset == "kodytek" else f"syntetisk ({cfg.n_train_boards} brädor)")
         print(f"Enhet: {device} | parametrar: {count_params(model):,} | "
-              f"ruta: {cfg.tile} | träningsbrädor: {cfg.n_train_boards}")
+              f"ruta: {cfg.tile} | data: {src}")
         if class_weights is not None:
             print("Klassvikter: " +
                   ", ".join(f"{CLASSES[i]}={w:.2f}"
