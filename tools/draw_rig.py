@@ -26,7 +26,7 @@ BW = 150.0                                                   # brädbredd
 BT = 22.0                                                    # tjocklek
 
 # ---------- SVG-byggare ----------
-W, H = 1720, 2300
+W, H = 1720, 2900
 INK, MUTED, DIMC = "#23262b", "#6a6e74", "#9a9ea4"
 PAPER, PANEL, GRID = "#f7f6f1", "#ecebe4", "#dedcd3"
 C_SURF, C_PROF, C_LAS = "#2f6fb0", "#2f9e6e", "#e8542c"
@@ -315,6 +315,97 @@ for (cx, accent, title, rows) in cols:
         txt(cx + 12, ry + 19, k, 11, "start", MUTED, 700)
         txt(cx + 215, ry + 19, v, 11, "start", INK)
         line(cx + 208, ry + 6, cx + 208, ry + rowh - 6, GRID, 1)
+add('</g>')
+
+# ============================================================ VY D — SÅ FUNKAR DET
+gD = 2150
+add(f'<g transform="translate(0,{gD})">')
+line(48, 0, W - 48, 0, INK, 1.5)
+txt(48, 26, "SÅ FUNKAR DET — SIGNAL- & DATABEHANDLINGSKEDJA (bräda → sorterade bitar)",
+    17, "start", INK, 700, SANS)
+
+stages = [
+    (C_LAS, "1 INMATNING", ["cross-feed 0,25 m/s", "≈ 60 brädor/min (1/s)"]),
+    (C_SURF, "2 SENSORSVEP", ["2 färglinjekameror (yta)", "6 laser+profil (höjd) +NIR"]),
+    (C_PROF, "3 TRIANGULERING", ["höjd h = lateral/tanθ", "0,78 mm per kamera-px"]),
+    (C_SURF, "4 BILDBYGGE", ["rad-för-rad → 2D-karta", "16384×455 px · 4,41 Mpkt"]),
+    (C_PROF, "5 SEGMENTERING", ["U-Net: färg+relief+", "ådring+NIR → klasser"]),
+    (C_LAS, "6 MÄTNING", ["kvistandel, böj/krok 2 m,", "sprickor, dimension"]),
+    (C_PROF, "7 KLASSNING", ["SS 230120 per bit →", "C30/C24/C18/C14/Vrak"]),
+    (C_LAS, "8 KAP & SORT", ["DP-optimerad kapplan ·", "fasta klingor + klaffar"]),
+]
+sx0, sy, sw, sh, sgap = 56, 48, 184, 92, 19
+for i, (acc, title, lines) in enumerate(stages):
+    x = sx0 + i * (sw + sgap)
+    rect(x, sy, sw, sh, "#fff", acc, 1.4, 4)
+    rect(x, sy, sw, 24, acc, acc, 0, 4)
+    rect(x, sy + 12, sw, 12, acc, acc, 0)               # platta nederkant på rubrikremsa
+    txt(x + 10, sy + 17, title, 12, "start", PAPER, 700, SANS)
+    for j, ln in enumerate(lines):
+        txt(x + 10, sy + 44 + j * 17, ln, 10.5, "start", INK)
+    if i < len(stages) - 1:
+        arrow(x + sw + 2, sy + sh / 2, x + sw + sgap - 2, sy + sh / 2, MUTED, 1.6)
+
+# ----- tre räkneexempel -----
+ey = 168
+ew = (W - 96 - 2 * 24) / 3
+def ebox(idx, title, accent):
+    ex = 48 + idx * (ew + 24)
+    rect(ex, ey, ew, 250, "#fff", accent, 1.3, 5)
+    rect(ex, ey, ew, 26, accent, accent, 0, 5); rect(ex, ey + 13, ew, 13, accent, accent, 0)
+    txt(ex + 12, ey + 18, title, 12, "start", PAPER, 700, SANS)
+    return ex
+
+# (A) triangulering
+ax = ebox(0, "RÄKNEEXEMPEL — TRIANGULERING (höjd)", C_PROF)
+for k, s in enumerate(["lateral 0,449 mm/px  (= FOV 1098 / 2448 px)",
+                       "höjd  h = 0,449 / tan 30° = 0,78 mm",
+                       "→ 1 px kameraförskjutning ↔ 0,78 mm höjd",
+                       "mätrange i höjd: ±25 mm (50 mm)"]):
+    txt(ax + 12, ey + 46 + k * 17, s, 10.5, "start", INK)
+lx, lyb, ccy = ax + 70, ey + 236, ey + 128       # diagram under texten
+line(lx, ccy, lx, lyb, C_LAS, 3)                        # laserstråle ner
+circle(lx, lyb, 3.5, C_LAS, C_LAS, 0)
+ccx = ax + 210
+poly([(ccx - 16, ccy - 12), (ccx + 16, ccy - 12), (ccx + 16, ccy + 8), (ccx - 16, ccy + 8)], "#d8efe3", C_PROF, 1.4)
+txt(ccx, ccy - 2, "kamera", 9, "middle", C_PROF, 700)
+line(ccx, ccy + 8, lx, lyb, C_PROF, 1.1, "4 3")
+line(lx, lyb, lx, lyb - 70, DIMC, 0.8, "3 3")
+add(f'<path d="M {lx} {lyb-44} A 44 44 0 0 1 {lx+44*0.5:.1f} {lyb-44*0.866:.1f}" fill="none" stroke="{C_PROF}" stroke-width="1.1"/>')
+txt(lx + 22, lyb - 46, "θ=30°", 10, "start", C_PROF, 700)
+
+# (B) kapplan & värde
+bx = ebox(1, "RÄKNEEXEMPEL — KAPPLAN & VÄRDE", C_LAS)
+bbl, bbr = bx + 20, bx + ew - 20
+bby = ey + 58
+rect(bbl, bby, bbr - bbl, 26, "none", "#b9a96f", 1.2)
+split = bbl + (bbr - bbl) * (3.0 / 5.4)
+rect(bbl, bby, split - bbl, 26, "#2f9e6e", "#2f9e6e", 0, 0, None, 0.55)   # C30
+rect(split, bby, bbr - split, 26, "#d6a23e", "#d6a23e", 0, 0, None, 0.6)  # C18
+circle(split + (bbr - split) * 0.74, bby + 13, 5, "#7a4a2a", "#5a3418", 1.2)  # kvistgrupp
+txt((bbl + split) / 2, bby + 17, "C30", 11, "middle", "#1c5e42", 700)
+txt((split + bbr) / 2, bby + 17, "C18", 11, "middle", "#7a5a16", 700)
+line(split, bby - 8, split, bby + 34, C_LAS, 1.4, "3 2")
+txt(bbl, bby - 12, "5,4 m bräda — kvistgrupp i andra halvan", 10.5, "start", MUTED)
+txt(split, bby + 48, "↑ kap vid 3,0 m", 9.5, "middle", C_LAS)
+for k, s in enumerate(["bit 1  0–3,0 m  ren    → C30 · 3,0×95 = 285 kr",
+                       "bit 2  3,0–5,4 m kvist → C18 · 2,4×60 = 144 kr",
+                       "SUMMA per bit ............... 429 kr",
+                       "hela brädan som C18: 5,4×60 = 324 kr",
+                       "→ kapning per bit ger +105 kr"]):
+    w = 700 if k in (2, 4) else 400
+    txt(bx + 12, ey + 130 + k * 18, s, 10.5, "start", INK if k != 4 else C_PROF, w, MONO)
+
+# (C) takt & data
+cx2 = ebox(2, "RÄKNEEXEMPEL — TAKT & DATAMÄNGD", C_SURF)
+for k, s in enumerate(["matning 0,25 m/s · delning 250 mm",
+                       "→ 60 brädor/min  (1 bräda/s)",
+                       "profiltakt 500 Hz → 0,5 mm/profil",
+                       "höjd: 14 688 × 300 ≈ 4,41 milj. pkt/bräda",
+                       "yta: 16 384 × 455 ≈ 7,46 milj. px/bräda",
+                       "ytradtakt: behövs 758 Hz av 27,5 kHz",
+                       "höjd-radtakt klaras av 500 fps (ROI)"]):
+    txt(cx2 + 12, ey + 60 + k * 24, s, 11, "start", INK, 400, MONO)
 add('</g>')
 
 # ---- titelruta nere till höger ----

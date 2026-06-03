@@ -1,49 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="2300" viewBox="0 0 1720 2300" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif">
-<rect width="1720" height="2300" fill="#f7f6f1"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="1720" height="2900" viewBox="0 0 1720 2900" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif">
+<rect width="1720" height="2900" fill="#f7f6f1"/>
 <g opacity="0.5">
-<line x1="0.0" y1="0.0" x2="0.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="40.0" y1="0.0" x2="40.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="80.0" y1="0.0" x2="80.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="120.0" y1="0.0" x2="120.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="160.0" y1="0.0" x2="160.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="200.0" y1="0.0" x2="200.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="240.0" y1="0.0" x2="240.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="280.0" y1="0.0" x2="280.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="320.0" y1="0.0" x2="320.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="360.0" y1="0.0" x2="360.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="400.0" y1="0.0" x2="400.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="440.0" y1="0.0" x2="440.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="480.0" y1="0.0" x2="480.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="520.0" y1="0.0" x2="520.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="560.0" y1="0.0" x2="560.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="600.0" y1="0.0" x2="600.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="640.0" y1="0.0" x2="640.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="680.0" y1="0.0" x2="680.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="720.0" y1="0.0" x2="720.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="760.0" y1="0.0" x2="760.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="800.0" y1="0.0" x2="800.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="840.0" y1="0.0" x2="840.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="880.0" y1="0.0" x2="880.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="920.0" y1="0.0" x2="920.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="960.0" y1="0.0" x2="960.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1000.0" y1="0.0" x2="1000.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1040.0" y1="0.0" x2="1040.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1080.0" y1="0.0" x2="1080.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1120.0" y1="0.0" x2="1120.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1160.0" y1="0.0" x2="1160.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1200.0" y1="0.0" x2="1200.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1240.0" y1="0.0" x2="1240.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1280.0" y1="0.0" x2="1280.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1320.0" y1="0.0" x2="1320.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1360.0" y1="0.0" x2="1360.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1400.0" y1="0.0" x2="1400.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1440.0" y1="0.0" x2="1440.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1480.0" y1="0.0" x2="1480.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1520.0" y1="0.0" x2="1520.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1560.0" y1="0.0" x2="1560.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1600.0" y1="0.0" x2="1600.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1640.0" y1="0.0" x2="1640.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
-<line x1="1680.0" y1="0.0" x2="1680.0" y2="2300.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="0.0" x2="0.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="40.0" y1="0.0" x2="40.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="80.0" y1="0.0" x2="80.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="120.0" y1="0.0" x2="120.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="160.0" y1="0.0" x2="160.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="200.0" y1="0.0" x2="200.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="240.0" y1="0.0" x2="240.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="280.0" y1="0.0" x2="280.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="320.0" y1="0.0" x2="320.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="360.0" y1="0.0" x2="360.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="400.0" y1="0.0" x2="400.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="440.0" y1="0.0" x2="440.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="480.0" y1="0.0" x2="480.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="520.0" y1="0.0" x2="520.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="560.0" y1="0.0" x2="560.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="600.0" y1="0.0" x2="600.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="640.0" y1="0.0" x2="640.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="680.0" y1="0.0" x2="680.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="720.0" y1="0.0" x2="720.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="760.0" y1="0.0" x2="760.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="800.0" y1="0.0" x2="800.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="840.0" y1="0.0" x2="840.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="880.0" y1="0.0" x2="880.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="920.0" y1="0.0" x2="920.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="960.0" y1="0.0" x2="960.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1000.0" y1="0.0" x2="1000.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1040.0" y1="0.0" x2="1040.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1080.0" y1="0.0" x2="1080.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1120.0" y1="0.0" x2="1120.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1160.0" y1="0.0" x2="1160.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1200.0" y1="0.0" x2="1200.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1240.0" y1="0.0" x2="1240.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1280.0" y1="0.0" x2="1280.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1320.0" y1="0.0" x2="1320.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1360.0" y1="0.0" x2="1360.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1400.0" y1="0.0" x2="1400.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1440.0" y1="0.0" x2="1440.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1480.0" y1="0.0" x2="1480.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1520.0" y1="0.0" x2="1520.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1560.0" y1="0.0" x2="1560.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1600.0" y1="0.0" x2="1600.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1640.0" y1="0.0" x2="1640.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="1680.0" y1="0.0" x2="1680.0" y2="2900.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
 <line x1="0.0" y1="0.0" x2="1720.0" y2="0.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
 <line x1="0.0" y1="40.0" x2="1720.0" y2="40.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
 <line x1="0.0" y1="80.0" x2="1720.0" y2="80.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
@@ -102,9 +102,24 @@
 <line x1="0.0" y1="2200.0" x2="1720.0" y2="2200.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
 <line x1="0.0" y1="2240.0" x2="1720.0" y2="2240.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
 <line x1="0.0" y1="2280.0" x2="1720.0" y2="2280.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2320.0" x2="1720.0" y2="2320.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2360.0" x2="1720.0" y2="2360.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2400.0" x2="1720.0" y2="2400.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2440.0" x2="1720.0" y2="2440.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2480.0" x2="1720.0" y2="2480.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2520.0" x2="1720.0" y2="2520.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2560.0" x2="1720.0" y2="2560.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2600.0" x2="1720.0" y2="2600.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2640.0" x2="1720.0" y2="2640.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2680.0" x2="1720.0" y2="2680.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2720.0" x2="1720.0" y2="2720.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2760.0" x2="1720.0" y2="2760.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2800.0" x2="1720.0" y2="2800.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2840.0" x2="1720.0" y2="2840.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
+<line x1="0.0" y1="2880.0" x2="1720.0" y2="2880.0" stroke="#dedcd3" stroke-width="0.5" opacity="1"/>
 </g>
-<rect x="18.0" y="18.0" width="1684.0" height="2264.0" rx="0" fill="none" stroke="#23262b" stroke-width="2" opacity="1"/>
-<rect x="26.0" y="26.0" width="1668.0" height="2248.0" rx="0" fill="none" stroke="#6a6e74" stroke-width="0.8" opacity="1"/>
+<rect x="18.0" y="18.0" width="1684.0" height="2864.0" rx="0" fill="none" stroke="#23262b" stroke-width="2" opacity="1"/>
+<rect x="26.0" y="26.0" width="1668.0" height="2848.0" rx="0" fill="none" stroke="#6a6e74" stroke-width="0.8" opacity="1"/>
 <text x="48.0" y="70.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="26" font-weight="700" fill="#23262b" text-anchor="start">MULTISENSOR VIRKESSKANNER — MÄTRAM &amp; SENSORPLACERING</text>
 <text x="48.0" y="96.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="14" font-weight="400" fill="#6a6e74" text-anchor="start">Cross-feed (Alt A): bräda 5400 × 150 × 22 mm matas i SIDLED förbi stationära moduler. Alla optiska sensorer i portal ÖVER banan.</text>
 <line x1="48.0" y1="112.0" x2="1672.0" y2="112.0" stroke="#23262b" stroke-width="1.5" opacity="1"/>
@@ -471,14 +486,132 @@
 <text x="1355.0" y="333.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">takten sätts av profilkameran</text>
 <line x1="1348.0" y1="320.0" x2="1348.0" y2="338.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 </g>
-<rect x="1250.0" y="2180.0" width="420.0" height="84.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
-<line x1="1250.0" y1="2208.0" x2="1670.0" y2="2208.0" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1250.0" y1="2236.0" x2="1670.0" y2="2236.0" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1500.0" y1="2180.0" x2="1500.0" y2="2264.0" stroke="#23262b" stroke-width="1" opacity="1"/>
-<text x="1260.0" y="2199.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#23262b" text-anchor="start">MULTISENSOR VIRKESSKANNER</text>
-<text x="1510.0" y="2199.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">RITNING</text>
-<text x="1260.0" y="2227.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="400" fill="#23262b" text-anchor="start">Mätram — sensorplacering</text>
-<text x="1510.0" y="2227.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="400" fill="#23262b" text-anchor="start">SENSOR-RIG-01</text>
-<text x="1260.0" y="2255.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="start">Ej skalenlig · mått i mm</text>
-<text x="1510.0" y="2255.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="start">auto: src/hardware.py</text>
+<g transform="translate(0,2150)">
+<line x1="48.0" y1="0.0" x2="1672.0" y2="0.0" stroke="#23262b" stroke-width="1.5" opacity="1"/>
+<text x="48.0" y="26.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="17" font-weight="700" fill="#23262b" text-anchor="start">SÅ FUNKAR DET — SIGNAL- &amp; DATABEHANDLINGSKEDJA (bräda → sorterade bitar)</text>
+<rect x="56.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#e8542c" stroke-width="1.4" opacity="1"/>
+<rect x="56.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<rect x="56.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<text x="66.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">1 INMATNING</text>
+<text x="66.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">cross-feed 0,25 m/s</text>
+<text x="66.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">≈ 60 brädor/min (1/s)</text>
+<line x1="242.0" y1="94.0" x2="257.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="257.0" y1="94.0" x2="249.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="257.0" y1="94.0" x2="249.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="259.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#2f6fb0" stroke-width="1.4" opacity="1"/>
+<rect x="259.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<rect x="259.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<text x="269.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">2 SENSORSVEP</text>
+<text x="269.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">2 färglinjekameror (yta)</text>
+<text x="269.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">6 laser+profil (höjd) +NIR</text>
+<line x1="445.0" y1="94.0" x2="460.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="460.0" y1="94.0" x2="452.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="460.0" y1="94.0" x2="452.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="462.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#2f9e6e" stroke-width="1.4" opacity="1"/>
+<rect x="462.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<rect x="462.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<text x="472.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">3 TRIANGULERING</text>
+<text x="472.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">höjd h = lateral/tanθ</text>
+<text x="472.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">0,78 mm per kamera-px</text>
+<line x1="648.0" y1="94.0" x2="663.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="663.0" y1="94.0" x2="655.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="663.0" y1="94.0" x2="655.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="665.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#2f6fb0" stroke-width="1.4" opacity="1"/>
+<rect x="665.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<rect x="665.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<text x="675.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">4 BILDBYGGE</text>
+<text x="675.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">rad-för-rad → 2D-karta</text>
+<text x="675.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">16384×455 px · 4,41 Mpkt</text>
+<line x1="851.0" y1="94.0" x2="866.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="866.0" y1="94.0" x2="858.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="866.0" y1="94.0" x2="858.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="868.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#2f9e6e" stroke-width="1.4" opacity="1"/>
+<rect x="868.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<rect x="868.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<text x="878.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">5 SEGMENTERING</text>
+<text x="878.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">U-Net: färg+relief+</text>
+<text x="878.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">ådring+NIR → klasser</text>
+<line x1="1054.0" y1="94.0" x2="1069.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="1069.0" y1="94.0" x2="1061.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="1069.0" y1="94.0" x2="1061.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="1071.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#e8542c" stroke-width="1.4" opacity="1"/>
+<rect x="1071.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<rect x="1071.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<text x="1081.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">6 MÄTNING</text>
+<text x="1081.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">kvistandel, böj/krok 2 m,</text>
+<text x="1081.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">sprickor, dimension</text>
+<line x1="1257.0" y1="94.0" x2="1272.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="1272.0" y1="94.0" x2="1264.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="1272.0" y1="94.0" x2="1264.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="1274.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#2f9e6e" stroke-width="1.4" opacity="1"/>
+<rect x="1274.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<rect x="1274.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<text x="1284.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">7 KLASSNING</text>
+<text x="1284.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">SS 230120 per bit →</text>
+<text x="1284.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">C30/C24/C18/C14/Vrak</text>
+<line x1="1460.0" y1="94.0" x2="1475.0" y2="94.0" stroke="#6a6e74" stroke-width="1.6" opacity="1"/>
+<line x1="1475.0" y1="94.0" x2="1467.1" y2="98.3" stroke="#6a6e74" stroke-width="1.6"/>
+<line x1="1475.0" y1="94.0" x2="1467.1" y2="89.7" stroke="#6a6e74" stroke-width="1.6"/>
+<rect x="1477.0" y="48.0" width="184.0" height="92.0" rx="4" fill="#fff" stroke="#e8542c" stroke-width="1.4" opacity="1"/>
+<rect x="1477.0" y="48.0" width="184.0" height="24.0" rx="4" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<rect x="1477.0" y="60.0" width="184.0" height="12.0" rx="0" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<text x="1487.0" y="65.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">8 KAP &amp; SORT</text>
+<text x="1487.0" y="92.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">DP-optimerad kapplan ·</text>
+<text x="1487.0" y="109.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">fasta klingor + klaffar</text>
+<rect x="48.0" y="168.0" width="525.3" height="250.0" rx="5" fill="#fff" stroke="#2f9e6e" stroke-width="1.3" opacity="1"/>
+<rect x="48.0" y="168.0" width="525.3" height="26.0" rx="5" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<rect x="48.0" y="181.0" width="525.3" height="13.0" rx="0" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
+<text x="60.0" y="186.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">RÄKNEEXEMPEL — TRIANGULERING (höjd)</text>
+<text x="60.0" y="214.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">lateral 0,449 mm/px  (= FOV 1098 / 2448 px)</text>
+<text x="60.0" y="231.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">höjd  h = 0,449 / tan 30° = 0,78 mm</text>
+<text x="60.0" y="248.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">→ 1 px kameraförskjutning ↔ 0,78 mm höjd</text>
+<text x="60.0" y="265.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">mätrange i höjd: ±25 mm (50 mm)</text>
+<line x1="118.0" y1="296.0" x2="118.0" y2="404.0" stroke="#e8542c" stroke-width="3" opacity="1"/>
+<circle cx="118.0" cy="404.0" r="3.5" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
+<polygon points="242.0,284.0 274.0,284.0 274.0,304.0 242.0,304.0" fill="#d8efe3" stroke="#2f9e6e" stroke-width="1.4"/>
+<text x="258.0" y="294.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#2f9e6e" text-anchor="middle">kamera</text>
+<line x1="258.0" y1="304.0" x2="118.0" y2="404.0" stroke="#2f9e6e" stroke-width="1.1" stroke-dasharray="4 3" opacity="1"/>
+<line x1="118.0" y1="404.0" x2="118.0" y2="334.0" stroke="#9a9ea4" stroke-width="0.8" stroke-dasharray="3 3" opacity="1"/>
+<path d="M 118.0 360 A 44 44 0 0 1 140.0 365.9" fill="none" stroke="#2f9e6e" stroke-width="1.1"/>
+<text x="140.0" y="358.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#2f9e6e" text-anchor="start">θ=30°</text>
+<rect x="597.3" y="168.0" width="525.3" height="250.0" rx="5" fill="#fff" stroke="#e8542c" stroke-width="1.3" opacity="1"/>
+<rect x="597.3" y="168.0" width="525.3" height="26.0" rx="5" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<rect x="597.3" y="181.0" width="525.3" height="13.0" rx="0" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<text x="609.3" y="186.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">RÄKNEEXEMPEL — KAPPLAN &amp; VÄRDE</text>
+<rect x="617.3" y="226.0" width="485.3" height="26.0" rx="0" fill="none" stroke="#b9a96f" stroke-width="1.2" opacity="1"/>
+<rect x="617.3" y="226.0" width="269.6" height="26.0" rx="0" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="0.55"/>
+<rect x="887.0" y="226.0" width="215.7" height="26.0" rx="0" fill="#d6a23e" stroke="#d6a23e" stroke-width="0" opacity="0.6"/>
+<circle cx="1046.6" cy="239.0" r="5.0" fill="#7a4a2a" stroke="#5a3418" stroke-width="1.2"/>
+<text x="752.1" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#1c5e42" text-anchor="middle">C30</text>
+<text x="994.8" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#7a5a16" text-anchor="middle">C18</text>
+<line x1="887.0" y1="218.0" x2="887.0" y2="260.0" stroke="#e8542c" stroke-width="1.4" stroke-dasharray="3 2" opacity="1"/>
+<text x="617.3" y="214.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">5,4 m bräda — kvistgrupp i andra halvan</text>
+<text x="887.0" y="274.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="400" fill="#e8542c" text-anchor="middle">↑ kap vid 3,0 m</text>
+<text x="609.3" y="298.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">bit 1  0–3,0 m  ren    → C30 · 3,0×95 = 285 kr</text>
+<text x="609.3" y="316.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">bit 2  3,0–5,4 m kvist → C18 · 2,4×60 = 144 kr</text>
+<text x="609.3" y="334.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">SUMMA per bit ............... 429 kr</text>
+<text x="609.3" y="352.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">hela brädan som C18: 5,4×60 = 324 kr</text>
+<text x="609.3" y="370.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">→ kapning per bit ger +105 kr</text>
+<rect x="1146.7" y="168.0" width="525.3" height="250.0" rx="5" fill="#fff" stroke="#2f6fb0" stroke-width="1.3" opacity="1"/>
+<rect x="1146.7" y="168.0" width="525.3" height="26.0" rx="5" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<rect x="1146.7" y="181.0" width="525.3" height="13.0" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<text x="1158.7" y="186.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">RÄKNEEXEMPEL — TAKT &amp; DATAMÄNGD</text>
+<text x="1158.7" y="228.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">matning 0,25 m/s · delning 250 mm</text>
+<text x="1158.7" y="252.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">→ 60 brädor/min  (1 bräda/s)</text>
+<text x="1158.7" y="276.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">profiltakt 500 Hz → 0,5 mm/profil</text>
+<text x="1158.7" y="300.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">höjd: 14 688 × 300 ≈ 4,41 milj. pkt/bräda</text>
+<text x="1158.7" y="324.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">yta: 16 384 × 455 ≈ 7,46 milj. px/bräda</text>
+<text x="1158.7" y="348.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">ytradtakt: behövs 758 Hz av 27,5 kHz</text>
+<text x="1158.7" y="372.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">höjd-radtakt klaras av 500 fps (ROI)</text>
+</g>
+<rect x="1250.0" y="2780.0" width="420.0" height="84.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
+<line x1="1250.0" y1="2808.0" x2="1670.0" y2="2808.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1250.0" y1="2836.0" x2="1670.0" y2="2836.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1500.0" y1="2780.0" x2="1500.0" y2="2864.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<text x="1260.0" y="2799.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#23262b" text-anchor="start">MULTISENSOR VIRKESSKANNER</text>
+<text x="1510.0" y="2799.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">RITNING</text>
+<text x="1260.0" y="2827.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="400" fill="#23262b" text-anchor="start">Mätram — sensorplacering</text>
+<text x="1510.0" y="2827.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="400" fill="#23262b" text-anchor="start">SENSOR-RIG-01</text>
+<text x="1260.0" y="2855.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="start">Ej skalenlig · mått i mm</text>
+<text x="1510.0" y="2855.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="start">auto: src/hardware.py</text>
 </svg>
