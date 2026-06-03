@@ -1,0 +1,3 @@
+# Skalskript ska alltid ha LF-radslut (annars failar bash i WSL med ^M).
+*.sh text eol=lf
+start.sh text eol=lf
