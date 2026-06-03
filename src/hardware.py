@@ -7,10 +7,13 @@ matas i sidled förbi 6 stationära laser+kamera-moduler längs längden; varje
 laserlinje löper LÄNGS sitt längdsegment.
 
 Valda produkter:
-  LineLaser   – iadiy LM9R650H100L60 (650 nm, 100 mW, 60° linje).
-  SurfaceCam  – Hikrobot 8K FÄRG-linjekamera, 10GigE (färgvariant av den länkade
-                mono MV-XGLC83BM; bekräfta suffix MV-XGLC83BC + pixel hos Hikrobot).
-  ProfileCam  – Hikrobot MV-CS050-10UC (USB3, 5 MP global shutter, IMX264).
+  LineLaser   – iadiy LM9R650H100L60 (650 nm, 100 mW, 60° linje). CW-modul –
+                ingen egen bildtakt; profiltakten sätts av profilkameran.
+  SurfaceCam  – MindVision MV-XGLC83BM-T4-90 (10GigE mono 8K linjekamera, 7 µm,
+                4-line TDI, 109,89 kHz @ 8-bit / 87,7 kHz @ 12-bit). Färg fås via
+                strobad sekventiell belysning (RGB + NIR).
+  ProfileCam  – Hikrobot MV-CS050-10UC (USB3, 5 MP global shutter, IMX264,
+                60 fps @ 2448×2048).
 """
 from __future__ import annotations
 
@@ -62,7 +65,7 @@ class ProfileCam:
     height_px: int = 2048                 # [datablad] (kort axel = höjd/triangulering)
     pixel_um: float = 3.45                # [datablad] Sony IMX264
     global_shutter: bool = True           # [datablad]
-    frame_rate_full_hz: float = 35.0      # [datablad] full bild (USB3)
+    frame_rate_full_hz: float = 60.0      # [datablad] 60 fps @ 2448×2048 (USB3; GigE-varianten -10GC ≈ 35,6 fps)
     interface: str = "USB3"               # [datablad] UC = USB3
 
     @property
@@ -95,7 +98,7 @@ class Rig:
     overlap_mm: float = 150.0             # [designval] överlapp mellan segment
 
     # --- drift ---
-    profile_rate_hz: float = 500.0        # [designval] profiler/s (kamera m. ROI-band)
+    profile_rate_hz: float = 500.0        # [designval] profiler/s via ROI-band (~250 av 2048 rader: 60 fps·2048/250 ≈ 490 fps, ryms i databladet)
     feed_mps: float = 0.25                # [designval] matningshastighet
 
     def __post_init__(self):
