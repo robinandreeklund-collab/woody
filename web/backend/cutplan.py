@@ -89,3 +89,84 @@ def plan(features, lengths=None):
         "trimM": (CM - used) / 100,
         "L": L_M, "lengths": lens,
     }
+
+
+# ============================================================
+# Hållfasthetssortering driver värdet: varje kapbit klassas C14..C30 (SS 230120)
+# och prissätts per C-klass. Defekterna är lokala (per bit), deformationerna
+# board-nivå (samma för alla bitar). Se docs/strength-grading.md.
+# ============================================================
+import math as _math
+from src.grading import grade_board, GradeInput
+
+C_PRICE = {"C30": 95.0, "C24": 80.0, "C18": 60.0, "C14": 40.0, "Vrak": 8.0}  # kr/m
+C_COLOR = {"C30": "#2f9e6e", "C24": "#5fae6a", "C18": "#d6a23e",
+           "C14": "#cf6b46", "Vrak": "#8a8f96"}
+
+
+def _piece_cclass(features, a_cm, b_cm, deform, width_mm):
+    """C-klass för biten [a_cm, b_cm] (cm) ur lokala defekter + board-deformation."""
+    aU, bU = a_cm / CM, b_cm / CM
+    seg_len_mm = (b_cm - a_cm) / 100.0 * 1000.0
+    knot = crack = wane_area = 0.0
+    rot = False
+    for f in features:
+        if f["u"] < aU or f["u"] >= bU:
+            continue
+        c = f["cls"]
+        if c == 1:
+            knot = max(knot, 2 * _math.sqrt(f["area"] / _math.pi) / width_mm)
+        elif c == 2:
+            crack = max(crack, f["area"] / 5.0 / 1000.0)
+        elif c == 4:
+            wane_area += f["area"]
+        elif c == 5:
+            rot = True
+    g = grade_board(GradeInput(
+        knot_w_ratio=knot, width_mm=width_mm,
+        wane_frac=(wane_area / seg_len_mm / width_mm) if seg_len_mm else 0.0,
+        crack_len_m=crack, rot_present=rot, rot_in_knot_only=False, **deform))
+    return g["cclass"]
+
+
+def plan_by_strength(features, lengths=None, deform=None, width_mm=150.0):
+    """DP som maximerar värdet med C-klass-priser per kapbit."""
+    deform = deform or {"bow_mm_2m": 0, "spring_mm_2m": 0, "twist_mm": 0}
+    lens = sorted((lengths or [3.0, 2.7, 2.4]), reverse=True)
+    len_cm = [round(l * 100) for l in lens]
+
+    best = [0.0] * (CM + 1)
+    choice = [None] * (CM + 1)
+    for i in range(1, CM + 1):
+        best[i] = best[i - 1]
+        choice[i] = {"trim": True}
+        for lc in len_cm:
+            if i - lc < 0:
+                continue
+            cc = _piece_cclass(features, i - lc, i, deform, width_mm)
+            v = best[i - lc] + C_PRICE[cc] * (lc / 100.0)
+            if v > best[i] + 1e-9:
+                best[i] = v
+                choice[i] = {"a": i - lc, "b": i, "g": cc}
+
+    pieces, i = [], CM
+    while i > 0:
+        c = choice[i]
+        if not c:
+            break
+        if c.get("trim"):
+            i -= 1
+        else:
+            pieces.append(c); i = c["a"]
+    pieces.reverse()
+
+    used = 0
+    out = []
+    for p in pieces:
+        length = (p["b"] - p["a"]) / 100.0
+        used += p["b"] - p["a"]
+        out.append({"aU": p["a"] / CM, "bU": p["b"] / CM, "lenM": length,
+                    "grade": p["g"], "value": round(C_PRICE[p["g"]] * length),
+                    "color": C_COLOR[p["g"]]})
+    return {"pieces": out, "totalValue": round(best[CM]), "yield": used / CM,
+            "trimM": (CM - used) / 100.0, "L": L_M, "lengths": lens}

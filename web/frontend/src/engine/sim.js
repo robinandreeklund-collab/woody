@@ -24,7 +24,9 @@ const makeData = () => {
   d.id = ++boardSeq;
   const patch = takePatch();                   // riktig färg + segmentering om tillgänglig
   if (patch) applyPatch(d, patch);
-  d.plan = window.CutPlan.plan(d.stats.features, state.lengths);
+  // C-klass-baserad kapplan från backenden (driver värdet); annars lokal fallback
+  d.plan = patch && patch.cutplan ? patch.cutplan
+    : window.CutPlan.plan(d.stats.features, state.lengths);
 
   // rundräkning (120 brädor/runda) – reaktivt för React-HUD:en
   const s = useSimStore.getState();

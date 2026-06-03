@@ -125,7 +125,7 @@
     refs.cutBtn.onclick = () => ctrl.toggleCutPlan();
     sf.appendChild(refs.cutBtn);
     const gl = el("div", "grade-leg");
-    [["A", "#4aa86a"], ["B", "#d6a23e"], ["C", "#cf6b46"], ["Spill", "#8a8f96"]].forEach(([n, c]) => {
+    [["C30", "#2f9e6e"], ["C24", "#5fae6a"], ["C18", "#d6a23e"], ["C14", "#cf6b46"], ["Vrak", "#8a8f96"]].forEach(([n, c]) => {
       const x = el("span", "gleg"); x.innerHTML = '<i style="background:' + c + '"></i>' + n; gl.appendChild(x);
     });
     sf.appendChild(gl);

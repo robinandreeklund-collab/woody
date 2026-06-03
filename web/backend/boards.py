@@ -237,7 +237,14 @@ def measured_height(label_img, mm_per_px, seed):
     rig = Rig(board_length_mm=length_mm, board_width_mm=width_mm)
     z = warp_height(Hl, Wl, width_mm, p) + fine
     res = simulate_array(z, sim_mmpx, rig, seed=seed)
-    z_img = np.ascontiguousarray(res["z_fused"].T)          # tillbaka till bildorient.
+    zf = res["z_fused"]                                    # (längd, bredd) uppmätt höjd
+    z_img = np.ascontiguousarray(zf.T)                     # tillbaka till bildorient.
+
+    # Deformationer mätta som VÄRSTA värde över en 2 m-mätsträcka ur profilen
+    # (planböj = mittlinjens sagitta, skevhet = ändring i kant-höjdskillnad).
+    bow2m, twist2m = _deformations_2m(zf, sim_mmpx)
+    spring2m = p.spring_mm * (2000.0 / max(length_mm, 1)) ** 2   # lateral – ur warp (ej i höjd)
+
     layout = {"nLasers": rig.n_lasers, "nCams": rig.n_profile_cams,
               "nSurfaceCams": rig.n_surface_cams,
               "laserOverlapFrac": round(rig.overlap_mm / rig.seg_len_mm, 3),
@@ -245,9 +252,28 @@ def measured_height(label_img, mm_per_px, seed):
               "segLenMm": round(rig.seg_len_mm), "overlapMm": rig.overlap_mm,
               "heightResMm": round(rig.height_resolution_mm, 2),
               "coverage": round(res["coverage"], 3), "warp": warp_summary(p),
-              "bowMm": round(p.bow_mm, 1), "springMm": round(p.spring_mm, 1),
-              "twistDeg": round(p.twist_deg, 1)}
+              "bowMm2m": round(bow2m, 1), "springMm2m": round(spring2m, 1),
+              "twistMm2m": round(twist2m, 1)}
     return z_img, layout
+
+
+def _deformations_2m(zf: np.ndarray, mm_per_row: float):
+    """Värsta planböj (mittlinjens sagitta) och skevhet (kant-höjdskillnadens
+    ändring) över ett 2 m-fönster, ur den uppmätta höjdkartan."""
+    H, W = zf.shape
+    win = max(4, int(round(2000.0 / mm_per_row)))
+    mid = zf[:, W // 2]
+    edge = zf[:, min(3, W - 1)] - zf[:, max(0, W - 4)]     # kant-till-kant-höjd
+    bow = twist = 0.0
+    step = max(1, win // 4)
+    for i in range(0, max(1, H - win), step):
+        seg = mid[i:i + win]
+        if len(seg) < 3:
+            continue
+        chord = np.linspace(seg[0], seg[-1], len(seg))
+        bow = max(bow, float(np.max(np.abs(seg - chord))))
+        twist = max(twist, float(abs(edge[i + len(seg) - 1] - edge[i])))
+    return bow, twist
 
 
 def _height_png_b64(z_img: np.ndarray) -> str:
@@ -281,27 +307,29 @@ def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board
                         "posMm": f["posMm"], "areaMm2": round(f["area"])})
     defects.sort(key=lambda d: -d["areaMm2"])
 
-    plan = _cutplan.plan(feats, lengths)
     color_s = _downscale_len(np.ascontiguousarray(color_img))
     label_s = _downscale_len(np.ascontiguousarray(label_img.astype(np.uint8)))
     z_img, layout = measured_height(label_img, mm_per_px, board_id)
-
-    # hållfasthetssortering (SS 230120 -> C14..C30). Blånad ingår ej.
     width_mm = label_img.shape[0] * mm_per_px
-    length_m = max(0.1, measured_len / 1000.0)
+
+    # Deformationer (mm/2 m) ur laserprofilen – board-nivå, gäller alla bitar.
+    deform = {"bow_mm_2m": layout["bowMm2m"], "spring_mm_2m": layout["springMm2m"],
+              "twist_mm": layout["twistMm2m"]}
+
+    # Kapoptimering med HÅLLFASTHETSSORTERING per bit (C-klass driver värdet).
+    plan = _cutplan.plan_by_strength(feats, lengths, deform, width_mm)
+
+    # Hela brädans C-klass (för översikt). Blånad ingår ej.
     knot_areas = [f["area"] for f in feats if f["cls"] == 1]
     knot_ratio = (2 * math.sqrt(max(knot_areas) / math.pi) / width_mm) if knot_areas else 0.0
     crack_areas = [f["area"] for f in feats if f["cls"] == 2]
-    crack_len_m = (max(crack_areas) / 5.0 / 1000.0) if crack_areas else 0.0   # ~5 mm bred
+    crack_len_m = (max(crack_areas) / 5.0 / 1000.0) if crack_areas else 0.0
     wane_area = sum(f["area"] for f in feats if f["cls"] == 4)
     wane_frac = (wane_area / measured_len) / width_mm if measured_len else 0.0
     grade = grade_board(GradeInput(
-        knot_w_ratio=knot_ratio,
-        bow_mm_2m=layout["bowMm"] * (2.0 / length_m) ** 2,
-        spring_mm_2m=layout["springMm"] * (2.0 / length_m) ** 2,
-        twist_mm=width_mm * math.sin(math.radians(abs(layout["twistDeg"]) * 2.0 / length_m)),
-        width_mm=width_mm, wane_frac=wane_frac, crack_len_m=crack_len_m,
-        rot_present=any(f["cls"] == 5 for f in feats), rot_in_knot_only=False,
+        knot_w_ratio=knot_ratio, width_mm=width_mm, wane_frac=wane_frac,
+        crack_len_m=crack_len_m, rot_present=any(f["cls"] == 5 for f in feats),
+        rot_in_knot_only=False, **deform,
     ))
 
     return {
