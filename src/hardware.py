@@ -41,8 +41,9 @@ class SurfaceCam:
     px_across: int = 8192                 # [datablad] 8K
     tdi_stages: int = 4                   # [datablad] 4-line TDI
     pixel_um: float = 7.0                 # [datablad] 7×7 µm (sensor 57,344 mm)
-    mono: bool = True                     # [datablad] (färg via 3 strobade ljus)
-    color_strobe_lights: int = 3          # [datablad] 3 ljuskälle-utgångar -> RGB
+    mono: bool = True                     # [datablad] (färg via strobade ljus)
+    color_strobe_lights: int = 4          # [designval] 3 utgångar (R/G/B) + NIR
+    nir_channel: bool = True              # [designval] NIR-strobe -> blånad/röta
     line_rate_hz: float = 109_890.0       # [datablad] mono 8-bit (87,7 kHz @ 12-bit)
     bit_depth: int = 8                    # [datablad] (10/12-bit möjligt)
     interface: str = "10GBase-T (10GigE)" # [datablad]

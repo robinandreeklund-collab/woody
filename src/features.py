@@ -25,7 +25,15 @@ def _grain_dev(board: dict) -> np.ndarray:
     return np.clip(tr.grain_deviation_deg(board) / 45.0, 0, 1).astype(np.float32)
 
 
-CHANNEL_BUILDERS = {"relief": _relief, "grain_dev": _grain_dev}
+def _nir(board: dict) -> np.ndarray:
+    """NIR-strobe-kanal (blånad/röta syns bäst här). 0..1."""
+    nir = board.get("nir")
+    if nir is None:
+        return np.zeros(board["label"].shape, np.float32)
+    return (nir.astype(np.float32) / 255.0)
+
+
+CHANNEL_BUILDERS = {"relief": _relief, "grain_dev": _grain_dev, "nir": _nir}
 
 
 def channel_names(extra_channels=()) -> tuple:

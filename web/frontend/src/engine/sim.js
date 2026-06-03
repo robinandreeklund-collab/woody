@@ -34,6 +34,9 @@ const makeData = () => {
   useSimStore.setState({
     boardInRound: bir, round: rnd,
     source: (patch ? patch.source : "syntetisk (lokal)") + lasers,
+    lengthMm: patch && patch.lengthMm ? patch.lengthMm : 0,
+    lengthDevMm: patch && patch.lengthDevMm != null ? patch.lengthDevMm : 0,
+    defects: patch && patch.defects ? patch.defects : [],
   });
   return d;
 };

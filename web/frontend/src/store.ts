@@ -22,6 +22,9 @@ export interface SimState {
   boardInRound: number;
   perRound: number;
   source: string;
+  lengthMm: number;       // uppmätt brädlängd (laser)
+  lengthDevMm: number;    // avvikelse mot nominell
+  defects: { name: string; posMm: number }[];
 }
 
 export const useSimStore = create<SimState>(() => ({
@@ -43,4 +46,7 @@ export const useSimStore = create<SimState>(() => ({
   boardInRound: 0,
   perRound: 120,
   source: "startar …",
+  lengthMm: 0,
+  lengthDevMm: 0,
+  defects: [],
 }));

@@ -148,6 +148,19 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
     fiber_angle = fiber_angle.astype(np.float32)
 
     color = np.clip(color, 0, 255).astype(np.uint8)
+
+    # NIR-kanal (~850 nm strobe): sund ved ljus, defekter mörkare. Blånad och
+    # röta/märg syns BÄST i NIR (penetrerar ytan) -> lättare att segmentera.
+    nir = np.full((H, W), 205.0)
+    nir += 0.35 * (color.astype(float).mean(2) - 175.0)   # följ ådringen svagt
+    nir[label == 1] *= 0.60     # levande kvist
+    nir[label == 2] *= 0.50     # död kvist
+    nir[label == 3] *= 0.40     # spricka
+    nir[label == 4] *= 0.45     # blånad – kraftigt mörkare i NIR
+    nir[label == 6] *= 0.50     # märg
+    nir += rng.normal(0, 3, (H, W))
+    nir = np.clip(nir, 0, 255).astype(np.uint8)
+
     return {"color": color, "label": label, "height": height,
-            "fiber_angle": fiber_angle, "knots": knots,
+            "fiber_angle": fiber_angle, "knots": knots, "nir": nir,
             "mm_per_px": mm_per_px}

@@ -250,15 +250,37 @@ def _height_png_b64(z_img: np.ndarray) -> str:
     return _png_b64(rgb)
 
 
+GUI_NAMES = {1: "Kvist", 2: "Spricka", 3: "Blånad", 4: "Vankant", 5: "Röta", 6: "Hål"}
+NOMINAL_LENGTH_MM = 5400.0
+
+
 def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board_id):
     """Bygger frontendens datakontrakt. color_img/label_img i bildorientering."""
     counts, areas, feats, crack_mm = _features_img(label_img, mm_per_px)
+
+    # Uppmätt längd ur laserprofilen (brädor diffar lite). Mätosäkerhet ~lateral
+    # upplösning. label_img: axel 1 = längd.
+    true_len = label_img.shape[1] * mm_per_px
+    rng = np.random.default_rng(board_id)
+    measured_len = round(true_len + rng.normal(0, 0.3), 1)   # ±0,3 mm mätbrus
+
+    # defektpositioner i mm (u = position längs längden 0..1) -> "var ligger felet"
+    defects = []
+    for f in feats:
+        f["posMm"] = round(f["u"] * measured_len)
+        defects.append({"cls": f["cls"], "name": GUI_NAMES.get(f["cls"], "?"),
+                        "posMm": f["posMm"], "areaMm2": round(f["area"])})
+    defects.sort(key=lambda d: -d["areaMm2"])
+
     plan = _cutplan.plan(feats, lengths)
     color_s = _downscale_len(np.ascontiguousarray(color_img))
     label_s = _downscale_len(np.ascontiguousarray(label_img.astype(np.uint8)))
     z_img, layout = measured_height(label_img, mm_per_px, board_id)
     return {
         "id": board_id, "source": source, "mmPerPx": mm_per_px,
+        "lengthMm": measured_len, "nominalLengthMm": NOMINAL_LENGTH_MM,
+        "lengthDevMm": round(measured_len - NOMINAL_LENGTH_MM, 1),
+        "defects": defects[:6],
         "color_png": _png_b64(color_s),
         "label_png": _labelid_png_b64(label_s),
         "height_png": _height_png_b64(_downscale_len(z_img)),
@@ -307,7 +329,9 @@ class BoardSource:
         return self._synthetic(seed, lengths)
 
     def _synthetic(self, seed, lengths):
-        b = make_board_for(seed, length_m=5.4, mm_per_px=1.0)  # grövre = snabbare (fallback)
+        # brädor diffar lite i längd (kapas över/under nominellt) -> lasern mäter
+        length_m = 5.4 + np.random.default_rng(seed * 7 + 1).uniform(-0.06, 0.03)
+        b = make_board_for(seed, length_m=length_m, mm_per_px=1.0)  # grövre = snabbare
         if self.model is not None:
             from src.infer import predict_board
             pred = predict_board(self.model, b, self.mcfg)

@@ -7,10 +7,30 @@ function RoundHud() {
   const bir = useSimStore((s) => s.boardInRound);
   const per = useSimStore((s) => s.perRound);
   const source = useSimStore((s) => s.source);
+  const lengthMm = useSimStore((s) => s.lengthMm);
+  const lengthDevMm = useSimStore((s) => s.lengthDevMm);
+  const defects = useSimStore((s) => s.defects);
+  const dev = lengthDevMm > 0 ? `+${lengthDevMm}` : `${lengthDevMm}`;
   return (
-    <div className="phase" style={{ marginTop: 4 }}>
-      Runda {round} · bräda {bir}/{per} · {source}
-    </div>
+    <>
+      <div className="phase" style={{ marginTop: 4 }}>
+        Runda {round} · bräda {bir}/{per} · {source}
+      </div>
+      {lengthMm > 0 && (
+        <div className="phase" style={{ marginTop: 2 }}>
+          Uppmätt längd: {(lengthMm / 1000).toFixed(3)} m ({dev} mm)
+          {defects.length > 0 && (
+            <>
+              {" · fel: "}
+              {defects
+                .slice(0, 3)
+                .map((d) => `${d.name} @${(d.posMm / 1000).toFixed(2)} m`)
+                .join(", ")}
+            </>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 

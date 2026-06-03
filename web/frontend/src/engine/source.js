@@ -31,7 +31,8 @@ async function fetchOne(lengths) {
     ]);
     backendOk = true;
     return { colorImg, labelImg, heightImg, stats: d.stats, cutplan: d.cutplan,
-             id: d.id, source: d.source, laser: d.laser };
+             id: d.id, source: d.source, laser: d.laser,
+             lengthMm: d.lengthMm, lengthDevMm: d.lengthDevMm, defects: d.defects };
   } catch (e) {
     backendOk = false;
     return null;
