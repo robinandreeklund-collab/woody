@@ -146,7 +146,7 @@ const ctrl = {
   setTakt: v => state.takt = v,
   setSpacing: v => { state.pitch = v; respace(); },
   setWidth: mm => { state.widthWu = mm / WU_MM; window.Scene.setWidth(state.widthWu); },
-  setLengths: arr => { state.lengths = arr; for (const b of boards) b.data.plan = window.CutPlan.plan(b.data.stats.features, state.lengths); },
+  setLengths: arr => { state.lengths = arr; window.Scene.setSawLengths(arr); for (const b of boards) { b.data.plan = window.CutPlan.plan(b.data.stats.features, state.lengths); b.data._alignZ = null; } },
   toggleCutPlan: () => state.cutOverlay = state.cutOverlay > 0.5 ? 0 : 1,
   toggleOverlay: () => state.overlay = state.overlay > 0.5 ? 0 : 1,
   togglePlay: () => state.playing = !state.playing,
@@ -165,6 +165,7 @@ export function initSim() {
   window.Panel.init(ctrl);
   window.Readout.init();
   window.Scene.setWidth(state.widthWu);
+  window.Scene.setSawLengths(state.lengths);   // fasta klingor enligt kaplängderna
   startPrefetch(() => state.lengths);   // börja hämta riktiga brädor från backenden
   initBoards();
 

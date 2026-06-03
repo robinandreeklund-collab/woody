@@ -27,9 +27,10 @@
   let laserStripes = [], laserFans = [], tracheidBeam, underBeam, ledRing = [];
   let labelSprites = [], lastActiveId = -1;   // flytande defektetiketter i 3D
   const NLAS = 6;                 // laser-/kameramoduler i array längs längden
-  let sawBlades = [], pusherA, pusherB, laneRails = [];
-  // utmatningsbanor (sorteras efter hållfasthetsklass) – Z-läge per klass
-  const LANE_Z = { C30: 1.4, C24: 0.5, C18: -0.5, C14: -1.4, Vrak: -1.4 };
+  let sawBlades = [], pusherA, pusherB;
+  let bladeStations = [];           // FASTA klingpositioner (wu) – ändras bara av kaplängderna
+  const MWU = BOARD_LEN / 5.4;      // wu per meter
+  const NOMINAL_M = 5.4;            // nominell brädlängd
   let chains = [];
   const slots = [];
 
@@ -285,9 +286,10 @@
     beam.position.set(SAW_X, 1.45, 0); g.add(beam);
     const hus = box(0.5, 0.42, 1.0, COL.housing, { rough: 0.4 });
     hus.position.set(SAW_X, 1.18, 0); g.add(hus);
-    // DYNAMISK klingpool: varje klinga flyttas i Z till en snittlinje i den
-    // aktuella kapplanen (som styrs av Tillåtna kaplängder i GUI) -> minsta spill.
-    // Disc i XY-planet (axel längs Z) kapar tvärs brädan vid en längdposition.
+    // FASTA klingor: en pool skivor som sitter still vid SAW_X. Deras
+    // längdpositioner sätts av Tillåtna kaplängder (setSawLengths) och ändras
+    // ENBART när man ändrar kaplängderna i GUI – inte per bräda.
+    // Disc i XY-planet (axel längs Z) kapar tvärs brädan vid en fast längdposition.
     sawBlades = [];
     for (let i = 0; i < 6; i++) {
       const blade = new T.Mesh(new T.CylinderGeometry(0.34, 0.34, 0.03, 36),
@@ -298,18 +300,45 @@
       tab.position.set(SAW_X, 1.28, 0); tab.visible = false; g.add(tab);
       sawBlades.push({ blade, tab });
     }
-    // utmatningsbanor: rälsar nedströms sågen, en per hållfasthetsklass-läge
-    laneRails = [];
-    const laneZs = [...new Set(Object.values(LANE_Z))];
-    for (const z of laneZs) {
-      const rail = box(2.1, 0.06, 0.46, COL.metalDark, { rough: 0.5, metal: 0.5 });
-      rail.position.set(SAW_X - 1.15, -0.14, z); g.add(rail);
-      laneRails.push(rail);
-    }
-    // sidoknuffar: trycker brädan mot rätt bana (en i taget, åt sitt håll)
-    const mkPush = z => { const p = box(0.5, 0.32, 0.5, COL.dog, { rough: 0.5, metal: 0.4 }); p.position.set(SAW_X, -0.02, z); g.add(p); return p; };
+    // sidoknuffar (klaffar): UPPSTRÖMS sågen. De trycker brädan i ±Z (höger/
+    // vänster) i god tid INNAN den når klingorna, så snitten linjerar mot de
+    // fasta klingorna. De sitter inte ihop med klingorna.
+    const mkPush = z => { const p = box(0.5, 0.32, 0.5, COL.dog, { rough: 0.5, metal: 0.4 }); p.position.set(SAW_X + 0.85, -0.02, z); g.add(p); return p; };
     pusherA = mkPush(3.95); pusherB = mkPush(-3.95);
     scene.add(g);
+    setSawLengths([3.0, 2.7, 2.4]);     // standard tills GUI:t sätter riktiga
+  }
+
+  // Girig packning av nominell brädlängd med tillåtna kaplängder -> snittlinjer
+  // (meter från referensänden). Endast detta styr de fasta klingornas läge.
+  function packStations(lengths) {
+    const avail = [...lengths].filter(l => l > 0).sort((a, b) => b - a);
+    const cuts = []; let used = 0;
+    if (avail.length) {
+      const smallest = avail[avail.length - 1];
+      while (NOMINAL_M - used > smallest - 1e-6 && cuts.length < 6) {
+        const pick = avail.find(l => l <= NOMINAL_M - used + 1e-6);
+        if (pick == null) break;
+        used += pick;
+        if (NOMINAL_M - used > 1e-3) cuts.push(used);   // intern snittlinje
+      }
+    }
+    return cuts;
+  }
+
+  // Sätter de FASTA klingornas Z-läge utifrån tillåtna kaplängder (anropas av
+  // GUI:t när kaplängderna ändras – annars rör sig klingorna aldrig).
+  function setSawLengths(lengths) {
+    const ZREF = -BOARD_LEN / 2;       // referensände (inmatning)
+    bladeStations = packStations(lengths).map(m => ZREF + m * MWU);
+    if (!sawBlades.length) return;
+    for (let i = 0; i < sawBlades.length; i++) {
+      const { blade, tab } = sawBlades[i];
+      if (i < bladeStations.length) {
+        tab.position.z = blade.position.z = bladeStations[i];
+        blade.visible = tab.visible = true;
+      } else blade.visible = tab.visible = false;
+    }
   }
   /* ---------- flytande defektetiketter (sprites) ---------- */
   function makeLabelSprite() {
@@ -397,20 +426,18 @@
     return { group, mat, dataRef: null, texes: [], dogs };
   }
 
-  // Utmatningsbana (Z-läge) för en bräda, sorterad på hållfasthetsklass.
-  function laneZFor(data) {
-    if (data._laneZ != null) return data._laneZ;
-    const cc = data.strength && data.strength.cclass;
-    data._laneZ = (cc && LANE_Z[cc] != null) ? LANE_Z[cc] : 0;
-    return data._laneZ;
-  }
-  // Snittlinjer (u i 0..1) ur kapplanen -> klingornas längdpositioner.
-  function cutLinesU(data) {
-    const pl = data.plan;
-    if (!pl || !pl.pieces.length) return [];
-    const us = new Set();
-    for (const p of pl.pieces) { us.add(+p.aU.toFixed(4)); us.add(+p.bU.toFixed(4)); }
-    return [...us].filter(u => u > 0.001 && u < 0.999).sort((a, b) => a - b);
+  // Inriktningsförskjutning (±Z, wu): hur långt klaffarna ska skjuta brädan så
+  // att kapplanens startände trimmas mot referensänden och snitten linjerar mot
+  // de fasta klingorna. Stabil per bräda (cache:ad).
+  function alignZFor(data) {
+    if (data._alignZ != null) return data._alignZ;
+    let a = 0;
+    if (data.plan && data.plan.pieces.length) {
+      const aU0 = data.plan.pieces[0].aU || 0;   // trim före första biten
+      a = -aU0 * BOARD_LEN;
+    }
+    data._alignZ = Math.max(-0.8, Math.min(0.8, a));
+    return data._alignZ;
   }
 
   // arr: [{data, x}]  -> skapar/uppdaterar slots, laddar texturer vid behov
@@ -426,9 +453,11 @@
         s.texes = [tc, tl, th, tt]; s.dataRef = e.data;
       }
       s.group.position.x = e.x;
-      // efter sågen latchas brädan till sin utmatningsbana (ingen studs tillbaka)
-      const t = Math.max(0, Math.min(1, (SAW_X - e.x) / 0.4));
-      s.group.position.z = laneZFor(e.data) * t;
+      // klaffarna riktar brädan i ±Z UPPSTRÖMS sågen och den hålls kvar (ingen
+      // studs): rampar klart vid SAW_X+0.5, dvs i god tid innan klingorna.
+      const AX = SAW_X + 1.2, BX = SAW_X + 0.5;
+      const t = Math.max(0, Math.min(1, (AX - e.x) / (AX - BX)));
+      s.group.position.z = alignZFor(e.data) * t;
       s.dogs.position.x = e.x + curW / 2 + 0.05;  // rund medbringare bakom brädan (matning -X)
       const pl = e.data.plan;
       if (pl) {
@@ -447,30 +476,26 @@
     for (const b of arr) if (Math.abs(b.x) < Math.abs(act.x)) act = b;
     updateLabels(act);
 
-    // brädan närmast sågen styr klingor + klaffar
-    let cut = arr[0];
-    for (const b of arr) if (Math.abs(b.x - SAW_X) < Math.abs(cut.x - SAW_X)) cut = b;
-
-    // DYNAMISKA klingor: flytta till den aktuella brädans snittlinjer
-    const cuts = cutLinesU(cut.data);
-    const showBlades = Math.abs(cut.x - SAW_X) < 1.2;
-    for (let i = 0; i < sawBlades.length; i++) {
-      const { blade, tab } = sawBlades[i];
-      if (showBlades && i < cuts.length) {
-        const z = (cuts[i] - 0.5) * BOARD_LEN;
-        blade.position.z = z; tab.position.z = z;
-        blade.visible = tab.visible = true;
-      } else blade.visible = tab.visible = false;
-    }
-
-    // klaffar: trycker brädan mot rätt utmatningsbana (en i taget, åt sitt håll)
+    // Klingorna är FASTA (sätts av setSawLengths) – rörs inte här.
+    // Klaffarna jobbar uppströms: hitta brädan i inriktningszonen och låt rätt
+    // klaff sträcka ut sig (en i taget) medan den skjuter brädan på plats.
     if (pusherA) {
-      const laneZ = laneZFor(cut.data);
-      const near = Math.max(0, 1 - Math.abs(cut.x - SAW_X) / 1.0);
-      const stroke = 0.45 + 1.0 * near;
-      // +Z-klaffen trycker mot −Z (bana<0); −Z-klaffen trycker mot +Z (bana>0).
-      pusherA.position.z = laneZ < 0 ? 3.95 - stroke : 3.95;
-      pusherB.position.z = laneZ > 0 ? -3.95 + stroke : -3.95;
+      const AX = SAW_X + 1.2, BX = SAW_X + 0.5, MID = (AX + BX) / 2;
+      let alg = null, best = 1e9;
+      for (const b of arr) {
+        if (b.x < BX - 0.1) continue;                 // redan förbi klingorna
+        const d = Math.abs(b.x - MID);
+        if (d < best) { best = d; alg = b; }
+      }
+      let sA = 3.95, sB = -3.95;
+      if (alg) {
+        const tt = Math.max(0, Math.min(1, (AX - alg.x) / (AX - BX)));
+        const reach = 0.9 * Math.sin(Math.PI * tt);   // 0→1→0 genom zonen
+        const off = alignZFor(alg.data);
+        if (off <= -1e-3) sA = 3.95 - reach;          // +Z-klaffen trycker mot −Z
+        else if (off >= 1e-3) sB = -3.95 + reach;     // −Z-klaffen trycker mot +Z
+      }
+      pusherA.position.z = sA; pusherB.position.z = sB;
     }
   }
 
@@ -515,5 +540,5 @@
 
   function resize(w, h) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 
-  window.Scene = { init, syncBoards, update, resize, setWidth, getW: () => curW, BOARD_LEN, SCAN_X };
+  window.Scene = { init, syncBoards, update, resize, setWidth, setSawLengths, getW: () => curW, BOARD_LEN, SCAN_X };
 })();
