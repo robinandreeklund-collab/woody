@@ -242,8 +242,8 @@ def measured_height(label_img, mm_per_px, seed):
 
     # Deformationer mätta som VÄRSTA värde över en 2 m-mätsträcka ur profilen
     # (planböj = mittlinjens sagitta, skevhet = ändring i kant-höjdskillnad).
-    bow2m, twist2m = _deformations_2m(zf, sim_mmpx)
-    spring2m = p.spring_mm * (2000.0 / max(length_mm, 1)) ** 2   # lateral – ur warp (ej i höjd)
+    bow2m, twist2m = _deformations_2m(zf, sim_mmpx)              # ur laserhöjden
+    spring2m = _measure_kantkrok(p, length_mm, width_mm)         # ur silhuettens kanter
 
     layout = {"nLasers": rig.n_lasers, "nCams": rig.n_profile_cams,
               "nSurfaceCams": rig.n_surface_cams,
@@ -255,6 +255,32 @@ def measured_height(label_img, mm_per_px, seed):
               "bowMm2m": round(bow2m, 1), "springMm2m": round(spring2m, 1),
               "twistMm2m": round(twist2m, 1)}
     return z_img, layout
+
+
+def _measure_kantkrok(p, length_mm: float, width_mm: float,
+                      lat_res_mm: float = 0.45, n: int = 700) -> float:
+    """Mäter kantkrok (lateral krok) ur brädans SILHUETT: detekterar de två
+    långsidornas läge per längdrad (kvantiserat till kamerans pixel + kantbrus),
+    bildar centerlinjen och tar värsta sagitta över en 2 m-mätsträcka."""
+    from src.geometry import lateral_offset
+    c = lateral_offset(n, p).astype(np.float64)        # sann lateral centerlinje (mm)
+    rng = np.random.default_rng(int(abs(p.spring_mm) * 1000) + 1)
+    left = c - width_mm / 2.0
+    right = c + width_mm / 2.0
+    # kamerans kantdetektion: kvantisera kanterna till pixelraster + brus
+    qL = np.round((left + rng.normal(0, lat_res_mm * 0.4, n)) / lat_res_mm) * lat_res_mm
+    qR = np.round((right + rng.normal(0, lat_res_mm * 0.4, n)) / lat_res_mm) * lat_res_mm
+    cm = (qL + qR) / 2.0                                # uppmätt centerlinje
+    mm_per_row = length_mm / n
+    win = max(4, int(round(2000.0 / mm_per_row)))
+    best = 0.0
+    for i in range(0, max(1, n - win), max(1, win // 4)):
+        seg = cm[i:i + win]
+        if len(seg) < 3:
+            continue
+        chord = np.linspace(seg[0], seg[-1], len(seg))
+        best = max(best, float(np.max(np.abs(seg - chord))))
+    return best
 
 
 def _deformations_2m(zf: np.ndarray, mm_per_row: float):
