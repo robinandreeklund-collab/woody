@@ -53,6 +53,7 @@ pip install -r requirements.txt
 python run_demo.py        # bara förvärvssimuleringen (numpy + matplotlib)
 python run_sensors.py     # fotometrisk stereo, tracheid, undersida (figur 5–7)
 python run_cutting.py     # kapoptimering fristående: var ska brädan sågas (figur 8)
+python run_laser.py       # fysikalisk laser-/kamera-array-triangulering (figur 9)
 python run_pipeline.py    # hela flödet på samma bräda: förvärv -> träning ->
                           # segmentering -> kapoptimering (figur 4 + 8)
 python run_pipeline.py --smoke   # minimal rökverifiering på sekunder
@@ -90,6 +91,9 @@ src/photometric.py   fotometrisk stereo: normaler + relief ur höjdkartan
 src/tracheid.py      fiberriktning + snedfibrighet ur fiberfältet
 src/underside.py     undersida + ocklusion från kedjespringorna
 src/cutting.py       kapoptimering (DP) + kvalitetsklassning och värdemodell
+src/hardware.py      riktiga produktspecar (laser/kameror) + array-layout
+src/geometry.py      slumpad 3D-geometri: vrid/böj/krok/skålning
+src/laser.py         linjelaser-array-triangulering med överlapp + fusion
 run_demo.py          kör förvärvssimuleringen och genererar figur 1–3
 run_sensors.py       genererar sensorfigurerna 5–7
 run_cutting.py       fristående kapoptimering på en hel bräda (figur 8)
