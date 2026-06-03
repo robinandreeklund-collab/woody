@@ -9,12 +9,23 @@ from __future__ import annotations
 
 import asyncio
 
+from pathlib import Path
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import cutplan as cutplan_mod
-from .boards import board_payload, segment_board, make_board_for
+from .boards import board_payload, segment_board, make_board_for, BoardSource
+
+# Lazy singleton-datakälla (laddar modell + ev. Kodytek en gång)
+_SOURCE = None
+def get_source() -> BoardSource:
+    global _SOURCE
+    if _SOURCE is None:
+        _SOURCE = BoardSource()
+    return _SOURCE
 
 app = FastAPI(title="Woody virkesskanner-API")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"],
@@ -89,6 +100,29 @@ def cut(req: CutReq):
     return cutplan_mod.plan(req.features, req.lengths)
 
 
+class NextReq(BaseModel):
+    seed: int = 0
+    lengths: list[float] = [3.0, 2.7, 2.4]
+
+
+@app.post("/api/next")
+def next_board(req: NextReq):
+    """Nästa bräda till GUI:t: färg + modellens segmentering + features + kapplan.
+    Kodytek + tränad modell om de finns, annars syntetiskt (fungerar direkt)."""
+    return get_source().next(req.seed, req.lengths)
+
+
+ROUND = 120  # brädor per simuleringsrunda
+
+
+@app.get("/api/round")
+def round_info():
+    src = get_source()
+    return {"perRound": ROUND,
+            "source": "kodytek" if src.kodytek else "syntetisk",
+            "model": src.model is not None}
+
+
 @app.websocket("/ws/stream")
 async def stream(ws: WebSocket):
     """Driver animationen: en bräda i taget (board -> segment -> cutplan),
@@ -129,3 +163,9 @@ async def stream(ws: WebSocket):
         pass
     finally:
         recv_task.cancel()
+
+
+# Servera den byggda frontenden på "/" (efter API/WS så de matchas först).
+_DIST = Path(__file__).resolve().parents[1] / "frontend" / "dist"
+if _DIST.exists():
+    app.mount("/", StaticFiles(directory=str(_DIST), html=True), name="ui")

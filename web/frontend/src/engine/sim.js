@@ -6,6 +6,7 @@
    prototypens beprövade moduler – oförändrade.
    ============================================================ */
 import { useSimStore } from "../store";
+import { startPrefetch, takePatch, applyPatch } from "./source.js";
 
 const N = 11;
 const SENSOR_RATE = 758;     // sensorns radtakt (Hz), fast
@@ -19,9 +20,20 @@ const history = [];
 const state = useSimStore.getState();
 
 const makeData = () => {
-  const d = window.WoodGen.makeBoard(seed++);
+  const d = window.WoodGen.makeBoard(seed++);  // alla lager (hjälpsensorer)
   d.id = ++boardSeq;
+  const patch = takePatch();                   // riktig färg + segmentering om tillgänglig
+  if (patch) applyPatch(d, patch);
   d.plan = window.CutPlan.plan(d.stats.features, state.lengths);
+
+  // rundräkning (120 brädor/runda) – reaktivt för React-HUD:en
+  const s = useSimStore.getState();
+  let bir = s.boardInRound + 1, rnd = s.round;
+  if (bir > s.perRound) { bir = 1; rnd += 1; }
+  useSimStore.setState({
+    boardInRound: bir, round: rnd,
+    source: patch ? patch.source : "syntetisk (lokal)",
+  });
   return d;
 };
 
@@ -128,6 +140,7 @@ export function initSim() {
   window.Panel.init(ctrl);
   window.Readout.init();
   window.Scene.setWidth(state.widthWu);
+  startPrefetch(() => state.lengths);   // börja hämta riktiga brädor från backenden
   initBoards();
 
   const fit = () => { const r = stage.getBoundingClientRect(); window.Scene.resize(r.width, r.height); };

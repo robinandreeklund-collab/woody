@@ -16,13 +16,23 @@ i repo-roten `src/`. Vald väg: **full React + react-three-fiber-frontend** mot 
   - `POST /api/cutplan` – `cutplan.py`, en **trogen port av js/cutplan.js**
     (verifierad identisk mot JS-originalet via node).
   - `WS /ws/stream` – driver animationen, en bräda/s (board → segment → cutplan).
-- **Frontend (`web/frontend/`) – React + Vite + TypeScript, byggbar.**
+- **Frontend (`web/frontend/`) – React + Vite + TypeScript.**
   Skal + state (Zustand) i React; prototypens beprövade motor (Three.js-scen,
   panel/readout-canvas, kapalgoritm) körs oförändrad under `src/engine/` så
-  look/feel bevaras exakt. `npm run build` går igenom. Drivs just nu av
-  klientside-generatorn; återstår att byta datakällan till backendens endpoints
-  (kräver att backenden levererar samtliga lager motorn konsumerar). Se
-  `web/frontend/README.md`.
+  look/feel bevaras exakt.
+- **End-to-end klart.** `engine/source.js` hämtar brädor från `/api/next` och
+  patchar in **riktig färg + modellens segmentering + features + kapplan** i
+  motorns brädor (hjälpsensorerna behålls). Backenden servar dessutom den byggda
+  frontenden på `/`, så allt ligger på en URL. Faller tillbaka på den lokala
+  generatorn om backenden är onåbar. Rundor om 120 brädor visas i HUD:en.
+
+## Ett kommando (lokalt)
+
+```bash
+./start.sh                      # miljö + bygg + GUI på http://localhost:8000 (syntetisk data)
+./start.sh --with-kodytek       # ladda ner + rastrera Kodytek, kör på riktig data
+./start.sh --with-kodytek --train   # + träna modellen lokalt (GPU via device=auto)
+```
 
 ## Köra backenden
 

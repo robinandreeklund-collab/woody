@@ -194,15 +194,43 @@ def _pairs(semantic_dir, bbox_dir):
     return out
 
 
+def auto_discover(root):
+    """Hittar (images, semantic, bbox)-kataloger i en uppackad Kodytek-mapp."""
+    root = Path(root)
+    dirs = [p for p in root.rglob("*") if p.is_dir()]
+    dirs.append(root)
+    def name_match(pats):
+        for d in dirs:
+            if any(re.search(p, d.name, re.I) for p in pats):
+                if any(d.glob(e) for e in ("*.bmp", "*.png", "*.txt")):
+                    return d
+        return None
+    images = name_match([r"image"]) or next(
+        (d for d in dirs if list(d.glob("*.bmp")) or list(d.glob("*.png"))), None)
+    semantic = name_match([r"semant", r"\bmap"])
+    bbox = name_match([r"bound", r"bbox", r"\bbox"])
+    return images, semantic, bbox
+
+
 def main():
     ap = argparse.ArgumentParser(description="Rastrera Kodytek -> klass-id-masker")
-    ap.add_argument("--images", required=True, help="katalog med Kodytek-bilder")
+    ap.add_argument("--auto", help="uppackad Kodytek-root; hittar under-kataloger själv")
+    ap.add_argument("--images", help="katalog med Kodytek-bilder")
     ap.add_argument("--out", required=True, help="utdata-root (images/ + masks/)")
     ap.add_argument("--semantic", help="katalog med semantiska kartor (BMP)")
     ap.add_argument("--bboxes", help="katalog med bbox-textfiler")
     ap.add_argument("--color-map", help="JSON packad-färg->GUI-klass (annars auto)")
     ap.add_argument("--limit", type=int)
     a = ap.parse_args()
+
+    if a.auto:
+        img, sem, box = auto_discover(a.auto)
+        a.images = a.images or (str(img) if img else None)
+        a.semantic = a.semantic or (str(sem) if sem else None)
+        a.bboxes = a.bboxes or (str(box) if box else None)
+        print(f"Auto: images={a.images}\n      semantic={a.semantic}\n      bboxes={a.bboxes}")
+    if not a.images:
+        raise SystemExit("Hittade inga bilder. Ange --images eller --auto <root>.")
 
     color_map = None
     if a.semantic:

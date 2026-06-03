@@ -5,3 +5,7 @@ venv/
 
 # Modellvikter – tränas vid behov av run_pipeline.py, inte versionerade
 *.pt
+
+# Lokal data (Kodytek-nedladdning/rastrering) + nedladdningsrester
+data/
+*.part

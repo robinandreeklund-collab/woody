@@ -31,6 +31,20 @@ tränas skarpt på GPU.
 - Brädans **bredd** (100–150 mm) passerar zonen i sidled → blir skanningsaxeln.
 - 60 brädor/min → ~0,25 m/s i sidled → radtakten blir låg och oproblematisk.
 
+## Webbgränssnitt (3D, end-to-end)
+
+Interaktivt 3D-GUI som visar hela flödet live – brädor genom mätramen,
+segmentering och kapoptimering – i rundor om 120 brädor. Ett kommando fixar
+miljö, beroenden, bygge och startar GUI:t:
+
+```bash
+./start.sh                          # http://localhost:8000 (syntetisk data)
+./start.sh --with-kodytek --train   # riktig Kodytek-data + träna modellen (GPU)
+```
+
+React/Vite-frontend (`web/frontend`) mot en FastAPI-backend (`web/backend`) som
+återanvänder `src/`. Träning på Kodytek: se `docs/kodytek-gpu-training.md`.
+
 ## Köra
 
 ```bash

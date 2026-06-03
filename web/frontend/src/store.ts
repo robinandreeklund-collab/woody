@@ -17,6 +17,11 @@ export interface SimState {
   showUnder: boolean;
   showXray: boolean;
   dispScale: number;
+  // rundor (uppdateras reaktivt av motorn)
+  round: number;
+  boardInRound: number;
+  perRound: number;
+  source: string;
 }
 
 export const useSimStore = create<SimState>(() => ({
@@ -34,4 +39,8 @@ export const useSimStore = create<SimState>(() => ({
   showUnder: true,
   showXray: true,
   dispScale: 1,
+  round: 1,
+  boardInRound: 0,
+  perRound: 120,
+  source: "startar …",
 }));
