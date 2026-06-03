@@ -60,7 +60,7 @@ export function backendAvailable() {
 }
 
 /* Patchar in riktig färg + segmentering + features i ett WoodGen-brädobjekt.
-   Hjälplagren (höjd/tracheid/röntgen/undersida) behålls från generatorn. */
+   Hjälplagren (höjd/tracheid/undersida) behålls från generatorn. */
 export function applyPatch(d, patch) {
   const C = window.LineConfig.CLASSES;
   if (patch.colorImg) {

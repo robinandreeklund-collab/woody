@@ -1,7 +1,7 @@
 /* ============================================================
    textures.js — procedurell virkesbräda, alla sensorkanaler
    Genererar per bräda: färg, facit (U-Net-mål), höjdkarta,
-   fiberfält (tracheid), undersida, röntgen + statistik.
+   fiberfält (tracheid), undersida + statistik.
    Axel X = längd, Y = bredd.  (jfr src/board.py)
    ============================================================ */
 (function () {
@@ -244,49 +244,6 @@
     return { canvas: cv, maxDev };
   }
 
-  /* ---- röntgen: inre densitet, kvistar går genom virket ---- */
-  function renderXray(rng, knots) {
-    const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
-    const ctx = cv.getContext("2d");
-    ctx.fillStyle = "#0a0d12"; ctx.fillRect(0, 0, W, H);
-    // svag densitetsådring
-    for (let i = 0; i < 80; i++) {
-      const y = rng() * H;
-      ctx.strokeStyle = `rgba(120,140,170,${0.02 + rng() * 0.04})`;
-      ctx.lineWidth = 1 + rng() * 6;
-      ctx.beginPath(); ctx.moveTo(0, y);
-      for (let x = 0; x <= W; x += 20) ctx.lineTo(x, y + Math.sin(x * 0.01 + i) * 4);
-      ctx.stroke();
-    }
-    // ytkvistar (genomgående) – ljusa
-    for (const k of knots) {
-      const g = ctx.createRadialGradient(k.x, k.y, 1, k.x, k.y, k.r * 2.2);
-      g.addColorStop(0, "rgba(225,235,255,0.95)");
-      g.addColorStop(0.4, "rgba(150,180,220,0.5)");
-      g.addColorStop(1, "rgba(150,180,220,0)");
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(k.x, k.y, k.r * 2.2, 0, 7); ctx.fill();
-    }
-    // INRE kvistar – syns bara i röntgen (säljargumentet)
-    const nInner = 1 + Math.floor(rng() * 3);
-    for (let i = 0; i < nInner; i++) {
-      const x = 80 + rng() * (W - 160), y = 30 + rng() * (H - 60), r = 10 + rng() * 16;
-      const g = ctx.createRadialGradient(x, y, 1, x, y, r * 2.4);
-      g.addColorStop(0, "rgba(255,250,235,0.9)");
-      g.addColorStop(0.5, "rgba(210,200,170,0.4)");
-      g.addColorStop(1, "rgba(210,200,170,0)");
-      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 2.4, 0, 7); ctx.fill();
-    }
-    // inre torrspricka
-    if (rng() > 0.5) {
-      ctx.strokeStyle = "rgba(10,12,18,0.9)"; ctx.lineWidth = 2;
-      const y = 30 + rng() * (H - 60); let x = 100 + rng() * 200;
-      ctx.beginPath(); ctx.moveTo(x, y);
-      for (let i = 0; i < 30; i++) { x += 12; ctx.lineTo(x, y + (rng() - 0.5) * 6); }
-      ctx.stroke();
-    }
-    return { canvas: cv, innerKnots: nInner };
-  }
-
   /* ---- undersida: egen, enklare defektkarta ---- */
   function renderUnderside(rng, seed) {
     const r2 = mulberry32(seed * 7 + 13);
@@ -356,7 +313,6 @@
     }
 
     const trach = renderTracheid(rng, knots);
-    const xray = renderXray(rng, knots);
     const under = renderUnderside(rng, seed);
 
     // höjddata för laserprofil-insticket
@@ -366,14 +322,12 @@
       W, H, RES,
       color, label, height,
       tracheid: trach.canvas,
-      xray: xray.canvas,
       underColor: under.color, underLabel: under.label,
       heightData: hData.data,
       stats: {
         counts, areas, features,
         crackLenMm: Math.round(crackLenMm),
         maxFiberDev: Math.round(trach.maxDev),
-        innerKnots: xray.innerKnots,
         defectArea: areas.reduce((a, b) => a + b, 0),
       },
     };

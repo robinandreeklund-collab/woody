@@ -24,7 +24,7 @@
   };
 
   let renderer, scene, camera;
-  let laserStripes = [], laserFans = [], tracheidBeam, xrayBeam, underBeam, ledRing = [];
+  let laserStripes = [], laserFans = [], tracheidBeam, underBeam, ledRing = [];
   let labelSprites = [], lastActiveId = -1;   // flytande defektetiketter i 3D
   const NLAS = 6;                 // laser-/kameramoduler i array längs längden
   let sawBlade, pusherA, pusherB;
@@ -234,7 +234,6 @@
     mod(-2.4, COL.metalDark, COL.laser);     // profillaser
     mod(-0.8, COL.housing);                  // RGB-kamera
     mod(0.8, COL.metalDark, COL.tracheid);   // tracheidlaser
-    mod(2.4, COL.housing, COL.blue);         // röntgenkälla
 
     // LED-ring runt RGB-kameran (fotometrisk stereo)
     ledRing = [];
@@ -269,7 +268,6 @@
       g.add(fan); laserFans.push(fan);
     }
     tracheidBeam = sheet(SCAN_X + 0.25, 1.78, SCAN_X + 0.05, 0.03, BOARD_LEN / 2 * 0.92, COL.tracheid, 0.1); g.add(tracheidBeam);
-    xrayBeam = sheet(SCAN_X, 1.95, SCAN_X, -0.3, BOARD_LEN / 2 * 1.02, COL.blue, 0.07); g.add(xrayBeam);
 
     scene.add(g);
   }
@@ -439,7 +437,6 @@
 
     for (const f of laserFans) f.material.opacity = (state.channel === 4 || state.channel === 0) ? 0.14 : 0.06;
     tracheidBeam.material.opacity = state.channel === 2 ? 0.22 : 0.05;
-    xrayBeam.material.opacity = state.showXray ? 0.12 : 0.04;
     underBeam.material.opacity = state.showUnder ? 0.2 : 0.06;
 
     // kapstation: sidoknuffar puttar in + klinga pulserar

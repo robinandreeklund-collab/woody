@@ -86,11 +86,11 @@ export function StatsPanel() {
   return (
     <div className="statspanel">
       <div className="sv-h">RUNDA {round} — STATISTIK ({rs.n}/{per})</div>
-      <div className="stat-grid">
-        <div className="stat"><b style={{ color: "#2f9e6e" }}>{approved}</b><span>godkända</span></div>
-        <div className="stat"><b style={{ color: "#e8542c" }}>{rs.rejected}</b><span>kasserade (längd)</span></div>
-        <div className="stat"><b>{avg} kr</b><span>snittvärde/bräda</span></div>
-        <div className="stat"><b>{top ? `${top[0]} (${top[1]})` : "—"}</b><span>vanligaste fel</span></div>
+      <div className="rstat-grid">
+        <div className="rstat"><b style={{ color: "#2f9e6e" }}>{approved}</b><span>godkända</span></div>
+        <div className="rstat"><b style={{ color: "#e8542c" }}>{rs.rejected}</b><span>kasserade (längd)</span></div>
+        <div className="rstat"><b>{avg} kr</b><span>snittvärde/bräda</span></div>
+        <div className="rstat"><b>{top ? `${top[0]} (${top[1]})` : "—"}</b><span>vanligaste fel</span></div>
       </div>
     </div>
   );

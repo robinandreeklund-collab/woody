@@ -114,7 +114,7 @@ function tick(dt) {
     channel: state.channel, overlay: state.overlay, distort: state.distort,
     time: state.time, dispScale: state.dispScale, feed: feedWorld(),
     coarse: coarse(), cutOverlay: state.cutOverlay,
-    showXray: state.showXray, showUnder: state.showUnder,
+    showUnder: state.showUnder,
   });
 
   window.Panel.update({
@@ -124,9 +124,9 @@ function tick(dt) {
       miou: mIoUbase + Math.sin(state.time * 3) * 0.0008,
     },
     counts, areas, frac, board: act.data, channelIdx: state.channel,
-    metrics: { fiberDev: act.data.stats.maxFiberDev, innerKnots: act.data.stats.innerKnots, coarse: coarse() },
+    metrics: { fiberDev: act.data.stats.maxFiberDev, coarse: coarse() },
     plan: act.data.plan, cutOverlay: state.cutOverlay,
-    underOn: state.showUnder, xrayOn: state.showXray,
+    underOn: state.showUnder,
     playing: state.playing, overlay: state.overlay, profile: p.prof,
   });
 
@@ -148,7 +148,6 @@ const ctrl = {
   togglePlay: () => state.playing = !state.playing,
   step: () => { for (const b of boards) { b.x -= 0.18; if (b.x < -ring() / 2) { history.unshift(b.data); if (history.length > 4) history.pop(); b.x += ring(); b.data = makeData(); } } },
   toggleUnder: v => state.showUnder = v,
-  toggleXray: v => state.showXray = v,
 };
 window.__sim = state;
 

@@ -1,6 +1,6 @@
 /* ============================================================
    panel.js — instrumentpanel: mätare, kanalväljare, defektlegend,
-   laser-höjdprofil, sido-PiP (undersida + röntgen), reglage.
+   laser-höjdprofil, sido-PiP (undersida), reglage.
    ============================================================ */
 (function () {
   const C = window.LineConfig.CLASSES;
@@ -71,14 +71,11 @@
     prof.appendChild(pr);
     root.appendChild(prof);
 
-    /* sidosensorer (undersida + röntgen) */
+    /* sidosensorer (undersida) */
     const sens = section("Sidosensorer");
     const pips = el("div", "pip-row");
     refs.under = pip(pips, "Undersida", "via kedjespringor", ctrl.toggleUnder, true);
-    refs.xray = pip(pips, "Röntgen", "inre defekter", ctrl.toggleXray, true);
     sens.appendChild(pips);
-    refs.innerKnots = el("div", "pip-note", "");
-    sens.appendChild(refs.innerKnots);
     root.appendChild(sens);
 
     /* defekter */
@@ -254,8 +251,6 @@
       refs["leg" + i].cnt.textContent = d.counts[i];
       refs["leg" + i].ar.textContent = (d.areas[i] / 100).toFixed(0) + " cm²";
     }
-    refs.innerKnots.innerHTML = "Röntgen: <b>" + d.metrics.innerKnots + "</b> inre kvist(ar) ej synliga på ytan";
-
     drawProfile(d.profile);
     if (refs.resBox) {
       const ar = d.live.alongRes, sharp = Math.round((1 - d.metrics.coarse) * 5);
@@ -264,7 +259,6 @@
         '<span class="res-d">' + '●'.repeat(sharp) + '<i>' + '○'.repeat(5 - sharp) + '</i></span>';
     }
     drawPiP(refs.under.cv, d.board.underColor, d.frac, "#cdbf9f", d.underOn);
-    drawPiP(refs.xray.cv, d.board.xray, d.frac, "#0a0d12", d.xrayOn);
 
     if (d.plan) {
       refs.sawVal.textContent = d.plan.totalValue;

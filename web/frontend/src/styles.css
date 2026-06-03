@@ -216,12 +216,12 @@ input.range::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; b
 .sv-sub { font: 500 11px var(--sans); color: var(--ink-3); margin: 8px 0 4px; }
 .sv-cv { width: 100%; display: block; }
 .sv-foot { font: 500 10.5px var(--sans); color: var(--ink-3); margin-top: 8px; }
-.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.stat { background: #fff; border: 1px solid var(--line-2); border-radius: 8px;
+.rstat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.rstat { background: #fff; border: 1px solid var(--line-2); border-radius: 8px;
   padding: 9px 10px; display: flex; flex-direction: column; gap: 2px; }
-.stat b { font: 600 16px var(--mono, 'IBM Plex Mono', monospace); color: var(--ink); }
-.stat span { font: 500 10.5px var(--sans); color: var(--ink-2); }
-@media (max-width: 720px) { .stat-grid { grid-template-columns: repeat(2, 1fr); } }
+.rstat b { font: 600 16px var(--mono, 'IBM Plex Mono', monospace); color: var(--ink); }
+.rstat span { font: 500 10.5px var(--sans); color: var(--ink-2); }
+@media (max-width: 720px) { .rstat-grid { grid-template-columns: repeat(2, 1fr); } }
 
 @media (max-width: 900px) {
   /* Mobil: låt hela sidan scrolla naturligt och stapla 3D -> mätresultat ->
