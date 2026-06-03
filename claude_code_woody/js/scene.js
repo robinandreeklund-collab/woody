@@ -27,7 +27,8 @@
   let laserStripes = [], laserFans = [], tracheidBeam, underBeam, ledRing = [];
   let labelSprites = [], lastActiveId = -1;   // flytande defektetiketter i 3D
   const NLAS = 6;                 // laser-/kameramoduler i array längs längden
-  let sawBlade, pusherA, pusherB;
+  let sawBlades = [], pusherA, pusherB;
+  const BLADE_Z = [-1.45, 0, 1.45];   // 3 klingor med FAST position längs längden
   let chains = [];
   const slots = [];
 
@@ -283,11 +284,19 @@
     beam.position.set(SAW_X, 1.45, 0); g.add(beam);
     const hus = box(0.5, 0.42, 1.0, COL.housing, { rough: 0.4 });
     hus.position.set(SAW_X, 1.18, 0); g.add(hus);
-    // klinga / kaplinje längs Z
-    sawBlade = new T.Mesh(new T.PlaneGeometry(0.045, BOARD_LEN * 1.04),
-      new T.MeshBasicMaterial({ color: 0xeef2f6, transparent: true, opacity: 0.85, depthWrite: false }));
-    sawBlade.rotation.x = -Math.PI / 2; sawBlade.position.set(SAW_X, 0.035, 0); g.add(sawBlade);
-    // sidoknuffar som puttar brädan i Z för att styra in i kapbalken
+    // 3 klingor med FAST position (kapar tvärs brädan = i XY-planet vid fast Z)
+    sawBlades = [];
+    for (const z of BLADE_Z) {
+      const blade = new T.Mesh(new T.CylinderGeometry(0.34, 0.34, 0.03, 36),
+        new T.MeshStandardMaterial({ color: 0xeef2f6, metalness: 0.85, roughness: 0.25 }));
+      blade.rotation.x = Math.PI / 2;            // disc i XY-planet, axel längs Z
+      blade.position.set(SAW_X, 0.12, z); g.add(blade);
+      // markör på balken ovanför varje klinga
+      const tab = box(0.16, 0.1, 0.06, COL.laser, { emissive: COL.laser, emissiveIntensity: 0.4, noShadow: true });
+      tab.position.set(SAW_X, 1.28, z); g.add(tab);
+      sawBlades.push(blade);
+    }
+    // sidoknuffar: trycker brädan i ±Z åt det lämpliga hållet (en i taget)
     const mkPush = z => { const p = box(0.5, 0.32, 0.5, COL.dog, { rough: 0.5, metal: 0.4 }); p.position.set(SAW_X, -0.02, z); g.add(p); return p; };
     pusherA = mkPush(3.95); pusherB = mkPush(-3.95);
     scene.add(g);
@@ -378,6 +387,20 @@
     return { group, mat, dataRef: null, texes: [], dogs };
   }
 
+  // Vilket håll (±Z) brädan ska tryckas för att linjera mot de fasta klingorna.
+  // Tyngdpunkten av kapplanens värde -> tryck mot motsatt sida (centrera värdet).
+  function pushDirFor(data) {
+    if (data._pushDir != null) return data._pushDir;
+    let c = 0.5;
+    if (data.plan && data.plan.pieces.length) {
+      let s = 0, w = 0;
+      for (const p of data.plan.pieces) { const m = (p.aU + p.bU) / 2; s += m * p.value; w += p.value; }
+      if (w) c = s / w;
+    }
+    data._pushDir = c < 0.5 ? 1 : -1;
+    return data._pushDir;
+  }
+
   // arr: [{data, x}]  -> skapar/uppdaterar slots, laddar texturer vid behov
   function syncBoards(arr) {
     while (slots.length < arr.length) slots.push(makeSlot());
@@ -391,6 +414,9 @@
         s.texes = [tc, tl, th, tt]; s.dataRef = e.data;
       }
       s.group.position.x = e.x;
+      // skjuts åt rätt håll (±Z) just vid kapen så snitten linjerar mot klingorna
+      const nearSaw = Math.max(0, 1 - Math.abs(e.x - SAW_X) / 1.0);
+      s.group.position.z = pushDirFor(e.data) * 0.6 * nearSaw;
       s.dogs.position.x = e.x + curW / 2 + 0.05;  // rund medbringare bakom brädan (matning -X)
       const pl = e.data.plan;
       if (pl) {
@@ -408,6 +434,18 @@
     let act = arr[0];
     for (const b of arr) if (Math.abs(b.x) < Math.abs(act.x)) act = b;
     updateLabels(act);
+
+    // klaffar: brädan vid kapen trycks åt ETT håll (inte båda inåt).
+    if (pusherA) {
+      let cut = arr[0];
+      for (const b of arr) if (Math.abs(b.x - SAW_X) < Math.abs(cut.x - SAW_X)) cut = b;
+      const near = Math.max(0, 1 - Math.abs(cut.x - SAW_X) / 1.0);
+      const dir = pushDirFor(cut.data), stroke = (3.95 - 3.5) + 1.0 * near;
+      // +Z-klaffen (A) trycker mot −Z; −Z-klaffen (B) trycker mot +Z. Bara den
+      // som behövs går in, den andra står i viloläge utanför brädans ände.
+      pusherA.position.z = dir < 0 ? 3.95 - stroke : 3.95;
+      pusherB.position.z = dir > 0 ? -3.95 + stroke : -3.95;
+    }
   }
 
   function setWidth(wu) {
@@ -439,13 +477,7 @@
     tracheidBeam.material.opacity = state.channel === 2 ? 0.22 : 0.05;
     underBeam.material.opacity = state.showUnder ? 0.2 : 0.06;
 
-    // kapstation: sidoknuffar puttar in + klinga pulserar
-    if (pusherA) {
-      const ph = (state.time * 0.6) % 1.0;
-      const push = ph < 0.35 ? Math.sin(ph / 0.35 * Math.PI) * 0.5 : 0;
-      pusherA.position.z = 3.95 - push; pusherB.position.z = -3.95 + push;
-      sawBlade.material.opacity = 0.55 + 0.4 * Math.abs(Math.sin(state.time * 11));
-    }
+    // kapstation: 3 fasta klingor (statiska); klaffarna styrs i syncBoards.
 
     const sp = state.feed * 0.016;
     for (const grp of chains) for (const link of grp.children) {
