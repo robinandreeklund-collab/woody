@@ -69,6 +69,7 @@ class Rig:
     board_width_mm: float = 150.0
     tri_angle_deg: float = 30.0          # vinkel laser–kamera (triangulering)
     overlap_mm: float = 150.0            # överlapp mellan grann-segment
+    profile_len_fov_mm: float = 1100.0   # profilkamerans synfält LÄNGS längden/modul
     profile_height_range_mm: float = 50.0  # antaget mätrange (DOF) per profilkamera
     feed_mps: float = 0.25
 
@@ -94,9 +95,12 @@ class Rig:
             self.surface_cam.line_rate_hz / 1e9
 
     # --- laser-/kamera-array (triangulering) ---
+    # Brädan matas in med kortsidan (bredden); varje laserstripe går TVÄRS de
+    # ~150 mm (lasern klarar en längre linje men bara bredden används). Arrayen
+    # tilar LÄNGDEN: segmentlängd = profilkamerans synfält längs längden.
     @property
     def seg_len_mm(self) -> float:
-        return self.laser.line_length_mm
+        return self.profile_len_fov_mm
 
     @property
     def n_lasers(self) -> int:
@@ -137,7 +141,9 @@ class Rig:
             "laser": self.laser.name,
             "fan_deg": self.laser.fan_angle_deg,
             "working_distance_mm": self.laser.working_distance_mm,
-            "seg_len_mm": round(self.seg_len_mm, 0),
+            "laser_line_capability_mm": round(self.laser.line_length_mm, 0),
+            "laser_covers_width_mm": self.board_width_mm,
+            "seg_len_mm (kamera-FOV/längd)": round(self.seg_len_mm, 0),
             "overlap_mm": self.overlap_mm,
             "n_lasers": self.n_lasers,
             "n_profile_cams": self.n_profile_cams,

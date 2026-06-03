@@ -24,7 +24,8 @@
   };
 
   let renderer, scene, camera;
-  let scanLine, laserSheet, tracheidBeam, xrayBeam, underBeam, ledRing = [];
+  let laserStripes = [], laserFans = [], tracheidBeam, xrayBeam, underBeam, ledRing = [];
+  const NLAS = 6;                 // laser-/kameramoduler i array längs längden
   let sawBlade, pusherA, pusherB;
   let chains = [];
   const slots = [];
@@ -244,15 +245,23 @@
       g.add(led); ledRing.push(led);
     }
 
-    // skannlinje längs Z (hela längden)
-    scanLine = new T.Mesh(new T.PlaneGeometry(0.05, BOARD_LEN * 1.04),
-      new T.MeshBasicMaterial({ color: COL.laser, transparent: true, opacity: 0.95, depthWrite: false }));
-    scanLine.rotation.x = -Math.PI / 2; scanLine.position.set(SCAN_X, 0.03, 0); g.add(scanLine);
-
-    laserSheet = sheet(SCAN_X, 1.78, SCAN_X, 0.03, BOARD_LEN / 2, COL.laser, 0.12); g.add(laserSheet);
-    laserSheet.geometry.attributes.position.array[0] = SCAN_X - 0.5; // luta lite (triangulering)
-    laserSheet.geometry.attributes.position.array[3] = SCAN_X - 0.5;
-    laserSheet.geometry.attributes.position.needsUpdate = true;
+    // Laser-array: NLAS stripar TVÄRS bredden (X), tilade längs längden (Z) med
+    // överlapp. Brädan matas in med kortsidan; varje laser går över de 150 mm,
+    // och tillsammans täcker modulerna hela längden.
+    laserStripes = []; laserFans = [];
+    for (let i = 0; i < NLAS; i++) {
+      const z = (-0.5 + (i + 0.5) / NLAS) * BOARD_LEN;     // segmentcentrum längs längden
+      const strip = new T.Mesh(new T.BoxGeometry(1.0, 0.01, 0.05),
+        new T.MeshBasicMaterial({ color: COL.laser, transparent: true, opacity: 0.95, depthWrite: false }));
+      strip.position.set(SCAN_X, 0.034, z); strip.scale.x = curW;
+      g.add(strip); laserStripes.push(strip);
+      // laserblad (vertikal sheet tvärs bredden) som triangulerar
+      const fan = new T.Mesh(new T.PlaneGeometry(1.0, 1.9),
+        new T.MeshBasicMaterial({ color: COL.laser, transparent: true, opacity: 0.1,
+          side: T.DoubleSide, depthWrite: false }));
+      fan.position.set(SCAN_X, 0.98, z); fan.scale.x = curW;
+      g.add(fan); laserFans.push(fan);
+    }
     tracheidBeam = sheet(SCAN_X + 0.25, 1.78, SCAN_X + 0.05, 0.03, BOARD_LEN / 2 * 0.92, COL.tracheid, 0.1); g.add(tracheidBeam);
     xrayBeam = sheet(SCAN_X, 1.95, SCAN_X, -0.3, BOARD_LEN / 2 * 1.02, COL.blue, 0.07); g.add(xrayBeam);
 
@@ -356,7 +365,12 @@
     }
   }
 
-  function setWidth(wu) { curW = wu; for (const s of slots) s.group.scale.z = wu; }
+  function setWidth(wu) {
+    curW = wu;
+    for (const s of slots) s.group.scale.z = wu;
+    for (const m of laserStripes) m.scale.x = wu;   // stripen = brädans bredd
+    for (const m of laserFans) m.scale.x = wu;
+  }
 
   function update(state) {
     for (const s of slots) {
@@ -370,14 +384,14 @@
         u.uLightDir.value.set(Math.cos(a) * 0.8, 0.55, Math.sin(a) * 0.8).normalize();
       } else u.uLightDir.value.set(0.4, 0.55, 0.85).normalize();
     }
-    scanLine.material.opacity = 0.7 + 0.3 * Math.sin(state.time * 8);
+    for (const s of laserStripes) s.material.opacity = 0.7 + 0.3 * Math.sin(state.time * 8);
     if (state.channel === 1) {
       const a = state.time * 1.6;
       const act = Math.floor((a / (Math.PI * 2)) * ledRing.length) % ledRing.length;
       ledRing.forEach((l, i) => l.material.emissiveIntensity = (i === act ? 2.4 : 0.12));
     } else ledRing.forEach(l => l.material.emissiveIntensity = 0.15);
 
-    laserSheet.material.opacity = (state.channel === 4 || state.channel === 0) ? 0.16 : 0.07;
+    for (const f of laserFans) f.material.opacity = (state.channel === 4 || state.channel === 0) ? 0.14 : 0.06;
     tracheidBeam.material.opacity = state.channel === 2 ? 0.22 : 0.05;
     xrayBeam.material.opacity = state.showXray ? 0.12 : 0.04;
     underBeam.material.opacity = state.showUnder ? 0.2 : 0.06;
