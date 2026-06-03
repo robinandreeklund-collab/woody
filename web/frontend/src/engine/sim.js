@@ -8,7 +8,7 @@
 import { useSimStore } from "../store";
 import { startPrefetch, takePatch, applyPatch } from "./source.js";
 
-const N = 11;
+const N = 20;
 const SENSOR_RATE = 758;     // sensorns radtakt (Hz), fast
 const PX_LEN = 16364;        // px tvärs längden (5,4 m @ 0,33 mm)
 const WU_MM = 5400 / 7;      // 1 världsenhet i mm (≈ 771)
