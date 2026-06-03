@@ -30,9 +30,10 @@ const makeData = () => {
   const s = useSimStore.getState();
   let bir = s.boardInRound + 1, rnd = s.round;
   if (bir > s.perRound) { bir = 1; rnd += 1; }
+  const lasers = patch && patch.laser ? ` · ${patch.laser.nLasers} lasrar` : "";
   useSimStore.setState({
     boardInRound: bir, round: rnd,
-    source: patch ? patch.source : "syntetisk (lokal)",
+    source: (patch ? patch.source : "syntetisk (lokal)") + lasers,
   });
   return d;
 };

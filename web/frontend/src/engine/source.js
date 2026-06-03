@@ -26,12 +26,12 @@ async function fetchOne(lengths) {
     });
     if (!r.ok) throw new Error("status " + r.status);
     const d = await r.json();
-    const [colorImg, labelImg] = await Promise.all([
-      loadImage(d.color_png), loadImage(d.label_png),
+    const [colorImg, labelImg, heightImg] = await Promise.all([
+      loadImage(d.color_png), loadImage(d.label_png), loadImage(d.height_png),
     ]);
     backendOk = true;
-    return { colorImg, labelImg, stats: d.stats, cutplan: d.cutplan,
-             id: d.id, source: d.source };
+    return { colorImg, labelImg, heightImg, stats: d.stats, cutplan: d.cutplan,
+             id: d.id, source: d.source, laser: d.laser };
   } catch (e) {
     backendOk = false;
     return null;
@@ -82,6 +82,13 @@ export function applyPatch(d, patch) {
     lx.clearRect(0, 0, d.W, d.H);
     lx.drawImage(off, 0, 0, d.W, d.H);
   }
+  if (patch.heightImg) {
+    // höjdkartan kamerorna mätte (warp + laser-array) -> motorns höjdlager
+    const hx = d.height.getContext("2d");
+    hx.drawImage(patch.heightImg, 0, 0, d.W, d.H);
+    d.heightData = hx.getImageData(0, 0, d.W, d.H).data;
+  }
+  d.laser = patch.laser;
   d.stats.features = patch.stats.features;
   d.stats.counts = patch.stats.counts;
   d.stats.areas = patch.stats.areas;

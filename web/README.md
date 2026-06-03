@@ -22,9 +22,11 @@ i repo-roten `src/`. Vald väg: **full React + react-three-fiber-frontend** mot 
   look/feel bevaras exakt.
 - **End-to-end klart.** `engine/source.js` hämtar brädor från `/api/next` och
   patchar in **riktig färg + modellens segmentering + features + kapplan** i
-  motorns brädor (hjälpsensorerna behålls). Backenden servar dessutom den byggda
-  frontenden på `/`, så allt ligger på en URL. Faller tillbaka på den lokala
-  generatorn om backenden är onåbar. Rundor om 120 brädor visas i HUD:en.
+  motorns brädor. Höjdlagret är den **fysikaliskt uppmätta höjdkartan** (slumpad
+  3D-deformation läst av laser-/kamera-arrayen, `src/hardware|geometry|laser.py`),
+  så brädan deformeras till den geometri kamerorna faktiskt mäter, med Kodytek-
+  texturen ovanpå. Backenden servar frontenden på `/`. Fallback till lokal
+  generator om backenden är onåbar. Rundor om 120 brädor + laser-array visas i HUD:en.
 
 ## Ett kommando (lokalt)
 

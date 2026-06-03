@@ -195,16 +195,65 @@ def _features_img(label_img, mm_per_px):
     return counts, areas, feats, crack_px * mm_per_px
 
 
+def measured_height(label_img, mm_per_px, seed):
+    """Höjdkartan kamerorna mäter: slumpad 3D-deformation + fin defekt-relief,
+    läst av laser-/kamera-arrayen (triangulering, ocklusion, fusion).
+    label_img i bildorientering (bredd, längd). Returnerar (z_img i bildorient.,
+    warp, layout)."""
+    from src.geometry import random_warp, warp_height, warp_summary
+    from src.laser import simulate_array
+    from src.hardware import Rig
+
+    lab_lw = np.ascontiguousarray(label_img.T)             # (längd, bredd)
+    Hl, Wl = lab_lw.shape
+    length_mm = Hl * mm_per_px
+    width_mm = Wl * mm_per_px
+    # nedsampla för en snabb höjdsim
+    if Hl > 700:
+        idx = np.linspace(0, Hl - 1, 700).astype(int)
+        lab_lw = lab_lw[idx]
+        Hl = 700
+    sim_mmpx = length_mm / Hl
+
+    fine = np.zeros((Hl, Wl), np.float64)
+    fine[lab_lw == 1] += 1.0        # kvist – liten upphöjning
+    fine[lab_lw == 2] -= 3.0        # spricka – grop
+    fine[lab_lw == 4] -= 1.0        # vankant
+    fine[lab_lw == 6] -= 2.0        # hål
+
+    rng = np.random.default_rng(seed)
+    p = random_warp(rng)
+    rig = Rig(board_length_mm=length_mm, board_width_mm=width_mm)
+    z = warp_height(Hl, Wl, width_mm, p) + fine
+    res = simulate_array(z, sim_mmpx, rig, seed=seed)
+    z_img = np.ascontiguousarray(res["z_fused"].T)          # tillbaka till bildorient.
+    layout = {"nLasers": rig.n_lasers, "nCams": rig.n_profile_cams,
+              "segLenMm": round(rig.seg_len_mm), "overlapMm": rig.overlap_mm,
+              "heightResMm": round(rig.height_resolution_mm, 2),
+              "coverage": round(res["coverage"], 3), "warp": warp_summary(p)}
+    return z_img, layout
+
+
+def _height_png_b64(z_img: np.ndarray) -> str:
+    """Höjdavvikelse (mm) -> gråskala-PNG (motorns t = 22 + (r/255−0.5)·12)."""
+    g = np.clip(z_img / 12.0 + 0.5, 0.0, 1.0)
+    rgb = np.repeat((g * 255).astype(np.uint8)[..., None], 3, axis=2)
+    return _png_b64(rgb)
+
+
 def engine_payload(color_img, label_img, mm_per_px, source, miou, lengths, board_id):
     """Bygger frontendens datakontrakt. color_img/label_img i bildorientering."""
     counts, areas, feats, crack_mm = _features_img(label_img, mm_per_px)
     plan = _cutplan.plan(feats, lengths)
     color_s = _downscale_len(np.ascontiguousarray(color_img))
     label_s = _downscale_len(np.ascontiguousarray(label_img.astype(np.uint8)))
+    z_img, layout = measured_height(label_img, mm_per_px, board_id)
     return {
         "id": board_id, "source": source, "mmPerPx": mm_per_px,
         "color_png": _png_b64(color_s),
         "label_png": _labelid_png_b64(label_s),
+        "height_png": _height_png_b64(_downscale_len(z_img)),
+        "laser": layout,
         "stats": {
             "counts": counts, "areas": [round(a, 1) for a in areas],
             "features": feats, "crackLenMm": round(crack_mm),
@@ -248,7 +297,7 @@ class BoardSource:
         return self._synthetic(seed, lengths)
 
     def _synthetic(self, seed, lengths):
-        b = make_board_for(seed, length_m=5.4, mm_per_px=0.5)
+        b = make_board_for(seed, length_m=5.4, mm_per_px=1.0)  # grövre = snabbare (fallback)
         if self.model is not None:
             pred = predict_board(self.model, b, self.mcfg)
         else:
