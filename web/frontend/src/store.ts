@@ -26,6 +26,13 @@ export interface SimState {
   lengthDevMm: number;    // avvikelse mot nominell
   lengthOk: boolean;      // inom tolerans?
   defects: { name: string; posMm: number }[];
+  // sensorvy (aktuell bräda) + rundstatistik
+  sensorBoard: {
+    colorPng: string; heightPng: string;
+    nLasers: number; nSurfaceCams: number;
+    laserOverlapFrac: number; surfaceOverlapFrac: number;
+  } | null;
+  roundStats: { n: number; rejected: number; valueSum: number; defects: Record<string, number> };
 }
 
 export const useSimStore = create<SimState>(() => ({
@@ -51,4 +58,6 @@ export const useSimStore = create<SimState>(() => ({
   lengthDevMm: 0,
   lengthOk: true,
   defects: [],
+  sensorBoard: null,
+  roundStats: { n: 0, rejected: 0, valueSum: 0, defects: {} },
 }));

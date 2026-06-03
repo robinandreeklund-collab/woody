@@ -236,6 +236,9 @@ def measured_height(label_img, mm_per_px, seed):
     res = simulate_array(z, sim_mmpx, rig, seed=seed)
     z_img = np.ascontiguousarray(res["z_fused"].T)          # tillbaka till bildorient.
     layout = {"nLasers": rig.n_lasers, "nCams": rig.n_profile_cams,
+              "nSurfaceCams": rig.n_surface_cams,
+              "laserOverlapFrac": round(rig.overlap_mm / rig.seg_len_mm, 3),
+              "surfaceOverlapFrac": 0.06,
               "segLenMm": round(rig.seg_len_mm), "overlapMm": rig.overlap_mm,
               "heightResMm": round(rig.height_resolution_mm, 2),
               "coverage": round(res["coverage"], 3), "warp": warp_summary(p)}

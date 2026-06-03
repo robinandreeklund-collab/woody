@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { initSim } from "./engine/sim.js";
 import { useSimStore } from "./store";
+import { SensorView, StatsPanel } from "./SensorPanels";
 
 function RoundHud() {
   const round = useSimStore((s) => s.round);
@@ -63,6 +64,8 @@ export default function App() {
           </div>
         </div>
         <div id="readout" />
+        <StatsPanel />
+        <SensorView />
       </div>
       <aside id="panel" />
     </div>

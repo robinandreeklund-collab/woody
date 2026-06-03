@@ -31,8 +31,25 @@ const makeData = () => {
   let bir = s.boardInRound + 1, rnd = s.round;
   if (bir > s.perRound) { bir = 1; rnd += 1; }
   const lasers = patch && patch.laser ? ` · ${patch.laser.nLasers} lasrar` : "";
+
+  // rundstatistik (nollställs vid ny runda)
+  let rs = bir === 1 ? { n: 0, rejected: 0, valueSum: 0, defects: {} }
+                     : { ...s.roundStats };
+  rs.n += 1;
+  if (patch && patch.lengthOk === false) rs.rejected += 1;
+  rs.valueSum += d.plan ? d.plan.totalValue : 0;
+  if (patch && patch.defects) for (const dd of patch.defects) rs.defects[dd.name] = (rs.defects[dd.name] || 0) + 1;
+
+  const sensorBoard = patch && patch.colorPng ? {
+    colorPng: patch.colorPng, heightPng: patch.heightPng,
+    nLasers: patch.laser ? patch.laser.nLasers : 6,
+    nSurfaceCams: patch.laser ? patch.laser.nSurfaceCams || 2 : 2,
+    laserOverlapFrac: patch.laser ? patch.laser.laserOverlapFrac || 0.14 : 0.14,
+    surfaceOverlapFrac: patch.laser ? patch.laser.surfaceOverlapFrac || 0.06 : 0.06,
+  } : s.sensorBoard;
+
   useSimStore.setState({
-    boardInRound: bir, round: rnd,
+    boardInRound: bir, round: rnd, roundStats: rs, sensorBoard,
     source: (patch ? patch.source : "syntetisk (lokal)") + lasers,
     lengthMm: patch && patch.lengthMm ? patch.lengthMm : 0,
     lengthDevMm: patch && patch.lengthDevMm != null ? patch.lengthDevMm : 0,

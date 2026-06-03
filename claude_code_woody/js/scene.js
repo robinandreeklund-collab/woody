@@ -25,6 +25,7 @@
 
   let renderer, scene, camera;
   let laserStripes = [], laserFans = [], tracheidBeam, xrayBeam, underBeam, ledRing = [];
+  let labelSprites = [], lastActiveId = -1;   // flytande defektetiketter i 3D
   const NLAS = 6;                 // laser-/kameramoduler i array längs längden
   let sawBlade, pusherA, pusherB;
   let chains = [];
@@ -293,6 +294,43 @@
     pusherA = mkPush(3.95); pusherB = mkPush(-3.95);
     scene.add(g);
   }
+  /* ---------- flytande defektetiketter (sprites) ---------- */
+  function makeLabelSprite() {
+    const cv = document.createElement("canvas"); cv.width = 256; cv.height = 64;
+    const tx = new T.CanvasTexture(cv);
+    const sp = new T.Sprite(new T.SpriteMaterial({ map: tx, depthTest: false, transparent: true }));
+    sp.scale.set(1.4, 0.35, 1); sp.visible = false; sp.userData = { cv, tx };
+    scene.add(sp); return sp;
+  }
+  function setLabel(sp, text, rgb) {
+    const { cv, tx } = sp.userData, c = cv.getContext("2d");
+    c.clearRect(0, 0, 256, 64);
+    c.fillStyle = "rgba(20,22,26,0.85)"; c.fillRect(2, 2, 252, 60);
+    c.fillStyle = `rgb(${rgb[0]},${rgb[1]},${rgb[2]})`; c.fillRect(12, 22, 18, 18);
+    c.fillStyle = "#fff"; c.font = "600 28px 'IBM Plex Sans', sans-serif"; c.textBaseline = "middle";
+    c.fillText(text, 40, 34);
+    tx.needsUpdate = true;
+  }
+  function updateLabels(act) {
+    if (labelSprites.length === 0) for (let i = 0; i < 6; i++) labelSprites.push(makeLabelSprite());
+    const feats = ((act && act.data.stats && act.data.stats.features) || [])
+      .filter(f => f.cls >= 1).sort((a, b) => (b.area || 0) - (a.area || 0)).slice(0, 6);
+    const fresh = act && act.data.id !== lastActiveId;
+    const C = window.LineConfig.CLASSES;
+    for (let i = 0; i < labelSprites.length; i++) {
+      const sp = labelSprites[i], f = feats[i];
+      if (!f) { sp.visible = false; continue; }
+      sp.visible = true;
+      sp.position.set(act.x, 0.55, (f.u - 0.5) * BOARD_LEN);   // följer brädan i X
+      if (fresh) {
+        const pos = (f.posMm != null ? f.posMm : f.u * 5400) / 1000;
+        const cls = C[f.cls] || { namn: "?", rgb: [40, 40, 40] };
+        setLabel(sp, `${cls.namn} ${pos.toFixed(1)} m`, cls.rgb);
+      }
+    }
+    if (act) lastActiveId = act.data.id;
+  }
+
   function tex(canvas) {
     const t = new T.CanvasTexture(canvas);
     t.colorSpace = T.NoColorSpace;
@@ -368,6 +406,10 @@
         }
       }
     }
+    // flytande defektetiketter på den aktiva brädan (min |x|)
+    let act = arr[0];
+    for (const b of arr) if (Math.abs(b.x) < Math.abs(act.x)) act = b;
+    updateLabels(act);
   }
 
   function setWidth(wu) {
