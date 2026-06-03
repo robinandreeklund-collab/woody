@@ -1,62 +1,123 @@
-# Virkesinspektion – simulering (tvärmatad rigg)
+"""Kör hela virkesinspektions-simuleringen och genererar figurer.
 
-En liten, fristående simulering av den tvärmatade virkesinspektionen vi
-skissat: brädan ligger tvärs över transportkedjorna, glider i sidled genom
-en mätzon, och avläses av en line-scan-kamera + linjelaser.
+Tre steg, på CPU mot den syntetiska generatorn (inga nedladdningar):
 
-Simuleringen gör tre saker:
+  1. Skriver ut förvärvstabellen (pixlar tvärs längden, radtakt, dataflöde)
+     för prototypsektion och full längd vid olika upplösningar.
+  2. Genererar en syntetisk bräda och ritar färgbild + facit-etiketter.
+  3. Visar varför line-scan triggas på pulsgivare (encoder) och inte på klocka,
+     samt extraherar tjocklek och vankant ur laserhöjdprofilen.
 
-1. **Räknar förvärvsparametrar** (pixlar tvärs längden, radtakt, dataflöde)
-   för både en prototypsektion och full 5,4 m längd, vid olika upplösningar.
-2. **Genererar syntetiska brädor** med procedurell ådring och defekter
-   (levande/död kvist, spricka, blånad, vankant, märg) – plus facit-etiketter
-   på pixelnivå. Användbart både som test och för att utöka träningsdata.
-3. **Simulerar själva förvärvet**: visar varför en line-scan måste triggas på
-   pulsgivare (encoder) och inte på klocka, samt extraherar tjocklek och
-   vankant ur en laserhöjdprofil.
+Figurer skrivs till outputs/. Kör med:  python run_demo.py
+"""
+from pathlib import Path
 
-## Geometri som modelleras
+import numpy as np
+import matplotlib
+matplotlib.use("Agg")  # rendera till fil utan display (funkar i Codespace/CI)
+import matplotlib.pyplot as plt
+from matplotlib.patches import Patch
 
-- Brädans **längd** (3,6–5,4 m) spänner tvärs mätzonen → sätter upplösningen.
-- Brädans **bredd** (100–150 mm) passerar zonen i sidled → blir skanningsaxeln.
-- 60 brädor/min → ~0,25 m/s i sidled → radtakten blir låg och oproblematisk.
+from src.config import LineConfig, CLASSES, CLASS_COLORS
+from src.board import make_board
+from src.acquisition import acquire_encoder, acquire_timetrigger, laser_profile
+from src.metrics import print_table
 
-## Köra
+OUT = Path(__file__).resolve().parent / "outputs"
+MM_PER_PX = 0.5          # demoupplösning (snabb på CPU)
+SEED = 10                # frö som uppvisar samtliga defektklasser + vankant
 
-```bash
-pip install -r requirements.txt
-python run_demo.py
-```
 
-Figurer hamnar i `outputs/`:
+def _label_rgb(label: np.ndarray) -> np.ndarray:
+    """Bygger en RGB-bild av facit-etiketterna via CLASS_COLORS."""
+    rgb = np.zeros(label.shape + (3,), float)
+    for cid, color in CLASS_COLORS.items():
+        rgb[label == cid] = color
+    return rgb
 
-- `1_board_labels.png` – syntetisk bräda + facit-etiketter
-- `2_encoder_vs_time.png` – encoder-trigger vs tids-trigger (distorsion)
-- `3_laser_profile.png` – tjocklek och vankant ur laserprofilen
 
-## Struktur
+def _show_board(ax, img):
+    """Visar en brädbild med längden liggande vågrätt (axel 0 = längd)."""
+    ax.imshow(np.transpose(img, (1, 0, 2)) if img.ndim == 3 else img.T,
+              aspect="auto")
+    ax.set_xlabel("längs längden (px)")
+    ax.set_ylabel("bredd (px)")
 
-```
-src/config.py        parametrar + härledda förvärvsmått
-src/board.py         syntetisk bräda + defekter + facit + höjdkarta
-src/acquisition.py   line-scan (encoder/tid) + laserprofil
-src/metrics.py       utskrift av förvärvstabell
-run_demo.py          kör allt och genererar figurer
-```
 
-## Nästa steg
+def fig_board_labels(board, path):
+    """Figur 1: syntetisk bräda + facit-etiketter på pixelnivå."""
+    fig, axes = plt.subplots(2, 1, figsize=(8.8, 4.4))
+    _show_board(axes[0], board["color"])
+    axes[0].set_title("Syntetisk bräda (färgkamera)")
+    _show_board(axes[1], _label_rgb(board["label"]))
+    axes[1].set_title("Facit – pixeletiketter")
 
-- Byt ut den syntetiska brädgeneratorn mot riktiga bilder, eller använd den
-  för att förstärka den öppna Kodytek-datamängden (samma defektklasser).
-- Koppla på en faktisk detektionsmodell där `run_demo` nu bara visar facit.
-- Justera `LineConfig` i `src/config.py` när de verkliga måtten (delning
-  mellan brädor, tjocklek, önskad mm/px) är fastställda.
+    handles = [Patch(facecolor=CLASS_COLORS[c], edgecolor="0.3", label=CLASSES[c])
+               for c in sorted(CLASSES)]
+    fig.legend(handles=handles, loc="lower center",
+               ncol=len(CLASSES), fontsize=7, frameon=False)
+    fig.tight_layout(rect=(0, 0.07, 1, 1))
+    fig.savefig(path, dpi=100)
+    plt.close(fig)
 
-## Lägga in i ett befintligt repo
 
-```bash
-cp -r wood-inspection-sim/ <ditt-repo>/
-cd <ditt-repo>
-git add wood-inspection-sim
-git commit -m "Lägg till simulering av tvärmatad virkesinspektion"
-```
+def fig_encoder_vs_time(board, path):
+    """Figur 2: encoder-trigger (måttriktig) vs tids-trigger (distorderad)."""
+    cfg = LineConfig()
+    v = cfg.sideways_speed_mps
+    enc = acquire_encoder(board)
+    tt = acquire_timetrigger(board, v_mean_mps=v, dt_s=0.0008, seed=3)
+
+    fig, axes = plt.subplots(2, 1, figsize=(7.7, 9.9))
+    _show_board(axes[0], enc)
+    axes[0].set_title("Encoder-trigger: en kolumn per fast sträcka → måttriktig")
+    _show_board(axes[1], tt)
+    axes[1].set_title("Tids-trigger med hastighetsjitter → geometrisk distorsion")
+    fig.tight_layout()
+    fig.savefig(path, dpi=100)
+    plt.close(fig)
+
+
+def fig_laser_profile(board, path):
+    """Figur 3: tjocklek (höjdkarta) och vankantbredd ur laserprofilen."""
+    prof = laser_profile(board)
+    height = board["height"]
+    mm_per_px = board["mm_per_px"]
+    x_mm = np.arange(height.shape[0]) * mm_per_px
+
+    fig, axes = plt.subplots(2, 1, figsize=(9.9, 8.8))
+    im = axes[0].imshow(height.T, aspect="auto", cmap="viridis")
+    axes[0].set_title(
+        f"Laserhöjdkarta – median-tjocklek ≈ {prof['thickness_mm']:.1f} mm")
+    axes[0].set_xlabel("längs längden (px)")
+    axes[0].set_ylabel("bredd (px)")
+    fig.colorbar(im, ax=axes[0], label="höjd över banan (mm)")
+
+    axes[1].plot(x_mm, prof["wane_mm"], color="#a060d0")
+    axes[1].fill_between(x_mm, prof["wane_mm"], color="#a060d0", alpha=0.25)
+    axes[1].set_title(
+        f"Vankantbredd längs längden – max ≈ {prof['wane_max_mm']:.1f} mm")
+    axes[1].set_xlabel("position längs längden (mm)")
+    axes[1].set_ylabel("vankant (mm)")
+    axes[1].grid(alpha=0.3)
+    fig.tight_layout()
+    fig.savefig(path, dpi=100)
+    plt.close(fig)
+
+
+def main():
+    OUT.mkdir(exist_ok=True)
+    print_table(LineConfig())
+    print()
+
+    board = make_board(length_mm=1200.0, width_mm=125.0,
+                       mm_per_px=MM_PER_PX, seed=SEED)
+
+    fig_board_labels(board, OUT / "1_board_labels.png")
+    fig_encoder_vs_time(board, OUT / "2_encoder_vs_time.png")
+    fig_laser_profile(board, OUT / "3_laser_profile.png")
+    print(f"Figurer skrivna till {OUT}/")
+
+
+if __name__ == "__main__":
+    main()

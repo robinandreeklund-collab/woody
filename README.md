@@ -1,71 +1,62 @@
-"""Konfiguration för den tvärmatade virkesinspektionen.
+# Virkesinspektion – simulering (tvärmatad rigg)
 
-Alla värden speglar uppställningen vi resonerat fram:
-  - brädan ligger tvärs över transportkedjorna (tvärmatning)
-  - brädans LÄNGD spänner över mätzonen
-  - brädans BREDD passerar genom zonen i sidled (= skanningsaxeln)
-"""
-from dataclasses import dataclass
+En liten, fristående simulering av den tvärmatade virkesinspektionen vi
+skissat: brädan ligger tvärs över transportkedjorna, glider i sidled genom
+en mätzon, och avläses av en line-scan-kamera + linjelaser.
 
+Simuleringen gör tre saker:
 
-@dataclass
-class LineConfig:
-    # Geometri
-    board_length_m: float = 5.4      # tvärs banan, spänner över mätzonen
-    board_width_m: float = 0.125     # passerar zonen i sidled (100-150 mm)
-    thickness_mm: float = 22.0
+1. **Räknar förvärvsparametrar** (pixlar tvärs längden, radtakt, dataflöde)
+   för både en prototypsektion och full 5,4 m längd, vid olika upplösningar.
+2. **Genererar syntetiska brädor** med procedurell ådring och defekter
+   (levande/död kvist, spricka, blånad, vankant, märg) – plus facit-etiketter
+   på pixelnivå. Användbart både som test och för att utöka träningsdata.
+3. **Simulerar själva förvärvet**: visar varför en line-scan måste triggas på
+   pulsgivare (encoder) och inte på klocka, samt extraherar tjocklek och
+   vankant ur en laserhöjdprofil.
 
-    # Genomströmning / matning
-    boards_per_min: int = 60
-    board_spacing_m: float = 0.25    # centrum-till-centrum längs matningen
+## Geometri som modelleras
 
-    # Optik / sensor
-    target_mm_per_px: float = 0.33   # upplösning tvärs längden
-    color_channels: int = 3
-    bit_depth: int = 8
+- Brädans **längd** (3,6–5,4 m) spänner tvärs mätzonen → sätter upplösningen.
+- Brädans **bredd** (100–150 mm) passerar zonen i sidled → blir skanningsaxeln.
+- 60 brädor/min → ~0,25 m/s i sidled → radtakten blir låg och oproblematisk.
 
-    @property
-    def boards_per_sec(self) -> float:
-        return self.boards_per_min / 60.0
+## Köra
 
-    @property
-    def sideways_speed_mps(self) -> float:
-        """Sidledshastighet genom mätzonen."""
-        return self.board_spacing_m * self.boards_per_sec
+```bash
+pip install -r requirements.txt
+python run_demo.py
+```
 
-    @property
-    def pixels_across_length(self) -> int:
-        """Antal pixlar som krävs tvärs hela brädlängden."""
-        return round(self.board_length_m * 1000 / self.target_mm_per_px)
+Figurer hamnar i `outputs/`:
 
-    @property
-    def line_rate_hz(self) -> float:
-        """Radtakt för line-scan = hastighet / pixelstorlek."""
-        return self.sideways_speed_mps * 1000.0 / self.target_mm_per_px
+- `1_board_labels.png` – syntetisk bräda + facit-etiketter
+- `2_encoder_vs_time.png` – encoder-trigger vs tids-trigger (distorsion)
+- `3_laser_profile.png` – tjocklek och vankant ur laserprofilen
 
-    @property
-    def data_rate_mb_s(self) -> float:
-        bytes_per_line = self.pixels_across_length * self.color_channels * (self.bit_depth / 8)
-        return bytes_per_line * self.line_rate_hz / 1e6
+## Struktur
 
+```
+src/config.py        parametrar + härledda förvärvsmått
+src/board.py         syntetisk bräda + defekter + facit + höjdkarta
+src/acquisition.py   line-scan (encoder/tid) + laserprofil
+src/metrics.py       utskrift av förvärvstabell
+run_demo.py          kör allt och genererar figurer
+```
 
-# Defektklasser (matchar i stort sett den öppna Kodytek-datamängden)
-CLASSES = {
-    0: "clear_wood",
-    1: "live_knot",
-    2: "dead_knot",
-    3: "crack",
-    4: "blue_stain",
-    5: "wane",
-    6: "marrow",
-}
+## Nästa steg
 
-CLASS_COLORS = {  # för etikettöverlägg (RGB 0-1)
-    0: (0.00, 0.00, 0.00),
-    1: (0.20, 0.80, 0.20),
-    2: (0.85, 0.20, 0.20),
-    3: (1.00, 0.55, 0.00),
-    4: (0.20, 0.45, 0.95),
-    5: (0.65, 0.45, 0.85),
-    6: (0.95, 0.85, 0.10),
-}
+- Byt ut den syntetiska brädgeneratorn mot riktiga bilder, eller använd den
+  för att förstärka den öppna Kodytek-datamängden (samma defektklasser).
+- Koppla på en faktisk detektionsmodell där `run_demo` nu bara visar facit.
+- Justera `LineConfig` i `src/config.py` när de verkliga måtten (delning
+  mellan brädor, tjocklek, önskad mm/px) är fastställda.
+
+## Lägga in i ett befintligt repo
+
+```bash
+cp -r wood-inspection-sim/ <ditt-repo>/
+cd <ditt-repo>
+git add wood-inspection-sim
+git commit -m "Lägg till simulering av tvärmatad virkesinspektion"
+```
