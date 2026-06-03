@@ -18,14 +18,14 @@ from torch.utils.data import Dataset, DataLoader
 
 from .board import make_board
 from .config import SegConfig
+from .features import build_features, zero_filled_features, normalize
 
 
-def _to_tensors(color_tile: np.ndarray, label_tile: np.ndarray):
-    """HxWx3 uint8 + HxW uint8  ->  (3,H,W) float [-1,1], (H,W) long."""
-    x = np.ascontiguousarray(color_tile.transpose(2, 0, 1)).astype(np.float32) / 255.0
-    x = (x - 0.5) / 0.5
-    y = np.ascontiguousarray(label_tile).astype(np.int64)
-    return torch.from_numpy(x), torch.from_numpy(y)
+def _to_tensors(feat_tile: np.ndarray, label_tile: np.ndarray):
+    """HxWxC float ~[0,1] + HxW  ->  (C,H,W) tensor [-1,1], (H,W) long."""
+    x = normalize(np.ascontiguousarray(feat_tile))
+    y = torch.from_numpy(np.ascontiguousarray(label_tile).astype(np.int64))
+    return x, y
 
 
 def _crop(arr: np.ndarray, r0: int, c0: int, t: int) -> np.ndarray:
@@ -56,12 +56,14 @@ class SyntheticBoardDataset(Dataset):
             seeds = range(cfg.val_seed, cfg.val_seed + cfg.n_val_boards)
             self._length = None  # sätts av valrutnätet nedan
 
-        self.boards = []          # (color, label)
+        self.boards = []          # (feat HxWxC float, label HxW)
         self.defect_coords = []   # (rows, cols) för label>0 per bräda
         for s in seeds:
             b = make_board(length_mm=cfg.board_length_mm, width_mm=cfg.board_width_mm,
-                           mm_per_px=cfg.mm_per_px, seed=s)
-            self.boards.append((b["color"], b["label"]))
+                           mm_per_px=cfg.mm_per_px, seed=s,
+                           subtle_defects=cfg.subtle_defects)
+            feat = build_features(b, cfg.extra_channels)
+            self.boards.append((feat, b["label"]))
             ys, xs = np.where(b["label"] > 0)
             self.defect_coords.append((ys, xs))
 
@@ -71,8 +73,8 @@ class SyntheticBoardDataset(Dataset):
             # Fast rutnät över varje valbräda -> deterministisk, repeterbar metrik
             self.val_index = []
             t = self.tile
-            for bi, (color, _) in enumerate(self.boards):
-                h, w = color.shape[:2]
+            for bi, (feat, _) in enumerate(self.boards):
+                h, w = feat.shape[:2]
                 rows = list(range(0, max(1, h - t + 1), t))
                 cols = list(range(0, max(1, w - t + 1), t)) or [0]
                 if rows and rows[-1] != h - t:
@@ -87,7 +89,7 @@ class SyntheticBoardDataset(Dataset):
 
     def _sample_train_tile(self):
         bi = int(self.rng.integers(0, len(self.boards)))
-        color, label = self.boards[bi]
+        feat, label = self.boards[bi]
         h, w = label.shape
         t = self.tile
         ys, xs = self.defect_coords[bi]
@@ -101,7 +103,7 @@ class SyntheticBoardDataset(Dataset):
         else:
             r0 = int(self.rng.integers(0, max(1, h - t + 1)))
             c0 = int(self.rng.integers(0, max(1, w - t + 1)))
-        return _crop(color, r0, c0, t), _crop(label, r0, c0, t)
+        return _crop(feat, r0, c0, t), _crop(label, r0, c0, t)
 
     def __getitem__(self, idx: int):
         if self.split == "train":
@@ -115,8 +117,8 @@ class SyntheticBoardDataset(Dataset):
                 ct, lt = np.rot90(ct, k), np.rot90(lt, k)
         else:
             bi, r0, c0 = self.val_index[idx]
-            color, label = self.boards[bi]
-            ct, lt = _crop(color, r0, c0, self.tile), _crop(label, r0, c0, self.tile)
+            feat, label = self.boards[bi]
+            ct, lt = _crop(feat, r0, c0, self.tile), _crop(label, r0, c0, self.tile)
         return _to_tensors(np.ascontiguousarray(ct), np.ascontiguousarray(lt))
 
     def class_pixel_counts(self) -> np.ndarray:
@@ -168,7 +170,10 @@ class KodytekDataset(Dataset):
         t = self.tile
         r0 = int(self.rng.integers(0, max(1, h - t + 1)))
         c0 = int(self.rng.integers(0, max(1, w - t + 1)))
-        ct, lt = _crop(color, r0, c0, t), _crop(label, r0, c0, t)
+        # Riktig sensordata saknar relief/fiber-lager -> nollfyll extrakanalerna.
+        # (Byt till verkliga sensorbilder här när de finns.)
+        feat = zero_filled_features(color, self.cfg.extra_channels)
+        ct, lt = _crop(feat, r0, c0, t), _crop(label, r0, c0, t)
         if self.augment and self.rng.random() < 0.5:
             ct, lt = ct[:, ::-1], lt[:, ::-1]
         return _to_tensors(np.ascontiguousarray(ct), np.ascontiguousarray(lt))

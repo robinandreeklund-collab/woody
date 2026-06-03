@@ -41,6 +41,7 @@ python run_pipeline.py --smoke   # minimal rökverifiering på sekunder
 
 python -m src.train             # träna bara modellen (full config)
 python -m src.train --smoke     # snabb rökverifiering av träningen
+python run_ablation.py          # RGB vs RGB+sensorkanaler, två dataregimer
 ```
 
 Figurer hamnar i `outputs/`:
@@ -61,6 +62,7 @@ src/board.py         syntetisk bräda + defekter + facit + höjdkarta
 src/acquisition.py   line-scan (encoder/tid) + laserprofil
 src/metrics.py       utskrift av förvärvstabell
 src/model.py         kompakt U-Net för segmentering
+src/features.py      bygger modellens ingångskanaler (RGB + ev. sensorkanaler)
 src/dataset.py       syntetiskt dataset (+ Kodytek-redo loader)
 src/losses.py        CE + Dice, klassvikter, IoU-metrik
 src/train.py         träningsloop med checkpointing
@@ -71,7 +73,22 @@ src/underside.py     undersida + ocklusion från kedjespringorna
 run_demo.py          kör förvärvssimuleringen och genererar figur 1–3
 run_sensors.py       genererar sensorfigurerna 5–7
 run_pipeline.py      hela flödet end-to-end och genererar figur 4
+run_ablation.py      ablation: nyttan av sensorkanalerna som modellingång
 ```
+
+## Sensorkanaler som modellingång (fusion)
+
+Utöver färg kan relief (fotometrisk stereo) och snedfibrighet (tracheid) stackas
+som extra ingångskanaler till nätet via `SegConfig.extra_channels` (samma
+byggare i `src/features.py` används av både dataset och inferens). `run_ablation.py`
+mäter nyttan i två dataregimer.
+
+Slutsats: på **färgtydlig** data (generatorns standard, där varje defekt har
+distinkt färg) räcker RGB – sensorerna tillför då mest brus. Nyttan visar sig när
+defekten *inte* syns i färg: i den **subtila** regimen (`subtle_defects=True`,
+spricka osynlig i färg men full grop i höjd) går sprick-IoU från **0,00 (RGB) till
+0,68 (RGB+relief)** – skillnaden mellan att missa defekten helt och att hitta den.
+Standard är därför `extra_channels=()`; slå på fusionen för subtil/verklig data.
 
 ## Träna skarpt mot Kodytek på GPU
 

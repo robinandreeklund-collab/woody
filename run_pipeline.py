@@ -95,7 +95,7 @@ def main():
     board = make_board(length_mm=cfg.board_length_mm, width_mm=cfg.board_width_mm,
                        mm_per_px=cfg.mm_per_px, seed=HELD_OUT_SEED)
     color, gt = board["color"], board["label"]
-    pred = predict_board(model, color, cfg)
+    pred = predict_board(model, board, cfg)
 
     import torch
     cm = ConfusionMatrix(cfg.n_classes)

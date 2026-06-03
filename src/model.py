@@ -76,7 +76,7 @@ class UNet(nn.Module):
 
 
 def build_model(cfg: SegConfig) -> UNet:
-    return UNet(in_ch=3, n_classes=cfg.n_classes,
+    return UNet(in_ch=cfg.in_channels, n_classes=cfg.n_classes,
                 base=cfg.base_channels, depth=cfg.depth)
 
 

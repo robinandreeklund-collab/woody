@@ -82,10 +82,14 @@ class SegConfig:
     """
     # Data (samma geometri som demobrädan i run_demo)
     n_classes: int = 7
+    extra_channels: tuple = ()       # extra ingångar utöver RGB, t.ex.
+    #                                  ("relief", "grain_dev"). Bäst på subtil/
+    #                                  färgtvetydig data – se run_ablation.py.
     mm_per_px: float = 0.5
     board_length_mm: float = 1200.0
     board_width_mm: float = 125.0
     tile: int = 160                  # kvadratisk träningsruta (px); delbar med 2**depth
+    subtle_defects: bool = False     # True: defekter osynliga i färg (sensortest)
     n_train_boards: int = 12         # antal syntetiska brädor i träningsmängden
     n_val_boards: int = 3
     train_seed: int = 1000           # fröoffset så tränings-/valbrädor aldrig krockar
@@ -112,6 +116,10 @@ class SegConfig:
     out_dir: str = "outputs"
     ckpt_name: str = "seg_unet.pt"
     seed: int = 0
+
+    @property
+    def in_channels(self) -> int:
+        return 3 + len(self.extra_channels)
 
     def resolved_device(self) -> str:
         if self.device != "auto":

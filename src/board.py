@@ -34,8 +34,13 @@ def _ellipse_mask(H, W, r0, c0, ra, rc):
 
 
 def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
-               mm_per_px=0.5, seed=0):
+               mm_per_px=0.5, seed=0, subtle_defects=False):
+    """subtle_defects=True gör spricka och kvist nästan osynliga i FÄRG men
+    behåller full signatur i höjd (relief) och fiberriktning – så att de
+    kompletterande sensorkanalerna blir avgörande. Standard (False) ger den
+    färgtydliga brädan som övriga demos använder."""
     rng = np.random.default_rng(seed)
+    knot_alpha = 0.28 if subtle_defects else 1.0   # färgstyrka för kvistar
     H = int(round(length_mm / mm_per_px))
     W = int(round(width_mm / mm_per_px))
 
@@ -68,13 +73,13 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
         knots.append((r0, c0, max(ra, rc), dead))
         m = _ellipse_mask(H, W, r0, c0, ra, rc)
         if dead:
-            color[m] = np.array([70, 45, 30], float)
+            color[m] = (1 - knot_alpha) * color[m] + knot_alpha * np.array([70, 45, 30])
             ring = _ellipse_mask(H, W, r0, c0, ra, rc) & ~_ellipse_mask(
                 H, W, r0, c0, ra * 0.8, rc * 0.8)
-            color[ring] = np.array([35, 25, 20], float)
+            color[ring] = (1 - knot_alpha) * color[ring] + knot_alpha * np.array([35, 25, 20])
             label[m] = 2
         else:
-            color[m] = np.array([130, 85, 45], float)
+            color[m] = (1 - knot_alpha) * color[m] + knot_alpha * np.array([130, 85, 45])
             label[m] = 1
 
     # --- Spricka längs längden (vinglig tunn linje) + fördjupning i höjd ---
@@ -89,9 +94,12 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
         for ri in range(H):
             lo = int(np.clip(c_center[ri] - half, 0, W - 1))
             hi = int(np.clip(c_center[ri] + half, 0, W - 1)) + 1
-            color[ri, lo:hi] = np.array([40, 30, 25], float)
+            if subtle_defects:
+                color[ri, lo:hi] *= 0.93          # knappt synlig i färg ...
+            else:
+                color[ri, lo:hi] = np.array([40, 30, 25], float)
             label[ri, lo:hi] = 3
-            height[ri, lo:hi] -= 4.0  # sprickan ger en grop laserprofilen ser
+            height[ri, lo:hi] -= 4.0  # ... men full grop som laserprofilen ser
 
     # --- Blånad (mjuk blågrå blotch, ådringen skiner igenom) ---
     if rng.random() < 0.7:

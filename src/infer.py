@@ -11,6 +11,7 @@ import numpy as np
 import torch
 
 from .config import SegConfig, CLASS_COLORS
+from .features import build_features, normalize
 from .model import build_model
 
 
@@ -25,21 +26,19 @@ def load_model(ckpt_path: str, device: str | None = None):
     return model, cfg
 
 
-def _normalize(color: np.ndarray) -> np.ndarray:
-    x = color.astype(np.float32) / 255.0
-    return (x - 0.5) / 0.5
-
-
 @torch.no_grad()
-def predict_board(model, color: np.ndarray, cfg: SegConfig,
+def predict_board(model, board: dict, cfg: SegConfig,
                   device: str | None = None, overlap: float = 0.25) -> np.ndarray:
-    """color: HxWx3 uint8 -> label HxW int (argmax av hopsydda logits)."""
+    """board-dict -> label HxW int (argmax av hopsydda logits).
+
+    Bygger samma kanaler (RGB + ev. relief/grain_dev) som vid träning.
+    """
     device = device or cfg.resolved_device()
-    H, W, _ = color.shape
+    feat = build_features(board, cfg.extra_channels)   # H,W,C
+    H, W = feat.shape[:2]
     t = cfg.tile
     stride = max(1, int(t * (1 - overlap)))
-    x = torch.from_numpy(
-        np.ascontiguousarray(_normalize(color).transpose(2, 0, 1))).unsqueeze(0)
+    x = normalize(feat).unsqueeze(0)                   # 1,C,H,W
 
     logit_sum = torch.zeros(1, cfg.n_classes, H, W)
     weight = torch.zeros(1, 1, H, W)
