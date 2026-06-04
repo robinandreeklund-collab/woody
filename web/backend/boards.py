@@ -253,6 +253,29 @@ def measured_height(label_img, mm_per_px, seed):
               "coverage": round(res["coverage"], 3), "warp": warp_summary(p),
               "bowMm2m": st["bowMm2m"], "springMm2m": st["springMm2m"],
               "twistMm2m": st["twistMm2m"], "straightness": st}
+    # exakta sensorspecar + segmentutbredning (för "klicka upp varje sensor"-vyn)
+    layout["segments"] = [[round(s), round(e)] for (s, e, _c) in rig.segments()]
+    layout["sensors"] = {
+        "surface": {
+            "model": rig.surface_cam.name, "n": rig.n_surface_cams,
+            "pxAcross": rig.surface_cam.px_across, "pixelUm": rig.surface_cam.pixel_um,
+            "mmPerPx": round(rig.surface_mm_per_px, 3),
+            "fovMm": round(rig.surface_fov_per_cam_mm),
+            "wdMm": round(rig.surface_wd_mm), "lensMm": round(rig.surface_lens_mm),
+            "lineRateKHz": round(rig.surface_color_line_rate_hz / 1e3, 1),
+        },
+        "profile": {
+            "model": rig.profile_cam.name, "n": rig.n_lasers,
+            "pxLat": rig.profile_cam.width_px, "pixelUm": rig.profile_cam.pixel_um,
+            "mmPerPx": round(rig.lateral_res_mm, 3),
+            "segLenMm": round(rig.seg_len_mm), "overlapMm": rig.overlap_mm,
+            "heightResMm": round(rig.height_resolution_mm, 2),
+            "wdMm": round(rig.profile_wd_mm), "triAngle": rig.tri_angle_deg,
+            "frameFps": rig.profile_cam.frame_rate_full_hz,
+            "profileRateHz": rig.profile_rate_hz, "laser": rig.laser.name,
+        },
+        "boardLenMm": round(length_mm), "boardWidthMm": round(width_mm),
+    }
     return z_img, layout
 
 

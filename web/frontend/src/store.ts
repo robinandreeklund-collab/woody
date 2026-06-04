@@ -31,6 +31,7 @@ export interface SimState {
     colorPng: string; heightPng: string;
     nLasers: number; nSurfaceCams: number;
     laserOverlapFrac: number; surfaceOverlapFrac: number;
+    specs?: any; segments?: number[][] | null;
   } | null;
   roundStats: { n: number; rejected: number; valueSum: number; defects: Record<string, number> };
   straightness: {
