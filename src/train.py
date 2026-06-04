@@ -41,11 +41,16 @@ def fit(cfg: SegConfig, verbose: bool = True):
     np.random.seed(cfg.seed)
     device = cfg.resolved_device()
 
+    print(f"Förbereder datakällor ({cfg.dataset}) – kan ta någon minut "
+          f"på långsam disk ...", flush=True)
+    import time as _t; _t0 = _t.time()
     train_loader, val_loader, train_ds = make_loaders(cfg)
+    print(f"  datakällor klara ({_t.time()-_t0:.0f}s). Bygger modell ...", flush=True)
     model = build_model(cfg).to(device)
 
     class_weights = None
     if cfg.use_class_weights:
+        print("  beräknar klassvikter ...", flush=True)
         class_weights = class_weights_from_counts(
             train_ds.class_pixel_counts(), device=device)
 
