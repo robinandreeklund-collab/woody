@@ -219,24 +219,35 @@ def _pairs(semantic_dir, bbox_dir):
     return out
 
 
+def _scan_dirs(dir_list):
+    """(image_dirs, semantic, bbox) ur en lista kataloger. has() är lat (next på
+    glob) så den listar aldrig hela fil-tunga kataloger – snabbt även på /mnt/c."""
+    def has(d, *pats):
+        return any(next(d.glob(p), None) for p in pats)
+    is_sem = lambda d: bool(re.search(r"semant|\bmap", d.name, re.I))
+    semantic = next((d for d in dir_list if is_sem(d) and has(d, "*.bmp", "*.png")), None) \
+        or next((d for d in dir_list if has(d, "*_segm.bmp", "*_segm.png")), None)
+    bbox = next((d for d in dir_list if re.search(r"bound|\bbox", d.name, re.I) and has(d, "*.txt")), None) \
+        or next((d for d in dir_list if has(d, "*_anno.txt")), None)
+    image_dirs = [d for d in dir_list
+                  if has(d, "*.bmp", "*.png") and d != semantic and not is_sem(d)]
+    return image_dirs, semantic, bbox
+
+
 def auto_discover(root):
     """Hittar (image_dirs, semantic, bbox) i en uppackad Kodytek-mapp.
 
     Robust mot Kodyteks layout: bilderna ligger i flera Images*-mappar, kartorna
     i 'Semantic Maps' (<id>_segm.bmp) och boxarna i 'Bouding Boxes' (<id>_anno.txt).
-    image_dirs returneras som LISTA så alla bildmappar slås ihop."""
+    Skannar först bara översta nivån (snabbt – undviker rekursiv listning av
+    ~60 000 filer på /mnt/c); faller tillbaka till djup scan bara om inget hittas."""
     root = Path(root)
-    dirs = [root] + [p for p in sorted(root.rglob("*")) if p.is_dir()]
-    def has(d, *pats):
-        return any(next(d.glob(p), None) for p in pats)
-    is_sem = lambda d: bool(re.search(r"semant|\bmap", d.name, re.I))
-    semantic = next((d for d in dirs if is_sem(d) and has(d, "*.bmp", "*.png")), None) \
-        or next((d for d in dirs if has(d, "*_segm.bmp", "*_segm.png")), None)
-    bbox = next((d for d in dirs if re.search(r"bound|\bbox", d.name, re.I) and has(d, "*.txt")), None) \
-        or next((d for d in dirs if has(d, "*_anno.txt")), None)
-    image_dirs = [d for d in dirs
-                  if has(d, "*.bmp", "*.png") and d != semantic and not is_sem(d)]
-    return image_dirs, semantic, bbox
+    shallow = [root] + [p for p in root.iterdir() if p.is_dir()]
+    res = _scan_dirs(shallow)
+    if not res[0]:                       # inget hittat -> djupare (långsammare) scan
+        deep = [root] + [p for p in sorted(root.rglob("*")) if p.is_dir()]
+        res = _scan_dirs(deep)
+    return res
 
 
 def main():
@@ -252,6 +263,7 @@ def main():
 
     images = [a.images] if a.images else None
     if a.auto:
+        print(f"Söker bild-/kart-/box-kataloger i {a.auto} ...", flush=True)
         img_dirs, sem, box = auto_discover(a.auto)
         images = images or [str(p) for p in img_dirs]
         a.semantic = a.semantic or (str(sem) if sem else None)
