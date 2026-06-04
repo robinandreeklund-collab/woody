@@ -31,9 +31,11 @@ KODYTEK_TO_GUI = {
     "resin": 5, "marrow": 5, "quartzity": 5,   # ingen exakt GUI-motsvarighet
     "knot_missing": 6,                   # saknad kvist = hål
 }
-# namnvarianter -> kanoniskt namn
+# namnvarianter -> kanoniskt namn (inkl. Kodyteks stavfel "Death_know")
 ALIASES = {"missing_knot": "knot_missing", "quartzite": "quartzity",
-           "blue stain": "blue_stain", "knot with crack": "knot_with_crack"}
+           "blue stain": "blue_stain", "knot with crack": "knot_with_crack",
+           "death_know": "dead_knot", "death_knot": "dead_knot",
+           "dead_know": "dead_knot"}
 
 # Kodytek-filnamn: bild <id>.bmp, semantisk karta <id>_segm.bmp, bbox <id>_anno.txt.
 # Suffixen prövas i tur och ordning (tom sträng = exakt samma stam som fallback).
@@ -141,6 +143,27 @@ def derive_color_map(pairs, max_images: int = 6000) -> dict:
     return current_map()
 
 
+def parse_color_spec(path) -> dict:
+    """Officiell Kodytek-palett (Semantic Map Specification.txt) -> {packad_kvant_färg:
+    GUI-klass}. Auktoritativ – fångar ALLA klasser (även döda kvistar, blånad,
+    vankant) utan att gissa ur bboxar."""
+    cmap, name = {}, None
+    for line in Path(path).read_text(errors="ignore").splitlines():
+        line = line.strip()
+        if line.lower().startswith("name="):
+            name = line.split("=", 1)[1].strip()
+        elif line.lower().startswith("color=") and name:
+            h = line.split("=", 1)[1].strip()
+            if len(h) >= 6:
+                r, g, b = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+                gid = gui_id(name)
+                if gid:
+                    q = (r // 8 * 8) * 65536 + (g // 8 * 8) * 256 + (b // 8 * 8)
+                    cmap[q] = gid
+            name = None
+    return cmap
+
+
 def rasterize_semantic(bmp_path: Path, color_map: dict) -> np.ndarray:
     from PIL import Image
     q = _quantize(np.asarray(Image.open(bmp_path).convert("RGB")))
@@ -152,11 +175,12 @@ def rasterize_semantic(bmp_path: Path, color_map: dict) -> np.ndarray:
 
 # --------------------------- build ------------------------------
 def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
-                  color_map=None, limit=None):
+                  color_map=None, limit=None, masks_only=False):
     """Skriver out_root/images/<namn>.png + out_root/masks/<namn>.png.
 
     images_dir kan vara en katalog eller en lista av kataloger (t.ex. Kodyteks
-    Images1..10), som då slås ihop."""
+    Images1..10), som då slås ihop. masks_only=True återanvänder befintliga
+    bilder och skriver bara om maskerna (snabbt – läser inte färgbilderna)."""
     from PIL import Image
     import time
     out_root = Path(out_root)
@@ -169,13 +193,11 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
     if limit:
         imgs = imgs[:limit]
     total = len(imgs)
-    print(f"Rastrerar {total} bilder ...", flush=True)
+    print(f"Rastrerar {total} bilder{' (endast masker)' if masks_only else ''} ...", flush=True)
     t0 = time.time()
     n = 0
     for i, img_path in enumerate(imgs, 1):
         stem = img_path.stem
-        im = Image.open(img_path).convert("RGB")
-        w, h = im.size
         if semantic_dir is not None:
             sem = _find(Path(semantic_dir), stem, (".bmp", ".png"), SEMANTIC_SUFFIXES)
             if sem is None:
@@ -185,8 +207,10 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
             box = _find(Path(bbox_dir), stem, (".txt",), BBOX_SUFFIXES)
             if box is None:
                 continue
+            w, h = Image.open(img_path).size       # snabb headerläsning
             mask = rasterize_bboxes(box, h, w)
-        im.save(out_root / "images" / f"{stem}.png")
+        if not masks_only:                          # hoppa över färgbilden vid masks_only
+            Image.open(img_path).convert("RGB").save(out_root / "images" / f"{stem}.png")
         Image.fromarray(mask, "L").save(out_root / "masks" / f"{stem}.png")
         n += 1
         if i % 500 == 0 or i == total:
@@ -258,6 +282,9 @@ def main():
     ap.add_argument("--semantic", help="katalog med semantiska kartor (BMP)")
     ap.add_argument("--bboxes", help="katalog med bbox-textfiler")
     ap.add_argument("--color-map", help="JSON packad-färg->GUI-klass (annars auto)")
+    ap.add_argument("--color-spec", help="Semantic Map Specification.txt (officiell palett)")
+    ap.add_argument("--masks-only", action="store_true",
+                    help="skriv bara om maskerna (återanvänd befintliga bilder, snabbt)")
     ap.add_argument("--limit", type=int)
     a = ap.parse_args()
 
@@ -268,29 +295,35 @@ def main():
         images = images or [str(p) for p in img_dirs]
         a.semantic = a.semantic or (str(sem) if sem else None)
         a.bboxes = a.bboxes or (str(box) if box else None)
-        print(f"Auto: {len(img_dirs)} bildmappar\n      semantic={a.semantic}\n      bboxes={a.bboxes}")
+        if not a.color_spec:                        # hitta officiell palett i roten
+            spec = next(Path(a.auto).glob("*Specification*.txt"), None)
+            a.color_spec = str(spec) if spec else None
+        print(f"Auto: {len(img_dirs)} bildmappar\n      semantic={a.semantic}\n"
+              f"      bboxes={a.bboxes}\n      spec={a.color_spec}")
     if not images:
         raise SystemExit("Hittade inga bilder. Ange --images eller --auto <root>.")
 
+    from .config import CLASSES
     color_map = None
     if a.semantic:
         if a.color_map:
             color_map = {int(k): int(v) for k, v in json.load(open(a.color_map)).items()}
+        elif a.color_spec:                          # AUKTORITATIV palett (rekommenderas)
+            print(f"Läser officiell färgpalett: {a.color_spec}")
+            color_map = parse_color_spec(a.color_spec)
         elif a.bboxes:
-            print("Auto-härleder färg→klass ur bbox+semantik ...")
+            print("Auto-härleder färg→klass ur bbox+semantik (gissar – kan missa klasser) ...")
             color_map = derive_color_map(_pairs(a.semantic, a.bboxes))
-            from .config import CLASSES
-            covered = sorted(set(color_map.values()))
-            print(f"  hittade {len(color_map)} defektfärger -> klasser "
-                  f"{[CLASSES[g] for g in covered]}")
-            missing = [CLASSES[g] for g in range(1, 7) if g not in covered]
-            if missing:
-                print(f"  VARNING: saknar färg för {missing} (finns ev. inte i datan)")
         else:
-            raise SystemExit("Semantisk rastrering kräver --color-map eller --bboxes")
+            raise SystemExit("Semantisk rastrering kräver --color-spec, --color-map eller --bboxes")
+        covered = sorted(set(color_map.values()))
+        print(f"  {len(color_map)} färger -> klasser {[CLASSES[g] for g in covered]}")
+        missing = [CLASSES[g] for g in range(1, 7) if g not in covered]
+        if missing:
+            print(f"  VARNING: saknar färg för {missing}")
 
-    n = build_dataset(images, a.out, semantic_dir=a.semantic,
-                      bbox_dir=a.bboxes, color_map=color_map, limit=a.limit)
+    n = build_dataset(images, a.out, semantic_dir=a.semantic, bbox_dir=a.bboxes,
+                      color_map=color_map, limit=a.limit, masks_only=a.masks_only)
     print(f"Klart: {n} bild/mask-par -> {a.out}")
 
 
