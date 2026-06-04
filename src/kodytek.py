@@ -35,6 +35,11 @@ KODYTEK_TO_GUI = {
 ALIASES = {"missing_knot": "knot_missing", "quartzite": "quartzity",
            "blue stain": "blue_stain", "knot with crack": "knot_with_crack"}
 
+# Kodytek-filnamn: bild <id>.bmp, semantisk karta <id>_segm.bmp, bbox <id>_anno.txt.
+# Suffixen prövas i tur och ordning (tom sträng = exakt samma stam som fallback).
+SEMANTIC_SUFFIXES = ("_segm", "")
+BBOX_SUFFIXES = ("_anno", "")
+
 
 def _canon(name: str) -> str:
     n = name.strip().lower().replace("-", "_").replace(" ", "_")
@@ -144,15 +149,18 @@ def rasterize_semantic(bmp_path: Path, color_map: dict) -> np.ndarray:
 # --------------------------- build ------------------------------
 def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
                   color_map=None, limit=None):
-    """Skriver out_root/images/<namn>.png + out_root/masks/<namn>.png."""
+    """Skriver out_root/images/<namn>.png + out_root/masks/<namn>.png.
+
+    images_dir kan vara en katalog eller en lista av kataloger (t.ex. Kodyteks
+    Images1..10), som då slås ihop."""
     from PIL import Image
-    images_dir = Path(images_dir)
     out_root = Path(out_root)
     (out_root / "images").mkdir(parents=True, exist_ok=True)
     (out_root / "masks").mkdir(parents=True, exist_ok=True)
 
-    imgs = sorted(p for ext in ("*.bmp", "*.png", "*.jpg", "*.jpeg")
-                  for p in images_dir.glob(ext))
+    dirs = [images_dir] if isinstance(images_dir, (str, Path)) else list(images_dir)
+    imgs = sorted(p for d in dirs for ext in ("*.bmp", "*.png", "*.jpg", "*.jpeg")
+                  for p in Path(d).glob(ext))
     if limit:
         imgs = imgs[:limit]
     n = 0
@@ -161,12 +169,12 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
         im = Image.open(img_path).convert("RGB")
         w, h = im.size
         if semantic_dir is not None:
-            sem = _find(Path(semantic_dir), stem, (".bmp", ".png"))
+            sem = _find(Path(semantic_dir), stem, (".bmp", ".png"), SEMANTIC_SUFFIXES)
             if sem is None:
                 continue
             mask = rasterize_semantic(sem, color_map or {})
         else:
-            box = _find(Path(bbox_dir), stem, (".txt",))
+            box = _find(Path(bbox_dir), stem, (".txt",), BBOX_SUFFIXES)
             if box is None:
                 continue
             mask = rasterize_bboxes(box, h, w)
@@ -176,40 +184,46 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
     return n
 
 
-def _find(d: Path, stem: str, exts):
-    for e in exts:
-        p = d / f"{stem}{e}"
-        if p.exists():
-            return p
+def _find(d: Path, stem: str, exts, suffixes=("",)):
+    """Hittar d/<stem><suffix><ext> (prövar suffixen i ordning)."""
+    for suf in suffixes:
+        for e in exts:
+            p = d / f"{stem}{suf}{e}"
+            if p.exists():
+                return p
     return None
 
 
 def _pairs(semantic_dir, bbox_dir):
+    """(semantisk karta, bbox-fil)-par via gemensam bas-stam (strippar _segm)."""
     sd, bd = Path(semantic_dir), Path(bbox_dir)
     out = []
     for sem in sorted(p for e in ("*.bmp", "*.png") for p in sd.glob(e)):
-        box = _find(bd, sem.stem, (".txt",))
+        base = re.sub(r"_segm$", "", sem.stem)
+        box = _find(bd, base, (".txt",), BBOX_SUFFIXES)
         if box:
             out.append((sem, box))
     return out
 
 
 def auto_discover(root):
-    """Hittar (images, semantic, bbox)-kataloger i en uppackad Kodytek-mapp."""
+    """Hittar (image_dirs, semantic, bbox) i en uppackad Kodytek-mapp.
+
+    Robust mot Kodyteks layout: bilderna ligger i flera Images*-mappar, kartorna
+    i 'Semantic Maps' (<id>_segm.bmp) och boxarna i 'Bouding Boxes' (<id>_anno.txt).
+    image_dirs returneras som LISTA så alla bildmappar slås ihop."""
     root = Path(root)
-    dirs = [p for p in root.rglob("*") if p.is_dir()]
-    dirs.append(root)
-    def name_match(pats):
-        for d in dirs:
-            if any(re.search(p, d.name, re.I) for p in pats):
-                if any(d.glob(e) for e in ("*.bmp", "*.png", "*.txt")):
-                    return d
-        return None
-    images = name_match([r"image"]) or next(
-        (d for d in dirs if list(d.glob("*.bmp")) or list(d.glob("*.png"))), None)
-    semantic = name_match([r"semant", r"\bmap"])
-    bbox = name_match([r"bound", r"bbox", r"\bbox"])
-    return images, semantic, bbox
+    dirs = [root] + [p for p in sorted(root.rglob("*")) if p.is_dir()]
+    def has(d, *pats):
+        return any(next(d.glob(p), None) for p in pats)
+    is_sem = lambda d: bool(re.search(r"semant|\bmap", d.name, re.I))
+    semantic = next((d for d in dirs if is_sem(d) and has(d, "*.bmp", "*.png")), None) \
+        or next((d for d in dirs if has(d, "*_segm.bmp", "*_segm.png")), None)
+    bbox = next((d for d in dirs if re.search(r"bound|\bbox", d.name, re.I) and has(d, "*.txt")), None) \
+        or next((d for d in dirs if has(d, "*_anno.txt")), None)
+    image_dirs = [d for d in dirs
+                  if has(d, "*.bmp", "*.png") and d != semantic and not is_sem(d)]
+    return image_dirs, semantic, bbox
 
 
 def main():
@@ -223,13 +237,14 @@ def main():
     ap.add_argument("--limit", type=int)
     a = ap.parse_args()
 
+    images = [a.images] if a.images else None
     if a.auto:
-        img, sem, box = auto_discover(a.auto)
-        a.images = a.images or (str(img) if img else None)
+        img_dirs, sem, box = auto_discover(a.auto)
+        images = images or [str(p) for p in img_dirs]
         a.semantic = a.semantic or (str(sem) if sem else None)
         a.bboxes = a.bboxes or (str(box) if box else None)
-        print(f"Auto: images={a.images}\n      semantic={a.semantic}\n      bboxes={a.bboxes}")
-    if not a.images:
+        print(f"Auto: {len(img_dirs)} bildmappar\n      semantic={a.semantic}\n      bboxes={a.bboxes}")
+    if not images:
         raise SystemExit("Hittade inga bilder. Ange --images eller --auto <root>.")
 
     color_map = None
@@ -243,7 +258,7 @@ def main():
         else:
             raise SystemExit("Semantisk rastrering kräver --color-map eller --bboxes")
 
-    n = build_dataset(a.images, a.out, semantic_dir=a.semantic,
+    n = build_dataset(images, a.out, semantic_dir=a.semantic,
                       bbox_dir=a.bboxes, color_map=color_map, limit=a.limit)
     print(f"Klart: {n} bild/mask-par -> {a.out}")
 

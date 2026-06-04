@@ -43,11 +43,16 @@ export WOODY_CKPT="seg_unet.pt"
 
 if [ "$WITH_KODYTEK" = "1" ]; then
   echo "==> 3/5  Kodytek-dataset (laddar ner + rastrerar – kan ta lång tid, flera GB)"
-  if [ ! -d data/kodytek/images ]; then
-    python tools/download_kodytek.py --out data/kodytek_raw
+  # Räkna faktiska bild/mask-par, inte bara att katalogen finns (annars låser
+  # sig en halvfärdig körning med tomma kataloger).
+  n_pairs=$(find data/kodytek/masks -type f -name '*.png' 2>/dev/null | wc -l)
+  if [ "$n_pairs" -eq 0 ]; then
+    if [ ! -d data/kodytek_raw ] || [ -z "$(find data/kodytek_raw -name '*.bmp' 2>/dev/null | head -1)" ]; then
+      python tools/download_kodytek.py --out data/kodytek_raw
+    fi
     python -m src.kodytek --auto data/kodytek_raw --out data/kodytek
   else
-    echo "    data/kodytek finns redan – hoppar över nedladdning"
+    echo "    data/kodytek har redan $n_pairs par – hoppar över"
   fi
   export WOODY_KODYTEK_ROOT="data/kodytek"
 else
