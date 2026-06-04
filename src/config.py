@@ -49,25 +49,25 @@ class LineConfig:
         return bytes_per_line * self.line_rate_hz / 1e6
 
 
-# Defektklasser (matchar i stort sett den öppna Kodytek-datamängden)
+# Defektklasser – ENAD taxonomi (samma i rastrerare, syntetik, backend och GUI)
 CLASSES = {
     0: "clear_wood",
-    1: "live_knot",
-    2: "dead_knot",
-    3: "crack",
-    4: "blue_stain",
-    5: "wane",
-    6: "marrow",
+    1: "knot",         # Kvist (levande + död)
+    2: "crack",        # Spricka
+    3: "blue_stain",   # Blånad
+    4: "wane",         # Vankant
+    5: "rot",          # Röta
+    6: "hole",         # Hål (urslagen/saknad kvist)
 }
 
-CLASS_COLORS = {  # för etikettöverlägg (RGB 0-1)
+CLASS_COLORS = {  # för etikettöverlägg (RGB 0-1) – matchar GUI:ts färger
     0: (0.00, 0.00, 0.00),
-    1: (0.20, 0.80, 0.20),
-    2: (0.85, 0.20, 0.20),
-    3: (1.00, 0.55, 0.00),
-    4: (0.20, 0.45, 0.95),
-    5: (0.65, 0.45, 0.85),
-    6: (0.95, 0.85, 0.10),
+    1: (0.831, 0.584, 0.247),
+    2: (0.824, 0.325, 0.247),
+    3: (0.333, 0.467, 0.741),
+    4: (0.627, 0.447, 0.769),
+    5: (0.435, 0.631, 0.361),
+    6: (0.812, 0.435, 0.620),
 }
 
 
@@ -202,9 +202,9 @@ class SensorRig:
 
 
 # Defektkategorier för kvalitetsklassning (klass-id enligt CLASSES)
-SEVERE_DEFECTS = (2, 3, 6)      # död kvist, spricka, märg
-MODERATE_DEFECTS = (1, 4)       # levande kvist, blånad
-WANE_DEFECT = 5                 # vankant
+SEVERE_DEFECTS = (2, 5, 6)      # spricka, röta, hål
+MODERATE_DEFECTS = (1, 3)       # kvist, blånad
+WANE_DEFECT = 4                 # vankant
 
 
 @dataclass

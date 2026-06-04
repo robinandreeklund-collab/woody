@@ -30,8 +30,9 @@ def find_checkpoint(cfg: SegConfig):
     p = Path(cfg.out_dir) / cfg.ckpt_name
     return p if p.exists() else None
 
-# modellklass (0..6) -> GUI-klass (0..6)
-MODEL_TO_GUI = {0: 0, 1: 1, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5}
+# modellklass (0..6) -> GUI-klass (0..6). Taxonomin är nu enad (config.CLASSES =
+# rastrerarens = GUI:ts), så mappningen är identitet.
+MODEL_TO_GUI = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6}
 
 # nedskalning av texturer (full 10800x250 -> hanterbart för webben)
 TEX_LEN = 1400

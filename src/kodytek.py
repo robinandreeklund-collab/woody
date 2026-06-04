@@ -106,16 +106,25 @@ def _quantize(rgb: np.ndarray) -> np.ndarray:
     return rgb[..., 0] * 65536 + rgb[..., 1] * 256 + rgb[..., 2]
 
 
-def derive_color_map(pairs, max_images: int = 200) -> dict:
+N_GUI_DEFECTS = 6   # antal defektklasser (1..6) som ska täckas
+
+
+def derive_color_map(pairs, max_images: int = 6000) -> dict:
     """Auto-härleder packad färg -> GUI-klass ur (semantic_bmp, bbox_txt)-par.
     För varje box (känd etikett) röstar den dominerande icke-bakgrundsfärgen i
-    boxen på den klassen. Bakgrund = globalt vanligaste färgen."""
+    boxen på den klassen. Bakgrund = globalt vanligaste färgen. Skannar fler par
+    (med tidigt stopp) tills alla 6 defektklasser fått en färg – så sällsynta
+    klasser (blånad/vankant/hål) inte tappas."""
     from PIL import Image
     votes = defaultdict(Counter)
     bg_counter = Counter()
-    for sem_path, box_path in pairs[:max_images]:
-        sem = np.asarray(Image.open(sem_path).convert("RGB"))
-        q = _quantize(sem)
+
+    def current_map():
+        bg = bg_counter.most_common(1)[0][0] if bg_counter else -1
+        return {col: c.most_common(1)[0][0] for col, c in votes.items() if col != bg}
+
+    for i, (sem_path, box_path) in enumerate(pairs[:max_images]):
+        q = _quantize(np.asarray(Image.open(sem_path).convert("RGB")))
         bg_counter[int(np.bincount(q.ravel()).argmax())] += 1
         h, w = q.shape
         for label, l, t, r, b, normed in parse_bboxes(box_path):
@@ -126,15 +135,10 @@ def derive_color_map(pairs, max_images: int = 200) -> dict:
             y0, y1 = (int(t * h), int(b * h)) if normed else (int(t), int(b))
             sub = q[max(0, y0):y1, max(0, x0):x1].ravel()
             if sub.size:
-                col = int(np.bincount(sub).argmax())
-                votes[col][gid] += 1
-    bg = bg_counter.most_common(1)[0][0] if bg_counter else -1
-    color_map = {}
-    for col, c in votes.items():
-        if col == bg:
-            continue
-        color_map[col] = c.most_common(1)[0][0]
-    return color_map
+                votes[int(np.bincount(sub).argmax())][gid] += 1
+        if i >= 150 and len(set(current_map().values())) >= N_GUI_DEFECTS:
+            break       # alla defektklasser täckta -> sluta skanna
+    return current_map()
 
 
 def rasterize_semantic(bmp_path: Path, color_map: dict) -> np.ndarray:
@@ -263,7 +267,13 @@ def main():
         elif a.bboxes:
             print("Auto-härleder färg→klass ur bbox+semantik ...")
             color_map = derive_color_map(_pairs(a.semantic, a.bboxes))
-            print(f"  hittade {len(color_map)} defektfärger")
+            from .config import CLASSES
+            covered = sorted(set(color_map.values()))
+            print(f"  hittade {len(color_map)} defektfärger -> klasser "
+                  f"{[CLASSES[g] for g in covered]}")
+            missing = [CLASSES[g] for g in range(1, 7) if g not in covered]
+            if missing:
+                print(f"  VARNING: saknar färg för {missing} (finns ev. inte i datan)")
         else:
             raise SystemExit("Semantisk rastrering kräver --color-map eller --bboxes")
 

@@ -77,10 +77,10 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
             ring = _ellipse_mask(H, W, r0, c0, ra, rc) & ~_ellipse_mask(
                 H, W, r0, c0, ra * 0.8, rc * 0.8)
             color[ring] = (1 - knot_alpha) * color[ring] + knot_alpha * np.array([35, 25, 20])
-            label[m] = 2
+            label[m] = 1                       # död kvist -> Kvist (1)
         else:
             color[m] = (1 - knot_alpha) * color[m] + knot_alpha * np.array([130, 85, 45])
-            label[m] = 1
+            label[m] = 1                       # levande kvist -> Kvist (1)
 
     # --- Spricka längs längden (vinglig tunn linje) + fördjupning i höjd ---
     if rng.random() < 0.8:
@@ -98,7 +98,7 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
                 color[ri, lo:hi] *= 0.93          # knappt synlig i färg ...
             else:
                 color[ri, lo:hi] = np.array([40, 30, 25], float)
-            label[ri, lo:hi] = 3
+            label[ri, lo:hi] = 2          # Spricka
             height[ri, lo:hi] -= 4.0  # ... men full grop som laserprofilen ser
 
     # --- Blånad (mjuk blågrå blotch, ådringen skiner igenom) ---
@@ -112,7 +112,7 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
         blue = np.array([120, 130, 145], float)
         a = (0.55 * m)[..., None]
         color = color * (1 - a) + blue * a
-        label[m > 0.4] = np.where(label[m > 0.4] == 0, 4, label[m > 0.4])
+        label[m > 0.4] = np.where(label[m > 0.4] == 0, 3, label[m > 0.4])   # Blånad
 
     # --- Vankant längs ena långsidan (saknat material -> höjd faller mot 0) ---
     if rng.random() < 0.6:
@@ -124,15 +124,30 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
             if wpx <= 0:
                 continue
             color[ri, :wpx] = bark
-            label[ri, :wpx] = 5
+            label[ri, :wpx] = 4                                   # Vankant
             height[ri, :wpx] = np.linspace(0, thickness_mm, wpx)  # ramp upp inåt
 
-    # --- Märg/pith (mörk strimma längs längden + småchecks) ---
-    if rng.random() < 0.4:
-        c0 = rng.integers(int(0.4 * W), int(0.6 * W))
-        half = max(1, int(1.2 / mm_per_px))
-        color[:, c0 - half:c0 + half] = np.array([90, 60, 40], float)
-        label[:, c0 - half:c0 + half] = 6
+    # --- Röta (mjuk brun-/missfärgad blotch, mörk i NIR) ---
+    if rng.random() < 0.45:
+        r0 = rng.integers(int(0.1 * H), int(0.9 * H))
+        c0 = rng.integers(int(0.25 * W), int(0.75 * W))
+        ra = rng.integers(int(30 / mm_per_px), int(70 / mm_per_px))
+        rc = rng.integers(int(15 / mm_per_px), int(35 / mm_per_px))
+        m = _box_blur(_ellipse_mask(H, W, r0, c0, ra, rc).astype(float), 9)
+        rot = np.array([120, 95, 70], float)
+        a = (0.5 * m)[..., None]
+        color = color * (1 - a) + rot * a
+        label[m > 0.4] = np.where(label[m > 0.4] == 0, 5, label[m > 0.4])   # Röta
+
+    # --- Hål / urslagen kvist (mörkt runt hål, höjd dippar) ---
+    if rng.random() < 0.3:
+        r0 = rng.integers(int(0.15 * H), int(0.85 * H))
+        c0 = rng.integers(int(0.25 * W), int(0.75 * W))
+        ra = rng.integers(int(6 / mm_per_px), int(14 / mm_per_px))
+        m = _ellipse_mask(H, W, r0, c0, ra, ra)
+        color[m] = np.array([25, 18, 14], float)
+        label[m] = 6                                              # Hål
+        height[m] -= 6.0
 
     # --- Fiberriktning (grund för tracheid-effekten) ---
     # Ådringen löper längs längden (axel 0) men böjer av kring kvistar som
@@ -153,11 +168,12 @@ def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
     # röta/märg syns BÄST i NIR (penetrerar ytan) -> lättare att segmentera.
     nir = np.full((H, W), 205.0)
     nir += 0.35 * (color.astype(float).mean(2) - 175.0)   # följ ådringen svagt
-    nir[label == 1] *= 0.60     # levande kvist
-    nir[label == 2] *= 0.50     # död kvist
-    nir[label == 3] *= 0.40     # spricka
-    nir[label == 4] *= 0.45     # blånad – kraftigt mörkare i NIR
-    nir[label == 6] *= 0.50     # märg
+    nir[label == 1] *= 0.58     # kvist
+    nir[label == 2] *= 0.45     # spricka
+    nir[label == 3] *= 0.40     # blånad – kraftigt mörkare i NIR
+    nir[label == 4] *= 0.65     # vankant (bark)
+    nir[label == 5] *= 0.42     # röta – kraftigt mörkare i NIR
+    nir[label == 6] *= 0.50     # hål
     nir += rng.normal(0, 3, (H, W))
     nir = np.clip(nir, 0, 255).astype(np.uint8)
 
