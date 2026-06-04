@@ -78,7 +78,9 @@ function SensorDetail({ sb, specs, sel, tilesS, tilesP, onClose }: any) {
       const ctx = cv.getContext("2d")!;
       const W = (cv.width = Math.min(1080, Math.max(320, cv.clientWidth || 900)));
       const sx = t[0] * img.width, sw = (t[1] - t[0]) * img.width;
-      const H = (cv.height = Math.round(W * img.height / sw));
+      // fysiska proportioner (längd × bredd i mm), inte bildens (anisotropa) pixelmått
+      const boardW = specs.boardWidthMm || 150;
+      const H = (cv.height = Math.max(40, Math.round(W * boardW / Math.max(1, mmShown))));
       ctx.clearRect(0, 0, W, H);
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(img, sx, 0, sw, img.height, 0, 0, W, H);

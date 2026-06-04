@@ -462,7 +462,11 @@ class BoardSource:
         from PIL import Image
         rng = _random.Random(seed)
         path = rng.choice(self.kodytek)
-        photo = np.asarray(Image.open(path).convert("RGB"))   # (width,längd,3)
+        photo = np.asarray(Image.open(path).convert("RGB"))
+        # Kodytek-bilderna är porträtt (brädans LÄNGD = längsta axeln). engine_payload
+        # vill ha längd på axel 1 (kolumner) -> orientera så längsta axeln blir axel 1.
+        if photo.shape[0] > photo.shape[1]:
+            photo = np.ascontiguousarray(np.transpose(photo, (1, 0, 2)))
         mm = 5000.0 / photo.shape[1]                          # 500 cm över längden
         if self.model is not None:
             from src.infer import predict_board
@@ -477,5 +481,7 @@ class BoardSource:
                          else np.zeros(photo.shape[:2], np.uint8))
             if label_img.ndim == 3:
                 label_img = label_img[..., 0]
+            if label_img.shape[0] > label_img.shape[1]:        # samma orientering som bilden
+                label_img = np.ascontiguousarray(label_img.T)
             src = "facit+kodytek"
         return engine_payload(photo, label_img, mm, src, 0.0, lengths, seed)
