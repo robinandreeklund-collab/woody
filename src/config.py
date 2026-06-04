@@ -82,7 +82,7 @@ class SegConfig:
     """
     # Data (samma geometri som demobrädan i run_demo)
     n_classes: int = 7
-    dataset: str = "synthetic"       # "synthetic" | "kodytek"
+    dataset: str = "synthetic"       # "synthetic" | "kodytek" | "combined"
     data_root: str = ""              # rastrerad Kodytek-root (images/ + masks/)
     val_frac: float = 0.15           # tränings-/valdelning för kodytek
     extra_channels: tuple = ("nir",)  # utöver RGB: NIR-strobe (blånad/röta syns
@@ -98,6 +98,12 @@ class SegConfig:
     train_seed: int = 1000           # fröoffset så tränings-/valbrädor aldrig krockar
     val_seed: int = 9000
     p_defect_tile: float = 0.5       # andel rutor som centreras kring en defekt
+
+    # Kodytek-resampling (a) + kombinerad träning (b)
+    target_mm_per_px: float = 0.0    # >0: resampla Kodytek-rutor till denna mm/px (matcha riggen)
+    kodytek_len_mm: float = 5000.0   # Kodytek-brädans fysiska längd (käll-mm/px)
+    kodytek_width_mm: float = 150.0  # Kodytek-brädans fysiska bredd
+    synth_frac: float = 0.5          # andel syntetiska rutor i "combined"
 
     # Modell (kompakt U-Net)
     base_channels: int = 24
@@ -146,6 +152,31 @@ class SegConfig:
                    epochs=40, steps_per_epoch=200, batch_size=16,
                    num_workers=8, extra_channels=(), device="auto",
                    ckpt_name="seg_kodytek.pt")
+
+    @classmethod
+    def gpu_kodytek_scaled(cls, data_root: str) -> "SegConfig":
+        """(a) Kodytek resamplad till riggens 0,33 mm/px så pixelskalan matchar
+        de sensorer vi tänker använda (RGB). Annars som gpu_kodytek."""
+        return cls(dataset="kodytek", data_root=data_root,
+                   tile=320, base_channels=48, depth=4,
+                   epochs=40, steps_per_epoch=200, batch_size=16,
+                   num_workers=8, extra_channels=(), device="auto",
+                   target_mm_per_px=0.33, dice_weight=0.6,
+                   ckpt_name="seg_kodytek_033.pt")
+
+    @classmethod
+    def gpu_combined(cls, data_root: str) -> "SegConfig":
+        """(b) Kombinerad träning: syntetisk rigg-data (NIR + riggens 0,33 mm/px)
+        BLANDAT med riktiga Kodytek-rutor (resamplade till samma mm/px). Modellen
+        ser både verklig appearance och sensorernas upplösning/NIR (4 kanaler)."""
+        return cls(dataset="combined", data_root=data_root,
+                   tile=320, base_channels=48, depth=4,
+                   epochs=40, steps_per_epoch=200, batch_size=16,
+                   num_workers=4, extra_channels=("nir",), device="auto",
+                   target_mm_per_px=0.33, mm_per_px=0.33,
+                   board_length_mm=1600.0, board_width_mm=150.0,
+                   n_train_boards=16, n_val_boards=4, synth_frac=0.5,
+                   dice_weight=0.6, ckpt_name="seg_combined.pt")
 
 
 @dataclass
