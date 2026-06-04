@@ -4,7 +4,10 @@
 #
 #   ./start.sh                      # fungerar direkt (syntetisk data)
 #   ./start.sh --with-kodytek       # ladda ner + rastrera Kodytek, kör på riktig data
-#   ./start.sh --with-kodytek --train   # + träna modellen lokalt (GPU via device=auto)
+#   ./start.sh --with-kodytek --train      # träna native gpu_kodytek (RGB, Kodyteks uppl.)
+#   ./start.sh --with-kodytek --scaled     # (a) Kodytek resamplad till riggens 0,33 mm/px
+#   ./start.sh --with-kodytek --combined   # (b) syntetisk NIR + Kodytek (rekommenderas)
+#   ./start.sh --with-kodytek --combined --rerasterize  # tvinga om-rastrering först
 #   ./start.sh --port 8080
 #
 # Öppna sedan webbgränssnittet på den URL som skrivs ut (default http://localhost:8000).
@@ -15,10 +18,15 @@ cd "$(dirname "$0")"
 PORT=8000
 WITH_KODYTEK=0
 TRAIN=0
+TRAIN_MODE="kodytek"     # kodytek (native) | scaled | combined
+RERAST=0
 while [ $# -gt 0 ]; do
   case "$1" in
     --with-kodytek) WITH_KODYTEK=1 ;;
     --train) TRAIN=1 ;;
+    --scaled) TRAIN=1; TRAIN_MODE="scaled" ;;
+    --combined) TRAIN=1; TRAIN_MODE="combined" ;;
+    --rerasterize) RERAST=1 ;;
     --port) PORT="$2"; shift ;;
     *) echo "Okänt argument: $1"; exit 1 ;;
   esac
@@ -43,6 +51,8 @@ export WOODY_CKPT="seg_unet.pt"
 
 if [ "$WITH_KODYTEK" = "1" ]; then
   echo "==> 3/5  Kodytek-dataset (laddar ner + rastrerar – kan ta lång tid, flera GB)"
+  # --rerasterize tvingar om-rastrering (t.ex. efter taxonomi-/färgändringar).
+  [ "$RERAST" = "1" ] && { echo "    --rerasterize: rensar data/kodytek"; rm -rf data/kodytek; }
   # Räkna faktiska bild/mask-par, inte bara att katalogen finns (annars låser
   # sig en halvfärdig körning med tomma kataloger).
   n_pairs=$(find data/kodytek/masks -type f -name '*.png' 2>/dev/null | wc -l)
@@ -60,9 +70,14 @@ else
 fi
 
 if [ "$TRAIN" = "1" ]; then
-  echo "==> 4/5  Tränar modellen på Kodytek (device=auto plockar GPU)"
-  python -c "from src.config import SegConfig; from src.train import fit; fit(SegConfig.gpu_kodytek('data/kodytek'))"
-  export WOODY_CKPT="seg_kodytek.pt"
+  case "$TRAIN_MODE" in
+    scaled)   FACTORY="gpu_kodytek_scaled"; CKPT="seg_kodytek_033.pt"; LABEL="(a) Kodytek @0,33 mm/px (RGB)" ;;
+    combined) FACTORY="gpu_combined";        CKPT="seg_combined.pt";    LABEL="(b) kombinerad: syntetisk NIR + Kodytek" ;;
+    *)        FACTORY="gpu_kodytek";          CKPT="seg_kodytek.pt";     LABEL="native Kodytek (RGB)" ;;
+  esac
+  echo "==> 4/5  Tränar modellen: ${LABEL} (device=auto plockar GPU)"
+  python -c "from src.config import SegConfig; from src.train import fit; fit(SegConfig.${FACTORY}('data/kodytek'))"
+  export WOODY_CKPT="$CKPT"
 else
   echo "==> 4/5  Träning hoppas över. Lägg till --train för att träna på Kodytek."
 fi
