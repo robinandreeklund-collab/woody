@@ -99,10 +99,11 @@ class SegConfig:
     val_seed: int = 9000
     p_defect_tile: float = 0.5       # andel rutor som centreras kring en defekt
 
-    # Kodytek-resampling (a) + kombinerad träning (b)
+    # Kodytek-resampling (a) + kombinerad träning (b). Kodytek-bilderna är
+    # ~168×154 mm SEKTIONER (line-scan 0,060×0,150 mm/px), inte hela brädor.
     target_mm_per_px: float = 0.0    # >0: resampla Kodytek-rutor till denna mm/px (matcha riggen)
-    kodytek_len_mm: float = 5000.0   # Kodytek-brädans fysiska längd (käll-mm/px)
-    kodytek_width_mm: float = 150.0  # Kodytek-brädans fysiska bredd
+    kodytek_len_mm: float = 168.0    # sektionens LÄNGSTA axel (2800 px @ 16,66 px/mm)
+    kodytek_width_mm: float = 154.0  # sektionens KORTASTE axel (1024 px @ 6,67 px/mm)
     synth_frac: float = 0.5          # andel syntetiska rutor i "combined"
 
     # Modell (kompakt U-Net)
