@@ -165,10 +165,10 @@ function SensorDetail({ sb, specs, sel, tilesS, tilesP, onClose }: any) {
           onWheel={onWheel} onMouseDown={onDown} onMouseMove={onMove}
           onMouseUp={onUp} onMouseLeave={onUp} />
         <div className="sv-foot">
-          {loading ? "hämtar sann-upplösnings-utsnitt …"
-                   : "scrolla = zoom · dra = panorera · "}
+          {loading ? "hämtar utsnitt …" : "scrolla = zoom · dra = panorera · "}
           <b style={{ cursor: "pointer", color: accent }} onClick={reset}>återställ</b>
-          {" · "}sann källupplösning (Kodytek/syntetik); riggen avbildar {sp.mmPerPx} mm/px.
+          {" · "}visas vid riggens skala (~{sp.mmPerPx} mm/px). Kodytek = hopsydda
+          {" "}154 mm-sektioner (källa 0,06×0,15 mm/px).
         </div>
       </div>
     </div>

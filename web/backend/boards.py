@@ -164,6 +164,15 @@ GUI_RGB = {1: (212, 149, 63), 2: (210, 83, 63), 3: (85, 119, 189),
            4: (160, 114, 196), 5: (111, 161, 92), 6: (207, 111, 158)}
 ENGINE_LEN = 1400          # texturlängd som motorn väntar sig
 
+# Kodytek levereras i ~154 mm-sektioner (line-scan, 0,060×0,150 mm/px). En hel
+# bräda byggs genom att stapla N konsekutiva sektioner längs längden. En liten
+# pool färdigsydda brädor cachas (snabbt efter uppvärmning på långsam disk).
+STITCH_N = 35              # sektioner per bräda (~5,4 m, matchar nominell brädlängd)
+STITCH_POOL = 8            # antal olika brädor som cyklas i GUI:t
+STITCH_MM = 0.30           # isotrop visnings-mm/px (≈ riggens 0,305)
+SEC_LEN_MM = 153.6         # en sektions längd (1024 px @ 6,67 px/mm)
+SEC_WIDTH_MM = 168.0       # en sektions bredd (2800 px @ 16,66 px/mm)
+
 
 def _img_orient(arr_lw):
     """(length,width[,3]) logiskt -> (width,length[,3]) bildorientering (längd vågrätt)."""
@@ -459,33 +468,65 @@ class BoardSource:
         return engine_payload(color_img, label_img, b["mm_per_px"], src, 0.987,
                               lengths, seed)
 
-    def _kodytek(self, seed, lengths):
+    @staticmethod
+    def _orient_section(a):
+        """Orienterar en sektion så att BREDDEN (längsta pixelaxeln, ~2800 px)
+        ligger på axel 1 – tål blandade orienteringar i datan."""
+        if a.ndim == 3:
+            return np.ascontiguousarray(np.transpose(a, (1, 0, 2))) if a.shape[0] > a.shape[1] else a
+        return np.ascontiguousarray(a.T) if a.shape[0] > a.shape[1] else a
+
+    def _stitch_board(self, seed):
+        """Bygger en hel brädyta av STITCH_N konsekutiva sektioner (cachas i en
+        pool). Returnerar (color, mask, mm) i bildorientering (axel 1 = längd)."""
         from PIL import Image
-        rng = _random.Random(seed)
-        path = rng.choice(self.kodytek)
-        photo = np.asarray(Image.open(path).convert("RGB"))
-        # Kodytek-bilderna är porträtt (brädans LÄNGD = längsta axeln). engine_payload
-        # vill ha längd på axel 1 (kolumner) -> orientera så längsta axeln blir axel 1.
-        if photo.shape[0] > photo.shape[1]:
-            photo = np.ascontiguousarray(np.transpose(photo, (1, 0, 2)))
-        mm = 5000.0 / photo.shape[1]                          # 500 cm över längden
+        if not hasattr(self, "_board_cache"):
+            self._board_cache = {}
+        n = len(self.kodytek)
+        if n == 0:
+            return None
+        g = seed % STITCH_POOL
+        if g in self._board_cache:
+            return self._board_cache[g]
+        N = min(STITCH_N, n)
+        start = (g * N) % max(1, n - N + 1)
+        paths = self.kodytek[start:start + N]
+        cw = max(8, round(SEC_WIDTH_MM / STITCH_MM))      # bredd-px
+        rl = max(8, round(SEC_LEN_MM / STITCH_MM))        # längd-px per sektion
+        masks_dir = Path(self.cfg.data_root) / "masks"
+        cols, msks = [], []
+        for p in paths:
+            a = self._orient_section(np.asarray(Image.open(p).convert("RGB")))
+            cols.append(np.asarray(Image.fromarray(a).resize((cw, rl), Image.BILINEAR)))
+            mp = masks_dir / (Path(p).stem + ".png")
+            if mp.exists():
+                m = self._orient_section(np.asarray(Image.open(mp)))
+                if m.ndim == 3:
+                    m = m[..., 0]
+                m = np.asarray(Image.fromarray(m.astype(np.uint8)).resize((cw, rl), Image.NEAREST))
+            else:
+                m = np.zeros((rl, cw), np.uint8)
+            msks.append(m)
+        color = np.ascontiguousarray(np.transpose(np.concatenate(cols, axis=0), (1, 0, 2)))
+        mask = np.ascontiguousarray(np.concatenate(msks, axis=0).T)
+        res = (color, mask, STITCH_MM)                    # axel0=bredd, axel1=längd
+        self._board_cache[g] = res
+        return res
+
+    def _kodytek(self, seed, lengths):
+        st = self._stitch_board(seed)
+        if st is None:
+            return self._synthetic(seed, lengths)         # data ej klar än -> syntetisk
+        color, mask, mm = st
         if self.model is not None:
             from src.infer import predict_board
-            board = {"color": photo, "height": np.zeros(photo.shape[:2], np.float32),
-                     "fiber_angle": np.zeros(photo.shape[:2], np.float32),
-                     "mm_per_px": mm}
+            board = {"color": color, "height": np.zeros(color.shape[:2], np.float32),
+                     "fiber_angle": np.zeros(color.shape[:2], np.float32), "mm_per_px": mm}
             label_img = predict_board(self.model, board, self.mcfg)
             src = "unet+kodytek"
         else:
-            mpath = Path(self.cfg.data_root) / "masks" / (Path(path).stem + ".png")
-            label_img = (np.asarray(Image.open(mpath)) if mpath.exists()
-                         else np.zeros(photo.shape[:2], np.uint8))
-            if label_img.ndim == 3:
-                label_img = label_img[..., 0]
-            if label_img.shape[0] > label_img.shape[1]:        # samma orientering som bilden
-                label_img = np.ascontiguousarray(label_img.T)
-            src = "facit+kodytek"
-        return engine_payload(photo, label_img, mm, src, 0.0, lengths, seed)
+            label_img, src = mask, "facit+kodytek"
+        return engine_payload(color, label_img, mm, src, 0.0, lengths, seed)
 
     # ---------- sann-upplösnings-utsnitt (för "klicka upp sensor"-zoomvyn) ----------
     def oriented_full(self, seed: int):
@@ -496,12 +537,8 @@ class BoardSource:
         if seed in self._full_cache:
             return self._full_cache[seed]
         if self.kodytek:
-            from PIL import Image
-            path = _random.Random(seed).choice(self.kodytek)
-            photo = np.asarray(Image.open(path).convert("RGB"))
-            if photo.shape[0] > photo.shape[1]:
-                photo = np.ascontiguousarray(np.transpose(photo, (1, 0, 2)))
-            res = (photo, 5000.0 / photo.shape[1])
+            st = self._stitch_board(seed)                 # samma hopsydda bräda som visas
+            res = (st[0], st[2]) if st is not None else (np.zeros((4, 4, 3), np.uint8), STITCH_MM)
         else:
             length_m = 5.4 + np.random.default_rng(seed * 7 + 1).uniform(-0.06, 0.03)
             b = make_board_for(seed, length_m=length_m, mm_per_px=1.0)
