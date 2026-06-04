@@ -54,8 +54,12 @@ if [ "$WITH_KODYTEK" = "1" ]; then
   # --rerasterize tvingar om-rastrering (t.ex. efter taxonomi-/färgändringar).
   [ "$RERAST" = "1" ] && { echo "    --rerasterize: rensar data/kodytek"; rm -rf data/kodytek; }
   # Räkna faktiska bild/mask-par, inte bara att katalogen finns (annars låser
-  # sig en halvfärdig körning med tomma kataloger).
-  n_pairs=$(find data/kodytek/masks -type f -name '*.png' 2>/dev/null | wc -l)
+  # sig en halvfärdig körning med tomma kataloger). Tål att katalogen saknas
+  # (t.ex. efter --rerasterize) utan att set -e dödar skriptet.
+  n_pairs=0
+  if [ -d data/kodytek/masks ]; then
+    n_pairs=$(find data/kodytek/masks -type f -name '*.png' 2>/dev/null | wc -l)
+  fi
   if [ "$n_pairs" -eq 0 ]; then
     if [ ! -d data/kodytek_raw ] || [ -z "$(find data/kodytek_raw -name '*.bmp' 2>/dev/null | head -1)" ]; then
       python tools/download_kodytek.py --out data/kodytek_raw
