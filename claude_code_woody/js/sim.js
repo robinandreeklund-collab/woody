@@ -43,6 +43,7 @@ const makeData = () => {
   if (patch && patch.defects) for (const dd of patch.defects) rs.defects[dd.name] = (rs.defects[dd.name] || 0) + 1;
 
   const sensorBoard = patch && patch.colorPng ? {
+    id: patch.id,
     colorPng: patch.colorPng, heightPng: patch.heightPng,
     nLasers: patch.laser ? patch.laser.nLasers : 6,
     nSurfaceCams: patch.laser ? patch.laser.nSurfaceCams || 2 : 2,

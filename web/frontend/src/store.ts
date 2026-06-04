@@ -28,6 +28,7 @@ export interface SimState {
   defects: { name: string; posMm: number }[];
   // sensorvy (aktuell bräda) + rundstatistik
   sensorBoard: {
+    id?: number;
     colorPng: string; heightPng: string;
     nLasers: number; nSurfaceCams: number;
     laserOverlapFrac: number; surfaceOverlapFrac: number;

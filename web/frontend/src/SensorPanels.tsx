@@ -59,40 +59,87 @@ const Spec = ({ k, v }: any) => (
   <div className="sm-spec-i"><span>{k}</span><b>{v}</b></div>
 );
 
-/* Uppförstorad vy: exakt utsnitt + den riktiga sensorns specar + skalstock. */
+/* Uppförstorad zoom-/panorerbar vy: hämtar SANN-upplösnings-utsnitt från
+   backenden (regenererar brädan ur seed) och visar i rätt fysiska proportioner. */
 function SensorDetail({ sb, specs, sel, tilesS, tilesP, onClose }: any) {
   const cvRef = useRef<HTMLCanvasElement>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  const dragRef = useRef<any>(null);
   const isSurf = sel.kind === "surface";
   const sp = isSurf ? specs.surface : specs.profile;
   const t = (isSurf ? tilesS : tilesP)[sel.idx];
-  const url = isSurf ? sb.colorPng : sb.heightPng;
   const accent = isSurf ? "#2f6fb0" : "#2f9e6e";
   const name = isSurf ? `YTKAMERA ${sel.idx + 1}` : `PROFILMODUL ${sel.idx + 1}`;
   const boardLen = specs.boardLenMm || 5400;
+  const boardW = specs.boardWidthMm || 150;
   const pxAcross = isSurf ? sp.pxAcross : sp.pxLat;
-  const mmShown = Math.round((t[1] - t[0]) * boardLen);
+  const seed = sb.id;
+  const [win, setWin] = useState({ u0: t[0], u1: t[1], v0: 0, v1: 1 });
+  const [crop, setCrop] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // hämta utsnitt när fönstret ändras (debouncat) — sann upplösning ur backenden
   useEffect(() => {
-    const cv = cvRef.current; if (!cv) return;
-    const img = new Image();
-    img.onload = () => {
-      const ctx = cv.getContext("2d")!;
-      const W = (cv.width = Math.min(1080, Math.max(320, cv.clientWidth || 900)));
-      const sx = t[0] * img.width, sw = (t[1] - t[0]) * img.width;
-      // fysiska proportioner (längd × bredd i mm), inte bildens (anisotropa) pixelmått
-      const boardW = specs.boardWidthMm || 150;
-      const H = (cv.height = Math.max(40, Math.round(W * boardW / Math.max(1, mmShown))));
-      ctx.clearRect(0, 0, W, H);
-      ctx.imageSmoothingEnabled = true;
-      ctx.drawImage(img, sx, 0, sw, img.height, 0, 0, W, H);
-      const px100 = (100 / mmShown) * W;            // skalstock 100 mm
-      ctx.fillStyle = "rgba(20,22,26,0.78)"; ctx.fillRect(10, H - 26, px100 + 12, 18);
-      ctx.fillStyle = "#fff"; ctx.font = "600 11px 'IBM Plex Mono', monospace";
-      ctx.fillText("100 mm", 16, H - 13);
-      ctx.fillStyle = "#fff"; ctx.fillRect(16, H - 9, px100, 2);
-      ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
-    };
-    img.src = url;
-  }, [sel, url, mmShown]);
+    if (seed == null) return;
+    let cancel = false;
+    setLoading(true);
+    const tm = setTimeout(() => {
+      fetch("/api/crop", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ seed, u0: win.u0, u1: win.u1, v0: win.v0, v1: win.v1, maxPx: 2000 }),
+      }).then((r) => r.json()).then((d) => {
+        if (cancel) return;
+        const im = new Image();
+        im.onload = () => { imgRef.current = im; setCrop(d); setLoading(false); };
+        im.src = d.png;
+      }).catch(() => { if (!cancel) setLoading(false); });
+    }, 110);
+    return () => { cancel = true; clearTimeout(tm); };
+  }, [seed, win]);
+
+  // rita utsnittet i fysiska proportioner + skalstock
+  useEffect(() => {
+    const cv = cvRef.current, im = imgRef.current; if (!cv || !im || !crop) return;
+    const W = (cv.width = Math.min(1080, Math.max(320, cv.clientWidth || 900)));
+    const spanLen = (win.u1 - win.u0) * boardLen, spanW = (win.v1 - win.v0) * boardW;
+    const H = (cv.height = Math.max(60, Math.min(560, Math.round(W * spanW / Math.max(1, spanLen)))));
+    const ctx = cv.getContext("2d")!;
+    ctx.clearRect(0, 0, W, H);
+    ctx.imageSmoothingEnabled = true;
+    ctx.drawImage(im, 0, 0, W, H);
+    const px100 = (100 / spanLen) * W;
+    ctx.fillStyle = "rgba(20,22,26,0.78)"; ctx.fillRect(10, H - 26, px100 + 12, 18);
+    ctx.fillStyle = "#fff"; ctx.font = "600 11px 'IBM Plex Mono', monospace";
+    ctx.fillText("100 mm", 16, H - 13); ctx.fillRect(16, H - 9, px100, 2);
+    ctx.strokeStyle = accent; ctx.lineWidth = 3; ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
+  }, [crop, win, accent, boardLen, boardW]);
+
+  const zoomAt = (factor: number, fx: number, fy: number) => setWin((w) => {
+    const du = w.u1 - w.u0, dv = w.v1 - w.v0;
+    const cu = w.u0 + fx * du, cv2 = w.v0 + fy * dv;
+    const nu = Math.min(1, Math.max(0.01, du * factor));
+    const nv = Math.min(1, Math.max(0.02, dv * factor));
+    const u0 = Math.min(Math.max(0, cu - fx * nu), 1 - nu);
+    const v0 = Math.min(Math.max(0, cv2 - fy * nv), 1 - nv);
+    return { u0, u1: u0 + nu, v0, v1: v0 + nv };
+  });
+  const onWheel = (e: any) => {
+    e.preventDefault();
+    const r = cvRef.current!.getBoundingClientRect();
+    zoomAt(e.deltaY > 0 ? 1.25 : 0.8, (e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height);
+  };
+  const onDown = (e: any) => { dragRef.current = { x: e.clientX, y: e.clientY, win }; };
+  const onMove = (e: any) => {
+    if (!dragRef.current) return;
+    const r = cvRef.current!.getBoundingClientRect();
+    const g = dragRef.current.win, du = g.u1 - g.u0, dv = g.v1 - g.v0;
+    const u0 = Math.min(Math.max(0, g.u0 - (e.clientX - dragRef.current.x) / r.width * du), 1 - du);
+    const v0 = Math.min(Math.max(0, g.v0 - (e.clientY - dragRef.current.y) / r.height * dv), 1 - dv);
+    setWin({ u0, u1: u0 + du, v0, v1: v0 + dv });
+  };
+  const onUp = () => { dragRef.current = null; };
+  const reset = () => setWin({ u0: t[0], u1: t[1], v0: 0, v1: 1 });
+
   return (
     <div className="sm-backdrop" onClick={onClose}>
       <div className="sm-panel" onClick={(e) => e.stopPropagation()}>
@@ -102,27 +149,26 @@ function SensorDetail({ sb, specs, sel, tilesS, tilesP, onClose }: any) {
         </div>
         <div className="sm-spec">
           {isSurf ? (<>
-            <Spec k="Upplösning" v={`${pxAcross} px tvärs · ${sp.pixelUm} µm`} />
-            <Spec k="Skala" v={`${sp.mmPerPx} mm/px`} />
-            <Spec k="FOV" v={`${sp.fovMm} mm`} />
-            <Spec k="Radtakt" v={`${sp.lineRateKHz} kHz (färg)`} />
-            <Spec k="WD / lins" v={`${sp.wdMm} / ${sp.lensMm} mm`} />
-            <Spec k="Visar" v={`${mmShown} mm av brädan`} />
+            <Spec k="Sensor" v={`${pxAcross} px tvärs · ${sp.pixelUm} µm`} />
+            <Spec k="Riggens skala" v={`${sp.mmPerPx} mm/px · FOV ${sp.fovMm} mm`} />
+            <Spec k="Radtakt / WD" v={`${sp.lineRateKHz} kHz · ${sp.wdMm} mm`} />
           </>) : (<>
-            <Spec k="Upplösning" v={`${pxAcross} px · ${sp.pixelUm} µm`} />
-            <Spec k="Lateral" v={`${sp.mmPerPx} mm/px`} />
-            <Spec k="Höjd" v={`${sp.heightResMm} mm`} />
-            <Spec k="Segment" v={`${sp.segLenMm} mm (överlapp ${sp.overlapMm})`} />
-            <Spec k="WD / vinkel" v={`${sp.wdMm} mm / ${sp.triAngle}°`} />
-            <Spec k="Takt" v={`${sp.profileRateHz} prof/s (${sp.frameFps} fps)`} />
+            <Spec k="Sensor" v={`${pxAcross} px · ${sp.pixelUm} µm`} />
+            <Spec k="Riggens skala" v={`${sp.mmPerPx} mm/px · seg ${sp.segLenMm} mm`} />
+            <Spec k="Höjd / takt" v={`${sp.heightResMm} mm · ${sp.profileRateHz} prof/s`} />
           </>)}
+          <Spec k="Utsnitt" v={crop ? `${crop.spanLenMm} × ${crop.spanWidthMm} mm` : "…"} />
+          <Spec k="Källans uppl." v={crop ? `${crop.mmPerPx} mm/px (${crop.wPx}×${crop.hPx})` : "…"} />
+          <Spec k="Zoom" v={`${(boardLen * (t[1] - t[0]) / (boardLen * (win.u1 - win.u0))).toFixed(1)}×`} />
         </div>
-        <canvas ref={cvRef} className="sm-cv" />
+        <canvas ref={cvRef} className="sm-cv" style={{ cursor: "grab" }}
+          onWheel={onWheel} onMouseDown={onDown} onMouseMove={onMove}
+          onMouseUp={onUp} onMouseLeave={onUp} />
         <div className="sv-foot">
-          Texturen är nedskalad för överföring — angivna mått och upplösning är den
-          riktiga sensorns ({pxAcross} px över {isSurf ? sp.fovMm : sp.segLenMm} mm).{" "}
-          {isSurf ? "Färg via strobad RGB + NIR."
-                  : "Höjd ur lasertriangulering (mörk → ljus = låg → hög)."}
+          {loading ? "hämtar sann-upplösnings-utsnitt …"
+                   : "scrolla = zoom · dra = panorera · "}
+          <b style={{ cursor: "pointer", color: accent }} onClick={reset}>återställ</b>
+          {" · "}sann källupplösning (Kodytek/syntetik); riggen avbildar {sp.mmPerPx} mm/px.
         </div>
       </div>
     </div>

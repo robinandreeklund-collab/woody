@@ -486,3 +486,47 @@ class BoardSource:
                 label_img = np.ascontiguousarray(label_img.T)
             src = "facit+kodytek"
         return engine_payload(photo, label_img, mm, src, 0.0, lengths, seed)
+
+    # ---------- sann-upplösnings-utsnitt (för "klicka upp sensor"-zoomvyn) ----------
+    def oriented_full(self, seed: int):
+        """Återskapar brädan (samma seed) och ger full-upplösnings färg i
+        bildorientering (axel 1 = längd) + mm/px. Liten cache."""
+        if not hasattr(self, "_full_cache"):
+            self._full_cache = {}
+        if seed in self._full_cache:
+            return self._full_cache[seed]
+        if self.kodytek:
+            from PIL import Image
+            path = _random.Random(seed).choice(self.kodytek)
+            photo = np.asarray(Image.open(path).convert("RGB"))
+            if photo.shape[0] > photo.shape[1]:
+                photo = np.ascontiguousarray(np.transpose(photo, (1, 0, 2)))
+            res = (photo, 5000.0 / photo.shape[1])
+        else:
+            length_m = 5.4 + np.random.default_rng(seed * 7 + 1).uniform(-0.06, 0.03)
+            b = make_board_for(seed, length_m=length_m, mm_per_px=1.0)
+            res = (_img_orient(b["color"]), b["mm_per_px"])
+        self._full_cache[seed] = res
+        if len(self._full_cache) > 6:
+            self._full_cache.pop(next(iter(self._full_cache)))
+        return res
+
+    def crop_window(self, seed: int, u0: float, u1: float, v0: float, v1: float,
+                    max_px: int = 2000) -> dict:
+        """Klipper ut normaliserat fönster [u0,u1]×[v0,v1] (längd×bredd) ur den
+        full-upplösta brädan och returnerar PNG + verklig mm/px (kapad till max_px)."""
+        color, mm = self.oriented_full(seed)
+        H, W = color.shape[:2]                       # H=bredd-rader, W=längd-kol
+        c0, c1 = sorted((int(np.clip(u0, 0, 1) * W), int(np.clip(u1, 0, 1) * W)))
+        r0, r1 = sorted((int(np.clip(v0, 0, 1) * H), int(np.clip(v1, 0, 1) * H)))
+        c1, r1 = max(c1, c0 + 1), max(r1, r0 + 1)
+        sub = np.ascontiguousarray(color[r0:r1, c0:c1])
+        sh, sw = sub.shape[:2]
+        scale = min(1.0, max_px / max(sh, sw))
+        if scale < 1.0:
+            from PIL import Image
+            sub = np.asarray(Image.fromarray(sub).resize(
+                (max(1, int(sw * scale)), max(1, int(sh * scale))), Image.LANCZOS))
+        return {"png": _png_b64(sub), "wPx": int(sub.shape[1]), "hPx": int(sub.shape[0]),
+                "mmPerPx": round(mm / max(scale, 1e-9), 4),
+                "spanLenMm": round((c1 - c0) * mm), "spanWidthMm": round((r1 - r0) * mm)}

@@ -112,6 +112,21 @@ def next_board(req: NextReq):
     return get_source().next(req.seed, req.lengths)
 
 
+class CropReq(BaseModel):
+    seed: int
+    u0: float = 0.0
+    u1: float = 1.0
+    v0: float = 0.0
+    v1: float = 1.0
+    maxPx: int = 2000
+
+
+@app.post("/api/crop")
+def crop(req: CropReq):
+    """Sann-upplösnings-utsnitt av en bräda (regenereras från seed) för zoomvyn."""
+    return get_source().crop_window(req.seed, req.u0, req.u1, req.v0, req.v1, req.maxPx)
+
+
 ROUND = 120  # brädor per simuleringsrunda
 
 
