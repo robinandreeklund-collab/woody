@@ -154,6 +154,7 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
     images_dir kan vara en katalog eller en lista av kataloger (t.ex. Kodyteks
     Images1..10), som då slås ihop."""
     from PIL import Image
+    import time
     out_root = Path(out_root)
     (out_root / "images").mkdir(parents=True, exist_ok=True)
     (out_root / "masks").mkdir(parents=True, exist_ok=True)
@@ -163,8 +164,11 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
                   for p in Path(d).glob(ext))
     if limit:
         imgs = imgs[:limit]
+    total = len(imgs)
+    print(f"Rastrerar {total} bilder ...", flush=True)
+    t0 = time.time()
     n = 0
-    for img_path in imgs:
+    for i, img_path in enumerate(imgs, 1):
         stem = img_path.stem
         im = Image.open(img_path).convert("RGB")
         w, h = im.size
@@ -181,6 +185,11 @@ def build_dataset(images_dir, out_root, semantic_dir=None, bbox_dir=None,
         im.save(out_root / "images" / f"{stem}.png")
         Image.fromarray(mask, "L").save(out_root / "masks" / f"{stem}.png")
         n += 1
+        if i % 500 == 0 or i == total:
+            el = time.time() - t0
+            rate = i / el if el else 0
+            eta = (total - i) / rate / 60 if rate else 0
+            print(f"  {i}/{total}  ({n} par · {rate:.1f} bild/s · ETA {eta:.1f} min)", flush=True)
     return n
 
 
