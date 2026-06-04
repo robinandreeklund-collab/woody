@@ -164,7 +164,10 @@ class KodytekDataset(Dataset):
         files = []
         for ext in _IMG_EXTS:
             files += (root / "images").glob(ext)
-        files = sorted(p for p in files if (self.masks_dir / (p.stem + ".png")).exists())
+        # Matcha mot maskerna via EN glob + mängd-uppslag i stället för en .exists()
+        # per bild (20k stat-anrop är mycket långsamt på /mnt/c).
+        mask_stems = {p.stem for p in self.masks_dir.glob("*.png")}
+        files = sorted(p for p in files if p.stem in mask_stems)
         if not files:
             raise FileNotFoundError(f"Inga bild/mask-par i {root}")
 
