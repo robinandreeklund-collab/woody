@@ -404,7 +404,7 @@ BOM = [
     ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1, "att köpa"),
     # --- FAS 2: line-scan-ytkamera (FÄRG, 1 pass) + absolut-tjocklek (punktlaser) ---
     ("Punktlaser ×3", "LR400 CMOS-triangulering (60–400 mm, RS-485) — REA", 3, "absolut tjocklek — EGEN låg balk UPPSTRÖMS (~100 mm → 0,1 mm rep.); 3 tjocklekslinjer ankrar 3D; ingen 655-störning i röd profilkamera", "RS-485 (Modbus)", "svar 1,5/5/15 ms", 900, 2, "AliExpress · ditt val"),
-    ("RS-485-gränssnitt", "USB–RS-485-dongle (el. MAX485 på UART); 3 sensorer på 1 buss", 1, "läser 3 punktlaser DIGITALT — ingen ADC behövs (Jetsons analog-gap borta)", "RS-485 → Jetson", "—", 80, 2, "att köpa"),
+    ("RS-485-gränssnitt", "Waveshare USB→4CH RS-485 (isolerad) — 1 LR400/kanal (3 av 4)", 1, "läser 3 punktlaser DIGITALT & SAMTIDIGT (egen kanal/sensor → ingen adressering, full takt); ingen ADC", "USB → Jetson", "—", 400, 2, "AliExpress/Waveshare · ditt val"),
     ("Ytkamera (line-scan)", "Huateng 4K FÄRG (M42, GigE) — via MDvision", 1, "färgyta (kvist/spricka/vankant/blånad) i 1 pass", "GigE (1GbE) → Jetson", "~0,4 kHz proto / 8 kHz max", 4134, 2, "AliExpress/MDvision · ditt val"),
     ("Objektiv M42", "ZLKC TM2004MPC (20 mm, M42, Φ30, 0,05–0,2×)", 1, "FOV ~570 mm @ WD ~400 mm (= punktlaserplan); skruvas rakt på kameran", "—", "—", 1000, 2, "ZLKC/AliExpress · ditt val (bekräfta skärpa i ändarna)"),
     ("Nätverk", "Cat5e/6 — ytkamera → Jetson (GigE direkt, ingen switch)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),

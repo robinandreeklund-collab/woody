@@ -332,7 +332,7 @@
 <rect x="70.0" y="1120.0" width="240.0" height="50.0" rx="7" fill="#fff" stroke="#7a3fb0" stroke-width="1.5" opacity="1"/>
 <rect x="70.0" y="1120.0" width="240.0" height="20.0" rx="7" fill="#7a3fb0" stroke="#7a3fb0" stroke-width="0" opacity="1"/>
 <text x="79.0" y="1135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="start">3× Punktlaser LR400</text>
-<text x="79.0" y="1156.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#23262b" text-anchor="start">RS-485-buss (Fas 2)</text>
+<text x="79.0" y="1156.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#23262b" text-anchor="start">USB→4CH RS-485 (Fas 2)</text>
 <line x1="310.0" y1="1145.0" x2="700.0" y2="1112.0" stroke="#7a3fb0" stroke-width="1.7" opacity="1"/>
 <line x1="700.0" y1="1112.0" x2="691.7" y2="1117.5" stroke="#7a3fb0" stroke-width="1.7" opacity="1"/>
 <line x1="700.0" y1="1112.0" x2="690.9" y2="1108.0" stroke="#7a3fb0" stroke-width="1.7" opacity="1"/>
@@ -397,8 +397,8 @@
 <text x="2300.0" y="995.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">OK</text>
 <rect x="1548.0" y="1008.0" width="884.0" height="36.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <rect x="1556.0" y="1019.0" width="12.0" height="12.0" rx="2" fill="#7a3fb0" stroke="#7a3fb0" stroke-width="0" opacity="1"/>
-<text x="1576.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">RS-485 (USB/UART)</text>
-<text x="1820.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">1 — 3× LR400 (Modbus-buss)</text>
+<text x="1576.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">RS-485 (USB 4CH)</text>
+<text x="1820.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">1 USB — 3× LR400 (1/kanal)</text>
 <text x="2300.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#7a3fb0" text-anchor="start">OK</text>
 <rect x="1556.0" y="1055.0" width="12.0" height="12.0" rx="2" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="1576.0" y="1067.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">40-pin GPIO (~28)</text>
@@ -573,7 +573,7 @@
 <text x="540.0" y="1984.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="middle">40</text>
 <text x="561.0" y="1980.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#23262b" text-anchor="start">I2S0_SDOUT</text>
 <text x="561.0" y="1992.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#6a6e74" text-anchor="start">reserv</text>
-<text x="60.0" y="2002.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#6a6e74" text-anchor="start">Matning: Jrk G2 24v13 via UART/I²C — motorns inbyggda Hall-Signal går till Jrk:s frekvens-FB (closed-loop fart). Punktlaser LR400 → RS-485 (USB-dongle, 3 på 1 buss, Modbus) — ingen ADC. Gemensam GND.</text>
+<text x="60.0" y="2002.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#6a6e74" text-anchor="start">Matning: Jrk G2 24v13 via UART/I²C — motorns inbyggda Hall-Signal går till Jrk:s frekvens-FB (closed-loop fart). Punktlaser LR400 → RS-485 (Waveshare USB→4CH, 1 LR400/kanal → samtidig avläsning) — ingen ADC. Gemensam GND.</text>
 <rect x="1060.0" y="1388.0" width="1380.0" height="640.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="1060.0" y="1388.0" width="1380.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <text x="1072.0" y="1407.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">4 · KOMPLETT BOM (priser SEK)</text>
@@ -662,9 +662,9 @@
 <text x="2232.0" y="1468.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
 <text x="2424.0" y="1468.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">2 700</text>
 <rect x="1762.0" y="1474.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1769.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">USB–RS-485-dongle (el. MAX485 på UART); 3 </text>
-<text x="2232.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
-<text x="2424.0" y="1488.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">80</text>
+<text x="1769.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Waveshare USB→4CH RS-485 (isolerad) — 1 LR</text>
+<text x="2232.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/Wavesha</text>
+<text x="2424.0" y="1488.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">400</text>
 <text x="1769.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Huateng 4K FÄRG (M42, GigE) — via MDvision</text>
 <text x="2232.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MDvisio</text>
 <text x="2424.0" y="1508.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">4 134</text>
@@ -684,10 +684,10 @@
 <text x="1740.0" y="1922.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#2f9e6e" text-anchor="end">18 331 kr</text>
 <rect x="1762.0" y="1582.0" width="670.0" height="30.0" rx="5" fill="#f1eaf7" stroke="#7a3fb0" stroke-width="1.2" opacity="1"/>
 <text x="1770.0" y="1602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#7a3fb0" text-anchor="start">FAS 2-tillägg</text>
-<text x="2424.0" y="1602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+8 594 kr</text>
+<text x="2424.0" y="1602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+8 914 kr</text>
 <rect x="1762.0" y="1620.0" width="670.0" height="32.0" rx="5" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <text x="1770.0" y="1642.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">FULL SVIT (Fas 1+2)</text>
-<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">26 925 kr</text>
+<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">27 245 kr</text>
 <rect x="2010.0" y="1982.0" width="426.0" height="52.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <line x1="2010.0" y1="2008.0" x2="2436.0" y2="2008.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="2274.0" y1="1982.0" x2="2274.0" y2="2034.0" stroke="#23262b" stroke-width="1" opacity="1"/>
