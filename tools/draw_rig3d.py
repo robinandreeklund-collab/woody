@@ -89,13 +89,23 @@ box(LEGX0 - 30, LEGX1 + 30, FY0 - 30, FY1 + 30, -16, 0, "#e7e4da", "#cdc9bd", "#
 for bx0, bx1, lab in [(0, 85, "BAND V"), (BENCH_L - 85, BENCH_L, "BAND H")]:
     box(bx0, bx1, FY0 - 8, FY1 + 8, 0, 10, BELT, "#33373d", "#3b4046", "#2b2f35", 1)
     txt(*P((bx0 + bx1) / 2, FY1 + 8, 11), lab, 9, "middle", "#dfe3e8", 700)
-# --- matningspilar (i +y) ---
-for ax in (150, 350):
-    arrow(P(ax, FY0 + 20, 16), P(ax, FY1 - 20, 16), "#b06", 2.4)
-txt(*P(250, FY1 + 32, 16), "matning (bredd 150 mm i sidled)", 11, "middle", "#b06", 700)
+# --- anslag/mathåll i bakkant (laddläge) vid FY0 ---
+box(BX0 - 6, BX1 + 6, FY0 - 4, FY0 + 8, 0, 52, "#9aa0a8", "#7f858c", "#888e95", "#6e747b", 1)
+txt(*P(BX0 - 6, FY0 - 6, 64), "ANSLAG / mathåll (laddläge)", 9, "end", MUTED, 700)
 # --- bräda ---
 box(BX0, BX1, BY0, BY1, 0, BZ, WOOD, "#d9cfb0", "#cdbf99", "#9a8c63", 1.2)
 txt(*P(250, BY1 + 6, BZ + 4), "bräda 500 × 150 × 45 mm", 10.5, "middle", "#8a7d4e", 700)
+# --- matning fram (rosa) + back (blå): Jetson styr → multi-pass ---
+arrow(P(250, FY0 + 30, 17), P(250, FY1 - 20, 17), "#b06", 2.6)
+arrow(P(170, FY1 - 20, 17), P(170, FY0 + 30, 17), BLUE, 2.0)
+txt(*P(250, FY1 + 30, 17), "Jetson: ladda→fram→mät→BACK→upprepa (multi-pass)", 10.5, "middle", "#b06", 700)
+# --- ingångslaser (brädstart/position) från sidan, tvärs banan ---
+ely = -55
+em, rf = P(BX1 + 60, ely, 26), P(BX0 - 60, ely, 26)
+ln(em, rf, RED, 1.4, "5 4", op=0.6)
+poly([(em[0]-2,em[1]-12),(em[0]+26,em[1]-12),(em[0]+26,em[1]+10),(em[0]-2,em[1]+10)], "#ffe7d8", RED, 1.4)
+txt(em[0]+12, em[1]+2, "IN", 8.5, "middle", RED, 700)
+txt(em[0]+34, em[1]-2, "ingångslaser (brädstart + position)", 9, "start", RED, 700)
 
 # --- STATIV (vänt 90°): ben vid längd-ändarna, y=75, UR matningsbanan ---
 for lx in (LEGX0, LEGX1):
@@ -165,6 +175,21 @@ for i, (c, k, v) in enumerate(leg):
 add(f'<rect x="{lx+12}" y="{ly+312}" width="348" height="36" rx="5" fill="{PANEL}" stroke="{DIMC}" stroke-width="0.8"/>')
 txt(lx+22, ly+327, "Ben vid längd-ändarna → fri matningsbana. Tvärbalken", 9.5, "start", INK, 700)
 txt(lx+22, ly+340, "(åt andra hållet) bär modulerna — en på var sin sida.", 9.5, "start", INK, 700)
+
+# ---- STYRNING / MULTI-PASS-not ----
+sy0 = ly + 372
+add(f'<rect x="{lx}" y="{sy0}" width="372" height="156" rx="8" fill="#fff" stroke="{INK}" stroke-width="1.4"/>')
+add(f'<rect x="{lx}" y="{sy0}" width="372" height="28" rx="8" fill="{JET}"/>')
+txt(lx+12, sy0+19, "STYRNING (Jetson) — rullband utan fast läge", 12, "start", PAPER, 700, SANS)
+notes = [
+    "Ingångslaser nollställer brädans läge (rullband = ingen fast pos.)",
+    "Mathåll/anslag i bakkant: lägg mot → känd, kvadrerad start.",
+    "DC-motordrivare (H-brygga): fram → mät → BACK → upprepa.",
+    "Multi-pass: medel av N pass → brus ↓ ~√N + repeterbarhet/kalib.",
+]
+for i, n in enumerate(notes):
+    txt(lx+14, sy0+46 + i*27, "•", 11, "start", JET, 700)
+    txt(lx+28, sy0+46 + i*27, n, 9.3, "start", INK, 400, SANS)
 
 # ===================== MÅTT-PANEL (ifyllda x=mm) — nedre vänster =====================
 mx, my0 = 70, 452

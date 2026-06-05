@@ -67,10 +67,10 @@ st.markdown('<div class="ph-title">Multisensor virkesskanner — prototypbänk</
 
 # ---------------- simulering (cachad) ----------------
 @st.cache_data(show_spinner=False, max_entries=64)
-def run(length, width, thick, seed, subtle, takt, rate, bow, cup, twist):
+def run(length, width, thick, seed, subtle, takt, rate, bow, cup, twist, passes=1):
     return simulate(length_mm=length, width_mm=width, thickness_mm=thick, seed=seed,
                     subtle=subtle, boards_per_min=takt, profile_rate_hz=rate,
-                    bow_mm=bow, cup_mm=cup, twist_mm=twist)
+                    bow_mm=bow, cup_mm=cup, twist_mm=twist, passes=passes)
 
 
 def stream_board(rng):
@@ -168,7 +168,10 @@ if ss.mode == "Manuell inspektion":
     twist = sb.slider("Vridning / twist", -5.0, 5.0, 2.0, 0.1)
     sb.header("DRIFT")
     feed = sb.slider("Matning / skannposition (%)", 0, 100, 60, 1) / 100.0
+    passes = sb.slider("Antal pass (multi-scan)", 1, 8, 1,
+                       help="Jetson kör brädan fram/back N gånger → medelvärde (brus ↓ ~√N) + repeterbarhet/kalibrering")
 else:
+    passes = 1
     sb.header("DRIFT")
     cstart, cstop = sb.columns(2)
     if cstart.button("▶ Start", use_container_width=True, type="primary", disabled=ss.running):
@@ -306,10 +309,22 @@ def hardware_specs():
 
 # ---------------- körning ----------------
 if ss.mode == "Manuell inspektion":
-    sim = run(length, width, thick, int(seed), subtle, takt, rate, bow, cup, twist)
+    sim = run(length, width, thick, int(seed), subtle, takt, rate, bow, cup, twist, passes)
     st.markdown(bench_svg(feed, length, width, False), unsafe_allow_html=True)
     st.write("")
     kpi_row(sim)
+    if passes > 1:
+        m = metrics(sim)
+        st.markdown('<div class="ph-sec">Multi-pass / kalibrering (fram-back)</div>', unsafe_allow_html=True)
+        with st.container(border=True):
+            g = st.columns(4)
+            g[0].metric("Antal pass", f"{m['passes']}")
+            g[1].metric("Repeterbarhet 1 pass", f"{m['repeat_1pass_um']} µm")
+            g[2].metric("Efter medel (√N)", f"{m['repeat_avg_um']} µm")
+            g[3].metric("Brusreduktion", f"{m['repeat_1pass_um']/max(m['repeat_avg_um'],1e-6):.1f}×")
+            st.caption("Jetson kör brädan **fram → mät → back → upprepa**. Medelvärdet av N pass "
+                       "sänker mätbruset ~√N och pass-till-pass-spridningen ger ett **repeterbarhets-/"
+                       "kalibreringsmått** (jämför mot punktlaser-ankaret för absolut kalibrering).")
     render_sensors(sim, feed, xpos, False)
 
 else:
@@ -326,7 +341,7 @@ else:
             ss.feed += dt / period
             if ss.feed >= 1.0:
                 done = run(length, bp["width"], bp["thick"], bp["seed"], bp["subtle"],
-                           takt, rate, bp["bow"], bp["cup"], bp["twist"])
+                           takt, rate, bp["bow"], bp["cup"], bp["twist"], 1)
                 m = metrics(done)
                 top = max(m["defekter"], key=m["defekter"].get) if m["defekter"] else "—"
                 ss.count += 1
@@ -352,7 +367,7 @@ else:
     def sensor_loop():
         cur = ss.board
         sim = run(length, cur["width"], cur["thick"], cur["seed"], cur["subtle"],
-                  takt, rate, cur["bow"], cur["cup"], cur["twist"])
+                  takt, rate, cur["bow"], cur["cup"], cur["twist"], 1)
         kpi_row(sim)
         render_sensors(sim, min(ss.feed, 1.0), xpos, ss.running)
 

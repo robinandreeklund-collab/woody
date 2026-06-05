@@ -91,17 +91,25 @@
 <polygon points="797.2,497.6 835.5,519.7 835.5,524.9 797.2,502.8" fill="#33373d" stroke="#2b2f35" stroke-width="1" opacity="1"/>
 <polygon points="1027.3,408.9 835.5,519.7 835.5,524.9 1027.3,414.1" fill="#3b4046" stroke="#2b2f35" stroke-width="1" opacity="1"/>
 <text x="816.3" y="508.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#dfe3e8" text-anchor="middle">BAND H</text>
-<line x1="857.1" y1="322.1" x2="690.5" y2="418.3" stroke="#b06" stroke-width="2.4" opacity="1"/>
-<line x1="690.5" y1="418.3" x2="696.2" y2="408.9" stroke="#b06" stroke-width="2.4" opacity="1"/>
-<line x1="690.5" y1="418.3" x2="701.5" y2="418.0" stroke="#b06" stroke-width="2.4" opacity="1"/>
-<line x1="947.2" y1="374.1" x2="780.5" y2="470.3" stroke="#b06" stroke-width="2.4" opacity="1"/>
-<line x1="780.5" y1="470.3" x2="786.3" y2="460.9" stroke="#b06" stroke-width="2.4" opacity="1"/>
-<line x1="780.5" y1="470.3" x2="791.5" y2="470.0" stroke="#b06" stroke-width="2.4" opacity="1"/>
-<text x="712.1" y="457.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#b06" text-anchor="middle">matning (bredd 150 mm i sidled)</text>
+<polygon points="797.6,256.6 1028.2,389.7 1022.8,392.8 792.2,259.7" fill="#9aa0a8" stroke="#6e747b" stroke-width="1" opacity="1"/>
+<polygon points="792.2,259.7 1022.8,392.8 1022.8,419.8 792.2,286.7" fill="#7f858c" stroke="#6e747b" stroke-width="1" opacity="1"/>
+<polygon points="1028.2,389.7 1022.8,392.8 1022.8,419.8 1028.2,416.7" fill="#888e95" stroke="#6e747b" stroke-width="1" opacity="1"/>
+<text x="798.5" y="249.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="end">ANSLAG / mathåll (laddläge)</text>
 <polygon points="740.0,296.6 965.2,426.6 897.6,465.6 672.5,335.6" fill="#e9e1cf" stroke="#9a8c63" stroke-width="1.2" opacity="1"/>
 <polygon points="672.5,335.6 897.6,465.6 897.6,489.0 672.5,359.0" fill="#d9cfb0" stroke="#9a8c63" stroke-width="1.2" opacity="1"/>
 <polygon points="965.2,426.6 897.6,465.6 897.6,489.0 965.2,450.0" fill="#cdbf99" stroke="#9a8c63" stroke-width="1.2" opacity="1"/>
 <text x="782.3" y="400.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#8a7d4e" text-anchor="middle">bräda 500 × 150 × 45 mm</text>
+<line x1="897.6" y1="350.2" x2="735.5" y2="443.8" stroke="#b06" stroke-width="2.6" opacity="1"/>
+<line x1="735.5" y1="443.8" x2="741.2" y2="434.4" stroke="#b06" stroke-width="2.6" opacity="1"/>
+<line x1="735.5" y1="443.8" x2="746.5" y2="443.5" stroke="#b06" stroke-width="2.6" opacity="1"/>
+<line x1="699.5" y1="423.0" x2="861.6" y2="329.4" stroke="#2f6fb0" stroke-width="2.0" opacity="1"/>
+<line x1="861.6" y1="329.4" x2="855.9" y2="338.8" stroke="#2f6fb0" stroke-width="2.0" opacity="1"/>
+<line x1="861.6" y1="329.4" x2="850.6" y2="329.6" stroke="#2f6fb0" stroke-width="2.0" opacity="1"/>
+<text x="713.0" y="456.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#b06" text-anchor="middle">Jetson: ladda→fram→mät→BACK→upprepa (multi-pass)</text>
+<line x1="1017.0" y1="437.8" x2="737.7" y2="276.6" stroke="#e8542c" stroke-width="1.4" stroke-dasharray="5 4" opacity="0.6"/>
+<polygon points="1015.0,425.8 1043.0,425.8 1043.0,447.8 1015.0,447.8" fill="#ffe7d8" stroke="#e8542c" stroke-width="1.4" opacity="1"/>
+<text x="1029.0" y="439.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="middle">IN</text>
+<text x="1051.0" y="435.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e8542c" text-anchor="start">ingångslaser (brädstart + position)</text>
 <polygon points="670.2,306.2 686.4,315.6 670.2,324.9 654.0,315.6" fill="#bfc3c8" stroke="#969ba0" stroke-width="1" opacity="1"/>
 <polygon points="654.0,315.6 670.2,324.9 670.2,336.4 654.0,327.0" fill="#a7acb1" stroke="#969ba0" stroke-width="1" opacity="1"/>
 <polygon points="686.4,315.6 670.2,324.9 670.2,336.4 686.4,327.0" fill="#b0b5ba" stroke="#969ba0" stroke-width="1" opacity="1"/>
@@ -186,6 +194,17 @@
 <rect x="1247" y="462" width="348" height="36" rx="5" fill="#ecebe4" stroke="#9a9ea4" stroke-width="0.8"/>
 <text x="1257.0" y="477.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="start">Ben vid längd-ändarna → fri matningsbana. Tvärbalken</text>
 <text x="1257.0" y="490.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="start">(åt andra hållet) bär modulerna — en på var sin sida.</text>
+<rect x="1235" y="522" width="372" height="156" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
+<rect x="1235" y="522" width="372" height="28" rx="8" fill="#3b7d3b"/>
+<text x="1247.0" y="541.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">STYRNING (Jetson) — rullband utan fast läge</text>
+<text x="1249.0" y="568.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#3b7d3b" text-anchor="start">•</text>
+<text x="1263.0" y="568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#23262b" text-anchor="start">Ingångslaser nollställer brädans läge (rullband = ingen fast pos.)</text>
+<text x="1249.0" y="595.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#3b7d3b" text-anchor="start">•</text>
+<text x="1263.0" y="595.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#23262b" text-anchor="start">Mathåll/anslag i bakkant: lägg mot → känd, kvadrerad start.</text>
+<text x="1249.0" y="622.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#3b7d3b" text-anchor="start">•</text>
+<text x="1263.0" y="622.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#23262b" text-anchor="start">DC-motordrivare (H-brygga): fram → mät → BACK → upprepa.</text>
+<text x="1249.0" y="649.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#3b7d3b" text-anchor="start">•</text>
+<text x="1263.0" y="649.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#23262b" text-anchor="start">Multi-pass: medel av N pass → brus ↓ ~√N + repeterbarhet/kalib.</text>
 <rect x="70" y="452" width="392" height="346" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="70" y="452" width="392" height="30" rx="8" fill="#23262b"/>
 <text x="82.0" y="472.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#f7f6f1" text-anchor="start">MÅTT — ifyllda x = mm</text>

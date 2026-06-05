@@ -61,12 +61,13 @@ def _apply_warp(height, bow_mm, cup_mm, twist_mm):
 def simulate(length_mm=BOARD_LEN, width_mm=150.0, thickness_mm=45.0,
              mm_per_px=0.6, seed=3, subtle=False,
              boards_per_min=60.0, profile_rate_hz=490.0,
-             bow_mm=0.0, cup_mm=0.0, twist_mm=0.0):
+             bow_mm=0.0, cup_mm=0.0, twist_mm=0.0, passes=1):
     """Bräda (defekter + global skevhet) + dubbel-oblikt huvud + driftparametrar.
 
     Takten (brädor/min) styr bandhastigheten: vid cross-feed passerar brädans
     bredd förbi linjen på 60/takt sekunder → feed = bredd · takt / 60.
-    Höjdkarta: axel0 = längd (1 m-linjen), axel1 = bredd (matningsled)."""
+    passes>1: Jetson kör brädan fram/back N gånger → medelvärdar (brus ↓ ~√N) och
+    mäter pass-till-pass-repeterbarhet (för kvalitet/kalibrering)."""
     L = float(min(length_mm, BOARD_LEN))
     b = make_board(length_mm=L, width_mm=width_mm, thickness_mm=thickness_mm,
                    mm_per_px=mm_per_px, seed=int(seed), subtle_defects=subtle)
@@ -75,7 +76,17 @@ def simulate(length_mm=BOARD_LEN, width_mm=150.0, thickness_mm=45.0,
     feed_mps = width_mm / 1000.0 * boards_per_min / 60.0
     rig = Rig(board_length_mm=L, board_width_mm=width_mm, board_thickness_mm=thickness_mm,
               feed_mps=feed_mps, profile_rate_hz=profile_rate_hz)
+    npass = max(1, int(passes))
     res = simulate_array(b["height"], mm_per_px, rig, seed=1)
+    if npass > 1:                                  # multi-pass fram/back → medel + repeterbarhet
+        Z = np.stack([res["z_fused"]] +
+                     [simulate_array(b["height"], mm_per_px, rig, seed=1 + i)["z_fused"]
+                      for i in range(1, npass)])
+        res["z_fused"] = Z.mean(0)
+        res["pass_std_mm"] = float(np.nanmean(np.std(Z, 0)))
+    else:
+        res["pass_std_mm"] = float("nan")
+    res["passes"] = npass
 
     pitch_mm = feed_mps * 1000.0 / max(1.0, profile_rate_hz)
     Ww = b["height"].shape[1]
@@ -83,7 +94,7 @@ def simulate(length_mm=BOARD_LEN, width_mm=150.0, thickness_mm=45.0,
     return {"board": b, "rig": rig, "meas": res, "mm_per_px": mm_per_px,
             "L": L, "width": width_mm, "thickness": thickness_mm,
             "takt": boards_per_min, "feed_mps": feed_mps, "profile_rate_hz": profile_rate_hz,
-            "pitch_mm": pitch_mm, "n_profiles": n_profiles,
+            "pitch_mm": pitch_mm, "n_profiles": n_profiles, "passes": npass,
             "warp": {"bow_mm": bow_mm, "cup_mm": cup_mm, "twist_mm": twist_mm}}
 
 
@@ -359,13 +370,15 @@ BOM = [
     ("Bandpassfilter 650", "650 nm", 1, "isolerar röd laser", "—", "—", 350, 1),
     ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300, 1),
     ("Alu-ram (manuell)", "alu-profil + fästen, handmatning", 1, "enkel bänk – putta brädan för hand", "—", "—", 800, 1),
+    ("Anslag / mathåll", "fast anslag i bakkant (laddläge)", 1, "lägg brädan mot → känd start, kvadrerar", "—", "—", 150, 1),
     ("Diverse", "Kablar, nätaggregat, fästen", 1, "—", "—", "—", 1500, 1),
     ("Profilkamera H (grön)", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 2),
     ("Objektiv C-mount", "8 mm (profilkamera H)", 1, "profiloptik (1 m FOV)", "—", "—", 500, 2),
     ("Bandpassfilter 520", "520 nm", 1, "isolerar grön laser", "—", "—", 350, 2),
     ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350, 2),
     ("Mini-transportör ×2", "rostfri 24 V, 50 mm/s, 600 mm (TUNGFUII-typ)", 2, "matning – en vänster, en höger (öppet mätfält)", "24 V DC", "50 mm/s", 900, 2),
-    ("Motorregulator", "24 V PWM-varvtalsreglering", 1, "trimma bandhastighet/takt", "PWM", "—", 120, 2),
+    ("Motordrivare", "DC H-brygga (fram/back + PWM)", 1, "Jetson styr riktning+fart → multi-pass", "GPIO/PWM", "—", 250, 2),
+    ("Ingångslaser", "fotcell/genombrott (brädstart)", 1, "registrerar brädans läge vid ingång (rullband)", "GPIO", "kant-trig", 250, 2),
     ("Encoder + mäthjul", "Inkrementell encoder (RS422) + mäthjul mot brädan", 1, "matningssynk (TDI) + position (immun mot bandglapp)", "RS422→ytkamera / trig→profilkam + GPIO", "~0,1 mm/puls", 900, 2),
     ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan, 4-TDI)", "10GBase-T (NBASE-T)", "1,2 kHz proto / 110 kHz max", 6902, 3),
     ("Objektiv M72", "8K line-scan 55–60 mm (M72×0.75, ⌀≥62 mm)", 1, "8K-yta över 1 m (WD ~1 m)", "—", "—", 2600, 3),
@@ -409,8 +422,12 @@ def interface_rows(sim):
          "Datatakt": "<0,1 MB/s", "Buss-tak": "SPI 200 kSPS", "Marginal": "3 abs-ankare längs 1 m (V/C/H) → skala/drift"},
         {"Enhet": "RGB/NIR-strobe", "Buss": "ytkamera strobe-ut", "Takt (proto)": f"{s_line:.0f} Hz (sync)",
          "Datatakt": "—", "Buss-tak": "3 strobe-kanaler", "Marginal": "färg = radtakt/4 (R/G/B+NIR)"},
-        {"Enhet": "Encoder", "Buss": "RS422→ytkamera", "Takt (proto)": "pulser",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "låser radtakt till matning (TDI)"},
+        {"Enhet": "Ingångslaser (brädstart)", "Buss": "GPIO", "Takt (proto)": "kant-trig",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "nollställer position på rullbandet"},
+        {"Enhet": "Motordrivare (fram/back)", "Buss": "GPIO/PWM", "Takt (proto)": "—",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "Jetson: load→fram→mät→back→upprepa"},
+        {"Enhet": "Encoder + mäthjul", "Buss": "RS422→ytkamera", "Takt (proto)": "pulser",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "låser radtakt + position (immun mot slir)"},
     ]
 
 
@@ -494,6 +511,9 @@ def metrics(sim):
     pls = [float(np.median(btrue[int(f * (Hpx - 1)), :])) for f in PL_FRACS]
     counts = {CLASSES[c]: int((lbl == c).sum()) for c in range(1, 7) if (lbl == c).any()}
     d = datarate(sim); w = sim["warp"]
+    ps = sim["meas"].get("pass_std_mm", float("nan")); npass = sim.get("passes", 1)
+    rep1 = round(ps * 1000, 1) if ps == ps else None                 # µm, 1 pass
+    repN = round(ps / np.sqrt(npass) * 1000, 1) if ps == ps else None  # µm efter medel
     return {
         "tjocklek_punktlaser_mm": round(float(np.mean(pls)), 1),
         "tackning_pct": round(sim["meas"]["coverage"] * 100, 1),
@@ -503,6 +523,7 @@ def metrics(sim):
         "mb_per_s": round(d["mb_per_s"], 1), "profiles_per_s": round(d["profiles_per_s"]),
         "twist_mm": round(w["twist_mm"], 1), "bow_mm": round(w["bow_mm"], 1),
         "cup_mm": round(w["cup_mm"], 1),
+        "passes": npass, "repeat_1pass_um": rep1, "repeat_avg_um": repN,
     }
 
 
