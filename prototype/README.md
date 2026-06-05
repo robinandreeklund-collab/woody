@@ -36,7 +36,12 @@ streamlit run prototype/app.py
   tvärs 150 mm kommer från de oblika linjelasrarna.
 
 ## Hårdvara (prototyp, per huvud) — fasad uppbyggnad
-Se fliken **BOM & systemkoppling** för komplett lista med priser och faser.
+Se fliken **BOM & systemkoppling** för komplett, aktuell lista med priser och faser
+(den GUI-BOM:en är källan; fas-texten nedan är från en tidigare iteration).
+
+> **Bänk-setup på Jetson** (kamera-drivrutiner, USB3/GigE-inställningar, enhetskarta,
+> "hänger den inte?"): se **[`docs/jetson-setup.md`](../docs/jetson-setup.md)**.
+> Verifiera med `python tools/verify_jetson_io.py` och `python tools/verify_optics.py`.
 
 - **Fas 1 (vänster, minimal — 500 mm-brädor):** Jetson Orin Nano Super · 1× MV-CS050-10UM
   mono (USB3) + C-mount 8 mm + bandpass 650 nm · 1× iadiy LM9R650H100L60 (röd 650 nm). Enkel
