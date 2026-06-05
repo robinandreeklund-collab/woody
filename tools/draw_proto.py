@@ -18,8 +18,8 @@ OBL = r.oblique_angle_deg
 WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)        # ~710 mm (slant)
 SOFF = round(WD * math.sin(math.radians(OBL)))                              # ~355 mm sidooffset
 MH = round(WD * math.cos(math.radians(OBL)))                                # ~615 mm vertikal modulhöjd
-SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm)                   # ~480 mm (M72)
 PLWD = 400                                                                  # HG-C1400 FAST mätavstånd
+SURF_WD = PLWD          # ytkamera på SAMMA balk som punktlasern: 40 mm LS4005B rackad ~0,105× -> FOV ~546 mm
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
 BW, BT = round(r.board_width_mm), round(r.board_thickness_mm)
 
@@ -147,25 +147,27 @@ line(mxL + 13, myL + 14, bL, yb2, RED, 3); line(mxR - 13, myR + 14, bR, yb2, GRN
 circ(bL, yb2, 3, RED, RED, 0); circ(bR, yb2, 3, GRN, GRN, 0)
 txt(mxL - 4, myL + 58, f"{OBL:.0f}°", 11, "middle", RED, 700); txt(mxR + 4, myR + 58, f"{OBL:.0f}°", 11, "middle", GRN, 700)
 vdim(beamB, myL - 15, mxL - 26, f"{BEAM_H-MH}")              # nedhäng oblik
-# --- FAS 2: överliggande line-scan-ytkamera (rakt ovan brädans mitt) ---
-line(bx, beamB, bx, camY - 16, "#8a9099", 3)                # nedhäng-mast (mellan)
-rect(bx - 54, camY - 16, 108, 26, "#efe6f7", SURFC, 1.6, 5)
-txt(bx, camY - 3, "YTKAMERA line-scan", 8.5, "middle", SURFC, 700, SANS)
-txt(bx, camY + 7, "M72 + RGB/NIR-strobe", 7.5, "middle", INK)
+# --- FAS 2: GEMENSAM balk på punktlaserns plan (400 mm) — ytkamera + 3 punktlaser ---
+# 40 mm LS4005B rackad ~0,105× -> FOV ~546 mm @ WD 400 mm = HG-C1400:s fasta mätavstånd,
+# så ytkamera och punktlaser hänger på SAMMA balk (samma höjd). Oblika huvuden måste sitta högre.
+shY = UP(SURF_WD)                                           # = UP(PLWD), gemensamt plan
+plx = bx + 66
+for sxk in (bx - 28, plx + 4):                              # två nedhäng-struts till gemensam balk
+    line(sxk, beamB, sxk, shY - 7, "#8a9099", 3)
+rect(bx - 64, shY - 7, (plx + 4) - (bx - 64) + 12, 9, ALU, "#8a9099", 1.3, 3)   # gemensam balk
+txt(bx, shY - 11, "GEMENSAM BALK 400 mm", 7.5, "middle", MUTED, 700)
+rect(bx - 54, shY + 2, 108, 26, "#efe6f7", SURFC, 1.6, 5)   # ytkamera (center)
+txt(bx, shY + 14, "YTKAMERA line-scan", 8.5, "middle", SURFC, 700, SANS)
+txt(bx, shY + 24, "40 mm LS4005B + RGB/NIR", 7.5, "middle", INK)
 for sxmm in (-BW / 2, BW / 2):
-    line(bx, camY + 10, bx + sxmm * SC, yb2, SURFC, 0.9, "3 3")
-# --- FAS 2: 3 punktlaser HG-C1400 — LÄNGST nedhäng, FAST mätavstånd (PLWD) ---
-# OBS: förskjuten i bilden så den inte krockar med ytkameran; sitter egentligen
-# längs brädans mitt (in i bilden), samma tvärläge som ytkameran.
-line(plx, beamB, plx, plY - 12, "#8a9099", 3)               # nedhäng-strut (lång)
-rect(plx - 14, plY - 12, 28, 20, "#f3e6fb", PURP, 1.4, 3); txt(plx, plY + 2, "PL", 8.5, "middle", PURP, 700)
-line(plx, plY + 8, bx, yb2, PURP, 1.4, "3 3"); circ(bx, yb2, 2.6, PURP, PURP, 0)
-txt(plx + 20, plY - 1, "3× HG-C1400", 8.5, "start", PURP, 700)
-txt(plx + 20, plY + 11, "(längs brädan, in i bilden)", 7.5, "start", MUTED)
-# arbetsavstånd (höger, med ledarstreck) — visar att de tre avstånden skiljer sig
-for (syv, x0, xd, lab, c) in [(myR, mxR + 42, 766, f"oblik {MH}", RED),
-                              (camY, bx + 54, 842, f"yta {SURF_WD}", SURFC),
-                              (plY, plx + 14, 918, f"punkt {PLWD}", PURP)]:
+    line(bx, shY + 28, bx + sxmm * SC, yb2, SURFC, 0.9, "3 3")
+rect(plx - 13, shY + 3, 26, 18, "#f3e6fb", PURP, 1.4, 3); txt(plx, shY + 16, "PL", 8.5, "middle", PURP, 700)
+line(plx, shY + 21, bx + 9, yb2, PURP, 1.4, "3 3"); circ(bx + 9, yb2, 2.6, PURP, PURP, 0)
+txt(plx + 18, shY + 11, "3× HG-C1400", 8.5, "start", PURP, 700)
+txt(plx + 18, shY + 22, "(längs brädan, in i bilden)", 7.5, "start", MUTED)
+# arbetsavstånd (höger, med ledarstreck) — nu TVÅ plan: oblik 615 + gemensam 400
+for (syv, x0, xd, lab, c) in [(myR, mxR + 42, 792, f"oblik {MH}", RED),
+                              (shY, plx + 14, 876, f"yta+punkt {SURF_WD}", SURFC)]:
     line(x0, syv, xd, syv, c, 0.8, "3 3"); vdim(syv, yb2, xd, lab, c)
 # bräda på transportband (ändstöd)
 rect(bL, yb2, bw, bt, "#e9e1cf", "#b9a96f", 1.4); txt(bx, yb2 + bt + 15, f"bräda {BW}×{BT} mm", 9.5, "middle", "#8a7d4e")
@@ -176,25 +178,25 @@ hdim(mxL, mxR, beamB + 8, f"modulspann {2*SOFF}", DIMC)
 # --- sammanfattningsruta: nedhäng vs arbetsavstånd ---
 sx, sy, sw = 1000, 132, 562
 rect(sx, sy, sw, 30, INK, INK, 0, 5)
-txt(sx + 12, sy + 20, "NEDHÄNG vs ARBETSAVSTÅND (mm) — balk fast, fästen olika långa", 12, "start", PAPER, 700, SANS)
+txt(sx + 12, sy + 20, "TVÅ PLAN (mm) — ytkamera + punktlaser delar balk", 12, "start", PAPER, 700, SANS)
 rect(sx, sy + 30, sw, 26, PANEL, INK, 1)
-for t, hx in [("SENSOR", sx + 12), ("NEDHÄNG (balk→sensor)", sx + 250), ("ARB.AVSTÅND (→bräda)", sx + 400)]:
+for t, hx in [("PLAN / SENSOR", sx + 12), ("NEDHÄNG (balk→)", sx + 290), ("ARB.AVSTÅND (→bräda)", sx + 420)]:
     txt(hx, sy + 47, t, 9, "start", INK, 700, SANS)
-srows = [(RED, "Oblik RÖD/GRÖN (FAS 1)", f"{BEAM_H-MH}", f"{MH} vert · ~{WD} slant"),
-         (SURFC, "Ytkamera M72 (FAS 2)", f"{BEAM_H-SURF_WD}", f"{SURF_WD}"),
-         (PURP, "Punktlaser HG-C1400 (FAS 2)", f"{BEAM_H-PLWD}", f"{PLWD}  (FAST i sensorn)")]
+srows = [(RED, "Oblika huvuden RÖD/GRÖN (FAS 1)", f"{BEAM_H-MH}", f"{MH} vert · ~{WD} slant"),
+         (SURFC, "Ytkamera 40 mm LS4005B (FAS 2)", f"{BEAM_H-SURF_WD}", f"{SURF_WD}  (FOV ~546)"),
+         (PURP, "3× punktlaser HG-C1400 (FAS 2)", f"{BEAM_H-PLWD}", f"{PLWD}  (FAST, samma balk)")]
 for i, (c, k, nh, wd) in enumerate(srows):
     ry = sy + 56 + i * 30
     if i % 2: rect(sx, ry, sw, 30, "#fff", "none", 0)
     rect(sx + 8, ry + 9, 12, 12, c, c, 0, 2)
-    txt(sx + 28, ry + 20, k, 10, "start", INK, 700)
-    txt(sx + 250, ry + 20, nh, 11, "start", MUTED, 700)
-    txt(sx + 400, ry + 20, wd, 11, "start", INK, 700)
+    txt(sx + 28, ry + 20, k, 9.5, "start", INK, 700)
+    txt(sx + 290, ry + 20, nh, 11, "start", MUTED, 700)
+    txt(sx + 420, ry + 20, wd, 10, "start", INK, 700)
 rect(sx, sy + 146, sw, 3, INK, INK, 0)
 for i, ln_ in enumerate([
-        f"Balken sitter fast på ~{BEAM_H} mm. Höjs balken (12 mm-lins → större rigg)",
-        "ändras INTE punktlaserns 400 mm — det är låst av HG-C1400. Den hänger bara",
-        "på ett längre fäste. Varje sensor får sitt arbetsavstånd via sitt nedhäng."]):
+        "40 mm LS4005B-linsen rackas till ~0,105× → FOV ~546 mm @ WD 400 mm =",
+        "punktlaserns fasta mätavstånd → ytkamera + 3 punktlaser på SAMMA balk.",
+        "Oblika huvuden måste sitta högre (615 mm) — de tittar snett från sidorna."]):
     txt(sx + 4, sy + 168 + i * 16, ln_, 9.5, "start", MUTED, 400, SANS)
 add('</g>')
 
@@ -219,7 +221,7 @@ cols = [
     ]),
     (800, SURFC, "FAS 2 · YTA + PUNKTLASER", [
         ("Ytkamera", "MindVision line-scan (NBASE-T)"),
-        ("Objektiv M72", "Chiopt LS4105B (8K, ⌀≥62)"),
+        ("Objektiv M72", "LS4005B-519 40 mm (8K, ⌀62)"),
         ("Belysning", "850 nm NIR + RGB strobe"),
         ("Punktlaser ×3", "HG-C1400 (400 mm) + MCP3008"),
         ("LED-driver", "strobe via ytkam 3 utgångar"),

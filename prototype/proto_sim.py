@@ -406,7 +406,7 @@ BOM = [
     ("Punktlaser ×3", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar/kalibrerar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2, "att köpa"),
     ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 2, "att köpa"),
     ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2, "AliExpress · ditt val"),
-    ("Objektiv M72", "Chiopt LS4105B (40 mm, M72×0.75, 8K 7µm)", 1, "8K-yta över 500 mm", "—", "—", 2100, 2, "Chiopt/AliExpress · ditt val"),
+    ("Objektiv M72", "LS4005B-519 (40 mm, M72×0.75, 8K 7µm, zoom 0,02–0,16×)", 1, "8K-yta; rackad ~0,105× → FOV ~546 mm @ WD 400 mm (= punktlaserplan)", "—", "—", 2100, 2, "ljopt.com · ditt val"),
     ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),
     ("NIR-belysning", "850 nm IR-bar / linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 400, 2, "att köpa"),
     ("Färgbelysning", "RGB LED-bar / linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 700, 2, "att köpa"),
