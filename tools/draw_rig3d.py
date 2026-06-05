@@ -1,281 +1,264 @@
 #!/usr/bin/env python3
-"""3D/perspektiv (isometrisk) riggritning — L-portal för 500 mm-brädor.
-
-Horisontell matningsbas (2 transportband, cross-feed) + portal som straddlar
-matningen: 2 oblika linjelaser+kamera-moduler från VAR SIN sida, överliggande
-line-scan-ytkamera, 3 punktlaser (HG-C1400) längs brädan. Alla mått (x=mm) ifyllda,
-datadrivna ur src.hardware. Komplett med BOM.
+"""KOMPLETT prototyp-ark (SVG) — allt i ett dokument: 3D-rigg (L-portal, cross-feed),
+sensor-legend + mått + styrning, komplett kopplingsschema, Jetson I/O-budget,
+40-pin pinout och fasad BOM med priser. Datadriven ur src.hardware + proto_sim.BOM.
 
     python tools/draw_rig3d.py   # -> prototype-rig-3d.svg i projektroten
 """
 from __future__ import annotations
 import os, sys, math
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, ROOT); sys.path.insert(0, os.path.join(ROOT, "prototype"))
 from src.hardware import Rig
+from proto_sim import BOM, bom_total
 
-BENCH_L = 500
-BW = 75                                                                     # brädbredd (matning) – proto
-CY = BW / 2                                                                 # brädans mittlinje (y)
+BENCH_L, BW = 500, 75
+CY = BW / 2
 r = Rig(board_length_mm=BENCH_L, board_width_mm=BW, board_thickness_mm=45)
 OBL = r.oblique_angle_deg
-WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)        # ~474 mm
-SOFF = round(WD * math.sin(math.radians(OBL)))                              # y-offset (∝ sinθ)
-MH = round(WD * math.cos(math.radians(OBL)))                               # höjd (∝ cosθ)
-SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm)                  # ~480 mm
+WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)
+SOFF = round(WD * math.sin(math.radians(OBL))); MH = round(WD * math.cos(math.radians(OBL)))
+SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm); SEP = 2 * SOFF
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
-SEP = 2 * SOFF                                                              # avstånd mellan modulerna
-PL_X = [int(f * BENCH_L) for f in (0.1, 0.5, 0.9)]                          # 50 / 250 / 450
-PLWD = 400                                                                  # HG-C1400 mätavstånd
+PL_X = [int(f * BENCH_L) for f in (0.1, 0.5, 0.9)]; PLWD = 400
 
-W, H = 1660, 1230
+W, H = 2480, 2060
 INK, MUTED, DIMC = "#23262b", "#6a6e74", "#9a9ea4"
 PAPER, PANEL, GRID = "#f7f6f1", "#ecebe4", "#dedcd3"
 RED, GRN, BLUE, PURP, ALU, JET = "#e8542c", "#2f9e6e", "#2f6fb0", "#a23ad6", "#c3c6ca", "#3b7d3b"
-BELT, SURFC, WOOD = "#444a52", "#7a3fb0", "#e9e1cf"
-MONO = "'IBM Plex Mono','DejaVu Sans Mono',monospace"; SANS = "'IBM Plex Sans','DejaVu Sans',sans-serif"
+BELT, SURFC, WOOD, GOLD = "#444a52", "#7a3fb0", "#e9e1cf", "#b9a96f"
+F1, F2 = "#2f9e6e", "#7a3fb0"
+P33, P5, GNDc, BUSc = "#e0892b", "#d23b3b", "#3b4046", "#9a9ea4"
+SANS = "'IBM Plex Sans','DejaVu Sans',sans-serif"; MONO = "'IBM Plex Mono','DejaVu Sans Mono',monospace"
 out = []
 def add(s): out.append(s)
 def esc(t): return t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-# ---- isometrisk projektion: x→nedåt-höger, y→nedåt-vänster, z→upp ----
-S, OX, OY = 0.52, 740, 320
-CA, SA = math.cos(math.radians(30)), math.sin(math.radians(30))
-def P(x, y, z):
-    return (OX + (x - y) * CA * S, OY + (x + y) * SA * S - z * S)
-
-def txt(x, y, s, size=13, anchor="start", fill=INK, weight=400, fam=MONO, rot=None):
-    tr = f' transform="rotate({rot} {x} {y})"' if rot is not None else ""
-    add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{fam}" font-size="{size}" font-weight="{weight}" fill="{fill}" text-anchor="{anchor}"{tr}>{esc(s)}</text>')
+def txt(x, y, s, size=12, anchor="start", fill=INK, weight=400, fam=SANS):
+    add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{fam}" font-size="{size}" font-weight="{weight}" fill="{fill}" text-anchor="{anchor}">{esc(s)}</text>')
 def ln(p1, p2, stroke=INK, w=1.2, dash=None, op=1):
     d = f' stroke-dasharray="{dash}"' if dash else ""
     add(f'<line x1="{p1[0]:.1f}" y1="{p1[1]:.1f}" x2="{p2[0]:.1f}" y2="{p2[1]:.1f}" stroke="{stroke}" stroke-width="{w}"{d} opacity="{op}"/>')
+def L(x1, y1, x2, y2, stroke=INK, w=1.2, dash=None, op=1): ln((x1, y1), (x2, y2), stroke, w, dash, op)
+def rect(x, y, w, h, fill="none", stroke=INK, sw=1.2, rx=0, op=1):
+    add(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" opacity="{op}"/>')
 def poly(pts, fill, stroke=INK, sw=1.1, op=1):
     d = " ".join(f"{x:.1f},{y:.1f}" for x, y in pts)
     add(f'<polygon points="{d}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}" opacity="{op}"/>')
 def dot(p, rr, fill, stroke=INK, sw=0):
     add(f'<circle cx="{p[0]:.1f}" cy="{p[1]:.1f}" r="{rr:.1f}" fill="{fill}" stroke="{stroke}" stroke-width="{sw}"/>')
 def arrow(p1, p2, stroke=INK, w=2.0):
-    ln(p1, p2, stroke, w); a = math.atan2(p2[1] - p1[1], p2[0] - p1[0]); L = 11
-    for s in (0.5, -0.5):
-        ln(p2, (p2[0] - L * math.cos(a - s), p2[1] - L * math.sin(a - s)), stroke, w)
+    ln(p1, p2, stroke, w); a = math.atan2(p2[1] - p1[1], p2[0] - p1[0]); l = 10
+    for s in (0.5, -0.5): ln(p2, (p2[0] - l * math.cos(a - s), p2[1] - l * math.sin(a - s)), stroke, w)
+def panel(x, y, w, h, title, acc):
+    rect(x, y, w, h, "#fff", acc, 1.4, 8); rect(x, y, w, 28, acc, acc, 0, 8)
+    txt(x + 12, y + 19, title, 12.5, "start", "#fff", 700, SANS)
+
+# iso-projektion
+S, OX, OY = 0.52, 720, 330
+CA, SA = math.cos(math.radians(30)), math.sin(math.radians(30))
+def P(x, y, z): return (OX + (x - y) * CA * S, OY + (x + y) * SA * S - z * S)
 def box(x0, x1, y0, y1, z0, z1, top, sideL, sideR, stroke=INK, sw=1):
-    poly([P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)], top, stroke, sw)       # topp z1
-    poly([P(x0, y1, z1), P(x1, y1, z1), P(x1, y1, z0), P(x0, y1, z0)], sideL, stroke, sw)     # vänster y=y1
-    poly([P(x1, y0, z1), P(x1, y1, z1), P(x1, y1, z0), P(x1, y0, z0)], sideR, stroke, sw)     # höger x=x1
+    poly([P(x0, y0, z1), P(x1, y0, z1), P(x1, y1, z1), P(x0, y1, z1)], top, stroke, sw)
+    poly([P(x0, y1, z1), P(x1, y1, z1), P(x1, y1, z0), P(x0, y1, z0)], sideL, stroke, sw)
+    poly([P(x1, y0, z1), P(x1, y1, z1), P(x1, y1, z0), P(x1, y0, z0)], sideR, stroke, sw)
 
 add(f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}" font-family="{SANS}">')
 add(f'<rect width="{W}" height="{H}" fill="{PAPER}"/>')
 add('<g opacity="0.5">')
-for gx in range(0, W, 40): ln((gx, 0), (gx, H), GRID, 0.5)
-for gy in range(0, H, 40): ln((0, gy), (W, gy), GRID, 0.5)
+for gx in range(0, W, 40): L(gx, 0, gx, H, GRID, 0.5)
+for gy in range(0, H, 40): L(0, gy, W, gy, GRID, 0.5)
 add('</g>')
-add(f'<rect x="18" y="18" width="{W-36}" height="{H-36}" fill="none" stroke="{INK}" stroke-width="2"/>')
-add(f'<rect x="26" y="26" width="{W-52}" height="{H-52}" fill="none" stroke="{MUTED}" stroke-width="0.8"/>')
-txt(48, 66, "PROTOTYP-RIGG — 3D (L-portal, cross-feed, 500 mm)", 24, "start", INK, 700, SANS)
-txt(48, 92, "FAS 1 (solid) = röd modul + rullband + encoder + Jetson-styrning (körbar). FAS 2 (tonad) = grön modul + "
-            "3 punktlaser (HG-C1400) + line-scan-ytkamera. Ben vid längd-ändarna (ur matningsbanan). Mått ur src/hardware.py.", 13.5, "start", MUTED, 400, SANS)
-add(f'<line x1="48" y1="106" x2="{W-48}" y2="106" stroke="{INK}" stroke-width="1.5"/>')
+rect(16, 16, W - 32, H - 32, "none", INK, 2); rect(24, 24, W - 48, H - 48, "none", MUTED, 0.8)
+txt(44, 62, "VIRKESSKANNER — KOMPLETT PROTOTYP-ARK (rigg · koppling · I/O · pinout · BOM)", 24, "start", INK, 700, SANS)
+txt(44, 88, "L-portal cross-feed, 500×75 mm-bräda, oblik 30°. FAS 1 (solid) = körbar röd-profilerare. FAS 2 (tonad) = grön modul + punktlaser + line-scan-yta.",
+    13, "start", MUTED, 400, SANS)
+L(44, 100, W - 44, 100, INK, 1.5)
 
-# ===================== ISO-SCEN =====================
-BX0, BX1 = 0, BENCH_L           # bräda x (längd)
-BY0, BY1 = 0, BW                # bräda y (bredd/matning) – 75 mm
-BZ = 45                         # tjocklek
-MYL, MYR = CY - SOFF, CY + SOFF # moduler y (var sin sida om mittlinjen CY)
-TOPZ = MH + 40                  # huvudbalkens höjd (över modul/punktlaser)
-FY0, FY1 = -90, 200             # matningsbanans utsträckning (y)
-LEGX0, LEGX1 = -80, BENCH_L + 80  # ben vid LÄNGD-ändarna (ur matningsbanan)
-
-# --- bas/golvplatta ---
+# ============================================================ 1) 3D-RIGG
+panel(40, 116, 1150, 700, "1 · 3D-RIGG (L-portal, cross-feed)", INK)
+BX0, BX1 = 0, BENCH_L; BY0, BY1 = 0, BW; BZ = 45
+MYL, MYR = CY - SOFF, CY + SOFF; TOPZ = MH + 40
+FY0, FY1 = -90, 200; LEGX0, LEGX1 = -80, BENCH_L + 80
 box(LEGX0 - 30, LEGX1 + 30, FY0 - 30, FY1 + 30, -16, 0, "#e7e4da", "#cdc9bd", "#d6d2c6", "#b6b2a6", 1)
-# --- 2 transportband (löper i y/matning vid x-ändarna) ---
 for bx0, bx1, lab in [(0, 85, "BAND V"), (BENCH_L - 85, BENCH_L, "BAND H")]:
     box(bx0, bx1, FY0 - 8, FY1 + 8, 0, 10, BELT, "#33373d", "#3b4046", "#2b2f35", 1)
     txt(*P((bx0 + bx1) / 2, FY1 + 8, 11), lab, 9, "middle", "#dfe3e8", 700)
-# --- anslag/mathåll i bakkant (laddläge) vid FY0 ---
 box(BX0 - 6, BX1 + 6, FY0 - 4, FY0 + 8, 0, 52, "#9aa0a8", "#7f858c", "#888e95", "#6e747b", 1)
-txt(*P(BX0 - 6, FY0 - 6, 64), "ANSLAG / mathåll (laddläge, bakkant)", 9, "end", MUTED, 700)
-# --- SIDOANSLAG / styrskena längs ENA sidan (x=0) ---
+txt(*P(BX0 - 6, FY0 - 6, 64), "ANSLAG (laddläge)", 9, "end", MUTED, 700)
 box(BX0 - 13, BX0 - 3, FY0 - 8, FY1 + 8, 0, 42, "#8aa0b0", "#5f7585", "#6e8494", "#566c7c", 1)
-txt(*P(BX0 - 12, FY1, 42), "SIDOANSLAG (styrskena, en sida)", 9, "end", BLUE, 700)
-# --- bräda ---
+txt(*P(BX0 - 12, FY1, 42), "SIDOANSLAG", 9, "end", BLUE, 700)
 box(BX0, BX1, BY0, BY1, 0, BZ, WOOD, "#d9cfb0", "#cdbf99", "#9a8c63", 1.2)
-txt(*P(250, BY1 + 6, BZ + 4), "bräda 500 × 75 × 45 mm", 10.5, "middle", "#8a7d4e", 700)
-# --- matning fram (rosa) + back (blå): Jetson styr → multi-pass ---
-arrow(P(250, FY0 + 24, 17), P(250, FY1 - 16, 17), "#b06", 2.6)
-arrow(P(310, FY1 - 16, 17), P(310, FY0 + 24, 17), BLUE, 2.0)
-txt(*P(250, FY1 + 30, 17), "Jetson: ladda→fram→mät→BACK→upprepa (multi-pass)", 10.5, "middle", "#b06", 700)
-# --- ingångslaser (brädstart/position) från sidan, tvärs banan ---
-ely = -45
-em, rf = P(BX1 + 60, ely, 26), P(BX0 - 60, ely, 26)
-ln(em, rf, RED, 1.4, "5 4", op=0.6)
-poly([(em[0]-2,em[1]-12),(em[0]+26,em[1]-12),(em[0]+26,em[1]+10),(em[0]-2,em[1]+10)], "#ffe7d8", RED, 1.4)
-txt(em[0]+12, em[1]+2, "IN", 8.5, "middle", RED, 700)
-txt(em[0]+34, em[1]-2, "ingångslaser (brädstart + position)", 9, "start", RED, 700)
-
-# --- STATIV (vänt 90°): ben vid längd-ändarna, y=CY, UR matningsbanan ---
+txt(*P(250, BY1 + 6, BZ + 4), "bräda 500 × 75 × 45 mm", 10, "middle", "#8a7d4e", 700)
+arrow(P(250, FY0 + 24, 17), P(250, FY1 - 16, 17), "#b06", 2.4); arrow(P(310, FY1 - 16, 17), P(310, FY0 + 24, 17), BLUE, 1.8)
+txt(*P(250, FY1 + 30, 17), "Jetson: ladda→fram→mät→BACK→upprepa", 10, "middle", "#b06", 700)
+em, rf = P(BX1 + 60, -45, 26), P(BX0 - 60, -45, 26)
+ln(em, rf, RED, 1.4, "5 4", op=0.6); poly([(em[0]-2,em[1]-12),(em[0]+24,em[1]-12),(em[0]+24,em[1]+9),(em[0]-2,em[1]+9)], "#ffe7d8", RED, 1.4)
+txt(em[0]+11, em[1]+2, "IN", 8, "middle", RED, 700); txt(em[0]+30, em[1]-2, "ingångslaser", 8.5, "start", RED, 700)
 for lx in (LEGX0, LEGX1):
-    box(lx - 18, lx + 18, CY - 18, CY + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)  # fotplatta
-    box(lx - 14, lx + 14, CY - 14, CY + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)        # ben
-# --- HUVUDBALK längs X (mellan benen, över brädan) ---
+    box(lx - 18, lx + 18, CY - 18, CY + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)
+    box(lx - 14, lx + 14, CY - 14, CY + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
 box(LEGX0 - 12, LEGX1 + 12, CY - 12, CY + 12, TOPZ - 22, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
-txt(*P(LEGX1 + 24, CY, TOPZ + 6), "HUVUDBALK (längs 500 mm)", 9, "start", MUTED, 700)
-# --- TVÄRBALK åt andra hållet (i Y) där modulerna sitter ---
+txt(*P(LEGX1 + 24, CY, TOPZ + 6), "HUVUDBALK", 9, "start", MUTED, 700)
 box(243, 257, MYL - 12, MYR + 12, TOPZ - 42, TOPZ - 20, ALU, "#a6abb0", "#b0b5ba", "#92979c", 1)
-txt(*P(250, MYL - 24, TOPZ - 30), "TVÄRBALK (modulfäste, åt andra hållet)", 9, "middle", MUTED, 700)
-
-# --- 2 oblika moduler på tvärbalkens ändar (var sin sida) + laserstrålar ---
-mods = [(MYL, RED, f"RÖD {RED_NM}", "laser+mono · FAS 1", 1),
-        (MYR, GRN, f"GRÖN {GRN_NM}", "laser+mono · FAS 2", 2)]
-for my, col, lab, sub, fas in mods:
+txt(*P(250, MYL - 24, TOPZ - 30), "TVÄRBALK (modulfäste)", 9, "middle", MUTED, 700)
+for my, col, lab, fas in [(MYL, RED, f"RÖD {RED_NM}", 1), (MYR, GRN, f"GRÖN {GRN_NM}", 2)]:
     if fas == 2: add('<g opacity="0.5">')
-    ln(P(250, my, TOPZ - 31), P(250, my, MH), "#8a9099", 2.6)         # fäste från tvärbalk
-    mp = P(250, my, MH)
-    for ex in (BX0, BX1):
-        ln(mp, P(ex, CY, BZ), col, 2.0, op=0.85)
-    ln(P(BX0, CY, BZ + 0.4), P(BX1, CY, BZ + 0.4), col, 3)            # laserlinje på brädan
-    poly([(mp[0]-34,mp[1]-30),(mp[0]+34,mp[1]-30),(mp[0]+34,mp[1]+8),(mp[0]-34,mp[1]+8)], "#fff", col, 1.6)
-    poly([(mp[0]-34,mp[1]-30),(mp[0]+34,mp[1]-30),(mp[0]+34,mp[1]-18),(mp[0]-34,mp[1]-18)], col, col, 0)
-    txt(mp[0], mp[1]-21, lab, 9, "middle", PAPER, 700, SANS)
-    txt(mp[0], mp[1]-5, sub, 7.0, "middle", INK)
+    ln(P(250, my, TOPZ - 31), P(250, my, MH), "#8a9099", 2.4); mp = P(250, my, MH)
+    for ex in (BX0, BX1): ln(mp, P(ex, CY, BZ), col, 1.8, op=0.85)
+    ln(P(BX0, CY, BZ + 0.4), P(BX1, CY, BZ + 0.4), col, 3)
+    poly([(mp[0]-32,mp[1]-26),(mp[0]+32,mp[1]-26),(mp[0]+32,mp[1]+7),(mp[0]-32,mp[1]+7)], "#fff", col, 1.6)
+    poly([(mp[0]-32,mp[1]-26),(mp[0]+32,mp[1]-26),(mp[0]+32,mp[1]-15),(mp[0]-32,mp[1]-15)], col, col, 0)
+    txt(mp[0], mp[1]-18, lab, 8.5, "middle", "#fff", 700, SANS); txt(mp[0], mp[1]-3, f"FAS {fas}", 7, "middle", INK)
     if fas == 2: add('</g>')
-
-# --- 3 punktlaser (FAS 2) hänger från HUVUDBALKEN längs X ---
 add('<g opacity="0.5">')
 for px in PL_X:
-    ln(P(px, CY, TOPZ - 12), P(px, CY, PLWD), "#8a9099", 2)
-    pt = P(px, CY, PLWD)
-    poly([(pt[0]-11,pt[1]-9),(pt[0]+11,pt[1]-9),(pt[0]+11,pt[1]+9),(pt[0]-11,pt[1]+9)], "#f3e6fb", PURP, 1.4)
-    txt(pt[0], pt[1]+3, "PL", 8, "middle", PURP, 700)
-    ln(pt, P(px, CY, BZ), PURP, 1.5, "3 3"); dot(P(px, CY, BZ), 2.6, PURP)
+    ln(P(px, CY, TOPZ - 12), P(px, CY, PLWD), "#8a9099", 1.8); pt = P(px, CY, PLWD)
+    poly([(pt[0]-10,pt[1]-8),(pt[0]+10,pt[1]-8),(pt[0]+10,pt[1]+8),(pt[0]-10,pt[1]+8)], "#f3e6fb", PURP, 1.3)
+    txt(pt[0], pt[1]+3, "PL", 7.5, "middle", PURP, 700); ln(pt, P(px, CY, BZ), PURP, 1.4, "3 3"); dot(P(px, CY, BZ), 2.4, PURP)
+cp = P(250, CY, SURF_WD); ln(P(250, CY, TOPZ), cp, "#8a9099", 2.6)
+poly([(cp[0]-48,cp[1]-14),(cp[0]+48,cp[1]-14),(cp[0]+48,cp[1]+11),(cp[0]-48,cp[1]+11)], "#efe6f7", SURFC, 1.5)
+txt(cp[0], cp[1]-1, "YTKAMERA line-scan", 8, "middle", SURFC, 700, SANS); txt(cp[0], cp[1]+9, "M72 + RGB/NIR", 7, "middle", INK)
+for ex in (BX0, BX1): ln(cp, P(ex, CY, BZ), SURFC, 0.8, "3 3")
 add('</g>')
+jp = P(BENCH_L + 150, FY1 - 30, 0)
+rect(jp[0], jp[1] - 26, 150, 50, "#e6efe6", JET, 1.6, 6)
+txt(jp[0] + 75, jp[1] - 6, "JETSON Orin Nano", 10, "middle", JET, 700, SANS); txt(jp[0] + 75, jp[1] + 10, "edge-compute + U-Net", 8, "middle", MUTED)
 
-# --- överliggande line-scan-ytkamera + RGB/NIR-strobe (FAS 2, på balkkorset) ---
-add('<g opacity="0.5">')
-cp = P(250, CY, SURF_WD)
-ln(P(250, CY, TOPZ), cp, "#8a9099", 3)
-poly([(cp[0]-52,cp[1]-16),(cp[0]+52,cp[1]-16),(cp[0]+52,cp[1]+12),(cp[0]-52,cp[1]+12)], "#efe6f7", SURFC, 1.6)
-txt(cp[0], cp[1]-2, "YTKAMERA line-scan", 8.5, "middle", SURFC, 700, SANS)
-txt(cp[0], cp[1]+9, "M72 + RGB/NIR-strobe", 7.5, "middle", INK)
-for ex in (BX0, BX1):
-    ln(cp, P(ex, CY, BZ), SURFC, 0.9, "3 3")
-add('</g>')
+# ---- legend + mått + styrning (rad 1 höger) ----
+panel(1210, 116, 410, 372, "SENSORER / FAS", INK)
+leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 2),
+       (PURP, "3× punktlaser HG-C1400", 2), (SURFC, "Ytkamera line-scan + RGB/NIR", 2),
+       (BELT, "2× rullband + encoder", 1), (ALU, "Stativ + ingångslaser + Jetson", 1)]
+for i, (c, k, fas) in enumerate(leg):
+    ry = 160 + i * 40; rect(1224, ry, 20, 20, c, INK, 0.8, 4)
+    txt(1252, ry + 14, k, 11, "start", INK, 700, SANS)
+    fc = F1 if fas == 1 else F2; rect(1530, ry + 2, 78, 16, fc, fc, 0, 8); txt(1569, ry + 14, f"FAS {fas}", 9, "middle", "#fff", 700, SANS)
+rect(1224, 408, 384, 70, PANEL, DIMC, 0.8, 5)
+txt(1234, 426, "FAS 1 (solid) = körbar röd-profilerare:", 10, "start", F1, 700)
+txt(1234, 442, "rullband + encoder + Jetson-styrning → 3D-profil.", 9.5, "start", INK, 400)
+txt(1234, 462, "FAS 2 (tonad) = grön modul + punktlaser + yta.", 10, "start", F2, 700)
 
-# --- Jetson ---
-jp = P(BENCH_L + 150, FY1 - 20, 0)
-add(f'<rect x="{jp[0]-2:.0f}" y="{jp[1]-30:.0f}" width="150" height="56" rx="6" fill="#e6efe6" stroke="{JET}" stroke-width="1.6"/>')
-txt(jp[0]+73, jp[1]-8, "JETSON Orin Nano", 11, "middle", JET, 700, SANS)
-txt(jp[0]+73, jp[1]+8, "edge-compute + U-Net", 8.5, "middle", MUTED)
-
-# ===================== FÄRGFÖRKLARING (höger) =====================
-lx, ly = 1235, 150
-add(f'<rect x="{lx}" y="{ly}" width="372" height="360" rx="8" fill="#fff" stroke="{INK}" stroke-width="1.4"/>')
-add(f'<rect x="{lx}" y="{ly}" width="372" height="30" rx="8" fill="{INK}"/>')
-txt(lx+12, ly+20, "SENSORER / FAS (F2-delar tonade)", 12.5, "start", PAPER, 700, SANS)
-F1C, F2C = "#2f9e6e", "#7a3fb0"
-leg = [
-    (RED, "Linjelaser + kamera RÖD 650", "oblik modul, vänster sida", 1),
-    (GRN, "Linjelaser + kamera GRÖN 520", "oblik modul, höger sida", 2),
-    (PURP, "3× punktlaser HG-C1400 (V/C/H)", "absolut tjocklek, ankrar längsprofil", 2),
-    (SURFC, "Ytkamera line-scan + RGB/NIR", "rakt ovan, yta + defekter", 2),
-    (BELT, "2× transportband + encoder", "cross-feed, 50 mm/s · Jetson-styrt", 1),
-    (ALU, "Stativ/mätram + ingångslaser", "vänt stativ + Jetson-styrning", 1),
-]
-for i, (c, k, v, fas) in enumerate(leg):
-    ry = ly + 40 + i * 44
-    add(f'<rect x="{lx+12}" y="{ry}" width="22" height="22" rx="4" fill="{c}" stroke="{INK}" stroke-width="0.8"/>')
-    txt(lx+44, ry+11, k, 10.5, "start", INK, 700, SANS)
-    txt(lx+44, ry+25, v, 9, "start", MUTED, 400, SANS)
-    fc = F1C if fas == 1 else F2C
-    add(f'<rect x="{lx+312}" y="{ry+3}" width="48" height="17" rx="8" fill="{fc}"/>')
-    txt(lx+336, ry+15, f"FAS {fas}", 9, "middle", "#fff", 700, SANS)
-add(f'<rect x="{lx+12}" y="{ly+312}" width="348" height="36" rx="5" fill="{PANEL}" stroke="{DIMC}" stroke-width="0.8"/>')
-txt(lx+22, ly+327, "FAS 1 = körbar röd-profilerare (rullband + Jetson-styrning).", 9.3, "start", F1C, 700)
-txt(lx+22, ly+340, "FAS 2 (tonat) = grön modul + punktlaser + line-scan-yta.", 9.3, "start", F2C, 700)
-
-# ---- STYRNING / MULTI-PASS-not ----
-sy0 = ly + 372
-add(f'<rect x="{lx}" y="{sy0}" width="372" height="156" rx="8" fill="#fff" stroke="{INK}" stroke-width="1.4"/>')
-add(f'<rect x="{lx}" y="{sy0}" width="372" height="28" rx="8" fill="{JET}"/>')
-txt(lx+12, sy0+19, "STYRNING (Jetson) — rullband utan fast läge", 12, "start", PAPER, 700, SANS)
-notes = [
-    "Ingångslaser nollställer brädans läge (rullband = ingen fast pos.)",
-    "Mathåll/anslag i bakkant: lägg mot → känd, kvadrerad start.",
-    "DC-motordrivare (H-brygga): fram → mät → BACK → upprepa.",
-    "Multi-pass: medel av N pass → brus ↓ ~√N + repeterbarhet/kalib.",
-]
-for i, n in enumerate(notes):
-    txt(lx+14, sy0+46 + i*27, "•", 11, "start", JET, 700)
-    txt(lx+28, sy0+46 + i*27, n, 9.3, "start", INK, 400, SANS)
-
-# ===================== MÅTT-PANEL (ifyllda x=mm) — nedre vänster =====================
-mx, my0 = 70, 452
-add(f'<rect x="{mx}" y="{my0}" width="392" height="346" rx="8" fill="#fff" stroke="{INK}" stroke-width="1.4"/>')
-add(f'<rect x="{mx}" y="{my0}" width="392" height="30" rx="8" fill="{INK}"/>')
-txt(mx+12, my0+20, "MÅTT — ifyllda x = mm", 13, "start", PAPER, 700, SANS)
-dims = [
-    ("Arbetsavstånd modul→bräda (oblik)", f"~{WD} mm"),
-    ("Oblik vinkel (triangulering)", f"{OBL:.0f}°"),
-    ("Modulhöjd över bräda", f"~{MH} mm"),
-    ("Sidooffset (modul ut i sidled)", f"~{SOFF} mm"),
-    ("Avstånd mellan modulerna", f"~{SEP} mm"),
-    ("Laserlinje (längs brädan)", f"{BENCH_L} mm"),
-    ("Brädbredd / matning", f"{BW} mm"),
-    ("Punktlaser-läge (V/C/H)", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]} mm"),
-    ("Punktlaser mätavstånd (HG-C1400)", f"{PLWD} mm"),
-    ("Ytkamera arbetsavstånd (M72)", f"~{SURF_WD} mm"),
-    ("Stativben", "vid längd-ändarna (ur banan)"),
-]
+panel(1640, 116, 410, 372, "MÅTT (mm)", INK)
+dims = [("Arbetsavstånd (oblik)", f"~{WD}"), ("Oblik vinkel", f"{OBL:.0f}°"), ("Modulhöjd", f"~{MH}"),
+        ("Sidooffset", f"~{SOFF}"), ("Avstånd modul↔modul", f"~{SEP}"), ("Laserlinje (längs)", f"{BENCH_L}"),
+        ("Brädbredd (matning)", f"{BW}"), ("Punktlaser V/C/H", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]}"),
+        ("Punktlaser-WD (HG-C1400)", f"{PLWD}"), ("Ytkamera-WD (M72)", f"~{SURF_WD}")]
 for i, (k, v) in enumerate(dims):
-    ry = my0 + 38 + i * 28
-    if i % 2: add(f'<rect x="{mx}" y="{ry-3}" width="392" height="28" fill="{PANEL}"/>')
-    txt(mx+12, ry+14, k, 9.5, "start", MUTED, 700)
-    txt(mx+380, ry+14, v, 10, "end", INK, 700)
+    ry = 152 + i * 30
+    if i % 2: rect(1640, ry - 4, 410, 30, PANEL, "none", 0)
+    txt(1652, ry + 14, k, 10.5, "start", MUTED, 700); txt(2038, ry + 14, v, 11, "end", INK, 700, MONO)
 
-# ===================== BOM (fasad) =====================
-gT = 840
-add(f'<g transform="translate(0,{gT})">')
-add(f'<line x1="48" y1="0" x2="{W-48}" y2="0" stroke="{INK}" stroke-width="1.5"/>')
-txt(48, 26, "KOMPONENTLISTA — fasad uppbyggnad (1 huvud)", 16, "start", INK, 700, SANS)
-cols = [
-    (60, JET, "FAS 1 · COMPUTE + VÄNSTER", [
-        ("Jetson Orin Nano", "Super dev kit"), ("Profilkamera V", "MV-CS050-10UM (USB3)"),
-        ("Objektiv", "8 mm C-mount + bp 650"), ("Linjelaser röd", "iadiy 650 nm 100 mW"),
-        ("Alu-ram", "putta för hand")]),
-    (460, GRN, "FAS 2 · HÖGER + MATNING", [
-        ("Profilkamera H", "MV-CS050-10UM + bp 520"), ("Linjelaser grön", "iadiy 520 nm 50 mW"),
-        ("Transportband", "2× 24 V, 50 mm/s"), ("Motorregulator", "24 V PWM"),
-        ("Encoder", "mäthjul (RS422)")]),
-    (860, SURFC, "FAS 3 · YTA + PUNKTLASER", [
-        ("Ytkamera", "MindVision line-scan (NBASE-T)"), ("Objektiv M72", "8K 55–60 mm"),
-        ("Belysning", "850 nm NIR + RGB strobe"), ("Punktlaser", "3× HG-C1400 + MCP3008"),
-        ("LED-driver", "via ytkam strobe-ut")]),
-    (1260, MUTED, "ANSLUTNING (Jetson)", [
-        ("2 profilkam", "USB3"), ("Ytkamera", "NBASE-T → 1GbE direkt"),
-        ("Punktlaser", "analog → MCP3008 (SPI)"), ("Encoder", "RS422→ytkam + GPIO"),
-        ("Strobe", "ytkam 3 strobe-ut")]),
-]
-rowh = 28
-for (cx, acc, title, rows) in cols:
-    cw = 388
-    add(f'<rect x="{cx}" y="44" width="{cw}" height="28" rx="4" fill="{acc}"/>')
-    txt(cx+10, 63, title, 10.5, "start", PAPER, 700, SANS)
-    add(f'<rect x="{cx}" y="72" width="{cw}" height="{rowh*len(rows)}" fill="#fff" stroke="{acc}" stroke-width="1"/>')
-    for i, (k, v) in enumerate(rows):
-        ry = 72 + i * rowh
-        if i % 2: add(f'<rect x="{cx}" y="{ry}" width="{cw}" height="{rowh}" fill="{PANEL}"/>')
-        txt(cx+10, ry+18, k, 9.5, "start", MUTED, 700)
-        txt(cx+150, ry+18, v, 9, "start", INK)
-add('</g>')
+panel(2070, 116, 370, 372, "STYRNING (Jetson)", JET)
+for i, n in enumerate(["Ingångslaser nollställer brädans läge", "(rullband = ingen fast position).",
+                       "Mathåll + sidoanslag = L-datum, känd start.", "DC-motordrivare: fram → mät → BACK.",
+                       "Multi-pass: medel av N pass → brus ↓ √N", "+ repeterbarhet/kalibrering.",
+                       "Ytkamera NBASE-T → 1GbE direkt (ingen switch).", "Analog punktlaser → MCP3008 (Jetson saknar ADC)."]):
+    txt(2082, 158 + i * 28, "• " + n if not n.startswith("(") and not n.startswith("+") and not n.startswith("(rull") else "  " + n,
+        9.6, "start", INK if not (n.startswith("(") or n.startswith("+")) else MUTED, 400)
 
-tb_x, tb_y, tb_w, tb_h = W - 470, H - 90, 420, 58
-add(f'<rect x="{tb_x}" y="{tb_y}" width="{tb_w}" height="{tb_h}" fill="#fff" stroke="{INK}" stroke-width="1.4"/>')
-add(f'<line x1="{tb_x}" y1="{tb_y+29}" x2="{tb_x+tb_w}" y2="{tb_y+29}" stroke="{INK}" stroke-width="1"/>')
-add(f'<line x1="{tb_x+260}" y1="{tb_y}" x2="{tb_x+260}" y2="{tb_y+tb_h}" stroke="{INK}" stroke-width="1"/>')
-txt(tb_x+10, tb_y+19, "VIRKESSKANNER — RIGG 3D 500 mm", 12, "start", INK, 700, SANS)
-txt(tb_x+270, tb_y+19, "PROTO-3D", 12, "start", INK)
-txt(tb_x+10, tb_y+47, "Isometrisk · ej skalenlig", 10, "start", MUTED)
-txt(tb_x+270, tb_y+47, "auto: src/hardware.py", 10, "start", MUTED)
+# ============================================================ 2) KOPPLINGSSCHEMA + I/O
+panel(40, 832, 1480, 540, "2 · KOMPLETT KOPPLINGSSCHEMA", INK)
+JX, JY, JW, JH = 700, 1050, 240, 120
+rect(JX, JY, JW, JH, "#e6efe6", JET, 2, 8); rect(JX, JY, JW, 24, JET, JET, 0, 8)
+txt(JX + JW/2, JY + 17, "JETSON ORIN NANO SUPER", 11, "middle", "#fff", 700, SANS)
+txt(JX + JW/2, JY + 44, "4× USB3 · 1× GbE (RJ45)", 9.5, "middle", INK)
+txt(JX + JW/2, JY + 62, "40-pin: GPIO/SPI×2/I2C×2/PWM", 9.5, "middle", INK)
+txt(JX + JW/2, JY + 80, "INGEN analog-in", 9.5, "middle", "#b00", 700)
+txt(JX + JW/2, JY + 100, "→ analog via MCP3008 (SPI)", 9, "middle", MUTED)
+def node(x, y, w, t, s, acc):
+    rect(x, y, w, 50, "#fff", acc, 1.5, 7); rect(x, y, w, 20, acc, acc, 0, 7)
+    txt(x + 9, y + 15, t, 10, "start", "#fff", 700, SANS); txt(x + 9, y + 36, s, 8.5, "start", INK)
+def conn(p1, p2, lab, c):
+    arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
+    rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
+left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser RÖD 650", "iadiy, CW", F1, "5V+GPIO"),
+        (1040, "Encoder + mäthjul", "LPD3806", F1, "GPIO A/B"), (1120, "Motordrivare→2×rullband", "BTS7960", F1, "GPIO+PWM"),
+        (1200, "Ingångslaser", "E3F-DS30", F1, "GPIO")]
+for (ly, t, s, c, lab) in left:
+    node(70, ly, 240, t, s, c); conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
+right = [(880, "Profilkamera GRÖN", "MV-CS050-10UM", F2, "USB3"), (960, "Linjelaser GRÖN 520", "iadiy, CW", F2, "5V+GPIO"),
+         (1040, "3× Punktlaser→MCP3008", "HG-C1400", F2, "SPI"), (1120, "Ytkamera line-scan", "MindVision", F2, "GbE"),
+         (1200, "RGB/NIR-strobe", "←ytkamera 3 strobe-ut", F2, "strobe")]
+for (ly, t, s, c, lab) in right:
+    node(JX + JW + 120, ly, 250, t, s, c)
+    if "strobe" in t: L(JX + JW + 120, ly + 25, JX + JW + 80, 1120 + 25, c, 1.5, "4 3")
+    else: conn((JX + JW + 120, ly + 25), (JX + JW, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
+rect(JX - 20, JY + JH + 26, 280, 34, "#fff5e6", "#c89028", 1.3, 6)
+txt(JX + 120, JY + JH + 48, "PSU 24 V (band) · 5 V (laser) · DC-in (Jetson)", 9, "middle", "#8a6510", 700)
+
+# I/O-budget
+panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
+io = [("USB 3.2 Gen2 (×4)", "2 — RÖD + GRÖN kamera", "OK · 2 lediga", F1),
+      ("Gigabit Ethernet", "1 — ytkamera (NBASE-T→1GbE)", "OK", F2),
+      ("40-pin SPI (×2)", "1 — MCP3008 (3 punktlaser)", "OK", F2),
+      ("40-pin PWM", "1 — motorfart", "OK", F1),
+      ("40-pin GPIO (~28)", "~9 — motor×2, enc A/B, in-laser, trig, 2 laser-en", "OK · gott om", F1),
+      ("40-pin I2C (×2)", "0 — reserv", "ledig", DIMC),
+      ("Analog in (ADC)", "0 — SAKNAS → 3 punktlaser", "via MCP3008 (SPI)", "#b00"),
+      ("DC-in / 24 V / 5 V", "Jetson 7–25 V + separat 24/5 V", "OK", INK)]
+txt(1556, 884, "GRÄNSSNITT", 10.5, "start", MUTED, 700, MONO); txt(1820, 884, "ANVÄNDS", 10.5, "start", MUTED, 700, MONO); txt(2300, 884, "STATUS", 10.5, "start", MUTED, 700, MONO)
+L(1556, 892, 2424, 892, DIMC, 1)
+for i, (a, b, c, col) in enumerate(io):
+    ry = 900 + i * 36
+    if i % 2: rect(1548, ry, 884, 36, PANEL, "none", 0)
+    rect(1556, ry + 11, 12, 12, col, col, 0, 2); txt(1576, ry + 23, a, 10.5, "start", INK, 700, SANS)
+    txt(1820, ry + 23, b, 10, "start", INK, 400); txt(2300, ry + 23, c, 10.5, "start", col if col not in (DIMC, INK) else MUTED, 700)
+
+# ============================================================ 3) PINOUT + BOM
+panel(40, 1388, 1000, 640, "3 · JETSON 40-PIN (J12) — prototyp-tilldelning", INK)
+PINS = {1:("3.3V","MCP3008 VDD",P33),2:("5V","ext laser",P5),3:("I2C1_SDA","reserv",BUSc),4:("5V","",P5),
+ 5:("I2C1_SCL","reserv",BUSc),6:("GND","",GNDc),7:("GPIO09","ENCODER B",F1),8:("UART1_TX","reserv",BUSc),
+ 9:("GND","",GNDc),10:("UART1_RX","reserv",BUSc),11:("UART1_RTS","reserv",BUSc),12:("I2S0_SCLK","reserv",DIMC),
+ 13:("SPI1_SCK","KAM-TRIG GRÖN",F2),14:("GND","",GNDc),15:("GPIO12·PWM","reserv",DIMC),16:("SPI1_CS1","LASER RÖD en",F1),
+ 17:("3.3V","logik",P33),18:("SPI1_CS0","LASER GRÖN en",F2),19:("SPI0_MOSI","MCP3008 DIN",F2),20:("GND","",GNDc),
+ 21:("SPI0_MISO","MCP3008 DOUT",F2),22:("SPI1_MISO","INGÅNGSLASER",F1),23:("SPI0_SCK","MCP3008 CLK",F2),24:("SPI0_CS0","MCP3008 CS",F2),
+ 25:("GND","MCP3008 AGND",GNDc),26:("SPI0_CS1","reserv",DIMC),27:("I2C0_SDA","reserv",BUSc),28:("I2C0_SCL","reserv",BUSc),
+ 29:("GPIO01","ENCODER A",F1),30:("GND","",GNDc),31:("GPIO11","MOTOR EN",F1),32:("GPIO07·PWM","MOTOR RPWM",F1),
+ 33:("GPIO13·PWM","MOTOR LPWM",F1),34:("GND","",GNDc),35:("I2S0_FS","KAM-TRIG RÖD",F1),36:("UART1_CTS","reserv",DIMC),
+ 37:("SPI1_MOSI","reserv",DIMC),38:("I2S0_SDIN","reserv",DIMC),39:("GND","",GNDc),40:("I2S0_SDOUT","reserv",DIMC)}
+cl, cr, py0, prh = 470, 540, 1430, 29
+rect(cl - 24, py0 - 18, (cr - cl) + 48, 20 * prh + 10, "#eceae2", "#cfccc1", 1.2, 6)
+for i in range(20):
+    cy = py0 + i * prh; nl, nr = 2 * i + 1, 2 * i + 2
+    for cx, n, left_ in [(cl, nl, True), (cr, nr, False)]:
+        dn, us, col = PINS[n]
+        if n == 1: rect(cx - 9, cy - 9, 18, 18, col, INK, 1.1, 2)
+        else: dot((cx, cy), 9, col, INK, 1.1)
+        txt(cx, cy + 3.5, str(n), 8.5, "middle", "#fff" if col != BUSc else INK, 700, MONO)
+        tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
+        txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
+        if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
+txt(60, 2002, "MCP3008 på SPI0 (23·21·19·24). HG-C1400 1–5 V → spänningsdelare ≤3,3 V. Gemensam GND. Lasrar via MOSFET. Kam-trig kan tas från encodern.", 9.3, "start", MUTED, 400)
+
+# ---- BOM ----
+panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)
+def bomcol(items, x, head, acc):
+    rect(x, 1428, 670, 26, acc, acc, 0, 5); txt(x + 10, 1446, head, 11, "start", "#fff", 700, SANS)
+    tot = 0
+    for j, (k, q, p) in enumerate(items):
+        ry = 1456 + j * 28; tot += q * p
+        if j % 2: rect(x, ry, 670, 28, PANEL, "none", 0)
+        txt(x + 8, ry + 19, (f"{q}× " if q > 1 else "") + k, 9.5, "start", INK, 400, SANS)
+        txt(x + 662, ry + 19, f"{q*p:,}".replace(",", " "), 9.5, "end", INK, 700, MONO)
+    return tot
+f1items = [(k, q, p) for (k, m, q, r, i, u, p, f) in BOM if f == 1]
+f2items = [(k, q, p) for (k, m, q, r, i, u, p, f) in BOM if f == 2]
+bomcol(f1items, 1078, "FAS 1 — röd profilerare (körbar)", F1)
+bomcol(f2items, 1762, "FAS 2 — grön + punktlaser + yta", F2)
+ry1 = 1456 + len(f1items) * 28 + 8
+rect(1078, ry1, 670, 30, "#eaf5ee", F1, 1.2, 5); txt(1086, ry1 + 20, "SUMMA FAS 1", 11, "start", F1, 700, SANS)
+txt(1740, ry1 + 20, f"{bom_total(1):,} kr".replace(",", " "), 12, "end", F1, 700, MONO)
+ry2 = 1456 + len(f2items) * 28 + 8
+rect(1762, ry2, 670, 30, "#f1eaf7", F2, 1.2, 5); txt(1770, ry2 + 20, "FAS 2-tillägg", 11, "start", F2, 700, SANS)
+txt(2424, ry2 + 20, f"+{bom_total(2)-bom_total(1):,} kr".replace(",", " "), 12, "end", F2, 700, MONO)
+rect(1762, ry2 + 38, 670, 32, INK, INK, 0, 5); txt(1770, ry2 + 60, "FULL SVIT (Fas 1+2)", 12, "start", "#fff", 700, SANS)
+txt(2424, ry2 + 60, f"{bom_total(2):,} kr".replace(",", " "), 13, "end", "#fff", 700, MONO)
+
+tb_x, tb_y = W - 470, H - 78
+rect(tb_x, tb_y, 426, 52, "#fff", INK, 1.4); L(tb_x, tb_y + 26, tb_x + 426, tb_y + 26, INK, 1); L(tb_x + 264, tb_y, tb_x + 264, tb_y + 52, INK, 1)
+txt(tb_x + 10, tb_y + 17, "VIRKESSKANNER — PROTOTYP-ARK", 11.5, "start", INK, 700, SANS); txt(tb_x + 274, tb_y + 17, "PROTO-ALL", 11, "start", INK)
+txt(tb_x + 10, tb_y + 43, "allt i ett · auto ur src+BOM", 9.5, "start", MUTED); txt(tb_x + 274, tb_y + 43, "ej skalenlig", 9.5, "start", MUTED)
 add('</svg>')
-dst = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "prototype-rig-3d.svg")
+dst = os.path.join(ROOT, "prototype-rig-3d.svg")
 open(dst, "w", encoding="utf-8").write("\n".join(out))
-print("skrev", dst, f"({len(out)} element) · WD={WD} MH={MH} SOFF={SOFF} SEP={SEP} PLWD={PLWD} SURF_WD={SURF_WD}")
+print("skrev", dst, f"({len(out)} element) · Fas1={bom_total(1)} Full={bom_total(2)}")
