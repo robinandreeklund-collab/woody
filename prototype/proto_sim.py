@@ -384,7 +384,7 @@ BOM = [
     ("Profilkamera RÖD", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering (röd-huvud)", "USB3", "~490 prof/s (ROI)", 3382, 1, "AliExpress · ditt val"),
     ("Objektiv RÖD", "HIKROBOT MVL-MF1228M-8MP (12 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD ~710 mm); HAR frontfiltergänga", "—", "—", 700, 1, "AliExpress · ditt val"),
     ("Bandpass 650", "FS03-BP650 (650 nm, M30.5×0.5, FWHM 40 nm, T≥90 %, OD 2–3)", 1, "isolerar röd laser; skruvas på 12 mm-linsens M30.5-gänga (OD≥4 vore ideal)", "—", "—", 200, 1, "MDvision · ditt val"),
-    ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "linjelaser 650 nm 100 mW (oblik 30°)", "5 V + GPIO-en", "CW", 300, 1, "iadiy.com · ditt val"),
+    ("Linjelaser röd", "MZLaser AJPWHF5638 — 638 nm Powell (beställ 45°/100 mW, 5 V ACC)", 1, "jämn linje (Powell); 638 nm passerar 650/40-filtret (blåskift på oblik hjälper)", "5 V + GPIO-en", "CW (ACC)", 300, 1, "AliExpress/MZLaser · ditt val"),
     ("Profilkamera GRÖN", "Hikrobot MV-CS050-10UM (mono)", 1, "3D höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 1, "AliExpress · ditt val"),
     ("Objektiv GRÖN", "HIKROBOT MVL-MF1228M-8MP (12 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD ~710 mm); HAR frontfiltergänga", "—", "—", 700, 1, "AliExpress · ditt val"),
     ("Bandpass 525", "FS03-BP525 (525 nm, M30.5×0.5, FWHM 40 nm → 505–545, släpper 520-lasern)", 1, "isolerar grön laser; skruvas på 12 mm-linsens M30.5-gänga (OD 2–3; OD≥4 ideal)", "—", "—", 200, 1, "MDvision · ditt val"),
