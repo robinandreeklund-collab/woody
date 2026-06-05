@@ -392,7 +392,7 @@ BOM = [
     ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 2),
     ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2),
     ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2),
-    ("Objektiv M72 (ytkamera)", "NEEMOO M72 40 mm 8K line-scan (φ62, M72×0.75)", 1, "8K-yta 500 mm — bekräfta bildcirkel ≥57 mm m. säljaren", "—", "—", 2100, 2),
+    ("Objektiv M72 (ytkamera)", "Chiopt LS4105B (40 mm, M72×0.75, designad för 8K 7µm)", 1, "8K-yta över 500 mm — bekräftad för 57,3 mm-sensorn", "—", "—", 2100, 2),
     ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 900, 2),
     ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 1500, 2),
     ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 300, 2),
