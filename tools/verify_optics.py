@@ -101,4 +101,20 @@ print(f"\n  45°: linje {L45:.0f} mm ≥ {NEED:.0f} mm kamera-FOV → {ok(L45>=N
       f"(överfyller med {(L45-NEED)/2:.0f} mm/ände → inga mörka ändar)")
 print(f"  38,8° vore exakt passning; 40° för tajt ({2*R*math.tan(math.radians(20)):.0f} mm); 30° underkänt → 45° rätt val.")
 
+# ============================================================ 4) FÖRVÄNTAD PRECISION
+print("\n[4] FÖRVÄNTAD PROFILPRECISION  (uppskattning)")
+line()
+TRI = 30.0                                   # trianguleringsvinkel (laser↔kamera)
+opx = res_long                               # objekt mm/px lateralt (= 0,204)
+print(f"  Triangulering: obj {opx:.3f} mm/px · vinkel {TRI:.0f}°  →  δz = subpix·{opx:.3f}/sin{TRI:.0f}°")
+for sub in (0.10, 0.05):
+    dz = sub * opx / math.sin(math.radians(TRI))
+    print(f"    subpixel {sub:.2f} px  →  Z-upplösning ~{dz*1000:.0f} µm   (TEORETISKT, ideal yta)")
+print("  Verklighet på VIRKE (subsurface-spridning + skrovligt + laserspräckel):")
+print("    räkna ×2–4 sämre  →  enkelprofil ~0,05–0,15 mm; med fler-pass-medel ~0,03–0,08 mm")
+print(f"  Lateralt (XY): ~{opx:.2f} mm/px längs linjen · ~0,20 mm matningssteg · linjebredd ~0,1–0,3 mm")
+print("  ABSOLUT tjocklek: ankrad till ~0,1 mm av 3× LR400 uppströms")
+print("    → de korrigerar global offset / tilt / bow i trianguleringen (ej lokal finupplösning)")
+print("  NETTO: lokal relativ ~0,05–0,15 mm, absolut ~0,1 mm — gott för virkesgradering")
+
 print(); line("="); print("KLART — alla tre verifierade mot databladsmått. Se omdömen ovan."); line("=")
