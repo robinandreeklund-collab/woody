@@ -364,50 +364,51 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
 #      2 = höger modul (grön) + 2 transportband + encoder/mäthjul – repeterbar dubbel-oblik;
 #      3 = full sensorsvit (ytkamera/NIR + punktlaser).
 BOM = [
-    # --- FAS 1: komplett röd-profilerare på rullband + Jetson-styrning ---
-    ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + styrning (4×USB3, GbE, 40-pin)", "—", "—", 3695, 1),
-    ("Profilkamera RÖD", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering (röd-huvud)", "USB3", "~490 prof/s (ROI)", 3382, 1),
-    ("Objektiv C-mount", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 1),
-    ("Bandpassfilter 650", "AliExpress Ø25 mm 650 nm bandpass (±10 nm)", 1, "isolerar röd laser", "—", "—", 150, 1),
-    ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "linjelaser 650 nm 100 mW (oblik 30°)", "5 V + GPIO-en", "CW", 300, 1),
-    ("Ramstativ (alu)", "2020 T-spår-profil + vinkelfästen (~4 m)", 1, "vänt stativ + tvärbalk över rullbandet", "—", "—", 600, 1),
-    ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s (välj 'with Power Supply')", 2, "matning (cross-feed); 24 V-PSU ingår → matar RoboClaw", "24 V DC", "50 mm/s", 736, 1),
-    ("Motorstyrning ×2", "Pololu Jrk G2 24v13 (#3147) — tachometer/frekvens-FB", 2, "EN per motor → oberoende closed-loop FART från var sin Hall (ingen slir-synk); I²C-buss (adresserbara) till Jetson", "I²C ↔ Jetson", "—", 900, 1),
-    ("Position (motorns Hall)", "Båda motorernas inbyggda 'Signal' (1-kanal/motor) + nivåanpassning ×2", 1, "var sin Signal → var sin Jrk (frekvens-FB). Position: pulsräkning + anslag-noll. Verifiera Signal-nivå!", "Signal → Jrk G2 (+ Jetson)", "kalibreras mm/puls", 60, 1),
-    ("Ingångslaser", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "brädetektering + ev. om-nollning (anslag+encoder = primär pos.)", "GPIO", "kant-trig", 80, 1),
-    ("Anslag / mathåll", "alu-vinkel (bakkant, laddläge)", 1, "lägg brädan mot → känd start, kvadrerar", "—", "—", 150, 1),
-    ("Sidoanslag / styrskena", "alu-profil längs ENA sidan", 1, "brädans ena kant rider mot → datum + anti-skev", "—", "—", 150, 1),
-    ("NVMe SSD", "M.2 256 GB (Jetson-lagring)", 1, "OS + dataset + modeller", "M.2 (Jetson)", "—", 250, 1),
-    ("Nätaggregat 24 V", "24 V 5 A (rullband + motordrivare)", 1, "matning", "—", "—", 150, 1),
-    ("Nätaggregat 5 V", "5 V 3 A (lasrar via MOSFET)", 1, "linjelasrar (CW)", "—", "—", 80, 1),
-    ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → laser 5 V on/off", "GPIO", "—", 15, 1),
-    ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1),
-    ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1),
-    # --- FAS 1 forts: grön modul (dubbel-oblik) + punktlaser ---
-    ("Profilkamera GRÖN", "Hikrobot MV-CS050-10UM (mono)", 1, "3D höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 1),
-    ("Objektiv C-mount (grön)", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 1),
-    ("Bandpassfilter 520", "AliExpress Ø25 mm 520 nm bandpass (±10 nm)", 1, "isolerar grön laser", "—", "—", 150, 1),
-    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "linjelaser 520 nm 50 mW (oblik 30°)", "5 V + GPIO-en", "CW", 350, 1),
-    ("Punktlaser ×3 (rek.)", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 1),
-    ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 1),
+    # (Komponent, Modell, Antal, Roll, Gränssnitt, Takt, pris, fas, KÄLLA)
+    # --- FAS 1: full 3D-mätrigg (röd + grön modul + punktlaser) + matning ---
+    ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + styrning (4×USB3, GbE, 40-pin)", "—", "—", 3695, 1, "RS 2647384"),
+    ("Profilkamera RÖD", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering (röd-huvud)", "USB3", "~490 prof/s (ROI)", 3382, 1, "AliExpress · ditt val"),
+    ("Objektiv RÖD", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 1, "AliExpress · ditt val"),
+    ("Bandpass 650", "Ø25 mm 650 nm bandpass (±10 nm)", 1, "isolerar röd laser", "—", "—", 150, 1, "AliExpress · att köpa"),
+    ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "linjelaser 650 nm 100 mW (oblik 30°)", "5 V + GPIO-en", "CW", 300, 1, "iadiy.com · ditt val"),
+    ("Profilkamera GRÖN", "Hikrobot MV-CS050-10UM (mono)", 1, "3D höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 1, "AliExpress · ditt val"),
+    ("Objektiv GRÖN", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 1, "AliExpress · ditt val"),
+    ("Bandpass 520", "Ø25 mm 520 nm bandpass (±10 nm)", 1, "isolerar grön laser", "—", "—", 150, 1, "AliExpress · att köpa"),
+    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "linjelaser 520 nm 50 mW (oblik 30°)", "5 V + GPIO-en", "CW", 350, 1, "iadiy.com · ditt val"),
+    ("Punktlaser ×3", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 1, "att köpa"),
+    ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 1, "att köpa"),
+    ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s ('with Power Supply')", 2, "matning (cross-feed); 24 V-PSU ingår → matar Jrk", "24 V DC", "50 mm/s", 736, 1, "AliExpress · ditt val"),
+    ("Motorstyrning ×2", "Pololu Jrk G2 24v13 #3147 (el. 21v3 #3142) — frekvens-FB", 2, "EN per motor → oberoende closed-loop FART från var sin Hall; I²C till Jetson", "I²C ↔ Jetson", "—", 900, 1, "Electrokit/Pololu · ditt val"),
+    ("Position (motorns Hall)", "Motorns inbyggda 'Signal' (1-kanal/motor) + nivåanpassning ×2", 1, "var sin Signal → var sin Jrk (frekvens-FB); position via pulser + anslag-noll", "Signal → Jrk", "kalibreras mm/puls", 60, 1, "ingår i motorn"),
+    ("Ingångslaser", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "brädetektering + ev. om-nollning", "GPIO", "kant-trig", 80, 1, "att köpa"),
+    ("Ramstativ (alu)", "2020 T-spår-profil + vinkelfästen (~4 m)", 1, "vänt stativ + tvärbalk över rullbandet", "—", "—", 600, 1, "att köpa (alu)"),
+    ("Anslag / mathåll", "alu-vinkel (bakkant, laddläge)", 1, "lägg brädan mot → känd nollposition", "—", "—", 150, 1, "DIY (alu)"),
+    ("Sidoanslag / styrskena", "alu-profil längs ENA sidan", 1, "brädans ena kant rider mot → anti-skev", "—", "—", 150, 1, "DIY (alu)"),
+    ("NVMe SSD", "M.2 256 GB (Jetson-lagring)", 1, "OS + dataset + modeller", "M.2", "—", 250, 1, "att köpa"),
+    ("Nätaggregat 24 V", "24 V 5 A (om rullbandets PSU ej räcker)", 1, "matning/Jrk", "—", "—", 150, 1, "ev. ingår i rullband"),
+    ("Nätaggregat 5 V", "5 V 3 A (lasrar via MOSFET)", 1, "linjelasrar (CW)", "—", "—", 80, 1, "att köpa"),
+    ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → laser 5 V on/off", "GPIO", "—", 15, 1, "att köpa"),
+    ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1, "att köpa"),
+    ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1, "att köpa"),
     # --- FAS 2: enbart line-scan-ytkamera (färg/NIR-defekter) ---
-    ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2),
-    ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2),
-    ("Objektiv M72 (ytkamera)", "Chiopt LS4105B (40 mm, M72×0.75, designad för 8K 7µm)", 1, "8K-yta över 500 mm — bekräftad för 57,3 mm-sensorn", "—", "—", 2100, 2),
-    ("NIR-belysning", "850 nm IR-bar / linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 400, 2),
-    ("Färgbelysning", "RGB LED-bar / linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 700, 2),
-    ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 150, 2),
+    ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2, "AliExpress · ditt val"),
+    ("Objektiv M72", "Chiopt LS4105B (40 mm, M72×0.75, 8K 7µm)", 1, "8K-yta över 500 mm", "—", "—", 2100, 2, "Chiopt/AliExpress · ditt val"),
+    ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),
+    ("NIR-belysning", "850 nm IR-bar / linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 400, 2, "att köpa"),
+    ("Färgbelysning", "RGB LED-bar / linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 700, 2, "att köpa"),
+    ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 150, 2, "att köpa"),
 ]
 
 
 def bom_rows():
-    return [{"Fas": f, "Komponent": k, "Modell": m, "Antal": q, "Roll": r, "Gränssnitt": i,
-             "Uppdateringstakt": u, "Ca pris (st)": f"{p:,}".replace(",", " ")}
-            for (k, m, q, r, i, u, p, f) in BOM]
+    return [{"Fas": f, "Komponent": k, "Produkt/modell": m, "Antal": q, "Källa": src,
+             "Ca pris (st)": f"{p:,}".replace(",", " "), "Roll": r, "Gränssnitt": i, "Takt": u}
+            for (k, m, q, r, i, u, p, f, src) in BOM]
+
 
 
 def bom_total(max_fas=3):
-    return sum(q * p for (_, _, q, _, _, _, p, f) in BOM if f <= max_fas)
+    return sum(q * p for (_, _, q, _, _, _, p, f, _) in BOM if f <= max_fas)
 
 
 def interface_rows(sim):

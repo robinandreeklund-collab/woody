@@ -233,23 +233,26 @@ txt(60, 2002, "Matning: Jrk G2 24v13 via USB/UART/I²C — motorns inbyggda Hall
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)
+RH = 20
 def bomcol(items, x, head, acc):
-    rect(x, 1428, 670, 26, acc, acc, 0, 5); txt(x + 10, 1446, head, 11, "start", "#fff", 700, SANS)
+    rect(x, 1428, 670, 24, acc, acc, 0, 5); txt(x + 8, 1445, head, 10, "start", "#fff", 700, SANS)
     tot = 0
-    for j, (k, q, p) in enumerate(items):
-        ry = 1456 + j * 28; tot += q * p
-        if j % 2: rect(x, ry, 670, 28, PANEL, "none", 0)
-        txt(x + 8, ry + 19, (f"{q}× " if q > 1 else "") + k, 9.5, "start", INK, 400, SANS)
-        txt(x + 662, ry + 19, f"{q*p:,}".replace(",", " "), 9.5, "end", INK, 700, MONO)
+    for j, (m, q, p, src) in enumerate(items):
+        ry = 1454 + j * RH; tot += q * p
+        if j % 2: rect(x, ry, 670, RH, PANEL, "none", 0)
+        name = ((f"{q}× " if q > 1 else "") + m)[:42]
+        txt(x + 7, ry + 14, name, 8, "start", INK, 700, SANS)
+        txt(x + 470, ry + 14, src[:18], 7.5, "start", MUTED, 400, SANS)
+        txt(x + 662, ry + 14, f"{q*p:,}".replace(",", " "), 8.5, "end", INK, 700, MONO)
     return tot
-f1items = [(k, q, p) for (k, m, q, r, i, u, p, f) in BOM if f == 1]
-f2items = [(k, q, p) for (k, m, q, r, i, u, p, f) in BOM if f == 2]
-bomcol(f1items, 1078, "FAS 1 — röd profilerare (körbar)", F1)
-bomcol(f2items, 1762, "FAS 2 — grön + punktlaser + yta", F2)
-ry1 = 1456 + len(f1items) * 28 + 8
+f1items = [(m, q, p, src) for (k, m, q, r, i, u, p, f, src) in BOM if f == 1]
+f2items = [(m, q, p, src) for (k, m, q, r, i, u, p, f, src) in BOM if f == 2]
+bomcol(f1items, 1078, "FAS 1 — FULL 3D-MÄTRIGG (röd+grön+punktlaser+matning)", F1)
+bomcol(f2items, 1762, "FAS 2 — LINE-SCAN-YTKAMERA", F2)
+ry1 = 1454 + len(f1items) * RH + 8
 rect(1078, ry1, 670, 30, "#eaf5ee", F1, 1.2, 5); txt(1086, ry1 + 20, "SUMMA FAS 1", 11, "start", F1, 700, SANS)
 txt(1740, ry1 + 20, f"{bom_total(1):,} kr".replace(",", " "), 12, "end", F1, 700, MONO)
-ry2 = 1456 + len(f2items) * 28 + 8
+ry2 = 1454 + len(f2items) * RH + 8
 rect(1762, ry2, 670, 30, "#f1eaf7", F2, 1.2, 5); txt(1770, ry2 + 20, "FAS 2-tillägg", 11, "start", F2, 700, SANS)
 txt(2424, ry2 + 20, f"+{bom_total(2)-bom_total(1):,} kr".replace(",", " "), 12, "end", F2, 700, MONO)
 rect(1762, ry2 + 38, 670, 32, INK, INK, 0, 5); txt(1770, ry2 + 60, "FULL SVIT (Fas 1+2)", 12, "start", "#fff", 700, SANS)
