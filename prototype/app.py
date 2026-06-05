@@ -2,35 +2,36 @@
 mäthuvud, brädor 1 m (cross-feed). Visar ALLA sensorer live enligt spec.
 
 Två lägen:
-  • Manuell inspektion — välj bräda, skevhet och driftparametrar; dra matningen.
-  • Live-simulering — riggen "kör": matningen animeras och nya SLUMPADE 1 m-brädor
-    (små mm-avvikelser + vridning/bukt/kupa + sprickor/kvist/vankant/röta) strömmar
-    in en efter en, som tänkt hårdvara i drift.
+  • Manuell inspektion — välj bräda, skevhet och takt; dra matningen.
+  • Live-simulering — riggen "kör": brädan glider mjukt förbi huvudet (CSS-animerad
+    bänk, standardtakt 60 brädor/min) och nya SLUMPADE 1 m-brädor (små mm-avvikelser
+    + vridning/bukt/kupa + sprickor/kvist/vankant/röta) strömmar in en efter en.
 
-Sensorvyer (exakt enligt src.hardware-specar):
-  profilkamera RÖD 650 / GRÖN 520 (mono+bandpass, rå laserstripe), ytkamera FÄRG,
-  ytkanal NIR, 3 punktlaser, längsprofil, tvärsnitt, höjdkarta, 3D, datatakt.
+Den mjuka rörelsen (bänken) körs i en lätt SVG som webbläsaren interpolerar mellan
+serveruppdateringar (CSS-transition) → glider jämnt oavsett serverns tick-takt; de
+tyngre sensorvyerna uppdateras i en egen, lugnare takt.
 
     pip install -r prototype/requirements.txt
     streamlit run prototype/app.py
 """
 from __future__ import annotations
-import os, sys
+import os, sys, time
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import numpy as np
 import matplotlib.pyplot as plt
 import streamlit as st
-from proto_sim import (simulate, metrics, datarate, fig_bench, fig_profile_cams,
+from proto_sim import (simulate, metrics, datarate, PL_FRACS, fig_profile_cams,
                        fig_surface_cams, fig_length_profile, fig_cross_section,
                        fig_heightmap, fig_surface3d, fig_throughput)
 from src.hardware import Rig
 
 st.set_page_config(page_title="Virkesskanner — prototyp", layout="wide", page_icon="🪵")
 
-STEP_REF = 0.10          # referenssteg/tick vid 0,25 m/s (skalas med farten)
-TICK_S = 0.55            # sekunder mellan live-ticks
+BENCH_TICK = 0.12        # s mellan bänk-uppdateringar (lätt SVG)
+SENSOR_TICK = 0.7        # s mellan tunga sensor-uppdateringar
+GLIDE_S = 0.75           # CSS-transition – ≥ värsta serverglappet → kontinuerlig glidning
 
 st.markdown("""
 <style>
@@ -49,9 +50,8 @@ st.markdown("""
   [data-testid="stSidebar"] h2 { font-size:14px; color:#23262b; letter-spacing:.03em; }
   div[data-testid="stVerticalBlockBorderWrapper"] { background:#fff; border-radius:12px; }
   button[data-baseweb="tab"] { font-weight:600; }
-  .live-dot { display:inline-block; width:9px; height:9px; border-radius:50%;
-              background:#2f9e6e; margin-right:7px;
-              animation:lp 1.2s infinite; }
+  .live-dot { display:inline-block; width:9px; height:9px; border-radius:50%; background:#2f9e6e;
+              margin-right:7px; animation:lp 1.2s infinite; }
   @keyframes lp { 0%{box-shadow:0 0 0 0 rgba(47,158,110,.6);} 70%{box-shadow:0 0 0 9px rgba(47,158,110,0);} 100%{box-shadow:0 0 0 0 rgba(47,158,110,0);} }
   .live-bar { background:#fff; border:1px solid #e3e1d9; border-radius:10px; padding:9px 14px;
               font:600 13px 'IBM Plex Sans',sans-serif; color:#23262b; }
@@ -66,17 +66,16 @@ st.markdown('<div class="ph-title">Multisensor virkesskanner — prototypbänk</
 
 # ---------------- simulering (cachad) ----------------
 @st.cache_data(show_spinner=False, max_entries=48)
-def run(length, width, thick, seed, subtle, feed_mps, rate, bow, cup, twist):
-    return simulate(length_mm=length, width_mm=width, thickness_mm=thick, seed=seed,
-                    subtle=subtle, feed_mps=feed_mps, profile_rate_hz=rate,
+def run(width, thick, seed, subtle, takt, rate, bow, cup, twist):
+    return simulate(length_mm=1000, width_mm=width, thickness_mm=thick, seed=seed,
+                    subtle=subtle, boards_per_min=takt, profile_rate_hz=rate,
                     bow_mm=bow, cup_mm=cup, twist_mm=twist)
 
 
 def stream_board(rng):
     """Slumpad 1 m-bräda: små mm-avvikelser i mått + global skevhet (twist/bukt/kupa)
     ovanpå lokala defekter (sprickor, kvist, vankant, röta, hål)."""
-    return dict(length=1000,
-                width=int(round(np.clip(150 + rng.normal(0, 3), 140, 160))),
+    return dict(width=int(round(np.clip(150 + rng.normal(0, 3), 140, 160))),
                 thick=int(round(np.clip(45 + rng.normal(0, 2), 38, 52))),
                 seed=int(rng.integers(0, 9999)), subtle=False,
                 bow=float(abs(rng.normal(0, 1.4))),
@@ -84,11 +83,52 @@ def stream_board(rng):
                 twist=float(rng.normal(0, 2.2)))
 
 
+# ---------------- mjuk bänk (CSS-animerad SVG) ----------------
+def bench_svg(feed, L, W, playing):
+    """Lätt SVG ovanifrån: 1 m-brädan glider i sidled förbi den fasta laserlinjen.
+    Brädans translateY animeras av CSS → mjuk glidning mellan serveruppdateringar."""
+    Wp, Hp = 1060, 300
+    x0, x1, Y0, bH = 70, 900, 150, 150
+    bw = x1 - x0
+    ty = feed * bH
+    trans = f"transition:transform {GLIDE_S}s linear;" if playing else ""
+    pls = "".join(
+        f'<polygon points="{x0+f*bw-7},{Y0-15} {x0+f*bw+7},{Y0-15} {x0+f*bw},{Y0-2}" '
+        f'fill="#a23ad6" stroke="#222" stroke-width="0.6"/>' for f in PL_FRACS)
+    grp = f'style="transform:translateY({ty}px);{trans}"'
+    return f"""
+<div style="background:#fff;border:1px solid #e3e1d9;border-radius:12px;padding:6px 10px 2px;">
+<svg viewBox="0 0 {Wp} {Hp}" width="100%" style="display:block">
+  <defs><clipPath id="scan"><rect x="0" y="{Y0}" width="{Wp}" height="{Hp-Y0}"/></clipPath></defs>
+  <rect x="0" y="0" width="{Wp}" height="{Hp}" fill="#faf9f4"/>
+  <text x="{x0}" y="22" fill="#23262b" font-size="14" font-weight="700"
+        font-family="IBM Plex Sans,sans-serif">BÄNK — bräda matas i sidled förbi 1 m-laserlinjen</text>
+  <g {grp}><rect x="{x0}" y="{Y0-bH}" width="{bw}" height="{bH}" rx="6"
+        fill="#efe9d8" stroke="#b9a96f" stroke-width="2"/></g>
+  <g clip-path="url(#scan)" {grp}><rect x="{x0}" y="{Y0-bH}" width="{bw}" height="{bH}" rx="6"
+        fill="#2f6fb0" opacity="0.16"/></g>
+  <rect x="{x0+bw*0.40}" y="{Y0-58}" width="{bw*0.20}" height="34" rx="5"
+        fill="#23262b" opacity="0.9"/>
+  <text x="{x0+bw*0.5}" y="{Y0-36}" fill="#fff" font-size="11" text-anchor="middle"
+        font-family="IBM Plex Sans,sans-serif">mäthuvud</text>
+  <line x1="{x0-6}" y1="{Y0-1.5}" x2="{x1+6}" y2="{Y0-1.5}" stroke="#e8542c" stroke-width="2.6"/>
+  <line x1="{x0-6}" y1="{Y0+1.5}" x2="{x1+6}" y2="{Y0+1.5}" stroke="#2f9e6e" stroke-width="2.6"/>
+  {pls}
+  <text x="{x1+10}" y="{Y0+4}" fill="#23262b" font-size="11"
+        font-family="IBM Plex Sans,sans-serif">laserlinje 1 m</text>
+  <text x="{x1+10}" y="{Y0+18}" fill="#6a6e74" font-size="10"
+        font-family="IBM Plex Sans,sans-serif">röd 650 + grön 520</text>
+  <text x="{x0+bw*0.5}" y="{Hp-12}" fill="#b06" font-size="12" text-anchor="middle"
+        font-family="IBM Plex Sans,sans-serif">↓ matning ({W:.0f} mm bredd) · {feed*100:.0f} %</text>
+</svg></div>"""
+
+
 # ---------------- session-state ----------------
 ss = st.session_state
 ss.setdefault("mode", "Live-simulering")
 ss.setdefault("running", False)
 ss.setdefault("feed", 0.0)
+ss.setdefault("t_last", 0.0)
 ss.setdefault("rng_seed", 7)
 ss.setdefault("board", None)
 ss.setdefault("count", 0)
@@ -104,10 +144,11 @@ ss.mode = sb.radio("Driftläge", ["Live-simulering", "Manuell inspektion"],
                    index=0 if ss.mode == "Live-simulering" else 1, label_visibility="collapsed")
 
 sb.header("TRANSPORTBAND")
-feed_mps = sb.slider("Bandhastighet (m/s)", 0.05, 1.0, 0.25, 0.05)
+takt = sb.slider("Takt (brädor/min)", 10, 180, 60, 5)
 rate = sb.slider("Profiltakt (profiler/s)", 100, 1200, 490, 10)
-sb.caption(f"Matnings-pitch ≈ **{feed_mps*1000/rate:.2f} mm/profil** "
-           "(fart ÷ profiltakt → upplösning i matningsled).")
+_feed = 150 / 1000 * takt / 60
+sb.caption(f"Bandhastighet ≈ **{_feed:.2f} m/s** · matnings-pitch ≈ "
+           f"**{_feed*1000/rate:.2f} mm/profil** (fart ÷ profiltakt).")
 xpos = sb.slider("Tvärsnitt vid längd (%)", 0, 100, 50, 1) / 100.0
 
 if ss.mode == "Manuell inspektion":
@@ -122,12 +163,11 @@ if ss.mode == "Manuell inspektion":
     twist = sb.slider("Vridning / twist", -5.0, 5.0, 2.0, 0.1)
     sb.header("DRIFT")
     feed = sb.slider("Matning / skannposition (%)", 0, 100, 60, 1) / 100.0
-    sb.caption("Dra för att se 1 m-brädan matas i sidled förbi huvudet.")
 else:
     sb.header("DRIFT")
     cstart, cstop = sb.columns(2)
     if cstart.button("▶ Start", use_container_width=True, type="primary", disabled=ss.running):
-        ss.running = True; st.rerun()
+        ss.running = True; ss.t_last = time.time(); st.rerun()
     if cstop.button("⏸ Stopp", use_container_width=True, disabled=not ss.running):
         ss.running = False; st.rerun()
     if sb.button("⏭ Nästa bräda", use_container_width=True):
@@ -135,7 +175,6 @@ else:
         ss.feed = 0.0; st.rerun()
     ss.rng_seed = sb.number_input("Slumpfrö (brädström)", 0, 9999, ss.rng_seed, 1)
     sb.caption(f"Brädor körda denna session: **{ss.count}**")
-    sb.progress(min(ss.feed, 1.0), text=f"Matning {min(ss.feed,1.0)*100:.0f} %")
 
 
 # ---------------- vy-rendering ----------------
@@ -147,22 +186,20 @@ def card(fig):
 
 def kpi_row(sim):
     m = metrics(sim)
-    cols = st.columns(7)
-    cols[0].metric("Längd", f"{m['langd_mm']} mm")
-    cols[1].metric("Bredd", f"{m['bredd_mm']} mm")
-    cols[2].metric("Tjocklek (punktl.)", f"{m['tjocklek_punktlaser_mm']} mm")
-    cols[3].metric("Vridning", f"{m['twist_mm']} mm")
-    cols[4].metric("Bukt/kupa", f"{m['bow_mm']}/{m['cup_mm']} mm")
-    cols[5].metric("Kapacitet", f"{m['boards_per_min']}/min")
-    cols[6].metric("Dataflöde", f"{m['mb_per_s']} MB/s")
-    return m
+    c = st.columns(7)
+    c[0].metric("Takt", f"{sim['takt']:.0f}/min")
+    c[1].metric("Bredd", f"{m['bredd_mm']} mm")
+    c[2].metric("Tjocklek (punktl.)", f"{m['tjocklek_punktlaser_mm']} mm")
+    c[3].metric("Vridning", f"{m['twist_mm']} mm")
+    c[4].metric("Bukt/kupa", f"{m['bow_mm']}/{m['cup_mm']} mm")
+    c[5].metric("Matnings-pitch", f"{m['pitch_mm']:.2f} mm")
+    c[6].metric("Dataflöde", f"{m['mb_per_s']} MB/s")
 
 
-def render_all(sim, feed_frac, xpos):
+def render_sensors(sim, feed_frac, xpos, playing):
     t1, t2, t3, t4 = st.tabs(["📷 Live-kameror", "📐 Profiler & 3D",
                               "⚙️ Datatakt & fart", "🔩 Hårdvara"])
     with t1:
-        card(fig_bench(sim, feed_frac))
         a, b = st.columns(2, gap="medium")
         with a:
             card(fig_profile_cams(sim, feed_frac))
@@ -175,7 +212,12 @@ def render_all(sim, feed_frac, xpos):
             card(fig_heightmap(sim, feed_frac))
         with b:
             card(fig_cross_section(sim, xpos))
-            card(fig_surface3d(sim, feed_frac))
+            if playing:
+                with st.container(border=True):
+                    st.info("3D-ytan ritas när bandet står stilla (⏸ Stopp) — "
+                            "hålls lätt under körning för mjuk animering.")
+            else:
+                card(fig_surface3d(sim, feed_frac))
     with t3:
         card(fig_throughput(sim))
         d = datarate(sim)
@@ -184,9 +226,9 @@ def render_all(sim, feed_frac, xpos):
         g[1].metric("Profiler/s", f"{d['profiles_per_s']:.0f}")
         g[2].metric("Mätpunkter/s", f"{d['points_per_s']/1e6:.1f} M")
         g[3].metric("Profiler/bräda", f"{d['n_profiles']}")
-        st.caption("Högre bandhastighet → färre profiler per bräda (grövre upplösning i "
-                   "matningsled) men högre kapacitet. Höj profiltakten för att behålla "
-                   "upplösningen vid hög fart (begränsas av kamerans ROI-radtakt).")
+        st.caption("Högre takt → snabbare band → färre profiler per bräda (grövre "
+                   "matningsupplösning). Höj profiltakten för att behålla upplösningen "
+                   "vid hög takt (begränsas av kamerans ROI-radtakt).")
     with t4:
         hardware_specs()
 
@@ -216,22 +258,27 @@ def hardware_specs():
 
 # ---------------- körning ----------------
 if ss.mode == "Manuell inspektion":
-    sim = run(1000, width, thick, int(seed), subtle, feed_mps, rate, bow, cup, twist)
+    sim = run(width, thick, int(seed), subtle, takt, rate, bow, cup, twist)
+    st.markdown(bench_svg(feed, 1000, width, False), unsafe_allow_html=True)
+    st.write("")
     kpi_row(sim)
-    render_all(sim, feed, xpos)
+    render_sensors(sim, feed, xpos, False)
 
 else:
-    interval = TICK_S if ss.running else None
-    step = STEP_REF * (feed_mps / 0.25)          # animationssteg skalar med farten
+    bp = ss.board
 
-    @st.fragment(run_every=interval)
-    def live_panel():
+    # --- lätt bänk-loop: tidsbaserad matning + mjuk SVG-glidning ---
+    @st.fragment(run_every=BENCH_TICK if ss.running else None)
+    def bench_loop():
         if ss.running:
-            ss.feed += step
+            now = time.time()
+            dt = min(0.5, now - ss.t_last) if ss.t_last else BENCH_TICK
+            ss.t_last = now
+            period = 60.0 / max(1.0, takt)          # sek för en bräda att passera
+            ss.feed += dt / period
             if ss.feed >= 1.0:
-                bp = ss.board
-                done = run(bp["length"], bp["width"], bp["thick"], bp["seed"], bp["subtle"],
-                           feed_mps, rate, bp["bow"], bp["cup"], bp["twist"])
+                done = run(bp["width"], bp["thick"], bp["seed"], bp["subtle"],
+                           takt, rate, bp["bow"], bp["cup"], bp["twist"])
                 m = metrics(done)
                 top = max(m["defekter"], key=m["defekter"].get) if m["defekter"] else "—"
                 ss.count += 1
@@ -242,21 +289,28 @@ else:
                 ss.log = ss.log[:8]
                 ss.board = stream_board(np.random.default_rng(ss.rng_seed + ss.count))
                 ss.feed = 0.0
-
-        bp = ss.board
+        cur = ss.board
         status = "RIGG KÖR — matar bräda" if ss.running else "PAUSAD"
         dot = '<span class="live-dot"></span>' if ss.running else ""
         st.markdown(f'<div class="live-bar">{dot}{status} &nbsp;·&nbsp; aktuell 1 m-bräda: '
-                    f'{bp["width"]}×{bp["thick"]} mm · vrid {bp["twist"]:+.1f} / bukt {bp["bow"]:.1f} '
-                    f'/ kupa {bp["cup"]:.1f} mm (seed {bp["seed"]}) &nbsp;·&nbsp; '
-                    f'matning {min(ss.feed,1.0)*100:.0f} %</div>', unsafe_allow_html=True)
-        st.write("")
-        sim = run(bp["length"], bp["width"], bp["thick"], bp["seed"], bp["subtle"],
-                  feed_mps, rate, bp["bow"], bp["cup"], bp["twist"])
-        kpi_row(sim)
-        render_all(sim, min(ss.feed, 1.0), xpos)
+                    f'{cur["width"]}×{cur["thick"]} mm · vrid {cur["twist"]:+.1f} / bukt {cur["bow"]:.1f} '
+                    f'/ kupa {cur["cup"]:.1f} mm (seed {cur["seed"]}) &nbsp;·&nbsp; takt {takt}/min</div>',
+                    unsafe_allow_html=True)
+        st.markdown(bench_svg(min(ss.feed, 1.0), 1000, cur["width"], ss.running),
+                    unsafe_allow_html=True)
 
-    live_panel()
+    # --- tyngre sensor-loop: egen, lugnare takt så bänken hålls mjuk ---
+    @st.fragment(run_every=SENSOR_TICK if ss.running else None)
+    def sensor_loop():
+        cur = ss.board
+        sim = run(cur["width"], cur["thick"], cur["seed"], cur["subtle"],
+                  takt, rate, cur["bow"], cur["cup"], cur["twist"])
+        kpi_row(sim)
+        render_sensors(sim, min(ss.feed, 1.0), xpos, ss.running)
+
+    bench_loop()
+    st.write("")
+    sensor_loop()
 
     if ss.log:
         st.markdown('<div class="ph-sec">Strömmade 1 m-brädor (senaste)</div>', unsafe_allow_html=True)

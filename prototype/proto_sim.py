@@ -59,16 +59,19 @@ def _apply_warp(height, bow_mm, cup_mm, twist_mm):
 # ----------------------------------------------------------------- simulering
 def simulate(length_mm=BOARD_LEN, width_mm=150.0, thickness_mm=45.0,
              mm_per_px=0.6, seed=3, subtle=False,
-             feed_mps=0.25, profile_rate_hz=490.0,
+             boards_per_min=60.0, profile_rate_hz=490.0,
              bow_mm=0.0, cup_mm=0.0, twist_mm=0.0):
     """Bräda (defekter + global skevhet) + dubbel-oblikt huvud + driftparametrar.
 
+    Takten (brädor/min) styr bandhastigheten: vid cross-feed passerar brädans
+    bredd förbi linjen på 60/takt sekunder → feed = bredd · takt / 60.
     Höjdkarta: axel0 = längd (1 m-linjen), axel1 = bredd (matningsled)."""
     L = float(min(length_mm, BOARD_LEN))
     b = make_board(length_mm=L, width_mm=width_mm, thickness_mm=thickness_mm,
                    mm_per_px=mm_per_px, seed=int(seed), subtle_defects=subtle)
     if bow_mm or cup_mm or twist_mm:
         b["height"] = np.clip(_apply_warp(b["height"], bow_mm, cup_mm, twist_mm), 0, None)
+    feed_mps = width_mm / 1000.0 * boards_per_min / 60.0
     rig = Rig(board_length_mm=L, board_width_mm=width_mm, board_thickness_mm=thickness_mm,
               feed_mps=feed_mps, profile_rate_hz=profile_rate_hz)
     res = simulate_array(b["height"], mm_per_px, rig, seed=1)
@@ -78,7 +81,7 @@ def simulate(length_mm=BOARD_LEN, width_mm=150.0, thickness_mm=45.0,
     n_profiles = int(np.clip(round(width_mm / max(1e-6, pitch_mm)), 2, Ww))
     return {"board": b, "rig": rig, "meas": res, "mm_per_px": mm_per_px,
             "L": L, "width": width_mm, "thickness": thickness_mm,
-            "feed_mps": feed_mps, "profile_rate_hz": profile_rate_hz,
+            "takt": boards_per_min, "feed_mps": feed_mps, "profile_rate_hz": profile_rate_hz,
             "pitch_mm": pitch_mm, "n_profiles": n_profiles,
             "warp": {"bow_mm": bow_mm, "cup_mm": cup_mm, "twist_mm": twist_mm}}
 
@@ -312,34 +315,33 @@ def fig_surface3d(sim, feed_frac=1.0, figsize=(7.4, 3.4), stride=16):
 
 # ---------------------------------------------------- datatakt / fart-tradeoff
 def datarate(sim):
-    rig = sim["rig"]; v = sim["feed_mps"]; rate = sim["profile_rate_hz"]
+    rig = sim["rig"]; rate = sim["profile_rate_hz"]
     px_len = rig.profile_cam.width_px
     pts_per_s = rate * px_len * 2
     mbps = rate * px_len * ROI_ROWS * 2 / 1e6
-    bpm = 60.0 / (sim["width"] / (v * 1000.0) + 0.20)
     return {"pitch_mm": sim["pitch_mm"], "n_profiles": sim["n_profiles"],
             "profiles_per_s": rate, "points_per_s": pts_per_s,
-            "mb_per_s": mbps, "boards_per_min": bpm}
+            "mb_per_s": mbps, "boards_per_min": sim["takt"], "feed_mps": sim["feed_mps"]}
 
 
 def fig_throughput(sim, figsize=(7.4, 3.2)):
     rate = sim["profile_rate_hz"]; Wd = sim["width"]
-    v = np.linspace(0.05, 1.0, 80)
-    pitch = v * 1000.0 / rate
-    bpm = 60.0 / (Wd / (v * 1000.0) + 0.20)
+    takt = np.linspace(10.0, 180.0, 90)
+    feed = Wd / 1000.0 * takt / 60.0
+    pitch = feed * 1000.0 / rate
     d = datarate(sim)
     fig = _fig(figsize); ax = fig.add_subplot(111)
-    _ax(ax, "BANDHASTIGHET — upplösning ↓ vs kapacitet ↑ (vald punkt markerad)")
-    ax.plot(v, pitch, color=BLUE, lw=1.8)
-    ax.axvline(sim["feed_mps"], color=MUTED, ls="--", lw=0.8)
-    ax.plot(sim["feed_mps"], d["pitch_mm"], "o", color=BLUE, ms=8, zorder=6)
-    ax.annotate(f"{d['pitch_mm']:.2f} mm/profil", (sim["feed_mps"], d["pitch_mm"]),
+    _ax(ax, "TAKT — upplösning i matningsled ↓ vs bandhastighet ↑ (vald takt markerad)")
+    ax.plot(takt, pitch, color=BLUE, lw=1.8)
+    ax.axvline(sim["takt"], color=MUTED, ls="--", lw=0.8)
+    ax.plot(sim["takt"], d["pitch_mm"], "o", color=BLUE, ms=8, zorder=6)
+    ax.annotate(f"{d['pitch_mm']:.2f} mm/profil", (sim["takt"], d["pitch_mm"]),
                 textcoords="offset points", xytext=(8, 6), color=BLUE, fontsize=8, fontweight="bold")
-    ax.set_xlabel("bandhastighet (m/s)"); ax.set_ylabel("pitch (mm/profil)", color=BLUE)
+    ax.set_xlabel("takt (brädor/min)"); ax.set_ylabel("pitch (mm/profil)", color=BLUE)
     ax.tick_params(axis="y", colors=BLUE)
-    ax2 = ax.twinx(); ax2.plot(v, bpm, color=GRN, lw=1.8)
-    ax2.plot(sim["feed_mps"], d["boards_per_min"], "s", color=GRN, ms=8, zorder=6)
-    ax2.set_ylabel("brädor/min", color=GRN); ax2.tick_params(axis="y", colors=GRN)
+    ax2 = ax.twinx(); ax2.plot(takt, feed, color=GRN, lw=1.8)
+    ax2.plot(sim["takt"], d["feed_mps"], "s", color=GRN, ms=8, zorder=6)
+    ax2.set_ylabel("bandhastighet (m/s)", color=GRN); ax2.tick_params(axis="y", colors=GRN)
     for s in ax2.spines.values(): s.set_color(MUTED)
     fig.tight_layout(); return fig
 
@@ -364,7 +366,7 @@ def metrics(sim):
 
 
 if __name__ == "__main__":
-    s = simulate(1000, 150, 45, seed=3, feed_mps=0.25, bow_mm=1.5, cup_mm=0.8, twist_mm=2.2)
+    s = simulate(1000, 150, 45, seed=3, boards_per_min=60, bow_mm=1.5, cup_mm=0.8, twist_mm=2.2)
     print("metrics:", metrics(s))
     figs = [("bench", fig_bench(s, 0.55)), ("profcams", fig_profile_cams(s, 0.55)),
             ("surfcams", fig_surface_cams(s, 0.55)), ("length", fig_length_profile(s, 0.55)),
