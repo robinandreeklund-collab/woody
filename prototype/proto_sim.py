@@ -367,7 +367,7 @@ BOM = [
     # --- FAS 1: komplett röd-profilerare på rullband + Jetson-styrning ---
     ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + styrning (4×USB3, GbE, 40-pin)", "—", "—", 3695, 1),
     ("Profilkamera RÖD", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering (röd-huvud)", "USB3", "~490 prof/s (ROI)", 3382, 1),
-    ("Objektiv C-mount", "8 mm (profilkamera)", 1, "profiloptik (500 mm FOV)", "—", "—", 500, 1),
+    ("Objektiv C-mount", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 1),
     ("Bandpassfilter 650", "650 nm", 1, "isolerar röd laser", "—", "—", 350, 1),
     ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "linjelaser 650 nm 100 mW (oblik 30°)", "5 V + GPIO-en", "CW", 300, 1),
     ("Ramstativ (alu)", "vänt stativ + tvärbalk (T-spår)", 1, "håller röd-huvudet över rullbandet", "—", "—", 900, 1),
@@ -380,7 +380,7 @@ BOM = [
     ("Diverse", "Kablar, 24 V/5 V-nätaggregat, fästen", 1, "—", "—", "—", 1500, 1),
     # --- FAS 2: grön-modul (dubbel-oblik) + punktlaser + line-scan-yta ---
     ("Profilkamera GRÖN", "Hikrobot MV-CS050-10UM (mono)", 1, "3D höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 2),
-    ("Objektiv C-mount", "8 mm (profilkamera)", 1, "profiloptik (500 mm FOV)", "—", "—", 500, 2),
+    ("Objektiv C-mount", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 2),
     ("Bandpassfilter 520", "520 nm", 1, "isolerar grön laser", "—", "—", 350, 2),
     ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "linjelaser 520 nm 50 mW (oblik 30°)", "5 V + GPIO-en", "CW", 350, 2),
     ("Punktlaser ×3 (rek.)", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2),
