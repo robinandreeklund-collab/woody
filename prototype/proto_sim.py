@@ -373,7 +373,7 @@ BOM = [
     ("Ramstativ (alu)", "2020 T-spår-profil + vinkelfästen (~4 m)", 1, "vänt stativ + tvärbalk över rullbandet", "—", "—", 600, 1),
     ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s (välj 'with Power Supply')", 2, "matning (cross-feed); 24 V-PSU ingår → matar RoboClaw", "24 V DC", "50 mm/s", 736, 1),
     ("Motorstyrning", "RoboClaw 2x7A V6B (Pololu #3682 / BasicMicro IMC404)", 1, "closed-loop 6–34 V, 7,5 A/kanal, 2× quad-encoder, UART/USB", "UART/USB ↔ Jetson", "—", 850, 1),
-    ("Magnetencoder (el. motor-Hall)", "AS5601 12-bit på motoraxel + magnet — ALT: motor m. inbyggd Hall-quad-encoder", 1, "KONTAKTLÖS position; nollställs mot anslaget. Slopas om motorn har egen Hall-encoder", "A/B → RoboClaw", "~0,02 mm/steg", 120, 1),
+    ("Position (motorns Hall)", "Motorns inbyggda 'Signal'-pin (1-kanal Hall) + ev. nivåanpassning", 1, "pulser = väg (riktning från kommando); nollas mot anslaget. Verifiera Signal-spänning! ALT: 2-kanals quad-motor el. AS5601 för RoboClaw HW-PID", "Signal → Jetson GPIO (el. RoboClaw)", "kalibreras mm/puls", 30, 1),
     ("Ingångslaser", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "brädetektering + ev. om-nollning (anslag+encoder = primär pos.)", "GPIO", "kant-trig", 80, 1),
     ("Anslag / mathåll", "alu-vinkel (bakkant, laddläge)", 1, "lägg brädan mot → känd start, kvadrerar", "—", "—", 150, 1),
     ("Sidoanslag / styrskena", "alu-profil längs ENA sidan", 1, "brädans ena kant rider mot → datum + anti-skev", "—", "—", 150, 1),
