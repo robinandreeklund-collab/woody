@@ -51,7 +51,7 @@ def _ax(ax, title):
 # ---------------------------------------------------- bänkvy (ovanifrån, cross-feed)
 def fig_bench(sim, feed_frac, figsize=(7.2, 3.2)):
     L, Wd = sim["L"], sim["width"]
-    fig, ax = plt.subplots(figsize=figsize, dpi=120); fig.patch.set_facecolor(PAPER)
+    fig, ax = plt.subplots(figsize=figsize, dpi=120); fig.patch.set_facecolor("#ffffff")
     _ax(ax, "BÄNK — bräda matas i SIDLED förbi 1 m-laserlinjen (ovanifrån)")
     sy = feed_frac * Wd
     ax.add_patch(plt.Rectangle((0, 0), L, Wd, fc="#efe9d8", ec=GOLD, lw=1.4))
@@ -79,7 +79,7 @@ def fig_profile(sim, feed_frac, figsize=(7.2, 3.2)):
     Hpx, Wpx = z.shape
     col = int(np.clip(feed_frac * (Wpx - 1), 0, Wpx - 1))
     xs = np.linspace(0, L, Hpx); prof = z[:, col]
-    fig, ax = plt.subplots(figsize=figsize, dpi=120); fig.patch.set_facecolor(PAPER)
+    fig, ax = plt.subplots(figsize=figsize, dpi=120); fig.patch.set_facecolor("#ffffff")
     _ax(ax, "LIVE LÄNGSPROFIL (1 m) + punktlaser-ankare")
     ax.fill_between(xs, 0, prof, color=RED, alpha=0.10)
     ax.plot(xs, prof, color=RED, lw=1.5, label="linjelaser (profil)")
@@ -103,7 +103,7 @@ def fig_heightmap(sim, feed_frac, figsize=(7.2, 3.2)):
     z = sim["meas"]["z_fused"]; lbl = sim["board"]["label"]
     L, Wd = sim["L"], sim["width"]; Hpx, Wpx = z.shape
     cut = int(np.clip(feed_frac * Wpx, 1, Wpx))
-    fig, ax = plt.subplots(figsize=figsize, dpi=120); fig.patch.set_facecolor(PAPER)
+    fig, ax = plt.subplots(figsize=figsize, dpi=120); fig.patch.set_facecolor("#ffffff")
     _ax(ax, "HÖJDKARTA (byggs upp i matningsled) + defekter")
     img = np.full_like(z, np.nan); img[:, :cut] = z[:, :cut]
     ax.imshow(img.T, aspect="auto", origin="lower", cmap="viridis",
@@ -128,7 +128,7 @@ def fig_surface3d(sim, feed_frac=1.0, figsize=(7.2, 3.6), stride=14):
     zc = z[::stride, :cut:max(1, cut // 60 or 1)]
     xx = np.linspace(0, L, zc.shape[0]); yy = np.linspace(0, feed_frac * Wd, zc.shape[1])
     X, Y = np.meshgrid(xx, yy, indexing="ij")
-    fig = plt.figure(figsize=figsize, dpi=120); fig.patch.set_facecolor(PAPER)
+    fig = plt.figure(figsize=figsize, dpi=120); fig.patch.set_facecolor("#ffffff")
     ax = fig.add_subplot(111, projection="3d"); ax.set_facecolor(PAPER)
     ax.plot_surface(X, Y, zc, cmap="viridis", linewidth=0, antialiased=True,
                     rcount=zc.shape[0], ccount=zc.shape[1])

@@ -7,8 +7,15 @@ matas i sidled förbi 6 stationära laser+kamera-moduler längs längden; varje
 laserlinje löper LÄNGS sitt längdsegment.
 
 Valda produkter:
-  LineLaser   – iadiy LM9R650H100L60 (650 nm, 100 mW, 60° linje). CW-modul –
-                ingen egen bildtakt; profiltakten sätts av profilkameran.
+  LineLaser   – iadiy LM9R650H100L60 (RÖD 650 nm, 100 mW, 60° linje, Ø9 mm, 3 V).
+                Orderbar konfig ur iadiy "red laser line generator" (635/650 nm;
+                5/10/30/100 mW; 4/15/30/60/90/110°). CW-modul – ingen egen bildtakt;
+                profiltakten sätts av profilkameran.
+  LineLaser2  – iadiy LM9G520H50L60T (GRÖN 520 nm, 50 mW, 60° linje, Ø9 mm, 3 V).
+                Orderbar konfig ur iadiy "green laser line module" (520 nm;
+                5/10/30/50 mW — OBS grön toppar på 50 mW; 30/60/90/110°). Linjebredd/
+                fokus ej i standarddatablad → beställs som custom (fin, fokuserbar
+                linje, mål <0,3 mm i arbetsavståndet) för bra trianguleringsskärpa.
   SurfaceCam  – MindVision MV-XGLC83BM-T4-90 (10GigE mono 8K linjekamera, 7 µm,
                 4-line TDI, 109,89 kHz @ 8-bit / 87,7 kHz @ 12-bit). Färg fås via
                 strobad sekventiell belysning (RGB + NIR).
@@ -118,8 +125,10 @@ class Rig:
 
     def __post_init__(self):
         self.laser = self.laser or LineLaser()            # vänster, RÖD 650 nm
-        self.laser_green = LineLaser(name="iadiy LM9G520H100L60 (grön)",
-                                     wavelength_nm=self.laser2_nm)  # höger, GRÖN
+        # höger, GRÖN – grön toppar på 50 mW i iadiy-databladet (ej 100 mW)
+        self.laser_green = LineLaser(name="iadiy LM9G520H50L60T (grön)",
+                                     wavelength_nm=self.laser2_nm, power_mw=50.0,
+                                     fan_angle_deg=60.0, diameter_mm=9.0, voltage_v=3.0)
         self.surface_cam = self.surface_cam or SurfaceCam()
         self.profile_cam = self.profile_cam or ProfileCam()
         # ytkameran monteras på samma nivå som linjelasern (förskjuten i matningsled)

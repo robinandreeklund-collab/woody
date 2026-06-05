@@ -1,0 +1,11 @@
+# Ljust, konsekvent tema för prototyp-GUI:t (matchar matplotlib-figurerna).
+[theme]
+base = "light"
+primaryColor = "#2f6fb0"
+backgroundColor = "#f4f3ee"
+secondaryBackgroundColor = "#ecebe4"
+textColor = "#23262b"
+font = "sans serif"
+
+[browser]
+gatherUsageStats = false
