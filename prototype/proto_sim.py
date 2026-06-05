@@ -373,10 +373,10 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
 
 
 # ============================================================ BOM & systemintegration
-# Priser SEK exkl. moms/frakt (Jetson, CS050, MindVision verifierade; övriga ca).
-# Fas: 1 = vänster modul (röd) – minimal "funkar-det?"-test, handmatning på alu-ram;
-#      2 = höger modul (grön) + 2 transportband + encoder/mäthjul – repeterbar dubbel-oblik;
-#      3 = full sensorsvit (ytkamera/NIR + punktlaser).
+# Priser SEK exkl. moms/frakt (Jetson, CS050 verifierade; Huateng 4K + övriga ca).
+# Fas: 1 = full 3D-mätrigg (röd + grön oblik modul) + matning (2 transportband, motorns Hall);
+#      2 = ytkanal (4K FÄRG-line-scan + vitt ljus) + punktlaser (absolut tjocklek);
+#      3 = valfri NIR-modul (röta/blånad) — separat, senare.
 BOM = [
     # (Komponent, Modell, Antal, Roll, Gränssnitt, Takt, pris, fas, KÄLLA)
     # --- FAS 1: full 3D-mätrigg (röd + grön modul + punktlaser) + matning ---
@@ -402,15 +402,14 @@ BOM = [
     ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → laser 5 V on/off", "GPIO", "—", 15, 1, "att köpa"),
     ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1, "att köpa"),
     ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1, "att köpa"),
-    # --- FAS 2: line-scan-ytkamera (färg/NIR-defekter) + absolut-tjocklek (punktlaser) ---
+    # --- FAS 2: line-scan-ytkamera (FÄRG, 1 pass) + absolut-tjocklek (punktlaser) ---
     ("Punktlaser ×3", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar/kalibrerar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2, "att köpa"),
     ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 2, "att köpa"),
-    ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2, "AliExpress · ditt val"),
-    ("Objektiv M72", "LS4005B-519 (40 mm, M72×0.75, 8K 7µm, zoom 0,02–0,16×)", 1, "8K-yta; rackad ~0,105× → FOV ~546 mm @ WD 400 mm (= punktlaserplan)", "—", "—", 2100, 2, "ljopt.com · ditt val"),
-    ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),
-    ("NIR-belysning", "850 nm IR-bar / linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 400, 2, "att köpa"),
-    ("Färgbelysning", "RGB LED-bar / linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 700, 2, "att köpa"),
-    ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 150, 2, "att köpa"),
+    ("Ytkamera (line-scan)", "Huateng 4K FÄRG (M42, GigE) — via MDvision", 1, "färgyta (kvist/spricka/vankant/blånad) i 1 pass", "GigE (1GbE) → Jetson", "~0,4 kHz proto / 8 kHz max", 4134, 2, "AliExpress/MDvision · ditt val"),
+    ("Objektiv M42", "25 mm, bildcirkel ≥30 mm (4K 7µm) — t.ex. Kowa LM25VM42", 1, "FOV ~500 mm @ WD ~460 mm; skruvas rakt på kameran", "—", "—", 1500, 2, "att köpa (bekräfta bildcirkel ≥28,6 mm)"),
+    ("Nätverk", "Cat5e/6 — ytkamera → Jetson (GigE direkt, ingen switch)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),
+    ("Ytbelysning (vit)", "Vitt LED-linjeljus, högt uttag (kont. el. strobat)", 1, "jämn belysning för färgkanalen — som proffsen", "ev. kamera-flash-ut", "—", 600, 2, "att köpa"),
+    ("NIR-modul (valfri)", "Mono NIR-kamera + 850 nm linjeljus (röta/blånad)", 1, "separat NIR-kanal SENARE (proffsen separerar modaliteter)", "GigE/USB", "—", 3500, 3, "valfri/senare"),
 ]
 
 
@@ -431,28 +430,29 @@ def interface_rows(sim):
     pcam_mbs = rig.profile_cam.width_px * ROI_ROWS * rate / 1e6
     s_mmpp = rig.surface_mm_per_px
     s_line = v * 1000.0 / s_mmpp
-    s_mbs = rig.surface_cam.px_across * s_line / 1e6
-    s_max_mbs = rig.surface_cam.px_across * rig.surface_cam.line_rate_hz / 1e6
+    cf = 1 if rig.surface_cam.mono else 3       # färg = 3 byte/px (RGB888)
+    s_mbs = rig.surface_cam.px_across * s_line * cf / 1e6
+    s_max_mbs = rig.surface_cam.px_across * rig.surface_cam.line_rate_hz * cf / 1e6
     pl_rate = 1500.0
     return [
         {"Enhet": "Profilkamera RÖD", "Buss": "USB3 (5 Gbit/s)", "Takt (proto)": f"{rate:.0f} prof/s",
          "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
         {"Enhet": "Profilkamera GRÖN", "Buss": "USB3 (5 Gbit/s)", "Takt (proto)": f"{rate:.0f} prof/s",
          "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
-        {"Enhet": "Ytkamera (line-scan)", "Buss": "10GBase-T→1/2.5/5G", "Takt (proto)": f"{s_line:.0f} rad/s",
-         "Datatakt": f"{s_mbs:.0f} MB/s", "Buss-tak": "118 MB/s (1GbE)", "Marginal": f"{118/max(s_mbs,1e-3):.0f}× (direkt till Jetson)"},
-        {"Enhet": "Ytkamera (MAX)", "Buss": "10GBase-T (10G)", "Takt (proto)": f"{rig.surface_cam.line_rate_hz/1e3:.0f} krad/s",
-         "Datatakt": f"{s_max_mbs:.0f} MB/s", "Buss-tak": "1250 MB/s (10GigE)", "Marginal": f"{1250/s_max_mbs:.1f}× (kräver 10G-värd)"},
+        {"Enhet": "Ytkamera (line-scan)", "Buss": "GigE (1GbE)", "Takt (proto)": f"{s_line:.0f} rad/s",
+         "Datatakt": f"{s_mbs:.1f} MB/s", "Buss-tak": "118 MB/s (1GbE)", "Marginal": f"{118/max(s_mbs,1e-3):.0f}× (direkt till Jetson)"},
+        {"Enhet": "Ytkamera (MAX)", "Buss": "GigE (1GbE)", "Takt (proto)": f"{rig.surface_cam.line_rate_hz/1e3:.0f} krad/s",
+         "Datatakt": f"{s_max_mbs:.0f} MB/s", "Buss-tak": "118 MB/s (1GbE)", "Marginal": f"{118/s_max_mbs:.1f}× @ 8 kHz färg"},
         {"Enhet": "3× Punktlaser → ADC", "Buss": "analog→SPI", "Takt (proto)": f"{pl_rate:.0f} Hz",
          "Datatakt": "<0,1 MB/s", "Buss-tak": "SPI 200 kSPS", "Marginal": "3 abs-ankare längs 1 m (V/C/H) → skala/drift"},
-        {"Enhet": "RGB/NIR-strobe", "Buss": "ytkamera strobe-ut", "Takt (proto)": f"{s_line:.0f} Hz (sync)",
-         "Datatakt": "—", "Buss-tak": "3 strobe-kanaler", "Marginal": "färg = radtakt/4 (R/G/B+NIR)"},
+        {"Enhet": "Ytbelysning (vit)", "Buss": "kont./flash-ut", "Takt (proto)": "kont.",
+         "Datatakt": "—", "Buss-tak": "1 vit kanal", "Marginal": "färg i 1 pass — ingen R/G/B-strobe"},
         {"Enhet": "Ingångslaser (brädstart)", "Buss": "GPIO", "Takt (proto)": "kant-trig",
          "Datatakt": "—", "Buss-tak": "—", "Marginal": "nollställer position på rullbandet"},
-        {"Enhet": "Motordrivare (fram/back)", "Buss": "GPIO/PWM", "Takt (proto)": "—",
+        {"Enhet": "Motordrivare (fram/back)", "Buss": "I²C → 2× Jrk G2", "Takt (proto)": "—",
          "Datatakt": "—", "Buss-tak": "—", "Marginal": "Jetson: load→fram→mät→back→upprepa"},
-        {"Enhet": "Encoder + mäthjul", "Buss": "RS422→ytkamera", "Takt (proto)": "pulser",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "låser radtakt + position (immun mot slir)"},
+        {"Enhet": "Läge (motorns Hall)", "Buss": "Signal→Jrk", "Takt (proto)": "pulser",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "var sin Hall→Jrk (frekvens-FB) + anslag-noll"},
     ]
 
 
@@ -474,13 +474,13 @@ def fig_wiring(sim, figsize=(7.4, 4.3)):
          f"USB3 · {ir['Profilkamera RÖD']['Datatakt']}"),
         (0.16, 0.50, "Profilkamera GRÖN", "CS050 · 520 nm", "#e3f3ea", USB,
          f"USB3 · {ir['Profilkamera GRÖN']['Datatakt']}"),
-        (0.16, 0.17, "Ytkamera line-scan", "MindVision · NBASE-T", "#efe6f7", NET,
-         f"10GBase-T→1GbE · {ir['Ytkamera (line-scan)']['Datatakt']}"),
+        (0.16, 0.17, "Ytkamera line-scan", "Huateng 4K färg · M42", "#efe6f7", NET,
+         f"GigE (1GbE) · {ir['Ytkamera (line-scan)']['Datatakt']}"),
         (0.84, 0.83, "3× Punktlaser → MCP3008", "HG-C1400 · 400 mm WD", "#fbf3df", AD,
          f"SPI · {ir['3× Punktlaser → ADC']['Takt (proto)']}"),
-        (0.84, 0.50, "RGB/NIR-strobe", "drivs av ytkamerans 3 strobe-ut", "#e9f5ec", GP,
-         f"3 strobe-kanaler · {ir['RGB/NIR-strobe']['Takt (proto)']}"),
-        (0.84, 0.17, "Encoder (RS422)", "→ ytkamera (TDI) + profil-trig", "#e9f5ec", GP, "RS422 · låser radtakt"),
+        (0.84, 0.50, "Ytbelysning (vit)", "vitt LED-linjeljus (kont./strobat)", "#e9f5ec", GP,
+         "1 vit kanal · färg i 1 pass"),
+        (0.84, 0.17, "Motorns Hall → Jrk", "frekvens-FB + anslag-noll", "#e9f5ec", GP, "Signal · låser fart/läge"),
     ]
     for (x, y, t, s, fc, col, lbl) in nodes:
         _node(ax, x, y, 0.235, 0.135, t, s, fc)
@@ -502,10 +502,10 @@ def fig_assembly(sim, figsize=(7.4, 4.0)):
     ax.add_patch(plt.Rectangle((-150, -9), 300, 9, fc="#cfcabb", ec=MUTED))      # transportband
     ax.add_patch(plt.Rectangle((-Wd / 2, 0), Wd, T, fc="#efe9d8", ec=GOLD, lw=1.4))  # bräda
     ax.text(0, T / 2, f"bräda {Wd:.0f}×{T:.0f} mm", ha="center", fontsize=7, color="#6a5a2a")
-    # överliggande ytkamera + RGB/NIR-strobe
+    # överliggande ytkamera + vitt LED-ljus
     ax.add_patch(mpatches.FancyBboxPatch((-22, 128), 44, 18, boxstyle="round,pad=1,rounding_size=3",
                  fc="#efe6f7", ec=INK, lw=1.1))
-    ax.text(0, 137, "Ytkamera line-scan\n+ RGB/NIR-strobe", ha="center", va="center", fontsize=6.6, color=INK)
+    ax.text(0, 137, "Ytkamera 4K färg\n+ vitt LED-ljus", ha="center", va="center", fontsize=6.6, color=INK)
     for sx in (-Wd / 2, Wd / 2):
         ax.plot([0, sx], [128, T], color=PURP, lw=0.8, ls=(0, (3, 2)))
     # oblika moduler

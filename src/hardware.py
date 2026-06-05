@@ -16,9 +16,9 @@ Valda produkter:
                 5/10/30/50 mW — OBS grön toppar på 50 mW; 30/60/90/110°). Linjebredd/
                 fokus ej i standarddatablad → beställs som custom (fin, fokuserbar
                 linje, mål <0,3 mm i arbetsavståndet) för bra trianguleringsskärpa.
-  SurfaceCam  – MindVision MV-XGLC83BM-T4-90 (10GigE mono 8K linjekamera, 7 µm,
-                4-line TDI, 109,89 kHz @ 8-bit / 87,7 kHz @ 12-bit). Färg fås via
-                strobad sekventiell belysning (RGB + NIR).
+  SurfaceCam  – Huateng/华腾威视 4K line-scan (FÄRG, M42, GigE; 4096×4 TDI, 7 µm,
+                ~8 kHz färg / ~28 kHz mono). Färg i 1 pass under vitt LED-ljus.
+                NIR (röta/blånad) = separat mono-NIR-modul senare (som proffsen).
   ProfileCam  – Hikrobot MV-CS050-10UM (USB3, MONO, 5 MP global shutter, IMX264,
                 60 fps @ 2448×2048) + 650 nm bandpassfilter. Mono + filter ser
                 bara laserlinjen (intensitet, ej färg) → bäst för triangulering.
@@ -46,22 +46,22 @@ class LineLaser:
 
 @dataclass
 class SurfaceCam:
-    """MindVision MV-XGLC83BM-T4-90 (verifierat datablad). Mono 4-line TDI; färg
-    fås via kamerans 3 strobade ljuskälle-utgångar (sekventiell RGB-belysning)."""
-    name: str = "MindVision MV-XGLC83BM-T4-90"  # [datablad]
-    px_across: int = 8192                 # [datablad] 8K
-    tdi_stages: int = 4                   # [datablad] 4-line TDI
-    pixel_um: float = 7.0                 # [datablad] 7×7 µm (sensor 57,344 mm)
-    mono: bool = True                     # [datablad] (färg via strobade ljus)
-    color_strobe_lights: int = 4          # [designval] 3 utgångar (R/G/B) + NIR
-    nir_channel: bool = True              # [designval] NIR-strobe -> blånad/röta
-    line_rate_hz: float = 109_890.0       # [datablad] mono 8-bit (87,7 kHz @ 12-bit)
-    bit_depth: int = 8                    # [datablad] (AD 12-bit, pixel-ut 10-bit)
-    interface: str = "10GBase-T (NBASE-T: 1/2.5/5/10G)"  # [datablad] nedåtkompatibel → 1GbE direkt till Jetson
-    mount: str = "M72, fläns 12 mm"       # [datablad]
-    power_w: float = 10.0                 # [datablad] <10 W
-    # [datablad] inbyggd I/O: 2× RS422 (encoder fas A/B) → kameran sköter TDI-radsynk;
-    # 3× ljuskälle-/strobe-utgångar (NPN) → driver R/G/B-strobe direkt; 1× opto trigger-in.
+    """Huateng/华腾威视 4K line-scan (FÄRG, M42, GigE) — säljs av MDvision.
+    Proto-val: färg (RGB888) i EN pass under vitt LED-linjeljus → ingen R/G/B-strobe
+    (så som proffsen gör färgkanalen). NIR/röta = separat mono-NIR-modul SENARE."""
+    name: str = "Huateng 4K line-scan (färg, M42, GigE)"  # [datablad]
+    px_across: int = 4096                 # [datablad] 4K (4096×4 TDI)
+    tdi_stages: int = 4                   # [datablad]
+    pixel_um: float = 7.0                 # [datablad] 7×7 µm (sensor 28,67 mm)
+    mono: bool = False                    # [designval] färg (RGB888) i proto
+    color_strobe_lights: int = 1          # [designval] vitt ljus, ingen sekventiell strobe
+    nir_channel: bool = False             # [designval] NIR = separat senare modul
+    line_rate_hz: float = 8000.0          # [datablad] färg ~8 kHz (mono ~28 kHz)
+    bit_depth: int = 8                    # [datablad]
+    interface: str = "GigE (1000Base-T, RJ45)"  # [datablad] → rakt in i Jetson GbE
+    mount: str = "M42×1.0"                # [datablad]
+    power_w: float = 6.0                  # [datablad] <6 W
+    # [datablad] GPIO: 2× in, 2× ut + 1 generell I/O; encoder-/hård-/mjuk-/frame-trigger.
 
     @property
     def sensor_w_mm(self) -> float:
@@ -169,7 +169,7 @@ class Rig:
 
     @property
     def surface_lens_mm(self) -> float:
-        """M72-objektiv för önskad FOV: f = sensor·WD/FOV."""
+        """M42-objektiv för önskad FOV: f = sensor·WD/FOV."""
         return self.surface_cam.sensor_w_mm * self.surface_wd_mm / self.surface_fov_per_cam_mm
 
     @property
@@ -287,7 +287,7 @@ class Rig:
             "surface_cam": self.surface_cam.name,
             "n_surface_cams": self.n_surface_cams,
             "surface_mm_per_px": round(self.surface_mm_per_px, 3),
-            "surface_lens_mm (M72)": round(self.surface_lens_mm),
+            "surface_lens_mm (M42)": round(self.surface_lens_mm),
             "surface_wd_mm": self.surface_wd_mm,
             "surface_color_line_rate_kHz (strobe RGB)": round(self.surface_color_line_rate_hz / 1e3, 1),
             "surface_gbit_s@max": round(self.surface_gbit_s, 1),

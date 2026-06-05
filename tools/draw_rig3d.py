@@ -21,7 +21,7 @@ SOFF = round(WD * math.sin(math.radians(OBL))); MH = round(WD * math.cos(math.ra
 SEP = 2 * SOFF
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
 PL_X = [int(f * BENCH_L) for f in (0.1, 0.5, 0.9)]; PLWD = 400
-SURF_WD = PLWD          # ytkamera (40 mm LS4005B rackad ~0,105×, FOV ~546) på SAMMA plan som punktlasern
+SURF_WD = 460           # ytkamera: 25 mm M42-lins, FOV ~500 @ WD ~460 (eget plan: PL 400 < yta 460 < oblik 615)
 
 W, H = 2480, 2060
 INK, MUTED, DIMC = "#23262b", "#6a6e74", "#9a9ea4"
@@ -118,7 +118,7 @@ for px in PL_X:
     txt(pt[0], pt[1]+3, "PL", 7.5, "middle", PURP, 700); ln(pt, P(px, CY, BZ), PURP, 1.4, "3 3"); dot(P(px, CY, BZ), 2.4, PURP)
 cp = P(250, CY, SURF_WD); ln(P(250, CY, TOPZ), cp, "#8a9099", 2.6)
 poly([(cp[0]-48,cp[1]-14),(cp[0]+48,cp[1]-14),(cp[0]+48,cp[1]+11),(cp[0]-48,cp[1]+11)], "#efe6f7", SURFC, 1.5)
-txt(cp[0], cp[1]-1, "YTKAMERA line-scan", 8, "middle", SURFC, 700, SANS); txt(cp[0], cp[1]+9, "40 mm LS4005B (samma plan som PL)", 7, "middle", INK)
+txt(cp[0], cp[1]-1, "YTKAMERA line-scan", 8, "middle", SURFC, 700, SANS); txt(cp[0], cp[1]+9, "4K färg · 25 mm M42 + vitt ljus", 7, "middle", INK)
 for ex in (BX0, BX1): ln(cp, P(ex, CY, BZ), SURFC, 0.8, "3 3")
 add('</g>')
 jp = P(BENCH_L + 150, FY1 - 30, 0)
@@ -128,7 +128,7 @@ txt(jp[0] + 75, jp[1] - 6, "JETSON Orin Nano", 10, "middle", JET, 700, SANS); tx
 # ---- legend + mått + styrning (rad 1 höger) ----
 panel(1210, 116, 410, 372, "SENSORER / FAS", INK)
 leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 1),
-       (PURP, "3× punktlaser HG-C1400", 2), (SURFC, "Ytkamera line-scan + RGB/NIR", 2),
+       (PURP, "3× punktlaser HG-C1400", 2), (SURFC, "Ytkamera 4K färg + vitt ljus", 2),
        (BELT, "2× rullband + Hall-FB", 1), (ALU, "Stativ + ingångslaser + Jetson", 1)]
 for i, (c, k, fas) in enumerate(leg):
     ry = 160 + i * 40; rect(1224, ry, 20, 20, c, INK, 0.8, 4)
@@ -143,7 +143,7 @@ panel(1640, 116, 410, 372, "MÅTT (mm)", INK)
 dims = [("Arbetsavstånd (oblik)", f"~{WD}"), ("Oblik vinkel", f"{OBL:.0f}°"), ("Modulhöjd", f"~{MH}"),
         ("Sidooffset", f"~{SOFF}"), ("Avstånd modul↔modul", f"~{SEP}"), ("Laserlinje (längs)", f"{BENCH_L}"),
         ("Brädbredd (matning)", f"{BW}"), ("Punktlaser V/C/H", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]}"),
-        ("Punktlaser-WD (HG-C1400)", f"{PLWD}"), ("Ytkamera-WD (40 mm, =PL-plan)", f"{SURF_WD}")]
+        ("Punktlaser-WD (HG-C1400)", f"{PLWD}"), ("Ytkamera-WD (25 mm M42)", f"~{SURF_WD}")]
 for i, (k, v) in enumerate(dims):
     ry = 152 + i * 30
     if i % 2: rect(1640, ry - 4, 410, 30, PANEL, "none", 0)
@@ -153,7 +153,7 @@ panel(2070, 116, 370, 372, "STYRNING (Jetson)", JET)
 for i, n in enumerate(["Ingångslaser nollställer brädans läge", "(rullband = ingen fast position).",
                        "Mathåll + sidoanslag = L-datum, känd start.", "DC-motordrivare: fram → mät → BACK.",
                        "Multi-pass: medel av N pass → brus ↓ √N", "+ repeterbarhet/kalibrering.",
-                       "Ytkamera NBASE-T → 1GbE direkt (ingen switch).", "Analog punktlaser → MCP3008 (Jetson saknar ADC)."]):
+                       "Ytkamera GigE → Jetson 1GbE direkt (ingen switch).", "Analog punktlaser → MCP3008 (Jetson saknar ADC)."]):
     txt(2082, 158 + i * 28, "• " + n if not n.startswith("(") and not n.startswith("+") and not n.startswith("(rull") else "  " + n,
         9.6, "start", INK if not (n.startswith("(") or n.startswith("+")) else MUTED, 400)
 
@@ -178,8 +178,8 @@ left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelas
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c); conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
 SCY = 980
-right = [(880, "Profilkamera GRÖN", "MV-CS050-10UM (Fas 1)", F1, "USB3"), (SCY, "Ytkamera line-scan", "MindVision (Fas 2)", F2, "GbE"),
-         (1080, "RGB/NIR-strobe", "←ytkamera 3 strobe-ut (Fas 2)", F2, "strobe"), (1180, "Objektiv M72 Chiopt", "(Fas 2)", F2, "—")]
+right = [(880, "Profilkamera GRÖN", "MV-CS050-10UM (Fas 1)", F1, "USB3"), (SCY, "Ytkamera line-scan", "Huateng 4K färg (Fas 2)", F2, "GigE"),
+         (1080, "Ytbelysning (vit)", "vitt LED-linjeljus (Fas 2)", F2, "—"), (1180, "Objektiv M42 25 mm", "(Fas 2)", F2, "—")]
 for (ly, t, s, c, lab) in right:
     node(JX + JW + 120, ly, 250, t, s, c)
     if "strobe" in t: L(JX + JW + 120, ly + 25, JX + JW + 120, SCY + 50, c, 1.5, "4 3")
@@ -191,7 +191,7 @@ txt(JX + 120, JY + JH + 48, "PSU 24 V (band) · 5 V (laser) · DC-in (Jetson)", 
 # I/O-budget
 panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
 io = [("USB 3.2 Gen2 (×4)", "2 — RÖD + GRÖN kamera", "OK · 2 lediga", F1),
-      ("Gigabit Ethernet", "1 — ytkamera (NBASE-T→1GbE)", "OK", F2),
+      ("Gigabit Ethernet", "1 — ytkamera (GigE 1GbE direkt)", "OK", F2),
       ("USB/UART/I²C", "1 — Jrk G2 (matning, målfart)", "OK", F1),
       ("40-pin SPI (×2)", "1 — MCP3008 (3 punktlaser)", "OK", F1),
       ("40-pin GPIO (~28)", "~5 — ingångslaser, kam-trig×2, 2 laser-en", "OK · gott om", F1),
