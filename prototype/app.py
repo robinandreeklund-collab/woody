@@ -245,11 +245,11 @@ def bom_panel(sim):
     c[0].metric("Ca totalpris", f"{bom_total():,} kr".replace(",", " "))
     c[1].metric("Profilkameror", "2× CS050 (USB3)")
     c[2].metric("Punktlaser", "3× HG-C1100")
-    st.caption("Ca-priser exkl. moms/frakt — uppskattningar, verifiera hos säljare. "
-               "**Budget-alternativ punktlaser:** VL53L1X ToF (~70 kr/st, I²C) — men bara "
-               "±5 mm → räcker för att prova fusions-*konceptet*, ej för skarpt absolut ankare. "
-               "MindVision-line-scan kan bytas mot **CA013-A0UC (färg, USB3)** som Jetson-native "
-               "ytkamera tills 10GigE-värd finns.")
+    st.caption("Priser exkl. moms/frakt (Jetson, CS050 & MindVision = verifierade; övriga "
+               "uppskattningar). **MindVision är NBASE-T** → förhandlar ner till Jetsons 1 GbE av "
+               "sig själv, **ingen switch behövs** i prototypen. **Budget-alternativ punktlaser:** "
+               "VL53L1X ToF (~70 kr/st, I²C) — men bara ±5 mm → räcker för fusions-*konceptet*, ej "
+               "skarpt ankare.")
 
     st.markdown('<div class="ph-sec">Så kopplas allt ihop</div>', unsafe_allow_html=True)
     a, b = st.columns(2, gap="medium")
@@ -262,11 +262,13 @@ def bom_panel(sim):
                 unsafe_allow_html=True)
     st.dataframe(interface_rows(sim), hide_index=True, width="stretch")
     st.caption("**Profilkameror:** var sin USB3-controller (~307 MB/s/st ryms i ~500 MB/s). "
-               "**Ytkamera:** vid prototyptakt behövs bara ~10 MB/s → ryms även i 1 GbE; 10GigE "
-               "krävs först vid full radtakt (110 kHz). **Punktlaser:** 3× analoga, lästa via MCP3008 "
-               "(SPI) — sveper 150 mm under matningen → absolut **tvärsnittsprofil** (~0,1 mm/prov), "
-               "som *ankrar* linjelaserns form. **Encoder:** låser radtakten till matningen (TDI-synk). "
-               "**Strobe:** R/G/B + NIR växlas synkat med ytkamerans radtakt (färg = radtakt/4).")
+               "**Ytkamera:** NBASE-T → vid prototyptakt behövs bara ~10 MB/s, **rinner rakt in i "
+               "Jetsons 1 GbE** (118 MB/s); full 10GigE krävs först vid max radtakt (110 kHz). "
+               "**Encoder (RS422)** går till *ytkameran* som sköter TDI-radsynk själv och driver "
+               "**R/G/B-strobe via sina 3 inbyggda strobe-utgångar** (färg = radtakt/4 med NIR); samma "
+               "encoder triggar profilkamerorna. **Punktlaser:** 3× analoga via MCP3008 (SPI) — sveper "
+               "150 mm under matningen → absolut **tvärsnittsprofil** (~0,1 mm/prov) som *ankrar* "
+               "linjelaserns form.")
 
 
 def hardware_specs():

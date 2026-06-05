@@ -56,10 +56,12 @@ class SurfaceCam:
     color_strobe_lights: int = 4          # [designval] 3 utgångar (R/G/B) + NIR
     nir_channel: bool = True              # [designval] NIR-strobe -> blånad/röta
     line_rate_hz: float = 109_890.0       # [datablad] mono 8-bit (87,7 kHz @ 12-bit)
-    bit_depth: int = 8                    # [datablad] (10/12-bit möjligt)
-    interface: str = "10GBase-T (10GigE)" # [datablad]
+    bit_depth: int = 8                    # [datablad] (AD 12-bit, pixel-ut 10-bit)
+    interface: str = "10GBase-T (NBASE-T: 1/2.5/5/10G)"  # [datablad] nedåtkompatibel → 1GbE direkt till Jetson
     mount: str = "M72, fläns 12 mm"       # [datablad]
     power_w: float = 10.0                 # [datablad] <10 W
+    # [datablad] inbyggd I/O: 2× RS422 (encoder fas A/B) → kameran sköter TDI-radsynk;
+    # 3× ljuskälle-/strobe-utgångar (NPN) → driver R/G/B-strobe direkt; 1× opto trigger-in.
 
     @property
     def sensor_w_mm(self) -> float:

@@ -354,24 +354,24 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
 
 
 # ============================================================ BOM & systemintegration
-# Ca-priser SEK, exkl. moms/frakt – uppskattningar för budget, verifiera hos säljare.
+# Priser SEK exkl. moms/frakt. Verifierade pris märks (verif.), övriga är uppskattningar.
 BOM = [
-    ("Edge-compute", "NVIDIA Jetson Orin Nano Super 8GB", 1, "U-Net + sensorfusion", "—", "—", 6000),
-    ("Profilkamera (oblik) ×2", "Hikrobot MV-CS050-10UM (mono)", 2, "3D-triangulering V+H", "USB3", "~490 prof/s (ROI)", 3800),
-    ("Objektiv C-mount", "8 mm", 2, "profiloptik (1 m FOV)", "—", "—", 500),
+    ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + sensorfusion", "—", "—", 3695),
+    ("Profilkamera (oblik) ×2", "Hikrobot MV-CS050-10UM (mono)", 2, "3D-triangulering V+H", "USB3", "~490 prof/s (ROI)", 3382),
+    ("Objektiv C-mount", "8 mm (profilkameror)", 2, "profiloptik (1 m FOV)", "—", "—", 500),
     ("Bandpassfilter", "650 nm / 520 nm", 2, "isolerar laservåglängd", "—", "—", 350),
-    ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan)", "10GigE→1GbE", "1,2 kHz proto / 110 kHz max", 22000),
+    ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan, 4-TDI)", "10GBase-T (NBASE-T)", "1,2 kHz proto / 110 kHz max", 6902),
+    ("Objektiv M72", "line-scan-optik (ytkamera)", 1, "8K-yta över 1 m", "—", "—", 3000),
     ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300),
     ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350),
     ("Punktlaser ×3 (rek.)", "Panasonic HG-C1100", 3, "absolut tjocklek + tvärsnitt", "analog→ADC", "1,5 kHz", 1800),
     ("ADC", "MCP3008 (SPI, 200 kSPS)", 1, "läser 3 punktlaser analogt", "SPI", "—", 60),
-    ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "GPIO-strobe", "= radtakt", 900),
-    ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "GPIO-strobe", "radtakt/3", 1500),
-    ("Strobe-driver", "MOSFET (IRLZ44N) / LED-strobe", 1, "driver för strobe-ljus", "GPIO/PWM", "—", 300),
-    ("Encoder", "Inkrementell rotationsencoder", 1, "matningssynk / kameratrigger", "GPIO/trigger", "pulser", 800),
-    ("Nätverk", "NBASE-T-switch / 10GbE-omvandlare", 1, "MindVision↔Jetson (1GbE-fallback)", "10G/1G", "—", 1500),
+    ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 900),
+    ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 1500),
+    ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 300),
+    ("Encoder", "Inkrementell rotationsencoder (RS422)", 1, "matningssynk (TDI) + kameratrigger", "RS422→ytkamera / trig→profilkam", "pulser", 800),
     ("Mekanik", "T-spårsram + transportband + motor", 1, "bänk för 1 m cross-feed", "—", "—", 5000),
-    ("Diverse", "Kablar, nätaggregat, fästen", 1, "—", "—", "—", 1500),
+    ("Diverse", "Kablar (Cat6+), nätaggregat, fästen", 1, "—", "—", "—", 1500),
 ]
 
 
@@ -401,15 +401,15 @@ def interface_rows(sim):
          "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
         {"Enhet": "Profilkamera GRÖN", "Buss": "USB3 (5 Gbit/s)", "Takt (proto)": f"{rate:.0f} prof/s",
          "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
-        {"Enhet": "Ytkamera (line-scan)", "Buss": "10GigE→1GbE", "Takt (proto)": f"{s_line:.0f} rad/s",
-         "Datatakt": f"{s_mbs:.0f} MB/s", "Buss-tak": "118 MB/s (1GbE)", "Marginal": f"{118/max(s_mbs,1e-3):.0f}×"},
-        {"Enhet": "Ytkamera (MAX)", "Buss": "10GigE", "Takt (proto)": f"{rig.surface_cam.line_rate_hz/1e3:.0f} krad/s",
-         "Datatakt": f"{s_max_mbs:.0f} MB/s", "Buss-tak": "1250 MB/s (10GigE)", "Marginal": f"{1250/s_max_mbs:.1f}×"},
+        {"Enhet": "Ytkamera (line-scan)", "Buss": "10GBase-T→1/2.5/5G", "Takt (proto)": f"{s_line:.0f} rad/s",
+         "Datatakt": f"{s_mbs:.0f} MB/s", "Buss-tak": "118 MB/s (1GbE)", "Marginal": f"{118/max(s_mbs,1e-3):.0f}× (direkt till Jetson)"},
+        {"Enhet": "Ytkamera (MAX)", "Buss": "10GBase-T (10G)", "Takt (proto)": f"{rig.surface_cam.line_rate_hz/1e3:.0f} krad/s",
+         "Datatakt": f"{s_max_mbs:.0f} MB/s", "Buss-tak": "1250 MB/s (10GigE)", "Marginal": f"{1250/s_max_mbs:.1f}× (kräver 10G-värd)"},
         {"Enhet": "3× Punktlaser → ADC", "Buss": "analog→SPI", "Takt (proto)": f"{pl_rate:.0f} Hz",
          "Datatakt": "<0,1 MB/s", "Buss-tak": "SPI 200 kSPS", "Marginal": f"tvärsnitt {pl_pitch:.2f} mm/prov"},
-        {"Enhet": "RGB/NIR-strobe", "Buss": "GPIO/PWM", "Takt (proto)": f"{s_line:.0f} Hz (sync)",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "färg = radtakt/4 (R/G/B+NIR)"},
-        {"Enhet": "Encoder", "Buss": "GPIO/trigger", "Takt (proto)": "pulser",
+        {"Enhet": "RGB/NIR-strobe", "Buss": "ytkamera strobe-ut", "Takt (proto)": f"{s_line:.0f} Hz (sync)",
+         "Datatakt": "—", "Buss-tak": "3 strobe-kanaler", "Marginal": "färg = radtakt/4 (R/G/B+NIR)"},
+        {"Enhet": "Encoder", "Buss": "RS422→ytkamera", "Takt (proto)": "pulser",
          "Datatakt": "—", "Buss-tak": "—", "Marginal": "låser radtakt till matning (TDI)"},
     ]
 
@@ -432,13 +432,13 @@ def fig_wiring(sim, figsize=(7.4, 4.3)):
          f"USB3 · {ir['Profilkamera RÖD']['Datatakt']}"),
         (0.16, 0.50, "Profilkamera GRÖN", "CS050 · 520 nm", "#e3f3ea", USB,
          f"USB3 · {ir['Profilkamera GRÖN']['Datatakt']}"),
-        (0.16, 0.17, "Ytkamera line-scan", "MindVision 10GigE", "#efe6f7", NET,
-         f"10GigE→1GbE · {ir['Ytkamera (line-scan)']['Datatakt']}"),
+        (0.16, 0.17, "Ytkamera line-scan", "MindVision · NBASE-T", "#efe6f7", NET,
+         f"10GBase-T→1GbE · {ir['Ytkamera (line-scan)']['Datatakt']}"),
         (0.84, 0.83, "3× Punktlaser → MCP3008", "HG-C1100 · ±60 µm", "#fbf3df", AD,
          f"SPI · {ir['3× Punktlaser → ADC']['Takt (proto)']}"),
-        (0.84, 0.50, "RGB/NIR-strobe", "linjeljus + MOSFET", "#e9f5ec", GP,
-         f"GPIO/PWM · {ir['RGB/NIR-strobe']['Takt (proto)']}"),
-        (0.84, 0.17, "Encoder", "inkrementell", "#e9f5ec", GP, "trigger · låser TDI"),
+        (0.84, 0.50, "RGB/NIR-strobe", "drivs av ytkamerans 3 strobe-ut", "#e9f5ec", GP,
+         f"3 strobe-kanaler · {ir['RGB/NIR-strobe']['Takt (proto)']}"),
+        (0.84, 0.17, "Encoder (RS422)", "→ ytkamera (TDI) + profil-trig", "#e9f5ec", GP, "RS422 · låser radtakt"),
     ]
     for (x, y, t, s, fc, col, lbl) in nodes:
         _node(ax, x, y, 0.235, 0.135, t, s, fc)
