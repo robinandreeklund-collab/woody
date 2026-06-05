@@ -383,13 +383,14 @@ BOM = [
     ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → laser 5 V on/off", "GPIO", "—", 15, 1),
     ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1),
     ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1),
-    # --- FAS 2: grön-modul (dubbel-oblik) + punktlaser + line-scan-yta ---
-    ("Profilkamera GRÖN", "Hikrobot MV-CS050-10UM (mono)", 1, "3D höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 2),
-    ("Objektiv C-mount", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 2),
-    ("Bandpassfilter 520", "AliExpress Ø25 mm 520 nm bandpass (±10 nm)", 1, "isolerar grön laser", "—", "—", 150, 2),
-    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "linjelaser 520 nm 50 mW (oblik 30°)", "5 V + GPIO-en", "CW", 350, 2),
-    ("Punktlaser ×3 (rek.)", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2),
-    ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 2),
+    # --- FAS 1 forts: grön modul (dubbel-oblik) + punktlaser ---
+    ("Profilkamera GRÖN", "Hikrobot MV-CS050-10UM (mono)", 1, "3D höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 1),
+    ("Objektiv C-mount (grön)", "HIKROBOT MVL-MF0828M-8MP (8 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD 474 mm)", "—", "—", 500, 1),
+    ("Bandpassfilter 520", "AliExpress Ø25 mm 520 nm bandpass (±10 nm)", 1, "isolerar grön laser", "—", "—", 150, 1),
+    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "linjelaser 520 nm 50 mW (oblik 30°)", "5 V + GPIO-en", "CW", 350, 1),
+    ("Punktlaser ×3 (rek.)", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 1),
+    ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 1),
+    # --- FAS 2: enbart line-scan-ytkamera (färg/NIR-defekter) ---
     ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2),
     ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2),
     ("Objektiv M72 (ytkamera)", "Chiopt LS4105B (40 mm, M72×0.75, designad för 8K 7µm)", 1, "8K-yta över 500 mm — bekräftad för 57,3 mm-sensorn", "—", "—", 2100, 2),
