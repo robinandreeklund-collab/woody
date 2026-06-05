@@ -40,8 +40,13 @@ def _fill_rows(z: np.ndarray) -> np.ndarray:
 
 
 def simulate_triangulation(z_true_mm: np.ndarray, mm_per_px: float,
-                           rig: Rig | None = None, seed: int = 0) -> dict:
-    """z_true_mm (H=längd, W=bredd) -> uppmätt höjd + giltighetsmask + täckning."""
+                           rig: Rig | None = None, seed: int = 0,
+                           direction: int = 0) -> dict:
+    """z_true_mm (H=längd, W=bredd) -> uppmätt höjd + giltighetsmask + täckning.
+
+    direction=0: enkel modul (skugga åt båda håll, som tidigare).
+    direction=±1: OBLIK modul från ena/andra hållet – branta väggar som vetter
+    BORT från modulen ockluderas, men ses av den motsatta modulen (dual fusion)."""
     rig = rig or Rig()
     rng = np.random.default_rng(seed)
     dz = rig.height_resolution_mm
@@ -50,15 +55,23 @@ def simulate_triangulation(z_true_mm: np.ndarray, mm_per_px: float,
     # laserns linjebredd smetar ut strippen tvärs bredden
     z = _blur_width(z_true_mm, max(1, int(round(rig.laser.line_width_mm / mm_per_px))))
 
-    # branta väggar tvärs bredden kan inte ses (laser/kamera-geometrin)
     dzdx = np.gradient(z, mm_per_px, axis=1)
-    invalid = np.abs(dzdx) > tan_a
-
-    # skugga: ett nedåtsteg döljer punkter strax bakom (kamerasidan)
     shadow_px = max(1, int(round(2.0 / mm_per_px)))
-    drop = dzdx < -0.7 * tan_a
-    for s in range(1, shadow_px):
-        invalid[:, s:] |= drop[:, :-s]
+    if direction == 0:                       # enkel modul: lutning åt båda håll skymmer
+        invalid = np.abs(dzdx) > tan_a
+        drop = dzdx < -0.7 * tan_a
+        for s in range(1, shadow_px):
+            invalid[:, s:] |= drop[:, :-s]
+    else:                                    # oblik modul: bara väggar bort från modulen
+        d = dzdx * direction
+        invalid = d > tan_a
+        drop = d < -0.7 * tan_a
+        if direction > 0:
+            for s in range(1, shadow_px):
+                invalid[:, s:] |= drop[:, :-s]
+        else:
+            for s in range(1, shadow_px):
+                invalid[:, :-s] |= drop[:, s:]
 
     # kvantisering ur trianguleringen + sensorbrus
     z_q = np.round(z / dz) * dz + rng.normal(0, dz * 0.3, z.shape)
@@ -69,6 +82,23 @@ def simulate_triangulation(z_true_mm: np.ndarray, mm_per_px: float,
         "z_meas": z_meas, "z_filled": z_filled, "valid": ~invalid,
         "dz": dz, "coverage": float((~invalid).mean()),
     }
+
+
+def _dual_oblique(z_true_mm, mm_per_px, rig, seed):
+    """Två oblika moduler (RÖD vänster, GRÖN höger) – varsitt håll. Slå ihop:
+    en punkt är giltig om NÅGON modul ser den (skuggfyllning). Höjd = medel där
+    båda ser, annars den som ser. Speglar topp+sido-svepet (få bortfall)."""
+    a = simulate_triangulation(z_true_mm, mm_per_px, rig, seed, direction=+1)
+    b = simulate_triangulation(z_true_mm, mm_per_px, rig, seed + 977, direction=-1)
+    va, vb = a["valid"], b["valid"]
+    both = va & vb
+    z = np.where(both, np.nansum([np.where(va, a["z_meas"], 0.0),
+                                  np.where(vb, b["z_meas"], 0.0)], axis=0) / 2.0,
+                 np.where(va, a["z_meas"], b["z_meas"]))
+    valid = va | vb
+    z[~valid] = np.nan
+    return {"z_meas": z, "z_filled": _fill_rows(z), "valid": valid,
+            "coverage": float(valid.mean()), "cov_single": float(va.mean())}
 
 
 def simulate_array(z_true_mm: np.ndarray, mm_per_px: float,
@@ -86,12 +116,15 @@ def simulate_array(z_true_mm: np.ndarray, mm_per_px: float,
     wsum = np.zeros((H, W))
     n_cov = np.zeros(H, int)
     ov_px = max(1, int(round(rig.overlap_mm / mm_per_px)))
+    dual = getattr(rig, "dual_oblique", False)
     per_laser = []
     for idx, (s, e, c) in enumerate(segs):
         r0, r1 = int(round(s / mm_per_px)), min(H, int(round(e / mm_per_px)))
         if r1 <= r0:
             continue
-        res = simulate_triangulation(z_true_mm[r0:r1], mm_per_px, rig, seed + idx)
+        seg = z_true_mm[r0:r1]
+        res = (_dual_oblique(seg, mm_per_px, rig, seed + idx) if dual
+               else simulate_triangulation(seg, mm_per_px, rig, seed + idx))
         zf = res["z_filled"]
         w = np.ones(r1 - r0)
         ramp = np.linspace(0.0, 1.0, min(ov_px, r1 - r0))

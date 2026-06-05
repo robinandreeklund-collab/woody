@@ -104,17 +104,43 @@ class Rig:
     depth_range_mm: float = 50.0          # [designval] mätrange i höjd (±25 mm)
     overlap_mm: float = 150.0             # [designval] överlapp mellan segment
 
+    # --- dubbel OBLIK mätkonfiguration: 2 färgseparerade laser+kamera-moduler per
+    # huvud (vänster RÖD 650 nm, höger GRÖN 520 nm). De svepar brädans tvärsnitt
+    # via matningen -> topp + 2 sidor (höjd/vankant) i 3D, och fyller varandras
+    # skuggor. Olika våglängd + matchande bandpass -> ingen förväxling, full takt.
+    dual_oblique: bool = True             # [designval]
+    oblique_angle_deg: float = 45.0       # [designval] varje moduls lutning från lod
+    laser2_nm: float = 520.0              # [designval] grön (höger); röd (vänster) = laser.wavelength_nm
+
     # --- drift ---
     profile_rate_hz: float = 500.0        # [designval] profiler/s via ROI-band (~250 av 2048 rader: 60 fps·2048/250 ≈ 490 fps, ryms i databladet)
     feed_mps: float = 0.25                # [designval] matningshastighet
 
     def __post_init__(self):
-        self.laser = self.laser or LineLaser()
+        self.laser = self.laser or LineLaser()            # vänster, RÖD 650 nm
+        self.laser_green = LineLaser(name="iadiy LM9G520H100L60 (grön)",
+                                     wavelength_nm=self.laser2_nm)  # höger, GRÖN
         self.surface_cam = self.surface_cam or SurfaceCam()
         self.profile_cam = self.profile_cam or ProfileCam()
         # ytkameran monteras på samma nivå som linjelasern (förskjuten i matningsled)
         if not self.surface_wd_mm:
             self.surface_wd_mm = round(self.laser_working_distance_mm)
+
+    # ---------- dubbel oblik geometri (för montering + ritning) ----------
+    @property
+    def module_standoff_mm(self) -> float:
+        """Avstånd modul→bräda längs den oblika axeln (samma FOV-krav längs längden)."""
+        return self.profile_wd_mm
+
+    @property
+    def module_side_offset_mm(self) -> float:
+        """Modulens horisontella avstånd från brädkanten (sidled)."""
+        return self.module_standoff_mm * math.sin(math.radians(self.oblique_angle_deg))
+
+    @property
+    def module_height_mm(self) -> float:
+        """Modulens höjd över brädan."""
+        return self.module_standoff_mm * math.cos(math.radians(self.oblique_angle_deg))
 
     # ---------- ytkanal (färg-linjekameror tilade över längden) ----------
     @property
