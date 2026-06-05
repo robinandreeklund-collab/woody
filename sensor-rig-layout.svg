@@ -421,7 +421,7 @@
 <text x="612.0" y="64.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#f7f6f1" text-anchor="start">HÖJD — LASERTRIANGULERING</text>
 <rect x="600.0" y="74.0" width="500.0" height="270.0" rx="0" fill="#fff" stroke="#2f9e6e" stroke-width="1" opacity="1"/>
 <text x="612.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kamera</text>
-<text x="815.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">6× Hikrobot MV-CS050-10UC</text>
+<text x="815.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">6× MV-CS050-10UM mono +650nm</text>
 <line x1="808.0" y1="80.0" x2="808.0" y2="98.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="600.0" y="104.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <text x="612.0" y="123.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Sensor</text>

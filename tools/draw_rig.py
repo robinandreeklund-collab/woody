@@ -281,7 +281,7 @@ cols = [
         ("Px tvärs / rader per bräda", "16 384 px · ~455 rader"),
     ]),
     (600, C_PROF, "HÖJD — LASERTRIANGULERING", [
-        ("Kamera", "6× Hikrobot MV-CS050-10UC"),
+        ("Kamera", "6× MV-CS050-10UM mono +650nm"),
         ("Sensor", "IMX264 2448×2048, 3,45 µm, GS"),
         ("Bildtakt (datablad)", "60 fps @ full bild (USB3)"),
         ("Profiltakt (drift, ROI-band)", "500 profiler/s (~250 rader)"),

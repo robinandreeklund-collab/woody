@@ -131,6 +131,16 @@ vdim(UP(PROF_WD), yb, cxC + 150, f"kamera-höjd {PROF_WD} mm")
 hdim(bx, cxC, yb + 70, f"baslinje {BASE} mm")
 txt(bx - 70, yb + 96, f"laserlinje {SEGLEN} mm (60° solfjäder) löper LÄNGS brädan, in i ritplanet",
     11, "start", C_LAS, 700)
+txt(cxC + 26, UP(PROF_WD) + 74, "mono + 650 nm filter", 9.5, "start", C_PROF)
+# --- FÖRSLAG (ditt): +2 sidolaser som profilerar kanterna/vankanten ---
+for sxL, edge in [(150, bx - 86), (792, bx + 206)]:
+    lys = UP(870)
+    rect(sxL - 15, lys - 12, 30, 24, "#fde3da", C_LAS, 1.6, 3)
+    txt(sxL, lys + 3, "LASER", 8.5, "middle", C_LAS, 700)
+    line(sxL, lys + 12, edge, yb, C_LAS, 3)               # röd sidostråle mot kanten
+    circ(edge, yb, 4, C_LAS, C_LAS, 0)
+txt(140, yb + 116, "FÖRSLAG (ditt): +2 sidolaser profilerar kanterna/vankanten → full tvärsnitt "
+    "(topp + 2 sidor). Kräver egen mono-kamera per sida.", 11, "start", C_LAS, 700)
 add('</g>')
 
 # ===================== VY B — BALK MED 6 HUVUDEN (ovanifrån) =====================
@@ -214,13 +224,13 @@ line(48, 0, W - 48, 0, INK, 1.5)
 txt(48, 26, "MÄTHUVUD — SPECIFIKATION & MONTERING", 16, "start", INK, 700, SANS)
 cols = [
     (60, C_LAS, "PER HUVUD (×%d)" % N, [
-        ("Laser", "iadiy LM9R650H100L60 · 650 nm · 60°"),
+        ("Laser (topp)", "iadiy LM9R650H100L60 · 650 nm · 60°"),
         ("Laser-WD (lodrät)", f"{LASER_WD} mm  → linje {SEGLEN} mm"),
-        ("Profilkamera", "Hikrobot MV-CS050-10UC · lins 8 mm"),
+        ("Profilkamera", "MV-CS050-10UM MONO · lins 8 mm"),
+        ("Filter", "650 nm bandpass (ser bara lasern)"),
         ("Kamerahöjd / vinkel", f"{PROF_WD} mm · {TRI:.0f}° från lod"),
         ("Baslinje laser↔kamera", f"{BASE} mm (i matningsled)"),
-        ("Höjd-/lateraluppl.", "0,78 mm · 0,45 mm/px"),
-        ("Djupområde", f"±{DEPTH/2:.0f} mm"),
+        ("Höjd-/lateraluppl.", "0,78 mm · 0,45 mm/px · djup ±25 mm"),
     ]),
     (600, C_PROF, "BALK & LAYOUT", [
         ("Balk", "alu T-spår ≈ 90×180 mm, ~5,5 m"),
@@ -229,16 +239,16 @@ cols = [
         ("Centrumavstånd", f"{STEP} mm"),
         ("Infästning", "M8 bult + T-mutter (steglös)"),
         ("Ytkameror", f"2 (FOV {SURF_FOV} mm), WD {SURF_WD} mm"),
-        ("Justering", "läge/överlapp ställs i spåret"),
-    ]),
-    (1140, C_SURF, "MONTERINGSRÅD", [
-        ("Styvhet", "djup balk – utliggarmoment fr. kamera"),
-        ("Alternativ", "egen kamerabalk 600 mm bort"),
         ("Kalibrering", "laserlinje ⟂ matning, vinkel exakt"),
-        ("Justermån", "±läge per huvud via T-spår"),
-        ("Skydd", "kåpa + luftspolning mot damm"),
-        ("Encoder", "rad-/profiltrigg från transportör"),
-        ("Kylning", "<10 W ytkam · passiv räcker"),
+    ]),
+    (1140, C_LAS, "FÖRSLAG: +2 SIDOLASER", [
+        ("Syfte", "profilera kanterna + vankant"),
+        ("Mäter", "vankantdjup, exakt bredd, kantspr."),
+        ("Vinst", "full tvärsnitt: topp + 2 sidor"),
+        ("Kostnad", "+2 laser & kamera / huvud"),
+        ("Kalibrering", "3 laserplan → ett tvärsnitt"),
+        ("Finns redan", "bredd/krok ur silhuetten"),
+        ("Rek.", "värt om vankant ska mätas exakt"),
     ]),
 ]
 rowh = 30

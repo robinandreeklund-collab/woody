@@ -165,6 +165,16 @@
 <rect x="390.0" y="529.0" width="120.0" height="15" fill="#f7f6f1" opacity="0.9"/>
 <text x="450.0" y="539.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="400" fill="#9a9ea4" text-anchor="middle">baslinje 600 mm</text>
 <text x="290.0" y="566.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e8542c" text-anchor="start">laserlinje 1098 mm (60° solfjäder) löper LÄNGS brädan, in i ritplanet</text>
+<text x="566.0" y="232.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="400" fill="#2f9e6e" text-anchor="start">mono + 650 nm filter</text>
+<rect x="135.0" y="197.0" width="30.0" height="24.0" rx="3" fill="#fde3da" stroke="#e8542c" stroke-width="1.6" opacity="1"/>
+<text x="150.0" y="212.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="middle">LASER</text>
+<line x1="150.0" y1="221.0" x2="274.0" y2="470.0" stroke="#e8542c" stroke-width="3" opacity="1"/>
+<circle cx="274.0" cy="470.0" r="4.0" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
+<rect x="777.0" y="197.0" width="30.0" height="24.0" rx="3" fill="#fde3da" stroke="#e8542c" stroke-width="1.6" opacity="1"/>
+<text x="792.0" y="212.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="middle">LASER</text>
+<line x1="792.0" y1="221.0" x2="566.0" y2="470.0" stroke="#e8542c" stroke-width="3" opacity="1"/>
+<circle cx="566.0" cy="470.0" r="4.0" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
+<text x="140.0" y="586.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e8542c" text-anchor="start">FÖRSLAG (ditt): +2 sidolaser profilerar kanterna/vankanten → full tvärsnitt (topp + 2 sidor). Kräver egen mono-kamera per sida.</text>
 </g>
 <g transform="translate(0,760)">
 <rect x="48.0" y="6.0" width="24.0" height="20.0" rx="0" fill="#23262b" stroke="#23262b" stroke-width="1.2" opacity="1"/>
@@ -321,7 +331,7 @@
 <rect x="60.0" y="44.0" width="500.0" height="30.0" rx="4" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
 <text x="72.0" y="64.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#f7f6f1" text-anchor="start">PER HUVUD (×6)</text>
 <rect x="60.0" y="74.0" width="500.0" height="210.0" rx="0" fill="#fff" stroke="#e8542c" stroke-width="1" opacity="1"/>
-<text x="72.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Laser</text>
+<text x="72.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Laser (topp)</text>
 <text x="256.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">iadiy LM9R650H100L60 · 650 nm · 60°</text>
 <line x1="250.0" y1="80.0" x2="250.0" y2="98.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="60.0" y="104.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
@@ -329,21 +339,21 @@
 <text x="256.0" y="123.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">951 mm  → linje 1098 mm</text>
 <line x1="250.0" y1="110.0" x2="250.0" y2="128.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <text x="72.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Profilkamera</text>
-<text x="256.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">Hikrobot MV-CS050-10UC · lins 8 mm</text>
+<text x="256.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">MV-CS050-10UM MONO · lins 8 mm</text>
 <line x1="250.0" y1="140.0" x2="250.0" y2="158.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="60.0" y="164.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="72.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kamerahöjd / vinkel</text>
-<text x="256.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">1040 mm · 30° från lod</text>
+<text x="72.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Filter</text>
+<text x="256.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">650 nm bandpass (ser bara lasern)</text>
 <line x1="250.0" y1="170.0" x2="250.0" y2="188.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<text x="72.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Baslinje laser↔kamera</text>
-<text x="256.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">600 mm (i matningsled)</text>
+<text x="72.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kamerahöjd / vinkel</text>
+<text x="256.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">1040 mm · 30° från lod</text>
 <line x1="250.0" y1="200.0" x2="250.0" y2="218.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="60.0" y="224.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="72.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Höjd-/lateraluppl.</text>
-<text x="256.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">0,78 mm · 0,45 mm/px</text>
+<text x="72.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Baslinje laser↔kamera</text>
+<text x="256.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">600 mm (i matningsled)</text>
 <line x1="250.0" y1="230.0" x2="250.0" y2="248.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<text x="72.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Djupområde</text>
-<text x="256.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">±25 mm</text>
+<text x="72.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Höjd-/lateraluppl.</text>
+<text x="256.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">0,78 mm · 0,45 mm/px · djup ±25 mm</text>
 <line x1="250.0" y1="260.0" x2="250.0" y2="278.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="600.0" y="44.0" width="500.0" height="30.0" rx="4" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="612.0" y="64.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#f7f6f1" text-anchor="start">BALK &amp; LAYOUT</text>
@@ -369,35 +379,35 @@
 <text x="612.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Ytkameror</text>
 <text x="796.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">2 (FOV 2700 mm), WD 951 mm</text>
 <line x1="790.0" y1="230.0" x2="790.0" y2="248.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<text x="612.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Justering</text>
-<text x="796.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">läge/överlapp ställs i spåret</text>
+<text x="612.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kalibrering</text>
+<text x="796.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">laserlinje ⟂ matning, vinkel exakt</text>
 <line x1="790.0" y1="260.0" x2="790.0" y2="278.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<rect x="1140.0" y="44.0" width="500.0" height="30.0" rx="4" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
-<text x="1152.0" y="64.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#f7f6f1" text-anchor="start">MONTERINGSRÅD</text>
-<rect x="1140.0" y="74.0" width="500.0" height="210.0" rx="0" fill="#fff" stroke="#2f6fb0" stroke-width="1" opacity="1"/>
-<text x="1152.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Styvhet</text>
-<text x="1336.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">djup balk – utliggarmoment fr. kamera</text>
+<rect x="1140.0" y="44.0" width="500.0" height="30.0" rx="4" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<text x="1152.0" y="64.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#f7f6f1" text-anchor="start">FÖRSLAG: +2 SIDOLASER</text>
+<rect x="1140.0" y="74.0" width="500.0" height="210.0" rx="0" fill="#fff" stroke="#e8542c" stroke-width="1" opacity="1"/>
+<text x="1152.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Syfte</text>
+<text x="1336.0" y="93.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">profilera kanterna + vankant</text>
 <line x1="1330.0" y1="80.0" x2="1330.0" y2="98.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="1140.0" y="104.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1152.0" y="123.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Alternativ</text>
-<text x="1336.0" y="123.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">egen kamerabalk 600 mm bort</text>
+<text x="1152.0" y="123.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Mäter</text>
+<text x="1336.0" y="123.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">vankantdjup, exakt bredd, kantspr.</text>
 <line x1="1330.0" y1="110.0" x2="1330.0" y2="128.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<text x="1152.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kalibrering</text>
-<text x="1336.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">laserlinje ⟂ matning, vinkel exakt</text>
+<text x="1152.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Vinst</text>
+<text x="1336.0" y="153.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">full tvärsnitt: topp + 2 sidor</text>
 <line x1="1330.0" y1="140.0" x2="1330.0" y2="158.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="1140.0" y="164.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1152.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Justermån</text>
-<text x="1336.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">±läge per huvud via T-spår</text>
+<text x="1152.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kostnad</text>
+<text x="1336.0" y="183.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">+2 laser &amp; kamera / huvud</text>
 <line x1="1330.0" y1="170.0" x2="1330.0" y2="188.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<text x="1152.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Skydd</text>
-<text x="1336.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">kåpa + luftspolning mot damm</text>
+<text x="1152.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kalibrering</text>
+<text x="1336.0" y="213.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">3 laserplan → ett tvärsnitt</text>
 <line x1="1330.0" y1="200.0" x2="1330.0" y2="218.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 <rect x="1140.0" y="224.0" width="500.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1152.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Encoder</text>
-<text x="1336.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">rad-/profiltrigg från transportör</text>
+<text x="1152.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Finns redan</text>
+<text x="1336.0" y="243.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">bredd/krok ur silhuetten</text>
 <line x1="1330.0" y1="230.0" x2="1330.0" y2="248.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
-<text x="1152.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Kylning</text>
-<text x="1336.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">&lt;10 W ytkam · passiv räcker</text>
+<text x="1152.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#6a6e74" text-anchor="start">Rek.</text>
+<text x="1336.0" y="273.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="400" fill="#23262b" text-anchor="start">värt om vankant ska mätas exakt</text>
 <line x1="1330.0" y1="260.0" x2="1330.0" y2="278.0" stroke="#dedcd3" stroke-width="1" opacity="1"/>
 </g>
 <rect x="1210.0" y="2084.0" width="420.0" height="64.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>

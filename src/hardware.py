@@ -12,8 +12,9 @@ Valda produkter:
   SurfaceCam  – MindVision MV-XGLC83BM-T4-90 (10GigE mono 8K linjekamera, 7 µm,
                 4-line TDI, 109,89 kHz @ 8-bit / 87,7 kHz @ 12-bit). Färg fås via
                 strobad sekventiell belysning (RGB + NIR).
-  ProfileCam  – Hikrobot MV-CS050-10UC (USB3, 5 MP global shutter, IMX264,
-                60 fps @ 2448×2048).
+  ProfileCam  – Hikrobot MV-CS050-10UM (USB3, MONO, 5 MP global shutter, IMX264,
+                60 fps @ 2448×2048) + 650 nm bandpassfilter. Mono + filter ser
+                bara laserlinjen (intensitet, ej färg) → bäst för triangulering.
 """
 from __future__ import annotations
 
@@ -60,13 +61,19 @@ class SurfaceCam:
 
 @dataclass
 class ProfileCam:
-    name: str = "Hikrobot MV-CS050-10UC"
+    """Hikrobot MV-CS050-10UM (MONO) – rätt val för lasertriangulering: ingen
+    Bayer-matris → mer ljus + skarpare laserlinje. Mono ser den röda lasern som
+    en ljus strimma (intensitet, inte färg). Med smalt bandpassfilter vid
+    laservåglängden ser den i princip BARA laserlinjen (brusfri stripe-detektering)."""
+    name: str = "Hikrobot MV-CS050-10UM"
     width_px: int = 2448                  # [datablad] (lång axel = längs segmentet)
     height_px: int = 2048                 # [datablad] (kort axel = höjd/triangulering)
     pixel_um: float = 3.45                # [datablad] Sony IMX264
     global_shutter: bool = True           # [datablad]
-    frame_rate_full_hz: float = 60.0      # [datablad] 60 fps @ 2448×2048 (USB3; GigE-varianten -10GC ≈ 35,6 fps)
-    interface: str = "USB3"               # [datablad] UC = USB3
+    mono: bool = True                     # [designval] mono = bäst för laserprofilering
+    bandpass_nm: float = 650.0            # [designval] smalbandsfilter, matchar lasern (650 nm)
+    frame_rate_full_hz: float = 60.0      # [datablad] 60 fps @ 2448×2048 (USB3; GigE -10GC ≈ 35,6 fps)
+    interface: str = "USB3"               # [datablad] UM = USB3 mono
 
     @property
     def sensor_w_mm(self) -> float:
