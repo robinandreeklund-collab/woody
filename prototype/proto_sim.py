@@ -386,7 +386,7 @@ BOM = [
     ("Punktlaser ×3 (rek.)", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2),
     ("ADC", "MCP3008 (SPI, 200 kSPS, 8 kanaler)", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 60, 2),
     ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2),
-    ("Objektiv M72 (ytkamera)", "Vision Datum VT-LEN72-5545MP150 (55 mm, M72, ≤66,7 mm)", 1, "8K-yta över 500 mm @ WD ~535 mm", "—", "—", 16000, 2),
+    ("Objektiv M72 (ytkamera)", "NEEMOO M72 40 mm 8K line-scan (φ62, M72×0.75)", 1, "8K-yta 500 mm — bekräfta bildcirkel ≥57 mm m. säljaren", "—", "—", 2100, 2),
     ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 900, 2),
     ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 1500, 2),
     ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 300, 2),
