@@ -31,7 +31,7 @@ import matplotlib.patches as mpatches
 
 from src.board import make_board
 from src.hardware import Rig
-from src.laser import simulate_array
+from src.laser import simulate_array, simulate_triangulation
 from src.config import CLASSES, CLASS_COLORS
 
 INK, MUTED, PAPER = "#23262b", "#6a6e74", "#f7f6f1"
@@ -244,26 +244,40 @@ def fig_length_profile(sim, feed_frac, figsize=(7.4, 3.2)):
 
 # ------------------------------------------------- tvärsnittsprofil (över bredden)
 def fig_cross_section(sim, length_frac, figsize=(7.4, 3.2)):
-    """Tvärsnitt (tvärs 150 mm bredd) vid en längdposition: topp-profil + två sidoväggar
-    från de OBLIKA LINJELASRARNA (röd ser vänster sida, grön höger). Kupa/vridning syns.
-    (Punktlasrarna mäter inte här – de ligger längs 1 m och ankrar LÄNGSprofilen.)"""
+    """Tvärsnitt (höjdprofil tvärs bredden) — FÄRGLAGT efter vilken oblik laser som
+    mäter varje punkt: röd 650 (vänster) / grön 520 (höger) / båda (topp) / ingen
+    (skugga → interpolerad). Visar att de två vinklarna fyller varandras skuggor och
+    fångar topp + båda kanterna = hela tvärsnittets höjd/tjocklek."""
     z = sim["meas"]["z_fused"]; Hpx, Wpx = z.shape
     Wd, T = sim["width"], sim["thickness"]
+    btrue = sim["board"]["height"]; rig = sim["rig"]; mpp = sim["mm_per_px"]
     li = int(np.clip(length_frac * (Hpx - 1), 0, Hpx - 1))
     ys = np.linspace(0, Wd, Wpx); top = z[li, :]
+    va = simulate_triangulation(btrue, mpp, rig, seed=1, direction=+1)["valid"][li]   # röd (vänster)
+    vb = simulate_triangulation(btrue, mpp, rig, seed=1, direction=-1)["valid"][li]   # grön (höger)
     fig = _fig(figsize); ax = fig.add_subplot(111)
-    _ax(ax, f"TVÄRSNITT (tvärs 150 mm) vid längd {length_frac*sim['L']:.0f} mm — linjelasrar")
-    ax.fill_between(ys, 0, top, color="#e2e8da", ec="none")
-    ax.plot(ys, top, color=INK, lw=1.6, label="uppmätt topp-profil")
-    ax.plot([ys[0], ys[0]], [0, top[0]], color=RED, lw=3, solid_capstyle="round",
-            label="vänster sida (röd 650)")
-    ax.plot([ys[-1], ys[-1]], [0, top[-1]], color=GRN, lw=3, solid_capstyle="round",
-            label="höger sida (grön 520)")
+    _ax(ax, f"TVÄRSNITT vid längd {length_frac*sim['L']:.0f} mm — färg = vilken laser mäter")
+    ax.fill_between(ys, 0, top, color="#eef1ec", ec="none")
+    ax.plot(ys, top, color="#b9bdc2", lw=1.0, zorder=2)
+    both, ro, go = va & vb, va & ~vb, vb & ~va
+    for mask, col, lab, s in [(both, "#555", "båda (topp)", 9),
+                              (ro, RED, "endast röd 650 (fyller grön:s skugga)", 18),
+                              (go, GRN, "endast grön 520 (fyller röd:s skugga)", 18)]:
+        if mask.any():
+            ax.scatter(ys[mask], top[mask], s=s, color=col, zorder=5, label=lab, edgecolors="none")
+    none = ~va & ~vb
+    if none.any():
+        ax.scatter(ys[none], top[none], s=28, facecolors="none", edgecolors="#c0392b",
+                   lw=1.0, zorder=6, label="ingen → interpolerad")
+    ax.plot([ys[0], ys[0]], [0, top[0]], color=RED, lw=3.5, solid_capstyle="round")
+    ax.plot([ys[-1], ys[-1]], [0, top[-1]], color=GRN, lw=3.5, solid_capstyle="round")
+    ax.text(ys[0] + 1, top[0] / 2, "V-kant\n(röd)", color=RED, fontsize=6.5, va="center")
+    ax.text(ys[-1] - 1, top[-1] / 2, "H-kant\n(grön)", color=GRN, fontsize=6.5, va="center", ha="right")
     ax.axhline(T, color=MUTED, ls="--", lw=0.8)
     ax.text(Wd, T + 0.4, f"nominell {T:.0f} mm", color=MUTED, fontsize=7.5, ha="right")
-    ax.set_xlim(-4, Wd + 4); ax.set_ylim(0, T * 1.4)
-    ax.set_xlabel("bredd (mm) — matningsled"); ax.set_ylabel("höjd (mm)")
-    ax.legend(loc="lower center", fontsize=7, ncol=3, frameon=False)
+    ax.set_xlim(-6, Wd + 6); ax.set_ylim(0, T * 1.4)
+    ax.set_xlabel("bredd (mm) — matningsled"); ax.set_ylabel("höjd (mm) = tjocklek")
+    ax.legend(loc="lower center", fontsize=6.3, ncol=2, frameon=False)
     fig.tight_layout(); return fig
 
 
