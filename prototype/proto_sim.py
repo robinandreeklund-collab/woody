@@ -361,7 +361,7 @@ BOM = [
     ("Objektiv C-mount", "8 mm (profilkameror)", 2, "profiloptik (1 m FOV)", "—", "—", 500),
     ("Bandpassfilter", "650 nm / 520 nm", 2, "isolerar laservåglängd", "—", "—", 350),
     ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan, 4-TDI)", "10GBase-T (NBASE-T)", "1,2 kHz proto / 110 kHz max", 6902),
-    ("Objektiv M72", "line-scan-optik (ytkamera)", 1, "8K-yta över 1 m", "—", "—", 3000),
+    ("Objektiv M72", "8K line-scan 55–60 mm (M72×0.75, ⌀≥62 mm)", 1, "8K-yta över 1 m (WD ~1 m)", "—", "—", 2600),
     ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300),
     ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350),
     ("Punktlaser ×3 (rek.)", "Panasonic HG-C1100", 3, "absolut tjocklek + tvärsnitt", "analog→ADC", "1,5 kHz", 1800),
