@@ -172,7 +172,7 @@ def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
 left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "5V+GPIO"),
-        (1040, "RoboClaw 2x7A (matning)", "AS5601-enc + 2× motor, PID", F1, "UART"), (1120, "3× Punktlaser→MCP3008", "HG-C1400", F1, "SPI"),
+        (1040, "Jrk G2 24v13 (matning)", "motorns Hall-Signal → frekvens-FB", F1, "USB/I²C"), (1120, "3× Punktlaser→MCP3008", "HG-C1400", F1, "SPI"),
         (1200, "Ingångslaser", "E3F-DS30 (brädstart)", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c); conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
@@ -191,7 +191,7 @@ txt(JX + 120, JY + JH + 48, "PSU 24 V (band) · 5 V (laser) · DC-in (Jetson)", 
 panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
 io = [("USB 3.2 Gen2 (×4)", "2 — RÖD + GRÖN kamera", "OK · 2 lediga", F1),
       ("Gigabit Ethernet", "1 — ytkamera (NBASE-T→1GbE)", "OK", F2),
-      ("40-pin UART", "1 — RoboClaw (matning, fart/läge)", "OK", F1),
+      ("USB/UART/I²C", "1 — Jrk G2 (matning, målfart)", "OK", F1),
       ("40-pin SPI (×2)", "1 — MCP3008 (3 punktlaser)", "OK", F1),
       ("40-pin GPIO (~28)", "~5 — ingångslaser, kam-trig×2, 2 laser-en", "OK · gott om", F1),
       ("40-pin I2C/PWM", "0 — reserv (motor/enc på RoboClaw)", "ledig", DIMC),
@@ -208,8 +208,8 @@ for i, (a, b, c, col) in enumerate(io):
 # ============================================================ 3) PINOUT + BOM
 panel(40, 1388, 1000, 640, "3 · JETSON 40-PIN (J12) — prototyp-tilldelning", INK)
 PINS = {1:("3.3V","MCP3008 VDD",P33),2:("5V","ext laser",P5),3:("I2C1_SDA","reserv",BUSc),4:("5V","",P5),
- 5:("I2C1_SCL","reserv",BUSc),6:("GND","",GNDc),7:("GPIO09","reserv",DIMC),8:("UART1_TX","ROBOCLAW TX",F1),
- 9:("GND","",GNDc),10:("UART1_RX","ROBOCLAW RX",F1),11:("UART1_RTS","reserv",BUSc),12:("I2S0_SCLK","reserv",DIMC),
+ 5:("I2C1_SCL","reserv",BUSc),6:("GND","",GNDc),7:("GPIO09","reserv",DIMC),8:("UART1_TX","JRK G2 TX",F1),
+ 9:("GND","",GNDc),10:("UART1_RX","JRK G2 RX",F1),11:("UART1_RTS","reserv",BUSc),12:("I2S0_SCLK","reserv",DIMC),
  13:("SPI1_SCK","KAM-TRIG GRÖN",F1),14:("GND","",GNDc),15:("GPIO12·PWM","reserv",DIMC),16:("SPI1_CS1","LASER RÖD en",F1),
  17:("3.3V","logik",P33),18:("SPI1_CS0","LASER GRÖN en",F1),19:("SPI0_MOSI","MCP3008 DIN",F1),20:("GND","",GNDc),
  21:("SPI0_MISO","MCP3008 DOUT",F1),22:("SPI1_MISO","INGÅNGSLASER",F1),23:("SPI0_SCK","MCP3008 CLK",F1),24:("SPI0_CS0","MCP3008 CS",F1),
@@ -229,7 +229,7 @@ for i in range(20):
         tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
         txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
         if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
-txt(60, 2002, "Matning: RoboClaw 2x7A via UART (pin 8/10) — encodern A/B går till RoboClaw (ej Jetson) → motor/encoder-pinnar fria. MCP3008 på SPI0. HG-C1400 → spänningsdelare ≤3,3 V. Gemensam GND.", 9.3, "start", MUTED, 400)
+txt(60, 2002, "Matning: Jrk G2 24v13 via USB/UART/I²C — motorns inbyggda Hall-Signal går till Jrk:s frekvens-FB (closed-loop fart). MCP3008 på SPI0. HG-C1400 → spänningsdelare ≤3,3 V. Gemensam GND.", 9.3, "start", MUTED, 400)
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)
