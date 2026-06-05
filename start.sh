@@ -83,7 +83,12 @@ if [ "$TRAIN" = "1" ]; then
   python -c "from src.config import SegConfig; from src.train import fit; fit(SegConfig.${FACTORY}('data/kodytek'))"
   export WOODY_CKPT="$CKPT"
 else
-  echo "==> 4/5  Träning hoppas över. Lägg till --train för att träna på Kodytek."
+  echo "==> 4/5  Träning hoppas över. Använder befintlig modell om sådan finns."
+  # auto-välj bästa tränade checkpoint (utan att träna om)
+  for c in seg_combined.pt seg_kodytek_033.pt seg_kodytek.pt seg_unet.pt; do
+    if [ -f "outputs/$c" ]; then export WOODY_CKPT="$c"; echo "    modell: outputs/$c"; break; fi
+  done
+  [ -f "outputs/$WOODY_CKPT" ] || echo "    (ingen tränad modell -> facit/syntetiskt läge)"
 fi
 
 echo "==> 5/5  Startar server"
