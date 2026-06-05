@@ -14,11 +14,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.hardware import Rig
 
 BENCH_L = 500
-r = Rig(board_length_mm=BENCH_L, board_width_mm=150, board_thickness_mm=45)
+BW = 75                                                                     # brädbredd (matning) – proto
+CY = BW / 2                                                                 # brädans mittlinje (y)
+r = Rig(board_length_mm=BENCH_L, board_width_mm=BW, board_thickness_mm=45)
 OBL = r.oblique_angle_deg
 WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)        # ~474 mm
-SOFF = round(WD * math.sin(math.radians(OBL)))                              # ~335 mm (y-offset)
-MH = round(WD * math.cos(math.radians(OBL)))                               # ~335 mm (höjd)
+SOFF = round(WD * math.sin(math.radians(OBL)))                              # y-offset (∝ sinθ)
+MH = round(WD * math.cos(math.radians(OBL)))                               # höjd (∝ cosθ)
 SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm)                  # ~480 mm
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
 SEP = 2 * SOFF                                                              # avstånd mellan modulerna
@@ -76,11 +78,11 @@ add(f'<line x1="48" y1="106" x2="{W-48}" y2="106" stroke="{INK}" stroke-width="1
 
 # ===================== ISO-SCEN =====================
 BX0, BX1 = 0, BENCH_L           # bräda x (längd)
-BY0, BY1 = 0, 150               # bräda y (bredd/matning)
+BY0, BY1 = 0, BW                # bräda y (bredd/matning) – 75 mm
 BZ = 45                         # tjocklek
-MYL, MYR = 75 - SOFF, 75 + SOFF # moduler y (var sin sida om mitten y=75)
-TOPZ = MH + 80                  # huvudbalkens höjd
-FY0, FY1 = -130, 280            # matningsbanans utsträckning (y)
+MYL, MYR = CY - SOFF, CY + SOFF # moduler y (var sin sida om mittlinjen CY)
+TOPZ = MH + 40                  # huvudbalkens höjd (över modul/punktlaser)
+FY0, FY1 = -90, 200             # matningsbanans utsträckning (y)
 LEGX0, LEGX1 = -80, BENCH_L + 80  # ben vid LÄNGD-ändarna (ur matningsbanan)
 
 # --- bas/golvplatta ---
@@ -91,29 +93,32 @@ for bx0, bx1, lab in [(0, 85, "BAND V"), (BENCH_L - 85, BENCH_L, "BAND H")]:
     txt(*P((bx0 + bx1) / 2, FY1 + 8, 11), lab, 9, "middle", "#dfe3e8", 700)
 # --- anslag/mathåll i bakkant (laddläge) vid FY0 ---
 box(BX0 - 6, BX1 + 6, FY0 - 4, FY0 + 8, 0, 52, "#9aa0a8", "#7f858c", "#888e95", "#6e747b", 1)
-txt(*P(BX0 - 6, FY0 - 6, 64), "ANSLAG / mathåll (laddläge)", 9, "end", MUTED, 700)
+txt(*P(BX0 - 6, FY0 - 6, 64), "ANSLAG / mathåll (laddläge, bakkant)", 9, "end", MUTED, 700)
+# --- SIDOANSLAG / styrskena längs ENA sidan (x=0) ---
+box(BX0 - 13, BX0 - 3, FY0 - 8, FY1 + 8, 0, 42, "#8aa0b0", "#5f7585", "#6e8494", "#566c7c", 1)
+txt(*P(BX0 - 12, FY1, 42), "SIDOANSLAG (styrskena, en sida)", 9, "end", BLUE, 700)
 # --- bräda ---
 box(BX0, BX1, BY0, BY1, 0, BZ, WOOD, "#d9cfb0", "#cdbf99", "#9a8c63", 1.2)
-txt(*P(250, BY1 + 6, BZ + 4), "bräda 500 × 150 × 45 mm", 10.5, "middle", "#8a7d4e", 700)
+txt(*P(250, BY1 + 6, BZ + 4), "bräda 500 × 75 × 45 mm", 10.5, "middle", "#8a7d4e", 700)
 # --- matning fram (rosa) + back (blå): Jetson styr → multi-pass ---
-arrow(P(250, FY0 + 30, 17), P(250, FY1 - 20, 17), "#b06", 2.6)
-arrow(P(170, FY1 - 20, 17), P(170, FY0 + 30, 17), BLUE, 2.0)
+arrow(P(250, FY0 + 24, 17), P(250, FY1 - 16, 17), "#b06", 2.6)
+arrow(P(310, FY1 - 16, 17), P(310, FY0 + 24, 17), BLUE, 2.0)
 txt(*P(250, FY1 + 30, 17), "Jetson: ladda→fram→mät→BACK→upprepa (multi-pass)", 10.5, "middle", "#b06", 700)
 # --- ingångslaser (brädstart/position) från sidan, tvärs banan ---
-ely = -55
+ely = -45
 em, rf = P(BX1 + 60, ely, 26), P(BX0 - 60, ely, 26)
 ln(em, rf, RED, 1.4, "5 4", op=0.6)
 poly([(em[0]-2,em[1]-12),(em[0]+26,em[1]-12),(em[0]+26,em[1]+10),(em[0]-2,em[1]+10)], "#ffe7d8", RED, 1.4)
 txt(em[0]+12, em[1]+2, "IN", 8.5, "middle", RED, 700)
 txt(em[0]+34, em[1]-2, "ingångslaser (brädstart + position)", 9, "start", RED, 700)
 
-# --- STATIV (vänt 90°): ben vid längd-ändarna, y=75, UR matningsbanan ---
+# --- STATIV (vänt 90°): ben vid längd-ändarna, y=CY, UR matningsbanan ---
 for lx in (LEGX0, LEGX1):
-    box(lx - 18, lx + 18, 75 - 18, 75 + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)  # fotplatta
-    box(lx - 14, lx + 14, 75 - 14, 75 + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)        # ben
+    box(lx - 18, lx + 18, CY - 18, CY + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)  # fotplatta
+    box(lx - 14, lx + 14, CY - 14, CY + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)        # ben
 # --- HUVUDBALK längs X (mellan benen, över brädan) ---
-box(LEGX0 - 12, LEGX1 + 12, 75 - 12, 75 + 12, TOPZ - 22, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
-txt(*P(LEGX1 + 24, 75, TOPZ + 6), "HUVUDBALK (längs 500 mm)", 9, "start", MUTED, 700)
+box(LEGX0 - 12, LEGX1 + 12, CY - 12, CY + 12, TOPZ - 22, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
+txt(*P(LEGX1 + 24, CY, TOPZ + 6), "HUVUDBALK (längs 500 mm)", 9, "start", MUTED, 700)
 # --- TVÄRBALK åt andra hållet (i Y) där modulerna sitter ---
 box(243, 257, MYL - 12, MYR + 12, TOPZ - 42, TOPZ - 20, ALU, "#a6abb0", "#b0b5ba", "#92979c", 1)
 txt(*P(250, MYL - 24, TOPZ - 30), "TVÄRBALK (modulfäste, åt andra hållet)", 9, "middle", MUTED, 700)
@@ -124,8 +129,8 @@ for my, col, lab, sub in mods:
     ln(P(250, my, TOPZ - 31), P(250, my, MH), "#8a9099", 2.6)         # fäste från tvärbalk
     mp = P(250, my, MH)
     for ex in (BX0, BX1):
-        ln(mp, P(ex, 75, BZ), col, 2.0, op=0.85)
-    ln(P(BX0, 75, BZ + 0.4), P(BX1, 75, BZ + 0.4), col, 3)            # laserlinje på brädan
+        ln(mp, P(ex, CY, BZ), col, 2.0, op=0.85)
+    ln(P(BX0, CY, BZ + 0.4), P(BX1, CY, BZ + 0.4), col, 3)            # laserlinje på brädan
     poly([(mp[0]-34,mp[1]-30),(mp[0]+34,mp[1]-30),(mp[0]+34,mp[1]+8),(mp[0]-34,mp[1]+8)], "#fff", col, 1.6)
     poly([(mp[0]-34,mp[1]-30),(mp[0]+34,mp[1]-30),(mp[0]+34,mp[1]-18),(mp[0]-34,mp[1]-18)], col, col, 0)
     txt(mp[0], mp[1]-21, lab, 9, "middle", PAPER, 700, SANS)
@@ -133,20 +138,20 @@ for my, col, lab, sub in mods:
 
 # --- 3 punktlaser hänger från HUVUDBALKEN längs X ---
 for px in PL_X:
-    ln(P(px, 75, TOPZ - 12), P(px, 75, PLWD), "#8a9099", 2)
-    pt = P(px, 75, PLWD)
+    ln(P(px, CY, TOPZ - 12), P(px, CY, PLWD), "#8a9099", 2)
+    pt = P(px, CY, PLWD)
     poly([(pt[0]-11,pt[1]-9),(pt[0]+11,pt[1]-9),(pt[0]+11,pt[1]+9),(pt[0]-11,pt[1]+9)], "#f3e6fb", PURP, 1.4)
     txt(pt[0], pt[1]+3, "PL", 8, "middle", PURP, 700)
-    ln(pt, P(px, 75, BZ), PURP, 1.5, "3 3"); dot(P(px, 75, BZ), 2.6, PURP)
+    ln(pt, P(px, CY, BZ), PURP, 1.5, "3 3"); dot(P(px, CY, BZ), 2.6, PURP)
 
 # --- överliggande line-scan-ytkamera + RGB/NIR-strobe (på balkkorset) ---
-cp = P(250, 75, SURF_WD)
-ln(P(250, 75, TOPZ), cp, "#8a9099", 3)
+cp = P(250, CY, SURF_WD)
+ln(P(250, CY, TOPZ), cp, "#8a9099", 3)
 poly([(cp[0]-52,cp[1]-16),(cp[0]+52,cp[1]-16),(cp[0]+52,cp[1]+12),(cp[0]-52,cp[1]+12)], "#efe6f7", SURFC, 1.6)
 txt(cp[0], cp[1]-2, "YTKAMERA line-scan", 8.5, "middle", SURFC, 700, SANS)
 txt(cp[0], cp[1]+9, "M72 + RGB/NIR-strobe", 7.5, "middle", INK)
 for ex in (BX0, BX1):
-    ln(cp, P(ex, 75, BZ), SURFC, 0.9, "3 3")
+    ln(cp, P(ex, CY, BZ), SURFC, 0.9, "3 3")
 
 # --- Jetson ---
 jp = P(BENCH_L + 150, FY1 - 20, 0)
@@ -203,7 +208,7 @@ dims = [
     ("Sidooffset (modul ut i sidled)", f"~{SOFF} mm"),
     ("Avstånd mellan modulerna", f"~{SEP} mm"),
     ("Laserlinje (längs brädan)", f"{BENCH_L} mm"),
-    ("Brädbredd / matning", "150 mm"),
+    ("Brädbredd / matning", f"{BW} mm"),
     ("Punktlaser-läge (V/C/H)", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]} mm"),
     ("Punktlaser mätavstånd (HG-C1400)", f"{PLWD} mm"),
     ("Ytkamera arbetsavstånd (M72)", f"~{SURF_WD} mm"),

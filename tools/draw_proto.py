@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.hardware import Rig
 
 BENCH_L = 500
-r = Rig(board_length_mm=BENCH_L, board_width_mm=150, board_thickness_mm=45)
+r = Rig(board_length_mm=BENCH_L, board_width_mm=75, board_thickness_mm=45)
 OBL = r.oblique_angle_deg
 # FOV matchad till 500 mm med SAMMA optik (CS050 + 8 mm) → kortare arbetsavstånd
 WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)        # ~474 mm
@@ -20,7 +20,7 @@ SOFF = round(WD * math.sin(math.radians(OBL)))                              # ~3
 MH = round(WD * math.cos(math.radians(OBL)))                                # ~335 mm
 SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm)                   # ~480 mm (M72 55 mm)
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
-BW, BT = 150, 45
+BW, BT = round(r.board_width_mm), round(r.board_thickness_mm)
 
 W, H = 1640, 1660
 INK, MUTED, DIMC = "#23262b", "#6a6e74", "#9a9ea4"
@@ -77,7 +77,7 @@ vlabel(48, 6, "A", "BÄNK — ovanifrån (cross-feed: laserlinje längs 500 mm, 
 ax0, ax1 = 210, 1010
 def AX(mm): return ax0 + mm * (ax1 - ax0) / BENCH_L
 PXMM = (ax1 - ax0) / BENCH_L
-FW = 150 * PXMM                                   # 150 mm bredd i px
+FW = BW * PXMM                                    # bredd i px (75 mm)
 y0 = 210                                          # brädans överkant (bredd-axel)
 # 2 transportband vid ändarna (löper i matningsled), sticker ut förbi brädan
 beltw = 85 * PXMM
@@ -87,7 +87,7 @@ for bxmm, lab in [(42, "V"), (BENCH_L - 42, "H")]:
     for ry in (y0 - 34, y0 + FW + 32): circ(bxp, ry, 5, "#9aa0a8", "#2b2f35", 1)
     txt(bxp, y0 + FW + 60, f"BAND {lab}", 9, "middle", "#dfe3e8", 700)
 rect(AX(0), y0, AX(BENCH_L) - AX(0), FW, "#e9e1cf", "#b9a96f", 1.4)   # bräda 500 × 150
-txt(AX(14), y0 + FW - 8, "bräda 500 × 150 mm", 11, "start", "#8a7d4e", 700)
+txt(AX(14), y0 + FW - 8, "bräda 500 × 75 mm", 11, "start", "#8a7d4e", 700)
 sy = y0 + FW * 0.5                                # laserlinjen längs längden
 line(AX(0) - 26, sy, AX(BENCH_L) + 26, sy, INK, 2.2)
 txt(AX(BENCH_L) + 70, sy - 6, "laserlinje 500 mm", 10, "start", INK, 700)
@@ -102,7 +102,7 @@ for f in (0.1, 0.5, 0.9):
     line(x, y0 - 20, x, sy, PURP, 1.3, "2 3"); circ(x, sy, 2.4, PURP, PURP, 0)
 # matning i sidled (bredd)
 arrow(AX(BENCH_L * 0.32), y0 - 6, AX(BENCH_L * 0.32), y0 + FW + 6, "#b06", 2.2)
-txt(AX(BENCH_L * 0.32) + 10, y0 + FW - 22, "matning (bredd 150 mm)", 10, "start", "#b06", 700)
+txt(AX(BENCH_L * 0.32) + 10, y0 + FW - 22, f"matning (bredd {BW} mm)", 10, "start", "#b06", 700)
 # mäthjul/encoder mot brädan
 circ(AX(BENCH_L * 0.7), y0 + 10, 8, "#cfd2d6", "#7a7f86", 1.4)
 txt(AX(BENCH_L * 0.7) + 13, y0 + 14, "mäthjul (encoder)", 9, "start", MUTED, 700)
@@ -111,7 +111,7 @@ rect(AX(BENCH_L) + 64, y0 + FW - 8, 150, 60, "#e6efe6", JET, 1.6, 6)
 txt(AX(BENCH_L) + 139, y0 + FW + 14, "JETSON Orin Nano", 11, "middle", JET, 700, SANS)
 txt(AX(BENCH_L) + 139, y0 + FW + 30, "edge-compute + U-Net", 8.5, "middle", MUTED)
 hdim(AX(0), AX(BENCH_L), y0 + FW + 96, "längd 500 mm (laserlinjens riktning)")
-vdim(y0, y0 + FW, AX(0) - 55, "150 mm")
+vdim(y0, y0 + FW, AX(0) - 55, f"{BW} mm")
 add('</g>')
 
 # ===================== VY B — HUVUD/STATIV ÄNDVY =====================

@@ -76,7 +76,7 @@ def run(length, width, thick, seed, subtle, takt, rate, bow, cup, twist, passes=
 def stream_board(rng):
     """Slumpad 1 m-bräda: små mm-avvikelser i mått + global skevhet (twist/bukt/kupa)
     ovanpå lokala defekter (sprickor, kvist, vankant, röta, hål)."""
-    return dict(width=int(round(np.clip(150 + rng.normal(0, 3), 140, 160))),
+    return dict(width=int(round(np.clip(75 + rng.normal(0, 2), 68, 82))),
                 thick=int(round(np.clip(45 + rng.normal(0, 2), 38, 52))),
                 seed=int(rng.integers(0, 9999)), subtle=False,
                 bow=float(abs(rng.normal(0, 1.4))),
@@ -149,16 +149,16 @@ length = sb.selectbox("Brädlängd (mm)", [500, 1000], index=0,
                       help="500 mm = Fas 1 (kortare laserlinje, finare upplösning). 1000 mm = full bräda.")
 
 sb.header("TRANSPORTBAND")
-takt = sb.slider("Takt (brädor/min)", 10, 180, 20, 5)
+takt = sb.slider("Takt (brädor/min)", 10, 240, 40, 5)
 rate = sb.slider("Profiltakt (profiler/s)", 100, 1200, 490, 10)
-_feed = 150 / 1000 * takt / 60
+_feed = 75 / 1000 * takt / 60
 sb.caption(f"Bandhastighet ≈ **{_feed*1000:.0f} mm/s** ({_feed:.2f} m/s) · matnings-pitch ≈ "
-           f"**{_feed*1000/rate:.2f} mm/profil**. 20/min ≈ 50 mm/s (matchar mini-transportören).")
+           f"**{_feed*1000/rate:.2f} mm/profil**. 40/min ≈ 50 mm/s (75 mm bräda, mini-transportör).")
 xpos = sb.slider("Tvärsnitt vid längd (%)", 0, 100, 50, 1) / 100.0
 
 if ss.mode == "Manuell inspektion":
     sb.header("MÅTT (manuell)")
-    width = sb.slider("Bredd (mm)", 140, 160, 150, 1)
+    width = sb.slider("Bredd (mm)", 60, 90, 75, 1)
     thick = sb.slider("Tjocklek (mm)", 38, 52, 45, 1)
     seed = sb.number_input("Bräd-id (seed)", 0, 9999, 3, 1)
     subtle = sb.checkbox("Subtila defekter (sensortest)", False)

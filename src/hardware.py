@@ -118,7 +118,7 @@ class Rig:
     # via matningen -> topp + 2 sidor (höjd/vankant) i 3D, och fyller varandras
     # skuggor. Olika våglängd + matchande bandpass -> ingen förväxling, full takt.
     dual_oblique: bool = True             # [designval]
-    oblique_angle_deg: float = 45.0       # [designval] varje moduls lutning från lod
+    oblique_angle_deg: float = 30.0       # [designval] varje moduls lutning från lod (optimerad: kompakt rigg + djuprange för 45 mm bräda, Z-uppl. ~0,35 mm)
     laser2_nm: float = 520.0              # [designval] grön (höger); röd (vänster) = laser.wavelength_nm
 
     # --- drift ---

@@ -371,6 +371,7 @@ BOM = [
     ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300, 1),
     ("Alu-ram (manuell)", "alu-profil + fästen, handmatning", 1, "enkel bänk – putta brädan för hand", "—", "—", 800, 1),
     ("Anslag / mathåll", "fast anslag i bakkant (laddläge)", 1, "lägg brädan mot → känd start, kvadrerar", "—", "—", 150, 1),
+    ("Sidoanslag / styrskena", "fast anslag längs ENA sidan", 1, "brädans ena kant rider mot → datum + anti-skev", "—", "—", 200, 1),
     ("Diverse", "Kablar, nätaggregat, fästen", 1, "—", "—", "—", 1500, 1),
     ("Profilkamera H (grön)", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 2),
     ("Objektiv C-mount", "8 mm (profilkamera H)", 1, "profiloptik (1 m FOV)", "—", "—", 500, 2),
@@ -490,7 +491,8 @@ def fig_assembly(sim, figsize=(7.4, 4.0)):
                  fc="#e3f3ea", ec=INK, lw=1.1)); ax.text(130, 102, "Modul H\ngrön 520", ha="center", va="center", fontsize=6.6)
     ax.annotate("", xy=(-Wd / 2 + 6, T), xytext=(-126, 92), arrowprops=dict(arrowstyle="-|>", color=RED, lw=1.8))
     ax.annotate("", xy=(Wd / 2 - 6, T), xytext=(126, 92), arrowprops=dict(arrowstyle="-|>", color=GRN, lw=1.8))
-    ax.text(-92, 70, "45°", color=RED, fontsize=8); ax.text(74, 70, "45°", color=GRN, fontsize=8)
+    _oa = f"{sim['rig'].oblique_angle_deg:.0f}°"
+    ax.text(-92, 70, _oa, color=RED, fontsize=8); ax.text(74, 70, _oa, color=GRN, fontsize=8)
     # punktlaser: 3× spridda LÄNGS 1 m (in i bilden) → i ändvyn ett centrerat nedåt-skott
     ax.plot([0, 0], [118, T], color=PURP, lw=1.2, ls=(0, (1, 1)))
     ax.plot(0, 120, marker="v", ms=9, color=PURP, mec="k", mew=0.4)
