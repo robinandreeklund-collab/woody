@@ -101,7 +101,7 @@ box(LEGX0 - 12, LEGX1 + 12, CY - 12, CY + 12, TOPZ - 22, TOPZ, ALU, "#aeb3b8", "
 txt(*P(LEGX1 + 24, CY, TOPZ + 6), "HUVUDBALK", 9, "start", MUTED, 700)
 box(243, 257, MYL - 12, MYR + 12, TOPZ - 42, TOPZ - 20, ALU, "#a6abb0", "#b0b5ba", "#92979c", 1)
 txt(*P(250, MYL - 24, TOPZ - 30), "TVÄRBALK (modulfäste)", 9, "middle", MUTED, 700)
-for my, col, lab, fas in [(MYL, RED, f"RÖD {RED_NM}", 1), (MYR, GRN, f"GRÖN {GRN_NM}", 2)]:
+for my, col, lab, fas in [(MYL, RED, f"RÖD {RED_NM}", 1), (MYR, GRN, f"GRÖN {GRN_NM}", 1)]:
     if fas == 2: add('<g opacity="0.5">')
     ln(P(250, my, TOPZ - 31), P(250, my, MH), "#8a9099", 2.4); mp = P(250, my, MH)
     for ex in (BX0, BX1): ln(mp, P(ex, CY, BZ), col, 1.8, op=0.85)
@@ -126,17 +126,17 @@ txt(jp[0] + 75, jp[1] - 6, "JETSON Orin Nano", 10, "middle", JET, 700, SANS); tx
 
 # ---- legend + mått + styrning (rad 1 höger) ----
 panel(1210, 116, 410, 372, "SENSORER / FAS", INK)
-leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 2),
+leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 1),
        (PURP, "3× punktlaser HG-C1400", 2), (SURFC, "Ytkamera line-scan + RGB/NIR", 2),
-       (BELT, "2× rullband + encoder", 1), (ALU, "Stativ + ingångslaser + Jetson", 1)]
+       (BELT, "2× rullband + Hall-FB", 1), (ALU, "Stativ + ingångslaser + Jetson", 1)]
 for i, (c, k, fas) in enumerate(leg):
     ry = 160 + i * 40; rect(1224, ry, 20, 20, c, INK, 0.8, 4)
     txt(1252, ry + 14, k, 11, "start", INK, 700, SANS)
     fc = F1 if fas == 1 else F2; rect(1530, ry + 2, 78, 16, fc, fc, 0, 8); txt(1569, ry + 14, f"FAS {fas}", 9, "middle", "#fff", 700, SANS)
 rect(1224, 408, 384, 70, PANEL, DIMC, 0.8, 5)
-txt(1234, 426, "FAS 1 (solid) = körbar röd-profilerare:", 10, "start", F1, 700)
-txt(1234, 442, "rullband + encoder + Jetson-styrning → 3D-profil.", 9.5, "start", INK, 400)
-txt(1234, 462, "FAS 2 (tonad) = grön modul + punktlaser + yta.", 10, "start", F2, 700)
+txt(1234, 426, "FAS 1 (solid) = full 3D-mätrigg:", 10, "start", F1, 700)
+txt(1234, 442, "röd + grön modul + rullband + Jetson → 3D-profil.", 9.5, "start", INK, 400)
+txt(1234, 462, "FAS 2 (tonad) = punktlaser + line-scan-yta.", 10, "start", F2, 700)
 
 panel(1640, 116, 410, 372, "MÅTT (mm)", INK)
 dims = [("Arbetsavstånd (oblik)", f"~{WD}"), ("Oblik vinkel", f"{OBL:.0f}°"), ("Modulhöjd", f"~{MH}"),
@@ -172,7 +172,7 @@ def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
 left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "5V+GPIO"),
-        (1040, "Jrk G2 24v13 (matning)", "motorns Hall-Signal → frekvens-FB", F1, "USB/I²C"), (1120, "3× Punktlaser→MCP3008", "HG-C1400", F1, "SPI"),
+        (1040, "Jrk G2 24v13 (matning)", "motorns Hall-Signal → frekvens-FB", F1, "USB/I²C"), (1120, "3× Punktlaser→MCP3008", "HG-C1400 (Fas 2)", F2, "SPI"),
         (1200, "Ingångslaser", "E3F-DS30 (brädstart)", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c); conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)

@@ -389,8 +389,6 @@ BOM = [
     ("Objektiv GRÖN", "HIKROBOT MVL-MF1228M-8MP (12 mm, 8MP, 2/3″)", 1, "profiloptik (500 mm FOV @ WD ~710 mm); HAR frontfiltergänga", "—", "—", 700, 1, "AliExpress · ditt val"),
     ("Bandpass 520", "520 nm bandpass M30.5×0.5 — MidOpt grön ~520 (el. AliExpress); 520 ej 532", 1, "isolerar grön laser; skruvas på 12 mm-linsens M30.5-gänga", "—", "—", 200, 1, "AliExpress/MidOpt · att köpa"),
     ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "linjelaser 520 nm 50 mW (oblik 30°)", "5 V + GPIO-en", "CW", 350, 1, "iadiy.com · ditt val"),
-    ("Punktlaser ×3", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 1, "att köpa"),
-    ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 1, "att köpa"),
     ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s ('with Power Supply')", 2, "matning (cross-feed); 24 V-PSU ingår → matar Jrk", "24 V DC", "50 mm/s", 736, 1, "AliExpress · ditt val"),
     ("Motorstyrning ×2", "Pololu Jrk G2 24v13 #3147 (el. 21v3 #3142) — frekvens-FB", 2, "EN per motor → oberoende closed-loop FART från var sin Hall; I²C till Jetson", "I²C ↔ Jetson", "—", 900, 1, "Electrokit/Pololu · ditt val"),
     ("Position (motorns Hall)", "Motorns inbyggda 'Signal' (1-kanal/motor) + nivåanpassning ×2", 1, "var sin Signal → var sin Jrk (frekvens-FB); position via pulser + anslag-noll", "Signal → Jrk", "kalibreras mm/puls", 60, 1, "ingår i motorn"),
@@ -404,7 +402,9 @@ BOM = [
     ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → laser 5 V on/off", "GPIO", "—", 15, 1, "att köpa"),
     ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1, "att köpa"),
     ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1, "att köpa"),
-    # --- FAS 2: enbart line-scan-ytkamera (färg/NIR-defekter) ---
+    # --- FAS 2: line-scan-ytkamera (färg/NIR-defekter) + absolut-tjocklek (punktlaser) ---
+    ("Punktlaser ×3", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar/kalibrerar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2, "att köpa"),
+    ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 2, "att köpa"),
     ("Ytkamera (line-scan)", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (4-TDI)", "10GBase-T (NBASE-T→1GbE)", "1,2 kHz proto / 110 kHz max", 6902, 2, "AliExpress · ditt val"),
     ("Objektiv M72", "Chiopt LS4105B (40 mm, M72×0.75, 8K 7µm)", 1, "8K-yta över 500 mm", "—", "—", 2100, 2, "Chiopt/AliExpress · ditt val"),
     ("Cat6-kabel", "ytkamera → Jetson (NBASE-T→1GbE)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),
