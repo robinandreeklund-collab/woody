@@ -257,7 +257,8 @@ def bom_panel(sim):
                "(grön 520 + kamera nr 2) → full dubbel-oblik med occlusion-fyllning. **Fas 3:** "
                "ytkamera + NIR/RGB + 3 punktlaser + encoder. — CS050 har C-mount och **kräver "
                "objektiv** (ligger i listan, 1 per kamera). MindVision är NBASE-T → ingen switch "
-               "behövs. Budget-punktlaser: VL53L1X ToF (~70 kr, ±5 mm) för konceptet.")
+               "behövs. Punktlaser: HG-C1400 (mätavstånd 400 mm) sitter på samma ramhöjd som "
+               "kamerorna. Budget: VL53L1X ToF (~70 kr, ±5 mm) för konceptet.")
 
     st.markdown('<div class="ph-sec">Så kopplas allt ihop</div>', unsafe_allow_html=True)
     a, b = st.columns(2, gap="medium")
