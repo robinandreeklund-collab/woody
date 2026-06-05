@@ -62,71 +62,74 @@ txt(440, fy + 50, "RULLBAND (24 V, 50 mm/s)", 9.5, "middle", "#dfe3e8", 700)
 # board on belt
 rect(330, fy - 22, 250, 22, "#e9e1cf", GOLD, 1.6); txt(390, fy - 7, "BRÄDA", 10, "middle", "#8a7d4e", 700)
 arrow(470, fy - 34, 575, fy - 34, "#b06", 2.2); txt(522, fy - 40, "matning", 9, "middle", "#b06", 700)
-# (1) encoder + measuring wheel on spring arm pressing the board
-postx = 470
-L(postx, fy - 230, postx, fy - 60, ALU, 6)                 # post
-L(postx, fy - 200, 430, fy - 70, ALU, 5)                   # hinged arm
-# spring (zigzag)
-sx, sy = postx + 6, fy - 215
-pts = " ".join(f"{sx + (i%2)*14},{sy + i*7}" for i in range(6))
-add(f'<polyline points="{pts}" fill="none" stroke="{MUTED}" stroke-width="1.4"/>')
-circ(430, fy - 52, 18, "#f3e6fb", PURP, 1.8); circ(430, fy - 52, 4, PURP, PURP)   # measuring wheel
-rect(398, fy - 96, 64, 30, "#efe6f7", PURP, 1.6, 4); txt(430, fy - 76, "ENCODER", 9, "middle", PURP, 700)
-badge(305, fy - 200, 1, PURP)
-txt(285, fy - 204, "Mäthjul mot brädans ovansida (fjäderarm).", 10.5, "end", PURP, 700)
-txt(285, fy - 187, "Mäter brädans VERKLIGA väg (immun mot slir).", 9.5, "end", INK, 400)
-txt(285, fy - 170, "→ Jetson GPIO A/B (pin 29 / 7).", 9.5, "end", INK, 400)
-# (2) entry photoeye
-rect(210, fy - 60, 26, 20, "#ffe7d8", RED, 1.5, 3); L(223, fy - 40, 223, fy - 22, RED, 1.4, "4 3")
-badge(150, fy - 100, 2, RED)
-txt(170, fy - 104, "Fotcell vid INGÅNGEN: framkant bryter", 10, "start", RED, 700)
-txt(170, fy - 88, "strålen → nollställer position. → pin 22.", 9.5, "start", INK, 400)
-# (3) motor
-rect(700, fy + 12, 70, 36, "#e9eef5", BLUE, 1.5, 4); txt(735, fy + 35, "MOTOR", 9.5, "middle", BLUE, 700)
-badge(660, fy + 110, 3, BLUE); txt(688, fy + 110, "24 V-motor i rullbandet → matas av motordrivaren.", 10.5, "start", BLUE, 700)
+# (1) FAST ANSLAG (bakkant = nollposition)
+L(300, fy - 58, 300, fy, ALU, 6); L(300, fy - 58, 324, fy - 58, ALU, 5)
+rect(320, fy - 58, 8, 36, "#9aa0a8", "#6e747b", 1.3)
+badge(120, fy - 232, 1, GRN)
+txt(140, fy - 236, "FAST ANSLAG (ramen) = känd nollposition.", 11, "start", GRN, 700)
+txt(140, fy - 219, "Brädan läggs mot det vid laddning; encodern", 9.5, "start", INK, 400)
+txt(140, fy - 202, "räknar bandets väg därifrån → vi vet alltid", 9.5, "start", INK, 400)
+txt(140, fy - 185, "var brädan är (antar ingen slir bräda↔band).", 9.5, "start", INK, 400)
+L(150, fy - 178, 322, fy - 40, GRN, 1, "3 3")
+# (2) AS5601 magnetencoder på motoraxeln (kontaktlös)
+rect(700, fy + 12, 60, 34, "#e9eef5", BLUE, 1.5, 4); txt(730, fy + 33, "MOTOR", 9, "middle", BLUE, 700)
+L(690, fy + 30, 766, fy + 30, MUTED, 3)
+circ(770, fy + 30, 7, "#f1c40f", "#b8920b", 1.5)
+rect(780, fy + 16, 42, 28, "#efe6f7", PURP, 1.6, 4); txt(801, fy + 33, "AS5601", 7.5, "middle", PURP, 700)
+badge(470, fy - 232, 2, PURP)
+txt(490, fy - 236, "MAGNETENCODER AS5601 på motoraxeln (kontaktlös).", 10.5, "start", PURP, 700)
+txt(490, fy - 219, "Diametrisk magnet på axeln + sensor-PCB ~1–3 mm", 9.5, "start", INK, 400)
+txt(490, fy - 202, "bakom. 4096 steg/varv → bandets exakta läge.", 9.5, "start", INK, 400)
+txt(490, fy - 185, "→ A/B till GPIO (el. I²C). Ingen mek. mot brädan.", 9.5, "start", INK, 400)
+L(801, fy - 178, 801, fy + 14, PURP, 1, "3 3")
+# (3) fotcell (valfri backup / brädetektering)
+rect(360, fy - 60, 24, 18, "#ffe7d8", RED, 1.4, 3); L(372, fy - 42, 372, fy - 22, RED, 1.3, "4 3")
+badge(120, fy - 150, 3, RED)
+txt(140, fy - 146, "Fotcell (valfri): brädetektering + om-nollning.", 10, "start", RED, 700)
+L(150, fy - 142, 372, fy - 52, RED, 1, "3 3")
 
 # ===================== HÖGER: STYRKEDJA =====================
-panel(880, 116, 800, 600, "STYRKEDJA — Jetson → rullband", INK)
-node(910, 170, 200, 130, "JETSON Orin Nano", "", JET)
-txt(1010, 222, "PWM + GPIO (40-pin)", 9.5, "middle", INK)
-txt(1010, 240, "ut: EN·RPWM·LPWM", 9, "middle", MUTED, 700, MONO)
-txt(1010, 256, "in: enc A/B · fotcell", 9, "middle", MUTED, 700, MONO)
-node(1230, 178, 200, 96, "MOTORDRIVARE", "BTS7960 (H-brygga)", ORANGE)
-node(1530, 192, 120, 70, "MOTOR ×2", "rullband", BLUE)
-node(1230, 330, 200, 56, "NÄTAGGREGAT 24 V", "matar motorn", "#c89028")
-node(910, 360, 180, 56, "ENCODER + mäthjul", "LPD3806", PURP)
-node(910, 450, 180, 56, "FOTCELL (ingång)", "E3F-DS30C4", RED)
-wire(1110, 226, 1230, 226, "EN·RPWM·LPWM", JET)
-wire(1430, 226, 1530, 226, "M+ / M−", ORANGE)
-arrow(1330, 330, 1330, 274, "#c89028", 2); txt(1342, 304, "24 V (B+/B−)", 9, "start", "#c89028", 700, MONO)
-wire(1090, 388, 1010, 300, "A→29 · B→7", PURP)
-wire(1090, 478, 1010, 300, "→ pin 22", RED)
-# GND-rail
-gy = 560; L(940, gy, 1620, gy, INK, 2.2); txt(944, gy - 8, "GEMENSAM GND (Jetson ↔ drivare ↔ 24 V-PSU) — KRITISKT", 10.5, "start", INK, 700)
-for gx in (1010, 1330, 1590): L(gx, 300 if gx==1010 else (386 if gx==1330 else 262), gx, gy, INK, 1, "3 3")
+panel(880, 116, 800, 600, "STYRKEDJA — Jetson → RoboClaw → rullband", INK)
+node(910, 175, 190, 120, "JETSON Orin Nano", "", JET)
+txt(1005, 226, "UART (el. USB)", 9.5, "middle", INK)
+txt(1005, 244, "→ RoboClaw: fart/läge", 9, "middle", MUTED, 700, MONO)
+txt(1005, 260, "in: fotcell (pin 22)", 9, "middle", MUTED, 700, MONO)
+node(1230, 180, 215, 110, "ROBOCLAW 2x7A", "closed-loop · encoder-in · PID", ORANGE)
+node(1560, 200, 110, 70, "MOTOR ×2", "rullband", BLUE)
+node(1175, 360, 150, 50, "24 V-PSU", "motorström", "#c89028")
+node(1360, 360, 160, 50, "AS5601 encoder", "på motoraxeln", PURP)
+node(910, 360, 175, 50, "FOTCELL (valfri)", "E3F-DS30C4", RED)
+wire(1100, 235, 1230, 235, "UART: fart/läge", JET)
+wire(1445, 235, 1560, 235, "M+ / M−", ORANGE)
+arrow(1245, 360, 1290, 290, "#c89028", 2); txt(1232, 332, "24 V", 9, "end", "#c89028", 700, MONO)
+arrow(1445, 360, 1400, 290, PURP, 2); txt(1458, 332, "A/B", 9, "start", PURP, 700, MONO)
+wire(1085, 385, 1010, 295, "pin 22", RED)
+gy = 560; L(940, gy, 1620, gy, INK, 2.2); txt(944, gy - 8, "GEMENSAM GND (Jetson ↔ RoboClaw ↔ 24 V-PSU) — KRITISKT", 10.5, "start", INK, 700)
+for gx, y0 in ((1005, 295), (1250, 410), (1640, 270)): L(gx, y0, gx, gy, INK, 1, "3 3")
 
 # ===================== BOTTEN: DELLISTA =====================
 panel(40, 736, 1640, 380, "DELAR FÖR JETSON-STYRD MATNING (allt ligger i Fas 1)", INK)
 rows = [
-    ("Motordrivare", "BTS7960 H-brygga (43 A)", "Jetson PWM+GPIO → motorns fart & riktning. Pin 31 EN · 32 RPWM (fram) · 33 LPWM (back).", "~80 kr"),
-    ("Nätaggregat 24 V", "24 V 5 A", "Matar motordrivaren (motorns ström). Jetson-GPIO orkar INTE driva motorn direkt.", "~150 kr"),
-    ("Encoder + mäthjul", "LPD3806-600BM + gummihjul Ø64", "Mäter brädans väg → position. Pin 29 (A) / 7 (B). MONTERAS på fjäderarm mot brädans ovansida.", "~250 kr"),
-    ("Fotcell (ingång)", "E3F-DS30C4 (NPN)", "Brädans framkant bryter strålen → nollställer position (rullband har ingen fast pos). Pin 22.", "~80 kr"),
-    ("Kablar + GND", "dupont/terminal", "3 styrtrådar Jetson→drivare, 2 motortrådar, 2× 24 V. GEMENSAM GND mellan allt.", "~100 kr"),
+    ("Motorstyrning", "RoboClaw 2x7A (closed-loop)", "Läser encodern + PID. Jetson kommenderar fart/läge över UART/USB → motorn. Jämn fart + exakt läge.", "~800 kr"),
+    ("Magnetencoder", "AS5601 12-bit + magnet", "KONTAKTLÖS på motoraxeln → bandets läge. A/B → RoboClaw (ej Jetson). Nollställs mot anslaget.", "~120 kr"),
+    ("Fast anslag", "alu-vinkel (bakkant)", "Brädans bakkant vilar mot ramen vid laddning → KÄND nollposition.", "~150 kr"),
+    ("Nätaggregat 24 V", "24 V 5 A", "Matar RoboClaw/motorn. Jetson-GPIO orkar INTE driva motorn direkt.", "~150 kr"),
+    ("Fotcell (valfri)", "E3F-DS30C4 (NPN)", "Brädetektering + ev. om-nollning → Jetson pin 22. Anslag+encoder = primär position.", "~80 kr"),
+    ("Kablar + GND", "UART + ström", "Jetson↔RoboClaw (UART/USB), encoder→RoboClaw, 24 V, motortrådar. GEMENSAM GND.", "~100 kr"),
 ]
 ty = 770
 txt(60, ty, "DEL", 10.5, "start", MUTED, 700, MONO); txt(300, ty, "MODELL", 10.5, "start", MUTED, 700, MONO)
 txt(600, ty, "VAD DEN GÖR / KOPPLING", 10.5, "start", MUTED, 700, MONO); txt(1620, ty, "PRIS", 10.5, "end", MUTED, 700, MONO)
 L(60, ty + 8, 1660, ty + 8, DIMC, 1)
 for i, (a, b, c, d) in enumerate(rows):
-    ry = ty + 20 + i * 56
-    if i % 2: rect(50, ry, 1620, 56, PANEL, "none", 0)
-    txt(60, ry + 24, a, 11.5, "start", INK, 700, SANS)
-    txt(300, ry + 24, b, 10.5, "start", MUTED, 400, SANS)
-    txt(600, ry + 24, c, 10.5, "start", INK, 400, SANS)
-    txt(1620, ry + 24, d, 11, "end", INK, 700, MONO)
-txt(60, ty + 312, "OBS: kontrollera att rullbandets motor går att koppla direkt (2 terminaler). Många kommer med en fast regulator — "
-    "byt ut den mot BTS7960 så Jetson får full fram/back+fart-styrning.", 10.5, "start", "#b00", 700)
+    ry = ty + 18 + i * 48
+    if i % 2: rect(50, ry, 1620, 48, PANEL, "none", 0)
+    txt(60, ry + 20, a, 11.5, "start", INK, 700, SANS)
+    txt(300, ry + 20, b, 10.5, "start", MUTED, 400, SANS)
+    txt(600, ry + 20, c, 10.5, "start", INK, 400, SANS)
+    txt(1620, ry + 20, d, 11, "end", INK, 700, MONO)
+txt(60, ty + 314, "OBS: koppla rullbandets motor direkt (2 terminaler) till RoboClaw — byt ut ev. medföljande regulator. "
+    "RoboClaw sköter encoder+PID; Jetson skickar bara 'kör till läge X / fart Y' över UART/USB.", 10.5, "start", "#b00", 700)
 
 tb_x, tb_y = W - 470, H - 70
 rect(tb_x, tb_y, 426, 48, "#fff", INK, 1.4); L(tb_x, tb_y + 24, tb_x + 426, tb_y + 24, INK, 1); L(tb_x + 264, tb_y, tb_x + 264, tb_y + 48, INK, 1)

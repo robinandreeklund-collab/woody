@@ -171,17 +171,18 @@ def node(x, y, w, t, s, acc):
 def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
-left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser RÖD 650", "iadiy, CW", F1, "5V+GPIO"),
-        (1040, "Encoder + mäthjul", "LPD3806", F1, "GPIO A/B"), (1120, "Motordrivare→2×rullband", "BTS7960", F1, "GPIO+PWM"),
-        (1200, "Ingångslaser", "E3F-DS30", F1, "GPIO")]
+left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "5V+GPIO"),
+        (1040, "RoboClaw 2x7A (matning)", "AS5601-enc + 2× motor, PID", F1, "UART"), (1120, "3× Punktlaser→MCP3008", "HG-C1400", F1, "SPI"),
+        (1200, "Ingångslaser", "E3F-DS30 (brädstart)", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c); conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
-right = [(880, "Profilkamera GRÖN", "MV-CS050-10UM", F2, "USB3"), (960, "Linjelaser GRÖN 520", "iadiy, CW", F2, "5V+GPIO"),
-         (1040, "3× Punktlaser→MCP3008", "HG-C1400", F2, "SPI"), (1120, "Ytkamera line-scan", "MindVision", F2, "GbE"),
-         (1200, "RGB/NIR-strobe", "←ytkamera 3 strobe-ut", F2, "strobe")]
+SCY = 980
+right = [(880, "Profilkamera GRÖN", "MV-CS050-10UM (Fas 1)", F1, "USB3"), (SCY, "Ytkamera line-scan", "MindVision (Fas 2)", F2, "GbE"),
+         (1080, "RGB/NIR-strobe", "←ytkamera 3 strobe-ut (Fas 2)", F2, "strobe"), (1180, "Objektiv M72 Chiopt", "(Fas 2)", F2, "—")]
 for (ly, t, s, c, lab) in right:
     node(JX + JW + 120, ly, 250, t, s, c)
-    if "strobe" in t: L(JX + JW + 120, ly + 25, JX + JW + 80, 1120 + 25, c, 1.5, "4 3")
+    if "strobe" in t: L(JX + JW + 120, ly + 25, JX + JW + 120, SCY + 50, c, 1.5, "4 3")
+    elif lab == "—": pass
     else: conn((JX + JW + 120, ly + 25), (JX + JW, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
 rect(JX - 20, JY + JH + 26, 280, 34, "#fff5e6", "#c89028", 1.3, 6)
 txt(JX + 120, JY + JH + 48, "PSU 24 V (band) · 5 V (laser) · DC-in (Jetson)", 9, "middle", "#8a6510", 700)
@@ -190,10 +191,10 @@ txt(JX + 120, JY + JH + 48, "PSU 24 V (band) · 5 V (laser) · DC-in (Jetson)", 
 panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
 io = [("USB 3.2 Gen2 (×4)", "2 — RÖD + GRÖN kamera", "OK · 2 lediga", F1),
       ("Gigabit Ethernet", "1 — ytkamera (NBASE-T→1GbE)", "OK", F2),
-      ("40-pin SPI (×2)", "1 — MCP3008 (3 punktlaser)", "OK", F2),
-      ("40-pin PWM", "1 — motorfart", "OK", F1),
-      ("40-pin GPIO (~28)", "~9 — motor×2, enc A/B, in-laser, trig, 2 laser-en", "OK · gott om", F1),
-      ("40-pin I2C (×2)", "0 — reserv", "ledig", DIMC),
+      ("40-pin UART", "1 — RoboClaw (matning, fart/läge)", "OK", F1),
+      ("40-pin SPI (×2)", "1 — MCP3008 (3 punktlaser)", "OK", F1),
+      ("40-pin GPIO (~28)", "~5 — ingångslaser, kam-trig×2, 2 laser-en", "OK · gott om", F1),
+      ("40-pin I2C/PWM", "0 — reserv (motor/enc på RoboClaw)", "ledig", DIMC),
       ("Analog in (ADC)", "0 — SAKNAS → 3 punktlaser", "via MCP3008 (SPI)", "#b00"),
       ("DC-in / 24 V / 5 V", "Jetson 7–25 V + separat 24/5 V", "OK", INK)]
 txt(1556, 884, "GRÄNSSNITT", 10.5, "start", MUTED, 700, MONO); txt(1820, 884, "ANVÄNDS", 10.5, "start", MUTED, 700, MONO); txt(2300, 884, "STATUS", 10.5, "start", MUTED, 700, MONO)
@@ -207,14 +208,14 @@ for i, (a, b, c, col) in enumerate(io):
 # ============================================================ 3) PINOUT + BOM
 panel(40, 1388, 1000, 640, "3 · JETSON 40-PIN (J12) — prototyp-tilldelning", INK)
 PINS = {1:("3.3V","MCP3008 VDD",P33),2:("5V","ext laser",P5),3:("I2C1_SDA","reserv",BUSc),4:("5V","",P5),
- 5:("I2C1_SCL","reserv",BUSc),6:("GND","",GNDc),7:("GPIO09","ENCODER B",F1),8:("UART1_TX","reserv",BUSc),
- 9:("GND","",GNDc),10:("UART1_RX","reserv",BUSc),11:("UART1_RTS","reserv",BUSc),12:("I2S0_SCLK","reserv",DIMC),
- 13:("SPI1_SCK","KAM-TRIG GRÖN",F2),14:("GND","",GNDc),15:("GPIO12·PWM","reserv",DIMC),16:("SPI1_CS1","LASER RÖD en",F1),
- 17:("3.3V","logik",P33),18:("SPI1_CS0","LASER GRÖN en",F2),19:("SPI0_MOSI","MCP3008 DIN",F2),20:("GND","",GNDc),
- 21:("SPI0_MISO","MCP3008 DOUT",F2),22:("SPI1_MISO","INGÅNGSLASER",F1),23:("SPI0_SCK","MCP3008 CLK",F2),24:("SPI0_CS0","MCP3008 CS",F2),
+ 5:("I2C1_SCL","reserv",BUSc),6:("GND","",GNDc),7:("GPIO09","reserv",DIMC),8:("UART1_TX","ROBOCLAW TX",F1),
+ 9:("GND","",GNDc),10:("UART1_RX","ROBOCLAW RX",F1),11:("UART1_RTS","reserv",BUSc),12:("I2S0_SCLK","reserv",DIMC),
+ 13:("SPI1_SCK","KAM-TRIG GRÖN",F1),14:("GND","",GNDc),15:("GPIO12·PWM","reserv",DIMC),16:("SPI1_CS1","LASER RÖD en",F1),
+ 17:("3.3V","logik",P33),18:("SPI1_CS0","LASER GRÖN en",F1),19:("SPI0_MOSI","MCP3008 DIN",F1),20:("GND","",GNDc),
+ 21:("SPI0_MISO","MCP3008 DOUT",F1),22:("SPI1_MISO","INGÅNGSLASER",F1),23:("SPI0_SCK","MCP3008 CLK",F1),24:("SPI0_CS0","MCP3008 CS",F1),
  25:("GND","MCP3008 AGND",GNDc),26:("SPI0_CS1","reserv",DIMC),27:("I2C0_SDA","reserv",BUSc),28:("I2C0_SCL","reserv",BUSc),
- 29:("GPIO01","ENCODER A",F1),30:("GND","",GNDc),31:("GPIO11","MOTOR EN",F1),32:("GPIO07·PWM","MOTOR RPWM",F1),
- 33:("GPIO13·PWM","MOTOR LPWM",F1),34:("GND","",GNDc),35:("I2S0_FS","KAM-TRIG RÖD",F1),36:("UART1_CTS","reserv",DIMC),
+ 29:("GPIO01","reserv",DIMC),30:("GND","",GNDc),31:("GPIO11","reserv",DIMC),32:("GPIO07·PWM","reserv",DIMC),
+ 33:("GPIO13·PWM","reserv",DIMC),34:("GND","",GNDc),35:("I2S0_FS","KAM-TRIG RÖD",F1),36:("UART1_CTS","reserv",DIMC),
  37:("SPI1_MOSI","reserv",DIMC),38:("I2S0_SDIN","reserv",DIMC),39:("GND","",GNDc),40:("I2S0_SDOUT","reserv",DIMC)}
 cl, cr, py0, prh = 470, 540, 1430, 29
 rect(cl - 24, py0 - 18, (cr - cl) + 48, 20 * prh + 10, "#eceae2", "#cfccc1", 1.2, 6)
@@ -228,7 +229,7 @@ for i in range(20):
         tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
         txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
         if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
-txt(60, 2002, "MCP3008 på SPI0 (23·21·19·24). HG-C1400 1–5 V → spänningsdelare ≤3,3 V. Gemensam GND. Lasrar via MOSFET. Kam-trig kan tas från encodern.", 9.3, "start", MUTED, 400)
+txt(60, 2002, "Matning: RoboClaw 2x7A via UART (pin 8/10) — encodern A/B går till RoboClaw (ej Jetson) → motor/encoder-pinnar fria. MCP3008 på SPI0. HG-C1400 → spänningsdelare ≤3,3 V. Gemensam GND.", 9.3, "start", MUTED, 400)
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)

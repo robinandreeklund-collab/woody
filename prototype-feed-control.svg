@@ -98,87 +98,92 @@
 <line x1="575.0" y1="526.0" x2="566.2" y2="530.8" stroke="#b06" stroke-width="2.2" opacity="1"/>
 <line x1="575.0" y1="526.0" x2="566.2" y2="521.2" stroke="#b06" stroke-width="2.2" opacity="1"/>
 <text x="522.0" y="520.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#b06" text-anchor="middle">matning</text>
-<line x1="470.0" y1="330.0" x2="470.0" y2="500.0" stroke="#c3c6ca" stroke-width="6" opacity="1"/>
-<line x1="470.0" y1="360.0" x2="430.0" y2="490.0" stroke="#c3c6ca" stroke-width="5" opacity="1"/>
-<polyline points="476,345 490,352 476,359 490,366 476,373 490,380" fill="none" stroke="#6a6e74" stroke-width="1.4"/>
-<circle cx="430.0" cy="508.0" r="18.0" fill="#f3e6fb" stroke="#a23ad6" stroke-width="1.8"/>
-<circle cx="430.0" cy="508.0" r="4.0" fill="#a23ad6" stroke="#a23ad6" stroke-width="1.2"/>
-<rect x="398.0" y="464.0" width="64.0" height="30.0" rx="4" fill="#efe6f7" stroke="#a23ad6" stroke-width="1.6"/>
-<text x="430.0" y="484.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#a23ad6" text-anchor="middle">ENCODER</text>
-<circle cx="305.0" cy="360.0" r="13.0" fill="#a23ad6" stroke="#a23ad6" stroke-width="0"/>
-<text x="305.0" y="365.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">1</text>
-<text x="285.0" y="356.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#a23ad6" text-anchor="end">Mäthjul mot brädans ovansida (fjäderarm).</text>
-<text x="285.0" y="373.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="end">Mäter brädans VERKLIGA väg (immun mot slir).</text>
-<text x="285.0" y="390.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="end">→ Jetson GPIO A/B (pin 29 / 7).</text>
-<rect x="210.0" y="500.0" width="26.0" height="20.0" rx="3" fill="#ffe7d8" stroke="#e8542c" stroke-width="1.5"/>
-<line x1="223.0" y1="520.0" x2="223.0" y2="538.0" stroke="#e8542c" stroke-width="1.4" stroke-dasharray="4 3" opacity="1"/>
-<circle cx="150.0" cy="460.0" r="13.0" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
-<text x="150.0" y="465.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">2</text>
-<text x="170.0" y="456.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#e8542c" text-anchor="start">Fotcell vid INGÅNGEN: framkant bryter</text>
-<text x="170.0" y="472.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">strålen → nollställer position. → pin 22.</text>
-<rect x="700.0" y="572.0" width="70.0" height="36.0" rx="4" fill="#e9eef5" stroke="#2f6fb0" stroke-width="1.5"/>
-<text x="735.0" y="595.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#2f6fb0" text-anchor="middle">MOTOR</text>
-<circle cx="660.0" cy="670.0" r="13.0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0"/>
-<text x="660.0" y="675.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">3</text>
-<text x="688.0" y="670.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f6fb0" text-anchor="start">24 V-motor i rullbandet → matas av motordrivaren.</text>
+<line x1="300.0" y1="502.0" x2="300.0" y2="560.0" stroke="#c3c6ca" stroke-width="6" opacity="1"/>
+<line x1="300.0" y1="502.0" x2="324.0" y2="502.0" stroke="#c3c6ca" stroke-width="5" opacity="1"/>
+<rect x="320.0" y="502.0" width="8.0" height="36.0" rx="0" fill="#9aa0a8" stroke="#6e747b" stroke-width="1.3"/>
+<circle cx="120.0" cy="328.0" r="13.0" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0"/>
+<text x="120.0" y="333.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">1</text>
+<text x="140.0" y="324.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="start">FAST ANSLAG (ramen) = känd nollposition.</text>
+<text x="140.0" y="341.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Brädan läggs mot det vid laddning; encodern</text>
+<text x="140.0" y="358.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">räknar bandets väg därifrån → vi vet alltid</text>
+<text x="140.0" y="375.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">var brädan är (antar ingen slir bräda↔band).</text>
+<line x1="150.0" y1="382.0" x2="322.0" y2="520.0" stroke="#2f9e6e" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<rect x="700.0" y="572.0" width="60.0" height="34.0" rx="4" fill="#e9eef5" stroke="#2f6fb0" stroke-width="1.5"/>
+<text x="730.0" y="593.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#2f6fb0" text-anchor="middle">MOTOR</text>
+<line x1="690.0" y1="590.0" x2="766.0" y2="590.0" stroke="#6a6e74" stroke-width="3" opacity="1"/>
+<circle cx="770.0" cy="590.0" r="7.0" fill="#f1c40f" stroke="#b8920b" stroke-width="1.5"/>
+<rect x="780.0" y="576.0" width="42.0" height="28.0" rx="4" fill="#efe6f7" stroke="#a23ad6" stroke-width="1.6"/>
+<text x="801.0" y="593.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#a23ad6" text-anchor="middle">AS5601</text>
+<circle cx="470.0" cy="328.0" r="13.0" fill="#a23ad6" stroke="#a23ad6" stroke-width="0"/>
+<text x="470.0" y="333.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">2</text>
+<text x="490.0" y="324.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#a23ad6" text-anchor="start">MAGNETENCODER AS5601 på motoraxeln (kontaktlös).</text>
+<text x="490.0" y="341.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Diametrisk magnet på axeln + sensor-PCB ~1–3 mm</text>
+<text x="490.0" y="358.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">bakom. 4096 steg/varv → bandets exakta läge.</text>
+<text x="490.0" y="375.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">→ A/B till GPIO (el. I²C). Ingen mek. mot brädan.</text>
+<line x1="801.0" y1="382.0" x2="801.0" y2="574.0" stroke="#a23ad6" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<rect x="360.0" y="500.0" width="24.0" height="18.0" rx="3" fill="#ffe7d8" stroke="#e8542c" stroke-width="1.4"/>
+<line x1="372.0" y1="518.0" x2="372.0" y2="538.0" stroke="#e8542c" stroke-width="1.3" stroke-dasharray="4 3" opacity="1"/>
+<circle cx="120.0" cy="410.0" r="13.0" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
+<text x="120.0" y="415.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#fff" text-anchor="middle">3</text>
+<text x="140.0" y="414.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#e8542c" text-anchor="start">Fotcell (valfri): brädetektering + om-nollning.</text>
+<line x1="150.0" y1="418.0" x2="372.0" y2="508.0" stroke="#e8542c" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
 <rect x="880.0" y="116.0" width="800.0" height="600.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="880.0" y="116.0" width="800.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0"/>
-<text x="892.0" y="135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">STYRKEDJA — Jetson → rullband</text>
-<rect x="910.0" y="170.0" width="200.0" height="130.0" rx="8" fill="#fff" stroke="#3b7d3b" stroke-width="1.8"/>
-<rect x="910.0" y="170.0" width="200.0" height="22.0" rx="8" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0"/>
-<text x="1010.0" y="186.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">JETSON Orin Nano</text>
-<text x="1010.0" y="222.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">PWM + GPIO (40-pin)</text>
-<text x="1010.0" y="240.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">ut: EN·RPWM·LPWM</text>
-<text x="1010.0" y="256.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">in: enc A/B · fotcell</text>
-<rect x="1230.0" y="178.0" width="200.0" height="96.0" rx="8" fill="#fff" stroke="#e0892b" stroke-width="1.8"/>
-<rect x="1230.0" y="178.0" width="200.0" height="22.0" rx="8" fill="#e0892b" stroke="#e0892b" stroke-width="0"/>
-<text x="1330.0" y="194.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">MOTORDRIVARE</text>
-<text x="1330.0" y="218.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">BTS7960 (H-brygga)</text>
-<rect x="1530.0" y="192.0" width="120.0" height="70.0" rx="8" fill="#fff" stroke="#2f6fb0" stroke-width="1.8"/>
-<rect x="1530.0" y="192.0" width="120.0" height="22.0" rx="8" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0"/>
-<text x="1590.0" y="208.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">MOTOR ×2</text>
-<text x="1590.0" y="232.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">rullband</text>
-<rect x="1230.0" y="330.0" width="200.0" height="56.0" rx="8" fill="#fff" stroke="#c89028" stroke-width="1.8"/>
-<rect x="1230.0" y="330.0" width="200.0" height="22.0" rx="8" fill="#c89028" stroke="#c89028" stroke-width="0"/>
-<text x="1330.0" y="346.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">NÄTAGGREGAT 24 V</text>
-<text x="1330.0" y="370.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">matar motorn</text>
-<rect x="910.0" y="360.0" width="180.0" height="56.0" rx="8" fill="#fff" stroke="#a23ad6" stroke-width="1.8"/>
-<rect x="910.0" y="360.0" width="180.0" height="22.0" rx="8" fill="#a23ad6" stroke="#a23ad6" stroke-width="0"/>
-<text x="1000.0" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">ENCODER + mäthjul</text>
-<text x="1000.0" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">LPD3806</text>
-<rect x="910.0" y="450.0" width="180.0" height="56.0" rx="8" fill="#fff" stroke="#e8542c" stroke-width="1.8"/>
-<rect x="910.0" y="450.0" width="180.0" height="22.0" rx="8" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
-<text x="1000.0" y="466.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">FOTCELL (ingång)</text>
-<text x="1000.0" y="490.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">E3F-DS30C4</text>
-<line x1="1110.0" y1="226.0" x2="1230.0" y2="226.0" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
-<line x1="1230.0" y1="226.0" x2="1221.2" y2="230.8" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
-<line x1="1230.0" y1="226.0" x2="1221.2" y2="221.2" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
-<rect x="1121.8" y="217.0" width="96.4" height="16.0" rx="3" fill="#fff" stroke="#3b7d3b" stroke-width="0.8"/>
-<text x="1170.0" y="229.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#3b7d3b" text-anchor="middle">EN·RPWM·LPWM</text>
-<line x1="1430.0" y1="226.0" x2="1530.0" y2="226.0" stroke="#e0892b" stroke-width="2" opacity="1"/>
-<line x1="1530.0" y1="226.0" x2="1521.2" y2="230.8" stroke="#e0892b" stroke-width="2" opacity="1"/>
-<line x1="1530.0" y1="226.0" x2="1521.2" y2="221.2" stroke="#e0892b" stroke-width="2" opacity="1"/>
-<rect x="1449.8" y="217.0" width="60.4" height="16.0" rx="3" fill="#fff" stroke="#e0892b" stroke-width="0.8"/>
-<text x="1480.0" y="229.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e0892b" text-anchor="middle">M+ / M−</text>
-<line x1="1330.0" y1="330.0" x2="1330.0" y2="274.0" stroke="#c89028" stroke-width="2" opacity="1"/>
-<line x1="1330.0" y1="274.0" x2="1334.8" y2="282.8" stroke="#c89028" stroke-width="2" opacity="1"/>
-<line x1="1330.0" y1="274.0" x2="1325.2" y2="282.8" stroke="#c89028" stroke-width="2" opacity="1"/>
-<text x="1342.0" y="304.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#c89028" text-anchor="start">24 V (B+/B−)</text>
-<line x1="1090.0" y1="388.0" x2="1010.0" y2="300.0" stroke="#a23ad6" stroke-width="2" opacity="1"/>
-<line x1="1010.0" y1="300.0" x2="1019.5" y2="303.3" stroke="#a23ad6" stroke-width="2" opacity="1"/>
-<line x1="1010.0" y1="300.0" x2="1012.4" y2="309.7" stroke="#a23ad6" stroke-width="2" opacity="1"/>
-<rect x="1009.0" y="335.0" width="82.0" height="16.0" rx="3" fill="#fff" stroke="#a23ad6" stroke-width="0.8"/>
-<text x="1050.0" y="347.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#a23ad6" text-anchor="middle">A→29 · B→7</text>
-<line x1="1090.0" y1="478.0" x2="1010.0" y2="300.0" stroke="#e8542c" stroke-width="2" opacity="1"/>
-<line x1="1010.0" y1="300.0" x2="1018.0" y2="306.0" stroke="#e8542c" stroke-width="2" opacity="1"/>
-<line x1="1010.0" y1="300.0" x2="1009.2" y2="310.0" stroke="#e8542c" stroke-width="2" opacity="1"/>
-<rect x="1016.2" y="380.0" width="67.6" height="16.0" rx="3" fill="#fff" stroke="#e8542c" stroke-width="0.8"/>
-<text x="1050.0" y="392.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e8542c" text-anchor="middle">→ pin 22</text>
+<text x="892.0" y="135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">STYRKEDJA — Jetson → RoboClaw → rullband</text>
+<rect x="910.0" y="175.0" width="190.0" height="120.0" rx="8" fill="#fff" stroke="#3b7d3b" stroke-width="1.8"/>
+<rect x="910.0" y="175.0" width="190.0" height="22.0" rx="8" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0"/>
+<text x="1005.0" y="191.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">JETSON Orin Nano</text>
+<text x="1005.0" y="226.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">UART (el. USB)</text>
+<text x="1005.0" y="244.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">→ RoboClaw: fart/läge</text>
+<text x="1005.0" y="260.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">in: fotcell (pin 22)</text>
+<rect x="1230.0" y="180.0" width="215.0" height="110.0" rx="8" fill="#fff" stroke="#e0892b" stroke-width="1.8"/>
+<rect x="1230.0" y="180.0" width="215.0" height="22.0" rx="8" fill="#e0892b" stroke="#e0892b" stroke-width="0"/>
+<text x="1337.5" y="196.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">ROBOCLAW 2x7A</text>
+<text x="1337.5" y="220.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">closed-loop · encoder-in · PID</text>
+<rect x="1560.0" y="200.0" width="110.0" height="70.0" rx="8" fill="#fff" stroke="#2f6fb0" stroke-width="1.8"/>
+<rect x="1560.0" y="200.0" width="110.0" height="22.0" rx="8" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0"/>
+<text x="1615.0" y="216.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">MOTOR ×2</text>
+<text x="1615.0" y="240.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">rullband</text>
+<rect x="1175.0" y="360.0" width="150.0" height="50.0" rx="8" fill="#fff" stroke="#c89028" stroke-width="1.8"/>
+<rect x="1175.0" y="360.0" width="150.0" height="22.0" rx="8" fill="#c89028" stroke="#c89028" stroke-width="0"/>
+<text x="1250.0" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">24 V-PSU</text>
+<text x="1250.0" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">motorström</text>
+<rect x="1360.0" y="360.0" width="160.0" height="50.0" rx="8" fill="#fff" stroke="#a23ad6" stroke-width="1.8"/>
+<rect x="1360.0" y="360.0" width="160.0" height="22.0" rx="8" fill="#a23ad6" stroke="#a23ad6" stroke-width="0"/>
+<text x="1440.0" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">AS5601 encoder</text>
+<text x="1440.0" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">på motoraxeln</text>
+<rect x="910.0" y="360.0" width="175.0" height="50.0" rx="8" fill="#fff" stroke="#e8542c" stroke-width="1.8"/>
+<rect x="910.0" y="360.0" width="175.0" height="22.0" rx="8" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
+<text x="997.5" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">FOTCELL (valfri)</text>
+<text x="997.5" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">E3F-DS30C4</text>
+<line x1="1100.0" y1="235.0" x2="1230.0" y2="235.0" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<line x1="1230.0" y1="235.0" x2="1221.2" y2="239.8" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<line x1="1230.0" y1="235.0" x2="1221.2" y2="230.2" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<rect x="1106.0" y="226.0" width="118.0" height="16.0" rx="3" fill="#fff" stroke="#3b7d3b" stroke-width="0.8"/>
+<text x="1165.0" y="238.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#3b7d3b" text-anchor="middle">UART: fart/läge</text>
+<line x1="1445.0" y1="235.0" x2="1560.0" y2="235.0" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<line x1="1560.0" y1="235.0" x2="1551.2" y2="239.8" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<line x1="1560.0" y1="235.0" x2="1551.2" y2="230.2" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<rect x="1472.3" y="226.0" width="60.4" height="16.0" rx="3" fill="#fff" stroke="#e0892b" stroke-width="0.8"/>
+<text x="1502.5" y="238.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e0892b" text-anchor="middle">M+ / M−</text>
+<line x1="1245.0" y1="360.0" x2="1290.0" y2="290.0" stroke="#c89028" stroke-width="2" opacity="1"/>
+<line x1="1290.0" y1="290.0" x2="1289.3" y2="300.0" stroke="#c89028" stroke-width="2" opacity="1"/>
+<line x1="1290.0" y1="290.0" x2="1281.2" y2="294.8" stroke="#c89028" stroke-width="2" opacity="1"/>
+<text x="1232.0" y="332.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#c89028" text-anchor="end">24 V</text>
+<line x1="1445.0" y1="360.0" x2="1400.0" y2="290.0" stroke="#a23ad6" stroke-width="2" opacity="1"/>
+<line x1="1400.0" y1="290.0" x2="1408.8" y2="294.8" stroke="#a23ad6" stroke-width="2" opacity="1"/>
+<line x1="1400.0" y1="290.0" x2="1400.7" y2="300.0" stroke="#a23ad6" stroke-width="2" opacity="1"/>
+<text x="1458.0" y="332.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#a23ad6" text-anchor="start">A/B</text>
+<line x1="1085.0" y1="385.0" x2="1010.0" y2="295.0" stroke="#e8542c" stroke-width="2" opacity="1"/>
+<line x1="1010.0" y1="295.0" x2="1019.3" y2="298.7" stroke="#e8542c" stroke-width="2" opacity="1"/>
+<line x1="1010.0" y1="295.0" x2="1011.9" y2="304.8" stroke="#e8542c" stroke-width="2" opacity="1"/>
+<rect x="1020.9" y="331.0" width="53.2" height="16.0" rx="3" fill="#fff" stroke="#e8542c" stroke-width="0.8"/>
+<text x="1047.5" y="343.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e8542c" text-anchor="middle">pin 22</text>
 <line x1="940.0" y1="560.0" x2="1620.0" y2="560.0" stroke="#23262b" stroke-width="2.2" opacity="1"/>
-<text x="944.0" y="552.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">GEMENSAM GND (Jetson ↔ drivare ↔ 24 V-PSU) — KRITISKT</text>
-<line x1="1010.0" y1="300.0" x2="1010.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
-<line x1="1330.0" y1="386.0" x2="1330.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
-<line x1="1590.0" y1="262.0" x2="1590.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<text x="944.0" y="552.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">GEMENSAM GND (Jetson ↔ RoboClaw ↔ 24 V-PSU) — KRITISKT</text>
+<line x1="1005.0" y1="295.0" x2="1005.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<line x1="1250.0" y1="410.0" x2="1250.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<line x1="1640.0" y1="270.0" x2="1640.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
 <rect x="40.0" y="736.0" width="1640.0" height="380.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="40.0" y="736.0" width="1640.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0"/>
 <text x="52.0" y="755.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">DELAR FÖR JETSON-STYRD MATNING (allt ligger i Fas 1)</text>
@@ -187,29 +192,34 @@
 <text x="600.0" y="770.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">VAD DEN GÖR / KOPPLING</text>
 <text x="1620.0" y="770.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="end">PRIS</text>
 <line x1="60.0" y1="778.0" x2="1660.0" y2="778.0" stroke="#9a9ea4" stroke-width="1" opacity="1"/>
-<text x="60.0" y="814.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Motordrivare</text>
-<text x="300.0" y="814.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">BTS7960 H-brygga (43 A)</text>
-<text x="600.0" y="814.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Jetson PWM+GPIO → motorns fart &amp; riktning. Pin 31 EN · 32 RPWM (fram) · 33 LPWM (back).</text>
-<text x="1620.0" y="814.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~80 kr</text>
-<rect x="50.0" y="846.0" width="1620.0" height="56.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
-<text x="60.0" y="870.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Nätaggregat 24 V</text>
-<text x="300.0" y="870.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">24 V 5 A</text>
-<text x="600.0" y="870.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Matar motordrivaren (motorns ström). Jetson-GPIO orkar INTE driva motorn direkt.</text>
-<text x="1620.0" y="870.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~150 kr</text>
-<text x="60.0" y="926.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Encoder + mäthjul</text>
-<text x="300.0" y="926.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">LPD3806-600BM + gummihjul Ø64</text>
-<text x="600.0" y="926.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Mäter brädans väg → position. Pin 29 (A) / 7 (B). MONTERAS på fjäderarm mot brädans ovansida.</text>
-<text x="1620.0" y="926.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~250 kr</text>
-<rect x="50.0" y="958.0" width="1620.0" height="56.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
-<text x="60.0" y="982.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Fotcell (ingång)</text>
-<text x="300.0" y="982.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">E3F-DS30C4 (NPN)</text>
-<text x="600.0" y="982.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Brädans framkant bryter strålen → nollställer position (rullband har ingen fast pos). Pin 22.</text>
-<text x="1620.0" y="982.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~80 kr</text>
-<text x="60.0" y="1038.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Kablar + GND</text>
-<text x="300.0" y="1038.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">dupont/terminal</text>
-<text x="600.0" y="1038.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">3 styrtrådar Jetson→drivare, 2 motortrådar, 2× 24 V. GEMENSAM GND mellan allt.</text>
-<text x="1620.0" y="1038.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~100 kr</text>
-<text x="60.0" y="1082.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#b00" text-anchor="start">OBS: kontrollera att rullbandets motor går att koppla direkt (2 terminaler). Många kommer med en fast regulator — byt ut den mot BTS7960 så Jetson får full fram/back+fart-styrning.</text>
+<text x="60.0" y="808.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Motorstyrning</text>
+<text x="300.0" y="808.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">RoboClaw 2x7A (closed-loop)</text>
+<text x="600.0" y="808.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Läser encodern + PID. Jetson kommenderar fart/läge över UART/USB → motorn. Jämn fart + exakt läge.</text>
+<text x="1620.0" y="808.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~800 kr</text>
+<rect x="50.0" y="836.0" width="1620.0" height="48.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
+<text x="60.0" y="856.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Magnetencoder</text>
+<text x="300.0" y="856.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">AS5601 12-bit + magnet</text>
+<text x="600.0" y="856.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">KONTAKTLÖS på motoraxeln → bandets läge. A/B → RoboClaw (ej Jetson). Nollställs mot anslaget.</text>
+<text x="1620.0" y="856.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~120 kr</text>
+<text x="60.0" y="904.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Fast anslag</text>
+<text x="300.0" y="904.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">alu-vinkel (bakkant)</text>
+<text x="600.0" y="904.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Brädans bakkant vilar mot ramen vid laddning → KÄND nollposition.</text>
+<text x="1620.0" y="904.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~150 kr</text>
+<rect x="50.0" y="932.0" width="1620.0" height="48.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
+<text x="60.0" y="952.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Nätaggregat 24 V</text>
+<text x="300.0" y="952.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">24 V 5 A</text>
+<text x="600.0" y="952.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Matar RoboClaw/motorn. Jetson-GPIO orkar INTE driva motorn direkt.</text>
+<text x="1620.0" y="952.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~150 kr</text>
+<text x="60.0" y="1000.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Fotcell (valfri)</text>
+<text x="300.0" y="1000.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">E3F-DS30C4 (NPN)</text>
+<text x="600.0" y="1000.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Brädetektering + ev. om-nollning → Jetson pin 22. Anslag+encoder = primär position.</text>
+<text x="1620.0" y="1000.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~80 kr</text>
+<rect x="50.0" y="1028.0" width="1620.0" height="48.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
+<text x="60.0" y="1048.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="700" fill="#23262b" text-anchor="start">Kablar + GND</text>
+<text x="300.0" y="1048.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">UART + ström</text>
+<text x="600.0" y="1048.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Jetson↔RoboClaw (UART/USB), encoder→RoboClaw, 24 V, motortrådar. GEMENSAM GND.</text>
+<text x="1620.0" y="1048.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~100 kr</text>
+<text x="60.0" y="1084.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#b00" text-anchor="start">OBS: koppla rullbandets motor direkt (2 terminaler) till RoboClaw — byt ut ev. medföljande regulator. RoboClaw sköter encoder+PID; Jetson skickar bara 'kör till läge X / fart Y' över UART/USB.</text>
 <rect x="1250.0" y="1110.0" width="426.0" height="48.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <line x1="1250.0" y1="1134.0" x2="1676.0" y2="1134.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="1514.0" y1="1110.0" x2="1514.0" y2="1158.0" stroke="#23262b" stroke-width="1" opacity="1"/>
