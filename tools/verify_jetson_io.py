@@ -125,6 +125,17 @@ print("   • kör profilkamerorna på SKILDA USB3-portar (undvik delad hubb-fla
 print("  Gör man det → Jetson har stor marginal @ 60/min; INGEN hängning (compute).")
 print("  Gör man stripe-extraktionen på CPU i Python → DÅ hänger det (mjukvarufel).")
 
+# ============================================================ DRIVRUTINER / SDK
+print(); line("="); print("DRIVRUTINER / SDK — funkar kamerorna på Jetson (ARM64)?"); line("=")
+print("  Profilkameror Hikrobot MV-CS050-10UM  (USB3 Vision + GenICam-standard):")
+print("    → Hikrobot MVS SDK har aarch64 .deb (libs /opt/MVS/lib/aarch64) — körs på Jetson  ✓")
+print("  Ytkamera Huateng 4K  (GigE Vision V1.2 + GenICam-standard):")
+print("    → vendor-SDK (Linux) ELLER Aravis (open source) — Aravis körd på Orin Nano  ✓")
+print("  UNIVERSAL RESERV: Aravis driver BÅDE GigE Vision och USB3 Vision på aarch64  ✓")
+print("    (standarderna = vendor-neutralt → du är aldrig låst till en SDK)")
+print("  TESTA på Jetson:  'arv-tool-0.8' listar kameror + tar en ram (el. vendor-viewer)")
+print("  OBS: USB3 → höj usbcore.usbfs_memory_mb;  GigE → samma subnät + jumbo frames (MTU 9000)")
+
 print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano — 2 USB3 lediga, GbE,")
 print("I²C+SPI, ~23 GPIO kvar. Analog-gapet täcks av MCP3008. Enda att hålla")
 print("koll på: ytkameran @ MAX 8 kHz färg = {:.0f} % av GbE (proto-takt = {:.0f} %).".format(
