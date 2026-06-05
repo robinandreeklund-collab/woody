@@ -61,35 +61,40 @@ def vlabel(x, y, tag, name):
     rect(x, y, 24, 20, INK, INK); txt(x + 12, y + 15, tag, 13, "middle", PAPER, 700, SANS)
     txt(x + 34, y + 15, name, 15, "start", INK, 700, SANS)
 
-# ===================== VY A — BÄNK SIDVY =====================
+# ===================== VY A — BÄNK OVANIFRÅN (CROSS-FEED) =====================
 gA = 130
 add(f'<g transform="translate(0,{gA})">')
-vlabel(48, 6, "A", "BÄNK — sidvy (brädan matas under huvudet)")
-ax0, ax1 = 150, 1180
+vlabel(48, 6, "A", "BÄNK — ovanifrån (cross-feed: laserlinje längs 1 m, bräda matas i sidled)")
+ax0, ax1 = 150, 1150
 def AX(mm): return ax0 + mm * (ax1 - ax0) / BENCH_L
-yb = 300; bandY = yb + 18
-rect(AX(-60), bandY, AX(BENCH_L + 60) - AX(-60), 16, "#d7d4cc", "#aaa79e", 1.2)   # transportband
-for dz in range(0, BENCH_L + 1, 120): circ(AX(dz), bandY + 8, 4, "#cfae3e", "#8a7d4e", 1)
-rect(AX(120), yb, AX(720) - AX(120), 18, "#e9e1cf", "#b9a96f", 1.4)               # bräda
-txt(AX(420), yb - 6, "bräda ≤ 1 m", 11, "middle", "#8a7d4e", 700)
-arrow(AX(820), yb + 9, AX(900), yb + 9, "#b06", 2); txt(AX(860), yb - 6, "matning", 10, "middle", "#b06", 700)
-# portal + huvud + Jetson
-px = AX(560)
-rect(AX(40), yb - 230, 26, 230, ALU, "#8a9099", 1.2); rect(AX(960), yb - 230, 26, 230, ALU, "#8a9099", 1.2)
-rect(AX(40), yb - 240, AX(986) - AX(40), 26, ALU, "#8a9099", 1.4, 3)
-txt(AX(60), yb - 222, "PORTAL (T-spår)", 10, "start", MUTED, 700)
-rect(px - 70, yb - 210, 140, 54, "#fff", INK, 1.4, 5); txt(px, yb - 188, "MÄTHUVUD", 11, "middle", INK, 700, SANS)
-txt(px, yb - 173, "2 linjelaser + 2 mono-kam", 8.5, "middle", MUTED)
-txt(px, yb - 162, "+ 3 punktlaser", 8.5, "middle", PURP, 700)
-line(px - 30, yb - 156, px - 6, yb, RED, 2.2); line(px + 30, yb - 156, px + 6, yb, GRN, 2.2)  # oblika linjelaser
-for dx in (-22, 0, 22):                                   # 3 punktlaser rakt ner
-    line(px + dx, yb - 156, px + dx, yb, PURP, 1.6, "2 3"); circ(px + dx, yb, 2.6, PURP, PURP, 0)
-rect(AX(1040), yb - 150, 150, 70, "#e6efe6", JET, 1.6, 6); txt(AX(1115), yb - 128, "JETSON", 12, "middle", JET, 700, SANS)
-txt(AX(1115), yb - 112, "Orin Nano Super", 9, "middle", INK); txt(AX(1115), yb - 98, "edge-compute + U-Net", 8.5, "middle", MUTED)
-line(px + 70, yb - 183, AX(1040), yb - 120, "#5a5f66", 1, "4 3")
-rect(AX(-40), bandY + 30, 70, 30, "#cfd2d6", "#7a7f86", 1.2, 2); txt(AX(-5), bandY + 49, "ENC", 10, "middle", INK, 700)
-txt(AX(-40), bandY + 74, "encoder (matningsläge)", 9, "start", MUTED)
-hdim(AX(0), AX(BENCH_L), bandY + 40, "bänklängd 1000 mm")
+FW = 150 * (ax1 - ax0) / BENCH_L                 # 150 mm bredd i px
+y0 = 220                                          # brädans överkant (bredd-axel)
+rect(AX(0), y0, AX(BENCH_L) - AX(0), FW, "#e9e1cf", "#b9a96f", 1.4)   # bräda 1 m × 150 mm
+txt(AX(BENCH_L) / 1 - 6, 0, "", 1)
+txt(AX(20), y0 + FW + 22, "bräda 1000 × 150 mm", 11, "start", "#8a7d4e", 700)
+sy = y0 + FW * 0.5                                # laserlinjen (skannläge) längs längden
+line(AX(0) - 30, sy, AX(BENCH_L) + 30, sy, INK, 2.2)
+txt(AX(BENCH_L) + 36, sy - 6, "laserlinje 1 m", 10, "start", INK, 700)
+txt(AX(BENCH_L) + 36, sy + 10, "(röd+grön oblik)", 9, "start", MUTED)
+# huvudbalk (T-spår) över hela längden + 3 punktlaser längs linjen
+rect(AX(-20), y0 - 64, AX(BENCH_L + 20) - AX(-20), 24, ALU, "#8a9099", 1.4, 3)
+txt(AX(10), y0 - 48, "MÄTHUVUD-BALK (T-spår) — 2 oblika linjelaser längs 1 m", 10, "start", MUTED, 700)
+for f in (0.1, 0.5, 0.9):
+    x = AX(f * BENCH_L)
+    rect(x - 13, y0 - 38, 26, 18, "#f3e6fb", PURP, 1.4, 2); txt(x, y0 - 25, "PL", 8.5, "middle", PURP, 700)
+    line(x, y0 - 20, x, sy, PURP, 1.4, "2 3"); circ(x, sy, 2.6, PURP, PURP, 0)
+txt(AX(0.5 * BENCH_L), y0 - 48, "3 punktlaser (V/C/H)", 9, "middle", PURP, 700)
+# matning i sidled (bredd)
+arrow(AX(BENCH_L * 0.5), y0 - 8, AX(BENCH_L * 0.5), y0 + FW + 8, "#b06", 2.4)
+txt(AX(BENCH_L * 0.5) + 12, y0 + FW + 6, "matning (bredd 150 mm)", 10, "start", "#b06", 700)
+# Jetson + encoder
+rect(AX(BENCH_L) + 30, y0 + FW + 40, 150, 64, "#e6efe6", JET, 1.6, 6)
+txt(AX(BENCH_L) + 105, y0 + FW + 62, "JETSON Orin Nano", 11, "middle", JET, 700, SANS)
+txt(AX(BENCH_L) + 105, y0 + FW + 78, "edge-compute + U-Net", 8.5, "middle", MUTED)
+rect(AX(-10), y0 + FW + 40, 64, 28, "#cfd2d6", "#7a7f86", 1.2, 2); txt(AX(20), y0 + FW + 58, "ENC", 10, "middle", INK, 700)
+txt(AX(-10), y0 + FW + 84, "encoder (matningsläge)", 9, "start", MUTED)
+hdim(AX(0), AX(BENCH_L), y0 + FW + 110, "längd 1000 mm (laserlinjens riktning)")
+vdim(y0, y0 + FW, AX(0) - 36, "150 mm")
 add('</g>')
 
 # ===================== VY B — HUVUD ÄNDVY (oblika + punktlaser) =====================
