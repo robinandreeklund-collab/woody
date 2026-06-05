@@ -601,7 +601,7 @@
 <rect x="1078.0" y="1652.0" width="670.0" height="28.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <text x="1086.0" y="1671.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Motorstyrning</text>
 <text x="1740.0" y="1671.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="end">850</text>
-<text x="1086.0" y="1699.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Magnetencoder</text>
+<text x="1086.0" y="1699.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Magnetencoder (el. motor-Hall)</text>
 <text x="1740.0" y="1699.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="end">120</text>
 <rect x="1078.0" y="1708.0" width="670.0" height="28.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <text x="1086.0" y="1727.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Ingångslaser</text>
