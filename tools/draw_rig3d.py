@@ -70,8 +70,8 @@ add('</g>')
 add(f'<rect x="18" y="18" width="{W-36}" height="{H-36}" fill="none" stroke="{INK}" stroke-width="2"/>')
 add(f'<rect x="26" y="26" width="{W-52}" height="{H-52}" fill="none" stroke="{MUTED}" stroke-width="0.8"/>')
 txt(48, 66, "PROTOTYP-RIGG — 3D (L-portal, cross-feed, 500 mm)", 24, "start", INK, 700, SANS)
-txt(48, 92, "Matningsbas med 2 transportband + portal som straddlar matningen: 2 oblika moduler från var sin sida, "
-            "överliggande line-scan, 3 punktlaser (HG-C1400). Mått datadrivna ur src/hardware.py.", 13.5, "start", MUTED, 400, SANS)
+txt(48, 92, "Stativets ben står vid LÄNGD-ändarna (ur matningsbanan); tvärbalken åt andra hållet bär modulerna. "
+            "2 oblika moduler (var sin sida), överliggande line-scan, 3 punktlaser (HG-C1400). Mått ur src/hardware.py.", 13.5, "start", MUTED, 400, SANS)
 add(f'<line x1="48" y1="106" x2="{W-48}" y2="106" stroke="{INK}" stroke-width="1.5"/>')
 
 # ===================== ISO-SCEN =====================
@@ -79,58 +79,57 @@ BX0, BX1 = 0, BENCH_L           # bräda x (längd)
 BY0, BY1 = 0, 150               # bräda y (bredd/matning)
 BZ = 45                         # tjocklek
 MYL, MYR = 75 - SOFF, 75 + SOFF # moduler y (var sin sida om mitten y=75)
-TOPZ = MH + 80                  # portalbalkens höjd
+TOPZ = MH + 80                  # huvudbalkens höjd
+FY0, FY1 = -130, 280            # matningsbanans utsträckning (y)
+LEGX0, LEGX1 = -80, BENCH_L + 80  # ben vid LÄNGD-ändarna (ur matningsbanan)
 
 # --- bas/golvplatta ---
-box(-90, BENCH_L + 90, -SOFF - 30, 150 + SOFF + 30, -16, 0, "#e7e4da", "#cdc9bd", "#d6d2c6", "#b6b2a6", 1)
+box(LEGX0 - 30, LEGX1 + 30, FY0 - 30, FY1 + 30, -16, 0, "#e7e4da", "#cdc9bd", "#d6d2c6", "#b6b2a6", 1)
 # --- 2 transportband (löper i y/matning vid x-ändarna) ---
 for bx0, bx1, lab in [(0, 85, "BAND V"), (BENCH_L - 85, BENCH_L, "BAND H")]:
-    box(bx0, bx1, -SOFF - 10, 150 + SOFF + 10, 0, 10, BELT, "#33373d", "#3b4046", "#2b2f35", 1)
-    txt(*P((bx0 + bx1) / 2, 150 + SOFF + 10, 11), lab, 9, "middle", "#dfe3e8", 700)
+    box(bx0, bx1, FY0 - 8, FY1 + 8, 0, 10, BELT, "#33373d", "#3b4046", "#2b2f35", 1)
+    txt(*P((bx0 + bx1) / 2, FY1 + 8, 11), lab, 9, "middle", "#dfe3e8", 700)
 # --- matningspilar (i +y) ---
 for ax in (150, 350):
-    arrow(P(ax, -SOFF + 10, 16), P(ax, 150 + SOFF - 10, 16), "#b06", 2.4)
-txt(*P(250, 150 + SOFF + 34, 16), "matning (bredd 150 mm i sidled)", 11, "middle", "#b06", 700)
+    arrow(P(ax, FY0 + 20, 16), P(ax, FY1 - 20, 16), "#b06", 2.4)
+txt(*P(250, FY1 + 32, 16), "matning (bredd 150 mm i sidled)", 11, "middle", "#b06", 700)
 # --- bräda ---
 box(BX0, BX1, BY0, BY1, 0, BZ, WOOD, "#d9cfb0", "#cdbf99", "#9a8c63", 1.2)
 txt(*P(250, BY1 + 6, BZ + 4), "bräda 500 × 150 × 45 mm", 10.5, "middle", "#8a7d4e", 700)
 
-# --- portal: två uppright + toppbalk (straddlar matningen i y) ---
-for my in (MYL, MYR):
-    box(235, 265, my - 14, my + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
-# toppbalk i y-led
-box(238, 262, MYL - 14, MYR + 14, TOPZ - 22, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
-txt(*P(250, MYR + 30, TOPZ), "PORTALBALK (mätram, T-spår)", 9.5, "middle", MUTED, 700)
+# --- STATIV (vänt 90°): ben vid längd-ändarna, y=75, UR matningsbanan ---
+for lx in (LEGX0, LEGX1):
+    box(lx - 18, lx + 18, 75 - 18, 75 + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)  # fotplatta
+    box(lx - 14, lx + 14, 75 - 14, 75 + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)        # ben
+# --- HUVUDBALK längs X (mellan benen, över brädan) ---
+box(LEGX0 - 12, LEGX1 + 12, 75 - 12, 75 + 12, TOPZ - 22, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
+txt(*P(LEGX1 + 24, 75, TOPZ + 6), "HUVUDBALK (längs 500 mm)", 9, "start", MUTED, 700)
+# --- TVÄRBALK åt andra hållet (i Y) där modulerna sitter ---
+box(243, 257, MYL - 12, MYR + 12, TOPZ - 42, TOPZ - 20, ALU, "#a6abb0", "#b0b5ba", "#92979c", 1)
+txt(*P(250, MYL - 24, TOPZ - 30), "TVÄRBALK (modulfäste, åt andra hållet)", 9, "middle", MUTED, 700)
 
-# --- 2 oblika moduler (laser+kamera) på var sin sida, + laserlinjer till brädan ---
+# --- 2 oblika moduler på tvärbalkens ändar (var sin sida) + laserstrålar ---
 mods = [(MYL, RED, f"RÖD {RED_NM}", "laser+mono V"), (MYR, GRN, f"GRÖN {GRN_NM}", "laser+mono H")]
 for my, col, lab, sub in mods:
+    ln(P(250, my, TOPZ - 31), P(250, my, MH), "#8a9099", 2.6)         # fäste från tvärbalk
     mp = P(250, my, MH)
-    # laserstråle (linje längs hela brädans x vid träffpunkten) – rita som ett par strålar till brädkanterna
-    hit_y = 75 + (-1 if my < 75 else 1) * 0  # träffar mitt; rita strålar till brädans x-ändar
     for ex in (BX0, BX1):
-        ln(mp, P(ex, 75, BZ), col, 2.2, op=0.9)
-    # laserlinje på brädan (längs x)
-    ln(P(BX0, 75, BZ + 0.4), P(BX1, 75, BZ + 0.4), col, 3)
-    # modul-box
-    add(f'<g>')
-    bxp = mp
-    poly([(bxp[0]-34,bxp[1]-30),(bxp[0]+34,bxp[1]-30),(bxp[0]+34,bxp[1]+8),(bxp[0]-34,bxp[1]+8)], "#fff", col, 1.6)
-    poly([(bxp[0]-34,bxp[1]-30),(bxp[0]+34,bxp[1]-30),(bxp[0]+34,bxp[1]-18),(bxp[0]-34,bxp[1]-18)], col, col, 0)
-    txt(bxp[0], bxp[1]-21, lab, 9, "middle", PAPER, 700, SANS)
-    txt(bxp[0], bxp[1]-5, sub, 7.5, "middle", INK)
-    add('</g>')
+        ln(mp, P(ex, 75, BZ), col, 2.0, op=0.85)
+    ln(P(BX0, 75, BZ + 0.4), P(BX1, 75, BZ + 0.4), col, 3)            # laserlinje på brädan
+    poly([(mp[0]-34,mp[1]-30),(mp[0]+34,mp[1]-30),(mp[0]+34,mp[1]+8),(mp[0]-34,mp[1]+8)], "#fff", col, 1.6)
+    poly([(mp[0]-34,mp[1]-30),(mp[0]+34,mp[1]-30),(mp[0]+34,mp[1]-18),(mp[0]-34,mp[1]-18)], col, col, 0)
+    txt(mp[0], mp[1]-21, lab, 9, "middle", PAPER, 700, SANS)
+    txt(mp[0], mp[1]-5, sub, 7.5, "middle", INK)
 
-# --- 3 punktlaser (HG-C1400) längs x på en tvärbalk vid y=75, z=PLWD ---
-ln(P(PL_X[0]-20, 75, PLWD), P(PL_X[-1]+20, 75, PLWD), ALU, 5)         # tvärbalk
-ln(P(250, 75, TOPZ-22), P(250, 75, PLWD), "#8a9099", 3)               # länk till portalbalk
+# --- 3 punktlaser hänger från HUVUDBALKEN längs X ---
 for px in PL_X:
+    ln(P(px, 75, TOPZ - 12), P(px, 75, PLWD), "#8a9099", 2)
     pt = P(px, 75, PLWD)
     poly([(pt[0]-11,pt[1]-9),(pt[0]+11,pt[1]-9),(pt[0]+11,pt[1]+9),(pt[0]-11,pt[1]+9)], "#f3e6fb", PURP, 1.4)
     txt(pt[0], pt[1]+3, "PL", 8, "middle", PURP, 700)
     ln(pt, P(px, 75, BZ), PURP, 1.5, "3 3"); dot(P(px, 75, BZ), 2.6, PURP)
 
-# --- överliggande line-scan-ytkamera + RGB/NIR-strobe ---
+# --- överliggande line-scan-ytkamera + RGB/NIR-strobe (på balkkorset) ---
 cp = P(250, 75, SURF_WD)
 ln(P(250, 75, TOPZ), cp, "#8a9099", 3)
 poly([(cp[0]-52,cp[1]-16),(cp[0]+52,cp[1]-16),(cp[0]+52,cp[1]+12),(cp[0]-52,cp[1]+12)], "#efe6f7", SURFC, 1.6)
@@ -140,7 +139,7 @@ for ex in (BX0, BX1):
     ln(cp, P(ex, 75, BZ), SURFC, 0.9, "3 3")
 
 # --- Jetson ---
-jp = P(BENCH_L + 150, 150 + SOFF, 0)
+jp = P(BENCH_L + 150, FY1 - 20, 0)
 add(f'<rect x="{jp[0]-2:.0f}" y="{jp[1]-30:.0f}" width="150" height="56" rx="6" fill="#e6efe6" stroke="{JET}" stroke-width="1.6"/>')
 txt(jp[0]+73, jp[1]-8, "JETSON Orin Nano", 11, "middle", JET, 700, SANS)
 txt(jp[0]+73, jp[1]+8, "edge-compute + U-Net", 8.5, "middle", MUTED)
@@ -164,8 +163,8 @@ for i, (c, k, v) in enumerate(leg):
     txt(lx+44, ry+11, k, 11, "start", INK, 700, SANS)
     txt(lx+44, ry+25, v, 9.5, "start", MUTED, 400, SANS)
 add(f'<rect x="{lx+12}" y="{ly+312}" width="348" height="36" rx="5" fill="{PANEL}" stroke="{DIMC}" stroke-width="0.8"/>')
-txt(lx+22, ly+327, "Modulerna sitter på VAR SIN sida → fyller varandras", 9.5, "start", INK, 700)
-txt(lx+22, ly+340, "skuggor och fångar båda sidoväggarna.", 9.5, "start", INK, 700)
+txt(lx+22, ly+327, "Ben vid längd-ändarna → fri matningsbana. Tvärbalken", 9.5, "start", INK, 700)
+txt(lx+22, ly+340, "(åt andra hållet) bär modulerna — en på var sin sida.", 9.5, "start", INK, 700)
 
 # ===================== MÅTT-PANEL (ifyllda x=mm) — nedre vänster =====================
 mx, my0 = 70, 452
@@ -183,7 +182,7 @@ dims = [
     ("Punktlaser-läge (V/C/H)", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]} mm"),
     ("Punktlaser mätavstånd (HG-C1400)", f"{PLWD} mm"),
     ("Ytkamera arbetsavstånd (M72)", f"~{SURF_WD} mm"),
-    ("Transportband", "2× 24 V · 50 mm/s"),
+    ("Stativben", "vid längd-ändarna (ur banan)"),
 ]
 for i, (k, v) in enumerate(dims):
     ry = my0 + 38 + i * 28
