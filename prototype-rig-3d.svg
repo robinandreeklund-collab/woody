@@ -592,9 +592,9 @@
 <text x="1548.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
 <text x="1740.0" y="1508.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">500</text>
 <rect x="1078.0" y="1514.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1085.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Ø25 mm 650 nm bandpass (±10 nm)</text>
-<text x="1548.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · att k</text>
-<text x="1740.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">150</text>
+<text x="1085.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">650 nm bandpass Ø25/25,4 mm + C-mount-håll</text>
+<text x="1548.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MidOpt </text>
+<text x="1740.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">200</text>
 <text x="1085.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">iadiy LM9R650H100L60</text>
 <text x="1548.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">iadiy.com · ditt v</text>
 <text x="1740.0" y="1548.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">300</text>
@@ -606,9 +606,9 @@
 <text x="1548.0" y="1588.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
 <text x="1740.0" y="1588.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">500</text>
 <rect x="1078.0" y="1594.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1085.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Ø25 mm 520 nm bandpass (±10 nm)</text>
-<text x="1548.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · att k</text>
-<text x="1740.0" y="1608.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">150</text>
+<text x="1085.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">520 nm bandpass Ø25/25,4 mm + C-mount-håll</text>
+<text x="1548.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MidOpt </text>
+<text x="1740.0" y="1608.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">200</text>
 <text x="1085.0" y="1628.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">iadiy LM9G520H50L60T</text>
 <text x="1548.0" y="1628.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">iadiy.com · ditt v</text>
 <text x="1740.0" y="1628.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">350</text>
@@ -690,13 +690,13 @@
 <text x="2424.0" y="1568.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">150</text>
 <rect x="1078.0" y="1942.0" width="670.0" height="30.0" rx="5" fill="#eaf5ee" stroke="#2f9e6e" stroke-width="1.2" opacity="1"/>
 <text x="1086.0" y="1962.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="start">SUMMA FAS 1</text>
-<text x="1740.0" y="1962.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#2f9e6e" text-anchor="end">23 641 kr</text>
+<text x="1740.0" y="1962.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#2f9e6e" text-anchor="end">23 741 kr</text>
 <rect x="1762.0" y="1582.0" width="670.0" height="30.0" rx="5" fill="#f1eaf7" stroke="#7a3fb0" stroke-width="1.2" opacity="1"/>
 <text x="1770.0" y="1602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#7a3fb0" text-anchor="start">FAS 2-tillägg</text>
 <text x="2424.0" y="1602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+10 332 kr</text>
 <rect x="1762.0" y="1620.0" width="670.0" height="32.0" rx="5" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <text x="1770.0" y="1642.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">FULL SVIT (Fas 1+2)</text>
-<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">33 973 kr</text>
+<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">34 073 kr</text>
 <rect x="2010.0" y="1982.0" width="426.0" height="52.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <line x1="2010.0" y1="2008.0" x2="2436.0" y2="2008.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="2274.0" y1="1982.0" x2="2274.0" y2="2034.0" stroke="#23262b" stroke-width="1" opacity="1"/>
