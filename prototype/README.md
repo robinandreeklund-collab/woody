@@ -31,14 +31,21 @@ streamlit run prototype/app.py
 - **Hårdvara:** exakta modul-specar (lasrar, kameror, punktlaser).
 - **BOM & systemkoppling:** komplett materiallista med ca-priser, kopplingsschema (allt
   till Jetson, buss · takt · datatakt), monteringsritning (ändvy) och tabell över **alla
-  gränssnitt och uppdateringsfrekvenser** (prototyptakt vs buss-tak). Punktlasern visas
-  både som absolut tjockleksankare och som tvärsnittssvep över 150 mm.
+  gränssnitt och uppdateringsfrekvenser** (prototyptakt vs buss-tak). De 3 punktlasrarna
+  sitter **längs 1 m** (V/C/H) och ger absoluta Z-ankare som låser längsprofilen; tvärsnittet
+  tvärs 150 mm kommer från de oblika linjelasrarna.
 
-## Hårdvara (prototyp, per huvud)
-- 1× NVIDIA Jetson Orin Nano Super (edge-compute + U-Net).
-- 2× Hikrobot MV-CS050-10UM mono (USB3) + 8 mm lins + bandpass (650/520 nm).
-- 1× iadiy LM9R650H100L60 (röd 650 nm, 100 mW) + 1× LM9G520H50L60T (grön 520 nm,
-  50 mW) linjelaser, oblika. (Grön toppar på 50 mW i databladet.)
-- 3× punktlaser-avståndssensor (V/C/H) för absolut tjocklek.
-- Ytkamera (färg) + NIR-strobe för defektklassning.
-- T-spårsram, encoder, transport för 1 m. Se BOM i chatten / docs.
+## Hårdvara (prototyp, per huvud) — fasad uppbyggnad
+Se fliken **BOM & systemkoppling** för komplett lista med priser och faser.
+
+- **Fas 1 (vänster, minimal):** Jetson Orin Nano Super · 1× MV-CS050-10UM mono (USB3) +
+  C-mount 8 mm + bandpass 650 nm · 1× iadiy LM9R650H100L60 (röd 650 nm). Enkel **alu-ram**,
+  brädan **puttas för hand** för att verifiera trianguleringen (kamera free-run, ingen encoder).
+- **Fas 2 (höger):** +1× MV-CS050-10UM + bandpass 520 nm + iadiy LM9G520H50L60T (grön) →
+  full dubbel-oblik med occlusion-fyllning.
+- **Fas 3 (full svit):** MindVision MV-XGLC83BM-T4-90 (line-scan, NBASE-T) + M72-optik ·
+  850 nm NIR + RGB strobad belysning · 3× Panasonic HG-C1100 punktlaser (längs 1 m,
+  ankrar längsprofilen) + MCP3008 ADC · inkrementell encoder (TDI-synk).
+
+CS050 har C-mount och **kräver objektiv** (ingår, 1 per kamera). MindVision faller tillbaka
+till 1 GbE (NBASE-T) → ingen switch behövs.

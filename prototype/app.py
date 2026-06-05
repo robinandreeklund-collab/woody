@@ -238,18 +238,22 @@ def render_sensors(sim, feed_frac, xpos, playing):
 
 
 def bom_panel(sim):
-    st.markdown('<div class="ph-sec">Komplett materiallista (prototyp, ett mäthuvud)</div>',
+    st.markdown('<div class="ph-sec">Materiallista — fasad uppbyggnad (ett mäthuvud)</div>',
                 unsafe_allow_html=True)
     st.dataframe(bom_rows(), hide_index=True, width="stretch")
+    f1, f12, full = bom_total(1), bom_total(2), bom_total(3)
     c = st.columns(3)
-    c[0].metric("Ca totalpris", f"{bom_total():,} kr".replace(",", " "))
-    c[1].metric("Profilkameror", "2× CS050 (USB3)")
-    c[2].metric("Punktlaser", "3× HG-C1100")
-    st.caption("Priser exkl. moms/frakt (Jetson, CS050 & MindVision = verifierade; övriga "
-               "uppskattningar). **MindVision är NBASE-T** → förhandlar ner till Jetsons 1 GbE av "
-               "sig själv, **ingen switch behövs** i prototypen. **Budget-alternativ punktlaser:** "
-               "VL53L1X ToF (~70 kr/st, I²C) — men bara ±5 mm → räcker för fusions-*konceptet*, ej "
-               "skarpt ankare.")
+    c[0].metric("Fas 1 — vänster (röd)", f"{f1:,} kr".replace(",", " "), help="1 kamera + röd laser + Jetson + alu-ram — putta för hand")
+    c[1].metric("Fas 1+2 — dubbel-oblik", f"{f12:,} kr".replace(",", " "), delta=f"+{f12-f1:,} kr".replace(",", " "))
+    c[2].metric("Full svit (Fas 1–3)", f"{full:,} kr".replace(",", " "), delta=f"+{full-f12:,} kr".replace(",", " "))
+    f1s = f"{f1:,}".replace(",", " ")
+    st.caption(f"**Fas 1 (~{f1s} kr):** bara *vänster* modul (röd 650 + 1 kamera) på en enkel "
+               "alu-ram – putta brädan för hand och verifiera att trianguleringen ger en höjdprofil "
+               "(kameran free-run, ingen encoder behövs än). **Fas 2:** komplettera *höger* modul "
+               "(grön 520 + kamera nr 2) → full dubbel-oblik med occlusion-fyllning. **Fas 3:** "
+               "ytkamera + NIR/RGB + 3 punktlaser + encoder. — CS050 har C-mount och **kräver "
+               "objektiv** (ligger i listan, 1 per kamera). MindVision är NBASE-T → ingen switch "
+               "behövs. Budget-punktlaser: VL53L1X ToF (~70 kr, ±5 mm) för konceptet.")
 
     st.markdown('<div class="ph-sec">Så kopplas allt ihop</div>', unsafe_allow_html=True)
     a, b = st.columns(2, gap="medium")
@@ -266,9 +270,10 @@ def bom_panel(sim):
                "Jetsons 1 GbE** (118 MB/s); full 10GigE krävs först vid max radtakt (110 kHz). "
                "**Encoder (RS422)** går till *ytkameran* som sköter TDI-radsynk själv och driver "
                "**R/G/B-strobe via sina 3 inbyggda strobe-utgångar** (färg = radtakt/4 med NIR); samma "
-               "encoder triggar profilkamerorna. **Punktlaser:** 3× analoga via MCP3008 (SPI) — sveper "
-               "150 mm under matningen → absolut **tvärsnittsprofil** (~0,1 mm/prov) som *ankrar* "
-               "linjelaserns form.")
+               "encoder triggar profilkamerorna. **Punktlaser:** 3× spridda **längs 1 m** (V/C/H), "
+               "läses analogt via MCP3008 (SPI) → ger **absoluta Z-ankare längs LÄNGSprofilen** som "
+               "låser linjelaserns skala/drift (tvärsnittet tvärs 150 mm kommer från de oblika "
+               "linjelasrarna).")
 
 
 def hardware_specs():

@@ -224,7 +224,7 @@ def fig_length_profile(sim, feed_frac, figsize=(7.4, 3.2)):
         ax.plot(xmm, val, marker="v", ms=11, color=PURP, mec="k", mew=0.6, zorder=6)
         ax.annotate(f"{val:.1f}", (xmm, val), textcoords="offset points",
                     xytext=(0, 9), fontsize=7.5, color=PURP, ha="center", fontweight="bold")
-    ax.plot([], [], marker="v", color=PURP, ls="none", label="punktlaser (absolut)")
+    ax.plot([], [], marker="v", color=PURP, ls="none", label="punktlaser V/C/H (absolut, 3× längs 1 m)")
     ax.set_xlim(0, L); ax.set_ylim(0, T * 1.5)
     ax.set_xlabel("längd (mm)"); ax.set_ylabel("höjd (mm)")
     ax.legend(loc="lower center", fontsize=7.5, ncol=2, frameon=False)
@@ -233,14 +233,15 @@ def fig_length_profile(sim, feed_frac, figsize=(7.4, 3.2)):
 
 # ------------------------------------------------- tvärsnittsprofil (över bredden)
 def fig_cross_section(sim, length_frac, figsize=(7.4, 3.2)):
-    """Tvärsnitt vid en längdposition: topp-profil + två sidoväggar. Röd oblik laser
-    ser vänster sida, grön höger – occlusion fylls av motsatt modul. Kupa/vridning syns."""
+    """Tvärsnitt (tvärs 150 mm bredd) vid en längdposition: topp-profil + två sidoväggar
+    från de OBLIKA LINJELASRARNA (röd ser vänster sida, grön höger). Kupa/vridning syns.
+    (Punktlasrarna mäter inte här – de ligger längs 1 m och ankrar LÄNGSprofilen.)"""
     z = sim["meas"]["z_fused"]; Hpx, Wpx = z.shape
     Wd, T = sim["width"], sim["thickness"]
     li = int(np.clip(length_frac * (Hpx - 1), 0, Hpx - 1))
     ys = np.linspace(0, Wd, Wpx); top = z[li, :]
     fig = _fig(figsize); ax = fig.add_subplot(111)
-    _ax(ax, f"TVÄRSNITT vid längd {length_frac*sim['L']:.0f} mm — topp + sidor (dubbel oblik)")
+    _ax(ax, f"TVÄRSNITT (tvärs 150 mm) vid längd {length_frac*sim['L']:.0f} mm — linjelasrar")
     ax.fill_between(ys, 0, top, color="#e2e8da", ec="none")
     ax.plot(ys, top, color=INK, lw=1.6, label="uppmätt topp-profil")
     ax.plot([ys[0], ys[0]], [0, top[0]], color=RED, lw=3, solid_capstyle="round",
@@ -249,13 +250,6 @@ def fig_cross_section(sim, length_frac, figsize=(7.4, 3.2)):
             label="höger sida (grön 520)")
     ax.axhline(T, color=MUTED, ls="--", lw=0.8)
     ax.text(Wd, T + 0.4, f"nominell {T:.0f} mm", color=MUTED, fontsize=7.5, ha="right")
-    # punktlasern sveper 150 mm under matningen → ABSOLUT tvärsnitt (glesa prov)
-    btrue = sim["board"]["height"]
-    rng = np.random.default_rng(li)
-    ks = np.linspace(0, Wpx - 1, max(6, int(Wd / 8))).astype(int)
-    abs_samp = btrue[li, ks] + rng.normal(0, 0.04, ks.size)        # HG-C1100 ±~40 µm
-    ax.plot(ys[ks], abs_samp, "o", ms=3.2, color=PURP, mec="k", mew=0.3, zorder=6,
-            label="punktlaser-svep (absolut)")
     ax.set_xlim(-4, Wd + 4); ax.set_ylim(0, T * 1.4)
     ax.set_xlabel("bredd (mm) — matningsled"); ax.set_ylabel("höjd (mm)")
     ax.legend(loc="lower center", fontsize=7, ncol=3, frameon=False)
@@ -354,35 +348,41 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
 
 
 # ============================================================ BOM & systemintegration
-# Priser SEK exkl. moms/frakt. Verifierade pris märks (verif.), övriga är uppskattningar.
+# Priser SEK exkl. moms/frakt (Jetson, CS050, MindVision verifierade; övriga ca).
+# Fas: 1 = vänster modul (röd) – minimal "funkar-det?"-test, handmatning på alu-ram;
+#      2 = komplettera höger modul (grön) – full dubbel-oblik (occlusion-fyllning);
+#      3 = full sensorsvit (ytkamera/NIR + punktlaser + encoder).
 BOM = [
-    ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + sensorfusion", "—", "—", 3695),
-    ("Profilkamera (oblik) ×2", "Hikrobot MV-CS050-10UM (mono)", 2, "3D-triangulering V+H", "USB3", "~490 prof/s (ROI)", 3382),
-    ("Objektiv C-mount", "8 mm (profilkameror)", 2, "profiloptik (1 m FOV)", "—", "—", 500),
-    ("Bandpassfilter", "650 nm / 520 nm", 2, "isolerar laservåglängd", "—", "—", 350),
-    ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan, 4-TDI)", "10GBase-T (NBASE-T)", "1,2 kHz proto / 110 kHz max", 6902),
-    ("Objektiv M72", "8K line-scan 55–60 mm (M72×0.75, ⌀≥62 mm)", 1, "8K-yta över 1 m (WD ~1 m)", "—", "—", 2600),
-    ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300),
-    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350),
-    ("Punktlaser ×3 (rek.)", "Panasonic HG-C1100", 3, "absolut tjocklek + tvärsnitt", "analog→ADC", "1,5 kHz", 1800),
-    ("ADC", "MCP3008 (SPI, 200 kSPS)", 1, "läser 3 punktlaser analogt", "SPI", "—", 60),
-    ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 900),
-    ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 1500),
-    ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 300),
-    ("Encoder", "Inkrementell rotationsencoder (RS422)", 1, "matningssynk (TDI) + kameratrigger", "RS422→ytkamera / trig→profilkam", "pulser", 800),
-    ("Mekanik", "T-spårsram + transportband + motor", 1, "bänk för 1 m cross-feed", "—", "—", 5000),
-    ("Diverse", "Kablar (Cat6+), nätaggregat, fästen", 1, "—", "—", "—", 1500),
+    ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + sensorfusion", "—", "—", 3695, 1),
+    ("Profilkamera V (röd)", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering vänster", "USB3", "~490 prof/s (ROI)", 3382, 1),
+    ("Objektiv C-mount", "8 mm (profilkamera V)", 1, "profiloptik (1 m FOV)", "—", "—", 500, 1),
+    ("Bandpassfilter 650", "650 nm", 1, "isolerar röd laser", "—", "—", 350, 1),
+    ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300, 1),
+    ("Alu-ram (manuell)", "alu-profil + fästen, handmatning", 1, "enkel bänk – putta brädan för hand", "—", "—", 800, 1),
+    ("Diverse", "Kablar, nätaggregat, fästen", 1, "—", "—", "—", 1500, 1),
+    ("Profilkamera H (grön)", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering höger + occlusion-fyllning", "USB3", "~490 prof/s (ROI)", 3382, 2),
+    ("Objektiv C-mount", "8 mm (profilkamera H)", 1, "profiloptik (1 m FOV)", "—", "—", 500, 2),
+    ("Bandpassfilter 520", "520 nm", 1, "isolerar grön laser", "—", "—", 350, 2),
+    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350, 2),
+    ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan, 4-TDI)", "10GBase-T (NBASE-T)", "1,2 kHz proto / 110 kHz max", 6902, 3),
+    ("Objektiv M72", "8K line-scan 55–60 mm (M72×0.75, ⌀≥62 mm)", 1, "8K-yta över 1 m (WD ~1 m)", "—", "—", 2600, 3),
+    ("Punktlaser ×3 (rek.)", "Panasonic HG-C1100", 3, "absolut tjocklek — ankrar längsprofilen (3× längs 1 m)", "analog→ADC", "1,5 kHz", 1800, 3),
+    ("ADC", "MCP3008 (SPI, 200 kSPS)", 1, "läser 3 punktlaser analogt", "SPI", "—", 60, 3),
+    ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 900, 3),
+    ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 1500, 3),
+    ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 300, 3),
+    ("Encoder", "Inkrementell encoder (RS422)", 1, "matningssynk (TDI) + kameratrigger", "RS422→ytkamera / trig→profilkam", "pulser", 800, 3),
 ]
 
 
 def bom_rows():
-    return [{"Komponent": k, "Modell": m, "Antal": q, "Roll": r, "Gränssnitt": i,
+    return [{"Fas": f, "Komponent": k, "Modell": m, "Antal": q, "Roll": r, "Gränssnitt": i,
              "Uppdateringstakt": u, "Ca pris (st)": f"{p:,}".replace(",", " ")}
-            for (k, m, q, r, i, u, p) in BOM]
+            for (k, m, q, r, i, u, p, f) in BOM]
 
 
-def bom_total():
-    return sum(q * p for (_, _, q, _, _, _, p) in BOM)
+def bom_total(max_fas=3):
+    return sum(q * p for (_, _, q, _, _, _, p, f) in BOM if f <= max_fas)
 
 
 def interface_rows(sim):
@@ -393,9 +393,7 @@ def interface_rows(sim):
     s_line = v * 1000.0 / s_mmpp
     s_mbs = rig.surface_cam.px_across * s_line / 1e6
     s_max_mbs = rig.surface_cam.px_across * rig.surface_cam.line_rate_hz / 1e6
-    period = 60.0 / max(1.0, sim["takt"])
     pl_rate = 1500.0
-    pl_pitch = sim["width"] / (pl_rate * period)
     return [
         {"Enhet": "Profilkamera RÖD", "Buss": "USB3 (5 Gbit/s)", "Takt (proto)": f"{rate:.0f} prof/s",
          "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
@@ -406,7 +404,7 @@ def interface_rows(sim):
         {"Enhet": "Ytkamera (MAX)", "Buss": "10GBase-T (10G)", "Takt (proto)": f"{rig.surface_cam.line_rate_hz/1e3:.0f} krad/s",
          "Datatakt": f"{s_max_mbs:.0f} MB/s", "Buss-tak": "1250 MB/s (10GigE)", "Marginal": f"{1250/s_max_mbs:.1f}× (kräver 10G-värd)"},
         {"Enhet": "3× Punktlaser → ADC", "Buss": "analog→SPI", "Takt (proto)": f"{pl_rate:.0f} Hz",
-         "Datatakt": "<0,1 MB/s", "Buss-tak": "SPI 200 kSPS", "Marginal": f"tvärsnitt {pl_pitch:.2f} mm/prov"},
+         "Datatakt": "<0,1 MB/s", "Buss-tak": "SPI 200 kSPS", "Marginal": "3 abs-ankare längs 1 m (V/C/H) → skala/drift"},
         {"Enhet": "RGB/NIR-strobe", "Buss": "ytkamera strobe-ut", "Takt (proto)": f"{s_line:.0f} Hz (sync)",
          "Datatakt": "—", "Buss-tak": "3 strobe-kanaler", "Marginal": "färg = radtakt/4 (R/G/B+NIR)"},
         {"Enhet": "Encoder", "Buss": "RS422→ytkamera", "Takt (proto)": "pulser",
@@ -474,11 +472,10 @@ def fig_assembly(sim, figsize=(7.4, 4.0)):
     ax.annotate("", xy=(-Wd / 2 + 6, T), xytext=(-126, 92), arrowprops=dict(arrowstyle="-|>", color=RED, lw=1.8))
     ax.annotate("", xy=(Wd / 2 - 6, T), xytext=(126, 92), arrowprops=dict(arrowstyle="-|>", color=GRN, lw=1.8))
     ax.text(-92, 70, "45°", color=RED, fontsize=8); ax.text(74, 70, "45°", color=GRN, fontsize=8)
-    # 3 punktlaser (längs 1 m → projiceras här som ett läge)
-    for px in (-50, 0, 50):
-        ax.plot([px, px], [120, T], color=PURP, lw=1.0, ls=(0, (1, 1)))
-        ax.plot(px, 122, marker="v", ms=8, color=PURP, mec="k", mew=0.4)
-    ax.text(0, 116, "3× punktlaser (V/C/H längs 1 m) → absolut tjocklek + tvärsnitt vid svep",
+    # punktlaser: 3× spridda LÄNGS 1 m (in i bilden) → i ändvyn ett centrerat nedåt-skott
+    ax.plot([0, 0], [118, T], color=PURP, lw=1.2, ls=(0, (1, 1)))
+    ax.plot(0, 120, marker="v", ms=9, color=PURP, mec="k", mew=0.4)
+    ax.text(0, 114, "3× punktlaser (V/C/H) längs 1 m (in i bilden) → ankrar LÄNGSprofilen",
             ha="center", fontsize=6.3, color=PURP)
     ax.text(-148, 122, f"standoff ≈ {sim['rig'].module_standoff_mm:.0f} mm", fontsize=6.3, color=MUTED)
     ax.add_patch(plt.Rectangle((132, -9), 18, 12, fc="#bdb8aa", ec=MUTED))
