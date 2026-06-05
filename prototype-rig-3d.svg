@@ -78,7 +78,7 @@
 <rect x="18" y="18" width="1624" height="1194" fill="none" stroke="#23262b" stroke-width="2"/>
 <rect x="26" y="26" width="1608" height="1178" fill="none" stroke="#6a6e74" stroke-width="0.8"/>
 <text x="48.0" y="66.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="24" font-weight="700" fill="#23262b" text-anchor="start">PROTOTYP-RIGG — 3D (L-portal, cross-feed, 500 mm)</text>
-<text x="48.0" y="92.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13.5" font-weight="400" fill="#6a6e74" text-anchor="start">Stativets ben står vid LÄNGD-ändarna (ur matningsbanan); tvärbalken åt andra hållet bär modulerna. 2 oblika moduler (var sin sida), överliggande line-scan, 3 punktlaser (HG-C1400). Mått ur src/hardware.py.</text>
+<text x="48.0" y="92.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13.5" font-weight="400" fill="#6a6e74" text-anchor="start">FAS 1 (solid) = röd modul + rullband + encoder + Jetson-styrning (körbar). FAS 2 (tonad) = grön modul + 3 punktlaser (HG-C1400) + line-scan-ytkamera. Ben vid längd-ändarna (ur matningsbanan). Mått ur src/hardware.py.</text>
 <line x1="48" y1="106" x2="1612" y2="106" stroke="#23262b" stroke-width="1.5"/>
 <polygon points="744.5,260.2 1068.7,447.4 911.1,538.4 586.9,351.2" fill="#e7e4da" stroke="#b6b2a6" stroke-width="1" opacity="1"/>
 <polygon points="586.9,351.2 911.1,538.4 911.1,546.7 586.9,359.5" fill="#cdc9bd" stroke="#b6b2a6" stroke-width="1" opacity="1"/>
@@ -141,7 +141,8 @@
 <polygon points="908.4,89.9 976.4,89.9 976.4,127.9 908.4,127.9" fill="#fff" stroke="#e8542c" stroke-width="1.6" opacity="1"/>
 <polygon points="908.4,89.9 976.4,89.9 976.4,101.9 908.4,101.9" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
 <text x="942.4" y="98.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#f7f6f1" text-anchor="middle">RÖD 650</text>
-<text x="942.4" y="114.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="7.5" font-weight="400" fill="#23262b" text-anchor="middle">laser+mono V</text>
+<text x="942.4" y="114.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="7.0" font-weight="400" fill="#23262b" text-anchor="middle">laser+mono · FAS 1</text>
+<g opacity="0.5">
 <line x1="729.0" y1="238.5" x2="729.0" y2="243.2" stroke="#8a9099" stroke-width="2.6" opacity="1"/>
 <line x1="729.0" y1="243.2" x2="723.1" y2="306.4" stroke="#2f9e6e" stroke-width="2.0" opacity="0.85"/>
 <line x1="729.0" y1="243.2" x2="948.3" y2="436.4" stroke="#2f9e6e" stroke-width="2.0" opacity="0.85"/>
@@ -149,7 +150,9 @@
 <polygon points="695.0,213.2 763.0,213.2 763.0,251.2 695.0,251.2" fill="#fff" stroke="#2f9e6e" stroke-width="1.6" opacity="1"/>
 <polygon points="695.0,213.2 763.0,213.2 763.0,225.2 695.0,225.2" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="729.0" y="222.2" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#f7f6f1" text-anchor="middle">GRÖN 520</text>
-<text x="729.0" y="238.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="7.5" font-weight="400" fill="#23262b" text-anchor="middle">laser+mono H</text>
+<text x="729.0" y="238.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="7.0" font-weight="400" fill="#23262b" text-anchor="middle">laser+mono · FAS 2</text>
+</g>
+<g opacity="0.5">
 <line x1="745.6" y1="115.0" x2="745.6" y2="134.8" stroke="#8a9099" stroke-width="2" opacity="1"/>
 <polygon points="734.6,125.8 756.6,125.8 756.6,143.8 734.6,143.8" fill="#f3e6fb" stroke="#a23ad6" stroke-width="1.4" opacity="1"/>
 <text x="745.6" y="137.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8" font-weight="700" fill="#a23ad6" text-anchor="middle">PL</text>
@@ -165,39 +168,54 @@
 <text x="925.8" y="241.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8" font-weight="700" fill="#a23ad6" text-anchor="middle">PL</text>
 <line x1="925.8" y1="238.8" x2="925.8" y2="423.4" stroke="#a23ad6" stroke-width="1.5" stroke-dasharray="3 3" opacity="1"/>
 <circle cx="925.8" cy="423.4" r="2.6" fill="#a23ad6" stroke="#23262b" stroke-width="0"/>
+</g>
+<g opacity="0.5">
 <line x1="835.7" y1="160.8" x2="835.7" y2="145.1" stroke="#8a9099" stroke-width="3" opacity="1"/>
 <polygon points="783.7,129.1 887.7,129.1 887.7,157.1 783.7,157.1" fill="#efe6f7" stroke="#7a3fb0" stroke-width="1.6" opacity="1"/>
 <text x="835.7" y="143.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#7a3fb0" text-anchor="middle">YTKAMERA line-scan</text>
 <text x="835.7" y="154.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="7.5" font-weight="400" fill="#23262b" text-anchor="middle">M72 + RGB/NIR-strobe</text>
 <line x1="835.7" y1="145.1" x2="723.1" y2="306.4" stroke="#7a3fb0" stroke-width="0.9" stroke-dasharray="3 3" opacity="1"/>
 <line x1="835.7" y1="145.1" x2="948.3" y2="436.4" stroke="#7a3fb0" stroke-width="0.9" stroke-dasharray="3 3" opacity="1"/>
+</g>
 <rect x="950" y="506" width="150" height="56" rx="6" fill="#e6efe6" stroke="#3b7d3b" stroke-width="1.6"/>
 <text x="1024.7" y="527.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#3b7d3b" text-anchor="middle">JETSON Orin Nano</text>
 <text x="1024.7" y="543.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="400" fill="#6a6e74" text-anchor="middle">edge-compute + U-Net</text>
 <rect x="1235" y="150" width="372" height="360" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="1235" y="150" width="372" height="30" rx="8" fill="#23262b"/>
-<text x="1247.0" y="170.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#f7f6f1" text-anchor="start">SENSORER / FÄRGFÖRKLARING</text>
+<text x="1247.0" y="170.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#f7f6f1" text-anchor="start">SENSORER / FAS (F2-delar tonade)</text>
 <rect x="1247" y="190" width="22" height="22" rx="4" fill="#e8542c" stroke="#23262b" stroke-width="0.8"/>
-<text x="1279.0" y="201.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Linjelaser + kamera RÖD 650</text>
-<text x="1279.0" y="215.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">oblik modul, vänster sida</text>
+<text x="1279.0" y="201.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Linjelaser + kamera RÖD 650</text>
+<text x="1279.0" y="215.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">oblik modul, vänster sida</text>
+<rect x="1547" y="193" width="48" height="17" rx="8" fill="#2f9e6e"/>
+<text x="1571.0" y="205.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 1</text>
 <rect x="1247" y="234" width="22" height="22" rx="4" fill="#2f9e6e" stroke="#23262b" stroke-width="0.8"/>
-<text x="1279.0" y="245.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Linjelaser + kamera GRÖN 520</text>
-<text x="1279.0" y="259.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">oblik modul, höger sida</text>
+<text x="1279.0" y="245.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Linjelaser + kamera GRÖN 520</text>
+<text x="1279.0" y="259.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">oblik modul, höger sida</text>
+<rect x="1547" y="237" width="48" height="17" rx="8" fill="#7a3fb0"/>
+<text x="1571.0" y="249.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 2</text>
 <rect x="1247" y="278" width="22" height="22" rx="4" fill="#a23ad6" stroke="#23262b" stroke-width="0.8"/>
-<text x="1279.0" y="289.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">3× punktlaser HG-C1400 (V/C/H)</text>
-<text x="1279.0" y="303.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">absolut tjocklek, ankrar längsprofil</text>
+<text x="1279.0" y="289.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">3× punktlaser HG-C1400 (V/C/H)</text>
+<text x="1279.0" y="303.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">absolut tjocklek, ankrar längsprofil</text>
+<rect x="1547" y="281" width="48" height="17" rx="8" fill="#7a3fb0"/>
+<text x="1571.0" y="293.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 2</text>
 <rect x="1247" y="322" width="22" height="22" rx="4" fill="#7a3fb0" stroke="#23262b" stroke-width="0.8"/>
-<text x="1279.0" y="333.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Ytkamera line-scan + RGB/NIR</text>
-<text x="1279.0" y="347.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">rakt ovan, yta + defekter</text>
+<text x="1279.0" y="333.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Ytkamera line-scan + RGB/NIR</text>
+<text x="1279.0" y="347.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">rakt ovan, yta + defekter</text>
+<rect x="1547" y="325" width="48" height="17" rx="8" fill="#7a3fb0"/>
+<text x="1571.0" y="337.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 2</text>
 <rect x="1247" y="366" width="22" height="22" rx="4" fill="#444a52" stroke="#23262b" stroke-width="0.8"/>
-<text x="1279.0" y="377.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">2× transportband</text>
-<text x="1279.0" y="391.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">cross-feed, 50 mm/s</text>
+<text x="1279.0" y="377.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">2× transportband + encoder</text>
+<text x="1279.0" y="391.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">cross-feed, 50 mm/s · Jetson-styrt</text>
+<rect x="1547" y="369" width="48" height="17" rx="8" fill="#2f9e6e"/>
+<text x="1571.0" y="381.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 1</text>
 <rect x="1247" y="410" width="22" height="22" rx="4" fill="#c3c6ca" stroke="#23262b" stroke-width="0.8"/>
-<text x="1279.0" y="421.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Portal / mätram (T-spår)</text>
-<text x="1279.0" y="435.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">stativ som straddlar matningen</text>
+<text x="1279.0" y="421.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Stativ/mätram + ingångslaser</text>
+<text x="1279.0" y="435.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">vänt stativ + Jetson-styrning</text>
+<rect x="1547" y="413" width="48" height="17" rx="8" fill="#2f9e6e"/>
+<text x="1571.0" y="425.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 1</text>
 <rect x="1247" y="462" width="348" height="36" rx="5" fill="#ecebe4" stroke="#9a9ea4" stroke-width="0.8"/>
-<text x="1257.0" y="477.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="start">Ben vid längd-ändarna → fri matningsbana. Tvärbalken</text>
-<text x="1257.0" y="490.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="start">(åt andra hållet) bär modulerna — en på var sin sida.</text>
+<text x="1257.0" y="477.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.3" font-weight="700" fill="#2f9e6e" text-anchor="start">FAS 1 = körbar röd-profilerare (rullband + Jetson-styrning).</text>
+<text x="1257.0" y="490.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.3" font-weight="700" fill="#7a3fb0" text-anchor="start">FAS 2 (tonat) = grön modul + punktlaser + line-scan-yta.</text>
 <rect x="1235" y="522" width="372" height="156" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="1235" y="522" width="372" height="28" rx="8" fill="#3b7d3b"/>
 <text x="1247.0" y="541.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#f7f6f1" text-anchor="start">STYRNING (Jetson) — rullband utan fast läge</text>
