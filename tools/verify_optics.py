@@ -12,6 +12,17 @@ def ok(cond): return "✓ OK" if cond else "✗ FEL"
 BOARD_LEN = 500.0          # brädans längd = laserlinjens riktning = FOV som ska täckas
 print(); line("="); print("OPTIKVERIFIERING — prototyp, bräda {:.0f} mm".format(BOARD_LEN)); line("=")
 
+# ============================================================ 0) MONTERING / GÄNGA
+print("\n[0] MONTERING & GÄNGA  (databladsbekräftat)")
+line()
+print("  Profilkamera MV-CS050-10UM : C-mount, 2/3\", MONO (Hikrobot datablad)")
+print("  Lins MVL-MF1228M-8MP       : C-mount, 2/3\", 12 mm, 8MP (Hikrobot/RMA datablad)")
+print("   → kamera C-mount = lins C-mount  → skruvas direkt, INGEN adapter        ✓")
+print("   → 2/3\"-lins täcker 2/3\"-sensor (diag 11,01 mm)                           ✓")
+print("  Filtergänga (linsfront)    : M30.5×0.5  (Hikrobot/maxxvision datablad)")
+print("   → FS03-BP650 / FS03-BP525 = M30.5×0.5  → skruvas på linsfronten          ✓")
+print("  Sensor MONO (10U'M')       : rätt för lasertriangulering (se [1] not)     ✓")
+
 # ============================================================ 1) PROFILKAMERA × LINS
 # Hikrobot MV-CS050-10UM (Sony IMX264, 2/3"): 2448×2048 px, 3,45 µm
 P_PXW, P_PXH, P_PITCH = 2448, 2048, 3.45e-3   # mm
