@@ -11,10 +11,11 @@ from prototype.proto_sim import ROI_ROWS
 def ok(c): return "✓" if c else "✗ FEL"
 def line(c="-"): print(c*78)
 
-# Representativ proto-rigg (500 mm-bräda, 75 mm bred, 40 brädor/min ~ 50 mm/s)
+# Representativ proto-rigg (500 mm-bräda, 75 mm bred, TÄNKT TAKT 60 brädor/min)
 W = 75.0
+BPM = 60.0                                           # tänkt takt: brädor/min
 rig = Rig(board_length_mm=500, board_width_mm=W, board_thickness_mm=45,
-          feed_mps=W/1000*40/60, profile_rate_hz=490.0)
+          feed_mps=W/1000*BPM/60, profile_rate_hz=490.0)
 
 # ---- Jetson Orin Nano Super Dev Kit: faktiska portar/bussar ----
 JET = dict(usb3_ports=4, usb3_MBs=1250,   # USB 3.2 Gen2, ~1,25 GB/s
@@ -86,6 +87,9 @@ t_board = W / feed_mm_s                              # s att mata en bräda (bre
 WIDTH_RES = 0.20                                     # [designval] önskad bredd-upplösning mm
 prof_need = feed_mm_s / WIDTH_RES                    # profiler/s som FAKTISKT behövs
 prof_max = 490.0                                     # kamerans ROI-max
+CONVEYOR_MMS = 50.0                                  # valt band: 24V/30rpm ~ 50 mm/s nominellt
+print(f"\n  TÄNKT TAKT: {BPM:.0f} brädor/min  →  matningsfart {feed_mm_s:.0f} mm/s "
+      f"(bredd {W:.0f} mm)")
 # Laserstripe-extraktion (den kontinuerliga real-time-lasten) — körs på GPU/CUDA:
 strip_mpix = 2 * prof_need * rig.profile_cam.width_px * ROI_ROWS / 1e6   # Mpix/s (2 kameror)
 GPU_GOPS = 1700                                      # Orin Nano GPU ~1,7 TFLOPS FP16 = 1700 Gops/s
@@ -94,9 +98,19 @@ strip_gops = strip_mpix * 10 / 1e3                   # ~10 ops/px (tröskel + ce
 UNET_GFLOP = 250.0                                   # [uppskattn.] tiled U-Net över ytbilden
 EFF_TFLOPS = 10.0                                    # [konservativt] effektiv FP16 (ej peak)
 unet_s = UNET_GFLOP / (EFF_TFLOPS * 1000)
-print(f"\n  Matningstid/bräda (75 mm @ {feed_mm_s:.0f} mm/s) : {t_board:.2f} s  (tidsbudget per bräda)")
-print(f"  Profiler som behövs ({WIDTH_RES} mm bredd-res)  : {prof_need:.0f}/s  "
-      f"av {prof_max:.0f}/s max  → {ok(prof_need<prof_max)}  ({100*prof_need/prof_max:.0f} % av kameran)")
+print(f"  Matningstid/bräda ({W:.0f} mm @ {feed_mm_s:.0f} mm/s) : {t_board:.2f} s  (tidsbudget per bräda)")
+line()
+print("  A) JETSON / COMPUTE:")
+print(f"     Stripe-extraktion senare nedan, U-Net senare — spoiler: ✓ stor marginal")
+print("  B) FLASKHALSARNA vid 60/min (inte Jetson):")
+print(f"     Band-fart som krävs : {feed_mm_s:.0f} mm/s  vs valt band {CONVEYOR_MMS:.0f} mm/s (24V/30rpm)")
+print(f"        → {ok(feed_mm_s<=CONVEYOR_MMS)}  "
+      + ("OK" if feed_mm_s<=CONVEYOR_MMS else
+         f"BANDET RÄCKER INTE: {CONVEYOR_MMS:.0f} mm/s ger {CONVEYOR_MMS/W*60:.0f}/min. "
+         f"60/min kräver ~{feed_mm_s:.0f} mm/s → snabbare motor (~{feed_mm_s/CONVEYOR_MMS*30:.0f} rpm)"))
+print(f"     Profiler/s som krävs: {prof_need:.0f}/s  vs kamera-max {prof_max:.0f}/s "
+      f"→ {ok(prof_need<prof_max)}  ({100*prof_need/prof_max:.0f} % — funkar @ {WIDTH_RES} mm, "
+      f"men finare res/bredare bräda spränger taket)")
 line()
 print(f"  Stripe-extraktion (2 kam, GPU): {strip_mpix:.0f} Mpix/s ≈ {strip_gops:.1f} Gops/s")
 print(f"     vs GPU ~{GPU_GOPS} Gops/s  → {ok(strip_gops<GPU_GOPS)}  ({100*strip_gops/GPU_GOPS:.1f} % av GPU)")
@@ -108,7 +122,7 @@ print("  AVGÖRANDE (mjukvara, ej hårdvara):")
 print("   • stripe-extraktion MÅSTE köras på GPU/CUDA (el. VPI) — inte naiv Python-loop")
 print("   • pipelina: capture-trådar ∥ GPU-bearbetning ∥ U-Net (inte en blockande loop)")
 print("   • kör profilkamerorna på SKILDA USB3-portar (undvik delad hubb-flaskhals)")
-print("  Gör man det → 1 bräda i taget @ 50 mm/s har stor marginal; INGEN hängning.")
+print("  Gör man det → Jetson har stor marginal @ 60/min; INGEN hängning (compute).")
 print("  Gör man stripe-extraktionen på CPU i Python → DÅ hänger det (mjukvarufel).")
 
 print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano — 2 USB3 lediga, GbE,")
