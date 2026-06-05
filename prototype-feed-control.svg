@@ -131,61 +131,78 @@
 <line x1="150.0" y1="418.0" x2="372.0" y2="508.0" stroke="#e8542c" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
 <rect x="880.0" y="116.0" width="800.0" height="600.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="880.0" y="116.0" width="800.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0"/>
-<text x="892.0" y="135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">STYRKEDJA — Jetson → Jrk G2 → rullband</text>
+<text x="892.0" y="135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">STYRKEDJA — Jetson → 2× Jrk G2 → rullband</text>
 <rect x="910.0" y="175.0" width="190.0" height="120.0" rx="8" fill="#fff" stroke="#3b7d3b" stroke-width="1.8"/>
 <rect x="910.0" y="175.0" width="190.0" height="22.0" rx="8" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0"/>
 <text x="1005.0" y="191.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">JETSON Orin Nano</text>
-<text x="1005.0" y="226.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">USB / UART / I²C</text>
-<text x="1005.0" y="244.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">→ Jrk G2: målfart</text>
+<text x="1005.0" y="226.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">I²C-buss (2 adresser)</text>
+<text x="1005.0" y="244.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">→ båda Jrk: målfart</text>
 <text x="1005.0" y="260.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">in: fotcell (pin 22)</text>
-<rect x="1230.0" y="180.0" width="215.0" height="110.0" rx="8" fill="#fff" stroke="#e0892b" stroke-width="1.8"/>
-<rect x="1230.0" y="180.0" width="215.0" height="22.0" rx="8" fill="#e0892b" stroke="#e0892b" stroke-width="0"/>
-<text x="1337.5" y="196.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">JRK G2 24v13</text>
-<text x="1337.5" y="220.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">closed-loop FART · frekvens-FB</text>
-<rect x="1560.0" y="200.0" width="110.0" height="70.0" rx="8" fill="#fff" stroke="#2f6fb0" stroke-width="1.8"/>
-<rect x="1560.0" y="200.0" width="110.0" height="22.0" rx="8" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0"/>
-<text x="1615.0" y="216.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">MOTOR ×2</text>
-<text x="1615.0" y="240.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">rullband</text>
-<rect x="1175.0" y="360.0" width="150.0" height="50.0" rx="8" fill="#fff" stroke="#c89028" stroke-width="1.8"/>
-<rect x="1175.0" y="360.0" width="150.0" height="22.0" rx="8" fill="#c89028" stroke="#c89028" stroke-width="0"/>
-<text x="1250.0" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">24 V-PSU</text>
-<text x="1250.0" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">motorström</text>
-<rect x="1350.0" y="360.0" width="175.0" height="50.0" rx="8" fill="#fff" stroke="#a23ad6" stroke-width="1.8"/>
-<rect x="1350.0" y="360.0" width="175.0" height="22.0" rx="8" fill="#a23ad6" stroke="#a23ad6" stroke-width="0"/>
-<text x="1437.5" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">Motorns Hall 'Signal'</text>
-<text x="1437.5" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">inbyggd, 1-kanal</text>
+<rect x="1230.0" y="150.0" width="200.0" height="56.0" rx="8" fill="#fff" stroke="#e0892b" stroke-width="1.8"/>
+<rect x="1230.0" y="150.0" width="200.0" height="22.0" rx="8" fill="#e0892b" stroke="#e0892b" stroke-width="0"/>
+<text x="1330.0" y="166.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">JRK G2 #1 (band V)</text>
+<text x="1330.0" y="190.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">frekvens-FB</text>
+<rect x="1490.0" y="152.0" width="90.0" height="50.0" rx="8" fill="#fff" stroke="#2f6fb0" stroke-width="1.8"/>
+<rect x="1490.0" y="152.0" width="90.0" height="22.0" rx="8" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0"/>
+<text x="1535.0" y="168.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">MOTOR V</text>
+<rect x="1230.0" y="320.0" width="200.0" height="56.0" rx="8" fill="#fff" stroke="#e0892b" stroke-width="1.8"/>
+<rect x="1230.0" y="320.0" width="200.0" height="22.0" rx="8" fill="#e0892b" stroke="#e0892b" stroke-width="0"/>
+<text x="1330.0" y="336.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">JRK G2 #2 (band H)</text>
+<text x="1330.0" y="360.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">frekvens-FB</text>
+<rect x="1490.0" y="322.0" width="90.0" height="50.0" rx="8" fill="#fff" stroke="#2f6fb0" stroke-width="1.8"/>
+<rect x="1490.0" y="322.0" width="90.0" height="22.0" rx="8" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0"/>
+<text x="1535.0" y="338.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">MOTOR H</text>
+<rect x="1250.0" y="432.0" width="180.0" height="46.0" rx="8" fill="#fff" stroke="#a23ad6" stroke-width="1.8"/>
+<rect x="1250.0" y="432.0" width="180.0" height="22.0" rx="8" fill="#a23ad6" stroke="#a23ad6" stroke-width="0"/>
+<text x="1340.0" y="448.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">Hall V &amp; H 'Signal'</text>
+<text x="1340.0" y="472.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">inbyggd, 1-kanal/motor</text>
 <rect x="910.0" y="360.0" width="175.0" height="50.0" rx="8" fill="#fff" stroke="#e8542c" stroke-width="1.8"/>
 <rect x="910.0" y="360.0" width="175.0" height="22.0" rx="8" fill="#e8542c" stroke="#e8542c" stroke-width="0"/>
 <text x="997.5" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">FOTCELL (valfri)</text>
 <text x="997.5" y="400.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">E3F-DS30C4</text>
-<line x1="1100.0" y1="235.0" x2="1230.0" y2="235.0" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
-<line x1="1230.0" y1="235.0" x2="1221.2" y2="239.8" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
-<line x1="1230.0" y1="235.0" x2="1221.2" y2="230.2" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
-<rect x="1102.4" y="226.0" width="125.2" height="16.0" rx="3" fill="#fff" stroke="#3b7d3b" stroke-width="0.8"/>
-<text x="1165.0" y="238.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#3b7d3b" text-anchor="middle">USB/I²C: målfart</text>
-<line x1="1445.0" y1="235.0" x2="1560.0" y2="235.0" stroke="#e0892b" stroke-width="2" opacity="1"/>
-<line x1="1560.0" y1="235.0" x2="1551.2" y2="239.8" stroke="#e0892b" stroke-width="2" opacity="1"/>
-<line x1="1560.0" y1="235.0" x2="1551.2" y2="230.2" stroke="#e0892b" stroke-width="2" opacity="1"/>
-<rect x="1472.3" y="226.0" width="60.4" height="16.0" rx="3" fill="#fff" stroke="#e0892b" stroke-width="0.8"/>
-<text x="1502.5" y="238.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e0892b" text-anchor="middle">M+ / M−</text>
-<line x1="1245.0" y1="360.0" x2="1290.0" y2="290.0" stroke="#c89028" stroke-width="2" opacity="1"/>
-<line x1="1290.0" y1="290.0" x2="1289.3" y2="300.0" stroke="#c89028" stroke-width="2" opacity="1"/>
-<line x1="1290.0" y1="290.0" x2="1281.2" y2="294.8" stroke="#c89028" stroke-width="2" opacity="1"/>
-<text x="1232.0" y="332.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#c89028" text-anchor="end">24 V</text>
-<line x1="1437.0" y1="360.0" x2="1400.0" y2="290.0" stroke="#a23ad6" stroke-width="2" opacity="1"/>
-<line x1="1400.0" y1="290.0" x2="1408.3" y2="295.5" stroke="#a23ad6" stroke-width="2" opacity="1"/>
-<line x1="1400.0" y1="290.0" x2="1399.9" y2="300.0" stroke="#a23ad6" stroke-width="2" opacity="1"/>
-<text x="1450.0" y="332.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#a23ad6" text-anchor="start">Signal (FB)</text>
+<rect x="1095.0" y="432.0" width="120.0" height="46.0" rx="8" fill="#fff" stroke="#c89028" stroke-width="1.8"/>
+<rect x="1095.0" y="432.0" width="120.0" height="22.0" rx="8" fill="#c89028" stroke="#c89028" stroke-width="0"/>
+<text x="1155.0" y="448.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="middle">24 V-PSU</text>
+<text x="1155.0" y="472.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="middle">motorström</text>
+<line x1="1100.0" y1="215.0" x2="1230.0" y2="178.0" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<line x1="1230.0" y1="178.0" x2="1222.9" y2="185.0" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<line x1="1230.0" y1="178.0" x2="1220.2" y2="175.8" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<rect x="1149.2" y="187.5" width="31.6" height="16.0" rx="3" fill="#fff" stroke="#3b7d3b" stroke-width="0.8"/>
+<text x="1165.0" y="199.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#3b7d3b" text-anchor="middle">I²C</text>
+<line x1="1100.0" y1="250.0" x2="1230.0" y2="348.0" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<line x1="1230.0" y1="348.0" x2="1220.1" y2="346.5" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<line x1="1230.0" y1="348.0" x2="1225.9" y2="338.9" stroke="#3b7d3b" stroke-width="2" opacity="1"/>
+<rect x="1149.2" y="290.0" width="31.6" height="16.0" rx="3" fill="#fff" stroke="#3b7d3b" stroke-width="0.8"/>
+<text x="1165.0" y="302.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#3b7d3b" text-anchor="middle">I²C</text>
+<line x1="1430.0" y1="178.0" x2="1490.0" y2="177.0" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<line x1="1490.0" y1="177.0" x2="1481.3" y2="181.9" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<line x1="1490.0" y1="177.0" x2="1481.1" y2="172.4" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<rect x="1437.0" y="168.5" width="46.0" height="16.0" rx="3" fill="#fff" stroke="#e0892b" stroke-width="0.8"/>
+<text x="1460.0" y="180.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e0892b" text-anchor="middle">M+/M−</text>
+<line x1="1430.0" y1="348.0" x2="1490.0" y2="347.0" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<line x1="1490.0" y1="347.0" x2="1481.3" y2="351.9" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<line x1="1490.0" y1="347.0" x2="1481.1" y2="342.4" stroke="#e0892b" stroke-width="2" opacity="1"/>
+<rect x="1437.0" y="338.5" width="46.0" height="16.0" rx="3" fill="#fff" stroke="#e0892b" stroke-width="0.8"/>
+<text x="1460.0" y="350.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e0892b" text-anchor="middle">M+/M−</text>
+<line x1="1300.0" y1="432.0" x2="1300.0" y2="376.0" stroke="#a23ad6" stroke-width="1.8" opacity="1"/>
+<line x1="1300.0" y1="376.0" x2="1304.8" y2="384.8" stroke="#a23ad6" stroke-width="1.8" opacity="1"/>
+<line x1="1300.0" y1="376.0" x2="1295.2" y2="384.8" stroke="#a23ad6" stroke-width="1.8" opacity="1"/>
+<text x="1308.0" y="410.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#a23ad6" text-anchor="start">Signal V/H (FB)</text>
+<line x1="1155.0" y1="432.0" x2="1240.0" y2="206.0" stroke="#c89028" stroke-width="1.6" opacity="1"/>
+<line x1="1240.0" y1="206.0" x2="1241.4" y2="215.9" stroke="#c89028" stroke-width="1.6" opacity="1"/>
+<line x1="1240.0" y1="206.0" x2="1232.4" y2="212.5" stroke="#c89028" stroke-width="1.6" opacity="1"/>
+<text x="1120.0" y="410.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#c89028" text-anchor="end">24 V</text>
 <line x1="1085.0" y1="385.0" x2="1010.0" y2="295.0" stroke="#e8542c" stroke-width="2" opacity="1"/>
 <line x1="1010.0" y1="295.0" x2="1019.3" y2="298.7" stroke="#e8542c" stroke-width="2" opacity="1"/>
 <line x1="1010.0" y1="295.0" x2="1011.9" y2="304.8" stroke="#e8542c" stroke-width="2" opacity="1"/>
 <rect x="1020.9" y="331.0" width="53.2" height="16.0" rx="3" fill="#fff" stroke="#e8542c" stroke-width="0.8"/>
 <text x="1047.5" y="343.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#e8542c" text-anchor="middle">pin 22</text>
+<text x="1235.0" y="252.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start">2 OBEROENDE fart-loopar → inget slir-beroende</text>
 <line x1="940.0" y1="560.0" x2="1620.0" y2="560.0" stroke="#23262b" stroke-width="2.2" opacity="1"/>
-<text x="944.0" y="552.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#23262b" text-anchor="start">GEMENSAM GND (Jetson ↔ Jrk G2 ↔ 24 V-PSU ↔ motorns Signal-GND) — KRITISKT</text>
+<text x="944.0" y="552.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="start">GEMENSAM GND (Jetson ↔ båda Jrk ↔ 24 V-PSU ↔ motorernas Signal-GND) — KRITISKT</text>
 <line x1="1005.0" y1="295.0" x2="1005.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
-<line x1="1250.0" y1="410.0" x2="1250.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
-<line x1="1640.0" y1="270.0" x2="1640.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<line x1="1155.0" y1="478.0" x2="1155.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
+<line x1="1640.0" y1="202.0" x2="1640.0" y2="560.0" stroke="#23262b" stroke-width="1" stroke-dasharray="3 3" opacity="1"/>
 <rect x="40.0" y="736.0" width="1640.0" height="380.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <rect x="40.0" y="736.0" width="1640.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0"/>
 <text x="52.0" y="755.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">DELAR FÖR JETSON-STYRD MATNING (allt ligger i Fas 1)</text>
