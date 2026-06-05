@@ -79,6 +79,38 @@ print(f"\nCompute : U-Net + triangulering  →  {JET['tops_int8']} TOPS INT8 / {
 print(f"Ström   : Jetson <{JET['power_w']} W (egen PSU); kameror USB-/12 V-matade; "
       f"lasrar 5/24 V, motorer 24 V — separata aggregat  → ✓")
 
+# ============================================================ HINNER DEN MED? (keep-up)
+print(); line("="); print("HINNER JETSON MED ALLT SAMTIDIGT? (real-time keep-up)"); line("=")
+feed_mm_s = rig.feed_mps * 1000
+t_board = W / feed_mm_s                              # s att mata en bräda (bredden)
+WIDTH_RES = 0.20                                     # [designval] önskad bredd-upplösning mm
+prof_need = feed_mm_s / WIDTH_RES                    # profiler/s som FAKTISKT behövs
+prof_max = 490.0                                     # kamerans ROI-max
+# Laserstripe-extraktion (den kontinuerliga real-time-lasten) — körs på GPU/CUDA:
+strip_mpix = 2 * prof_need * rig.profile_cam.width_px * ROI_ROWS / 1e6   # Mpix/s (2 kameror)
+GPU_GOPS = 1700                                      # Orin Nano GPU ~1,7 TFLOPS FP16 = 1700 Gops/s
+strip_gops = strip_mpix * 10 / 1e3                   # ~10 ops/px (tröskel + centroid)
+# U-Net ytdefekt per bräda (uppskattning), tidsbudget = matningstiden:
+UNET_GFLOP = 250.0                                   # [uppskattn.] tiled U-Net över ytbilden
+EFF_TFLOPS = 10.0                                    # [konservativt] effektiv FP16 (ej peak)
+unet_s = UNET_GFLOP / (EFF_TFLOPS * 1000)
+print(f"\n  Matningstid/bräda (75 mm @ {feed_mm_s:.0f} mm/s) : {t_board:.2f} s  (tidsbudget per bräda)")
+print(f"  Profiler som behövs ({WIDTH_RES} mm bredd-res)  : {prof_need:.0f}/s  "
+      f"av {prof_max:.0f}/s max  → {ok(prof_need<prof_max)}  ({100*prof_need/prof_max:.0f} % av kameran)")
+line()
+print(f"  Stripe-extraktion (2 kam, GPU): {strip_mpix:.0f} Mpix/s ≈ {strip_gops:.1f} Gops/s")
+print(f"     vs GPU ~{GPU_GOPS} Gops/s  → {ok(strip_gops<GPU_GOPS)}  ({100*strip_gops/GPU_GOPS:.1f} % av GPU)")
+print(f"  U-Net ytdefekt: ~{unet_s*1000:.0f} ms / bräda  av {t_board*1000:.0f} ms budget  "
+      f"→ {ok(unet_s<t_board)}  ({100*unet_s/t_board:.0f} % av tiden)")
+print(f"  Minnesbandbredd: I/O {0.7:.1f} GB/s av ~68 GB/s (LPDDR5) → ✓ (~1 %)")
+print()
+print("  AVGÖRANDE (mjukvara, ej hårdvara):")
+print("   • stripe-extraktion MÅSTE köras på GPU/CUDA (el. VPI) — inte naiv Python-loop")
+print("   • pipelina: capture-trådar ∥ GPU-bearbetning ∥ U-Net (inte en blockande loop)")
+print("   • kör profilkamerorna på SKILDA USB3-portar (undvik delad hubb-flaskhals)")
+print("  Gör man det → 1 bräda i taget @ 50 mm/s har stor marginal; INGEN hängning.")
+print("  Gör man stripe-extraktionen på CPU i Python → DÅ hänger det (mjukvarufel).")
+
 print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano — 2 USB3 lediga, GbE,")
 print("I²C+SPI, ~23 GPIO kvar. Analog-gapet täcks av MCP3008. Enda att hålla")
 print("koll på: ytkameran @ MAX 8 kHz färg = {:.0f} % av GbE (proto-takt = {:.0f} %).".format(
