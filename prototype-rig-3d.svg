@@ -210,12 +210,12 @@
 <text x="724.3" y="411.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#a23ad6" text-anchor="middle">PL</text>
 <line x1="724.3" y1="408.1" x2="724.3" y2="571.4" stroke="#a23ad6" stroke-width="1.4" stroke-dasharray="3 3" opacity="1"/>
 <circle cx="724.3" cy="571.4" r="2.4" fill="#a23ad6" stroke="#23262b" stroke-width="0"/>
-<line x1="644.7" y1="244.8" x2="644.7" y2="334.5" stroke="#8a9099" stroke-width="2.6" opacity="1"/>
-<polygon points="596.7,320.5 692.7,320.5 692.7,345.5 596.7,345.5" fill="#efe6f7" stroke="#7a3fb0" stroke-width="1.5" opacity="1"/>
-<text x="644.7" y="333.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#7a3fb0" text-anchor="middle">YTKAMERA line-scan</text>
-<text x="644.7" y="343.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7" font-weight="400" fill="#23262b" text-anchor="middle">4K färg · 25 mm M42 + vitt ljus</text>
-<line x1="644.7" y1="334.5" x2="545.1" y2="467.9" stroke="#7a3fb0" stroke-width="0.8" stroke-dasharray="3 3" opacity="1"/>
-<line x1="644.7" y1="334.5" x2="744.2" y2="582.9" stroke="#7a3fb0" stroke-width="0.8" stroke-dasharray="3 3" opacity="1"/>
+<line x1="644.7" y1="244.8" x2="644.7" y2="362.1" stroke="#8a9099" stroke-width="2.6" opacity="1"/>
+<polygon points="596.7,348.1 692.7,348.1 692.7,373.1 596.7,373.1" fill="#efe6f7" stroke="#7a3fb0" stroke-width="1.5" opacity="1"/>
+<text x="644.7" y="361.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#7a3fb0" text-anchor="middle">YTKAMERA line-scan</text>
+<text x="644.7" y="371.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7" font-weight="400" fill="#23262b" text-anchor="middle">4K färg · 20 mm M42 + vitt ljus</text>
+<line x1="644.7" y1="362.1" x2="545.1" y2="467.9" stroke="#7a3fb0" stroke-width="0.8" stroke-dasharray="3 3" opacity="1"/>
+<line x1="644.7" y1="362.1" x2="744.2" y2="582.9" stroke="#7a3fb0" stroke-width="0.8" stroke-dasharray="3 3" opacity="1"/>
 </g>
 <rect x="751.2" y="642.6" width="150.0" height="50.0" rx="6" fill="#e6efe6" stroke="#3b7d3b" stroke-width="1.6" opacity="1"/>
 <text x="826.2" y="662.6" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#3b7d3b" text-anchor="middle">JETSON Orin Nano</text>
@@ -277,8 +277,8 @@
 <text x="1652.0" y="406.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">Punktlaser-WD (HG-C1400)</text>
 <text x="2038.0" y="406.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">400</text>
 <rect x="1640.0" y="418.0" width="410.0" height="30.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1652.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">Ytkamera-WD (25 mm M42)</text>
-<text x="2038.0" y="436.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">~460</text>
+<text x="1652.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">Ytkamera-WD (20 mm M42, =PL-plan)</text>
+<text x="2038.0" y="436.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">400</text>
 <rect x="2070.0" y="116.0" width="370.0" height="372.0" rx="8" fill="#fff" stroke="#3b7d3b" stroke-width="1.4" opacity="1"/>
 <rect x="2070.0" y="116.0" width="370.0" height="28.0" rx="8" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0" opacity="1"/>
 <text x="2082.0" y="135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">STYRNING (Jetson)</text>
@@ -589,8 +589,8 @@
 <text x="1548.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
 <text x="1740.0" y="1508.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">700</text>
 <rect x="1078.0" y="1514.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1085.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">650 nm bandpass M30.5×0.5 — MidOpt BN650-3</text>
-<text x="1548.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MidOpt </text>
+<text x="1085.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">FS03-BP650 (650 nm, M30.5×0.5, FWHM 40 nm,</text>
+<text x="1548.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">MDvision · ditt va</text>
 <text x="1740.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">200</text>
 <text x="1085.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">iadiy LM9R650H100L60</text>
 <text x="1548.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">iadiy.com · ditt v</text>
@@ -603,8 +603,8 @@
 <text x="1548.0" y="1588.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
 <text x="1740.0" y="1588.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">700</text>
 <rect x="1078.0" y="1594.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1085.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">520 nm bandpass M30.5×0.5 — MidOpt grön ~5</text>
-<text x="1548.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MidOpt </text>
+<text x="1085.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">FS03-BP525 (525 nm, M30.5×0.5, FWHM 40 nm </text>
+<text x="1548.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">MDvision · ditt va</text>
 <text x="1740.0" y="1608.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">200</text>
 <text x="1085.0" y="1628.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">iadiy LM9G520H50L60T</text>
 <text x="1548.0" y="1628.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">iadiy.com · ditt v</text>
@@ -668,9 +668,9 @@
 <text x="2232.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MDvisio</text>
 <text x="2424.0" y="1508.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">4 134</text>
 <rect x="1762.0" y="1514.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1769.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">25 mm, bildcirkel ≥30 mm (4K 7µm) — t.ex. </text>
-<text x="2232.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa (bekräfta</text>
-<text x="2424.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">1 500</text>
+<text x="1769.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">ZLKC TM2004MPC (20 mm, M42, Φ30, 0,05–0,2×</text>
+<text x="2232.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">ZLKC/AliExpress · </text>
+<text x="2424.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">1 000</text>
 <text x="1769.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Cat5e/6 — ytkamera → Jetson (GigE direkt, </text>
 <text x="2232.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
 <text x="2424.0" y="1548.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">80</text>
@@ -683,10 +683,10 @@
 <text x="1740.0" y="1922.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#2f9e6e" text-anchor="end">18 331 kr</text>
 <rect x="1762.0" y="1582.0" width="670.0" height="30.0" rx="5" fill="#f1eaf7" stroke="#7a3fb0" stroke-width="1.2" opacity="1"/>
 <text x="1770.0" y="1602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#7a3fb0" text-anchor="start">FAS 2-tillägg</text>
-<text x="2424.0" y="1602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+12 124 kr</text>
+<text x="2424.0" y="1602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+11 624 kr</text>
 <rect x="1762.0" y="1620.0" width="670.0" height="32.0" rx="5" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <text x="1770.0" y="1642.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">FULL SVIT (Fas 1+2)</text>
-<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">30 455 kr</text>
+<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">29 955 kr</text>
 <rect x="2010.0" y="1982.0" width="426.0" height="52.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <line x1="2010.0" y1="2008.0" x2="2436.0" y2="2008.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="2274.0" y1="1982.0" x2="2274.0" y2="2034.0" stroke="#23262b" stroke-width="1" opacity="1"/>

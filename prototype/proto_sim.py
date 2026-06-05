@@ -406,7 +406,7 @@ BOM = [
     ("Punktlaser ×3", "Panasonic HG-C1400 (mätavstånd 400 mm)", 3, "absolut tjocklek — ankrar/kalibrerar längsprofilen", "analog→ADC", "1,5 kHz", 1900, 2, "att köpa"),
     ("ADC + signalkond.", "MCP3008 (SPI) + spänningsdelare 5→3,3 V ×3", 1, "läser 3 analoga punktlaser (Jetson saknar ADC)", "SPI", "—", 110, 2, "att köpa"),
     ("Ytkamera (line-scan)", "Huateng 4K FÄRG (M42, GigE) — via MDvision", 1, "färgyta (kvist/spricka/vankant/blånad) i 1 pass", "GigE (1GbE) → Jetson", "~0,4 kHz proto / 8 kHz max", 4134, 2, "AliExpress/MDvision · ditt val"),
-    ("Objektiv M42", "25 mm, bildcirkel ≥30 mm (4K 7µm) — t.ex. Kowa LM25VM42", 1, "FOV ~500 mm @ WD ~460 mm; skruvas rakt på kameran", "—", "—", 1500, 2, "att köpa (bekräfta bildcirkel ≥28,6 mm)"),
+    ("Objektiv M42", "ZLKC TM2004MPC (20 mm, M42, Φ30, 0,05–0,2×)", 1, "FOV ~570 mm @ WD ~400 mm (= punktlaserplan); skruvas rakt på kameran", "—", "—", 1000, 2, "ZLKC/AliExpress · ditt val (bekräfta skärpa i ändarna)"),
     ("Nätverk", "Cat5e/6 — ytkamera → Jetson (GigE direkt, ingen switch)", 1, "dataöverföring line-scan", "—", "—", 80, 2, "att köpa"),
     ("Ytbelysning (vit)", "Vitt LED-linjeljus, högt uttag (kont. el. strobat)", 1, "jämn belysning för färgkanalen — som proffsen", "ev. kamera-flash-ut", "—", 600, 2, "att köpa"),
     ("NIR-modul (valfri)", "Mono NIR-kamera + 850 nm linjeljus (röta/blånad)", 1, "separat NIR-kanal SENARE (proffsen separerar modaliteter)", "GigE/USB", "—", 3500, 3, "valfri/senare"),

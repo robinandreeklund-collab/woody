@@ -21,7 +21,7 @@ SOFF = round(WD * math.sin(math.radians(OBL))); MH = round(WD * math.cos(math.ra
 SEP = 2 * SOFF
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
 PL_X = [int(f * BENCH_L) for f in (0.1, 0.5, 0.9)]; PLWD = 400
-SURF_WD = 460           # ytkamera: 25 mm M42-lins, FOV ~500 @ WD ~460 (eget plan: PL 400 < yta 460 < oblik 615)
+SURF_WD = PLWD          # ytkamera: ZLKC 20 mm M42 @ ~0,05× → FOV ~570 @ WD 400 = punktlaserplan (gemensam balk)
 
 W, H = 2480, 2060
 INK, MUTED, DIMC = "#23262b", "#6a6e74", "#9a9ea4"
@@ -118,7 +118,7 @@ for px in PL_X:
     txt(pt[0], pt[1]+3, "PL", 7.5, "middle", PURP, 700); ln(pt, P(px, CY, BZ), PURP, 1.4, "3 3"); dot(P(px, CY, BZ), 2.4, PURP)
 cp = P(250, CY, SURF_WD); ln(P(250, CY, TOPZ), cp, "#8a9099", 2.6)
 poly([(cp[0]-48,cp[1]-14),(cp[0]+48,cp[1]-14),(cp[0]+48,cp[1]+11),(cp[0]-48,cp[1]+11)], "#efe6f7", SURFC, 1.5)
-txt(cp[0], cp[1]-1, "YTKAMERA line-scan", 8, "middle", SURFC, 700, SANS); txt(cp[0], cp[1]+9, "4K färg · 25 mm M42 + vitt ljus", 7, "middle", INK)
+txt(cp[0], cp[1]-1, "YTKAMERA line-scan", 8, "middle", SURFC, 700, SANS); txt(cp[0], cp[1]+9, "4K färg · 20 mm M42 + vitt ljus", 7, "middle", INK)
 for ex in (BX0, BX1): ln(cp, P(ex, CY, BZ), SURFC, 0.8, "3 3")
 add('</g>')
 jp = P(BENCH_L + 150, FY1 - 30, 0)
@@ -143,7 +143,7 @@ panel(1640, 116, 410, 372, "MÅTT (mm)", INK)
 dims = [("Arbetsavstånd (oblik)", f"~{WD}"), ("Oblik vinkel", f"{OBL:.0f}°"), ("Modulhöjd", f"~{MH}"),
         ("Sidooffset", f"~{SOFF}"), ("Avstånd modul↔modul", f"~{SEP}"), ("Laserlinje (längs)", f"{BENCH_L}"),
         ("Brädbredd (matning)", f"{BW}"), ("Punktlaser V/C/H", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]}"),
-        ("Punktlaser-WD (HG-C1400)", f"{PLWD}"), ("Ytkamera-WD (25 mm M42)", f"~{SURF_WD}")]
+        ("Punktlaser-WD (HG-C1400)", f"{PLWD}"), ("Ytkamera-WD (20 mm M42, =PL-plan)", f"{SURF_WD}")]
 for i, (k, v) in enumerate(dims):
     ry = 152 + i * 30
     if i % 2: rect(1640, ry - 4, 410, 30, PANEL, "none", 0)
