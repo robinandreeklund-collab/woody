@@ -248,20 +248,18 @@ def bom_panel(sim):
     st.markdown('<div class="ph-sec">Materiallista — fasad uppbyggnad (ett mäthuvud)</div>',
                 unsafe_allow_html=True)
     st.dataframe(bom_rows(), hide_index=True, width="stretch")
-    f1, f12, full = bom_total(1), bom_total(2), bom_total(3)
+    f1, full = bom_total(1), bom_total(2)
     c = st.columns(3)
-    c[0].metric("Fas 1 — vänster (röd)", f"{f1:,} kr".replace(",", " "), help="1 kamera + röd laser + Jetson + alu-ram — putta för hand")
-    c[1].metric("Fas 1+2 — dubbel-oblik", f"{f12:,} kr".replace(",", " "), delta=f"+{f12-f1:,} kr".replace(",", " "))
-    c[2].metric("Full svit (Fas 1–3)", f"{full:,} kr".replace(",", " "), delta=f"+{full-f12:,} kr".replace(",", " "))
-    f1s = f"{f1:,}".replace(",", " ")
-    st.caption(f"**Fas 1 (~{f1s} kr):** bara *vänster* modul (röd 650 + 1 kamera) på en enkel "
-               "alu-ram – putta brädan för hand och verifiera att trianguleringen ger en höjdprofil "
-               "(kameran free-run, ingen encoder behövs än). **Fas 2:** komplettera *höger* modul "
-               "(grön 520 + kamera nr 2) → full dubbel-oblik med occlusion-fyllning. **Fas 3:** "
-               "ytkamera + NIR/RGB + 3 punktlaser + encoder. — CS050 har C-mount och **kräver "
-               "objektiv** (ligger i listan, 1 per kamera). MindVision är NBASE-T → ingen switch "
-               "behövs. Punktlaser: HG-C1400 (mätavstånd 400 mm) sitter på samma ramhöjd som "
-               "kamerorna. Budget: VL53L1X ToF (~70 kr, ±5 mm) för konceptet.")
+    c[0].metric("Fas 1 — röd profilerare", f"{f1:,} kr".replace(",", " "),
+                help="röd-huvud + rullband + encoder + Jetson-styrning → komplett 3D-profilering")
+    c[1].metric("Fas 2 — tillägg", f"+{full-f1:,} kr".replace(",", " "))
+    c[2].metric("Full svit", f"{full:,} kr".replace(",", " "))
+    st.caption("**Fas 1:** komplett **röd-profilerare på rullband** — CS050 + röd linjelaser (oblik 30°), "
+               "encoder/mäthjul, **Jetson-styrd fram/back-matning** (motordrivare), ingångslaser + anslag → "
+               "ger 3D-höjdprofil. **Fas 2:** grön modul (dubbel-oblik), **3 punktlaser HG-C1400 + MCP3008-ADC**, "
+               "**line-scan-ytkamera** + NIR/RGB-strobe. — **Jetson-I/O räcker med marginal:** 4×USB3 (2 kameror), "
+               "GbE (ytkamera NBASE-T→1GbE), 40-pin GPIO/SPI/PWM (encoder, motor, lasrar). Jetson saknar analog "
+               "in → punktlasrarna via **MCP3008 (SPI)**.")
 
     st.markdown('<div class="ph-sec">Så kopplas allt ihop</div>', unsafe_allow_html=True)
     a, b = st.columns(2, gap="medium")
