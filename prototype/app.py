@@ -54,7 +54,7 @@ m = metrics(sim)
 c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric("Längd", f"{m['langd_mm']} mm")
 c2.metric("Bredd", f"{m['bredd_mm']} mm")
-c3.metric("Tjocklek (linjelaser)", f"{m['tjocklek_mm']} mm")
+c3.metric("Tjocklek (punktlaser)", f"{m['tjocklek_punktlaser_mm']} mm")
 c4.metric("Täckning", f"{m['tackning_pct']} %")
 top = max(m["defekter"], key=m["defekter"].get) if m["defekter"] else "—"
 c5.metric("Vanligaste defekt", top)
