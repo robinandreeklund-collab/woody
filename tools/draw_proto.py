@@ -14,11 +14,12 @@ from src.hardware import Rig
 BENCH_L = 500
 r = Rig(board_length_mm=BENCH_L, board_width_mm=75, board_thickness_mm=45)
 OBL = r.oblique_angle_deg
-# FOV matchad till 500 mm med SAMMA optik (CS050 + 8 mm) → kortare arbetsavstånd
-WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)        # ~474 mm
-SOFF = round(WD * math.sin(math.radians(OBL)))                              # ~335 mm
-MH = round(WD * math.cos(math.radians(OBL)))                                # ~335 mm
-SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm)                   # ~480 mm (M72 55 mm)
+# FOV matchad till 500 mm med SAMMA optik (CS050 + 12 mm-lins) → arbetsavstånd ~710 mm
+WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)        # ~710 mm (slant)
+SOFF = round(WD * math.sin(math.radians(OBL)))                              # ~355 mm sidooffset
+MH = round(WD * math.cos(math.radians(OBL)))                                # ~615 mm vertikal modulhöjd
+SURF_WD = round(55 * BENCH_L / r.surface_cam.sensor_w_mm)                   # ~480 mm (M72)
+PLWD = 400                                                                  # HG-C1400 FAST mätavstånd
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)
 BW, BT = round(r.board_width_mm), round(r.board_thickness_mm)
 
@@ -63,8 +64,8 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(18, 18, W - 36, H - 36, "none", INK, 2); rect(26, 26, W - 52, H - 52, "none", MUTED, 0.8)
 txt(48, 70, "PROTOTYP-BÄNK — 1 MÄTHUVUD, BRÄDOR 500 mm", 25, "start", INK, 700, SANS)
-txt(48, 96, "Dubbel-oblikt huvud (röd 650 + grön 520) + överliggande line-scan-ytkamera + 3 punktlaser. "
-            "2 mini-transportband (cross-feed), encoder/mäthjul, Jetson Orin Nano.", 14, "start", MUTED, 400, SANS)
+txt(48, 96, "FAS 1: dubbel-oblikt huvud (röd 650 + grön 520) + 2 transportband (cross-feed, closed-loop via motorns Hall). "
+            "FAS 2: line-scan-ytkamera + 3 punktlaser. Jetson Orin Nano.", 14, "start", MUTED, 400, SANS)
 line(48, 110, W - 48, 110, INK, 1.5)
 def vlabel(x, y, tag, name):
     rect(x, y, 24, 20, INK, INK); txt(x + 12, y + 15, tag, 13, "middle", PAPER, 700, SANS)
@@ -93,7 +94,7 @@ line(AX(0) - 26, sy, AX(BENCH_L) + 26, sy, INK, 2.2)
 txt(AX(BENCH_L) + 70, sy - 6, "laserlinje 500 mm", 10, "start", INK, 700)
 txt(AX(BENCH_L) + 70, sy + 10, "(röd+grön oblik)", 9, "start", MUTED)
 # huvudbalk (T-spår) + 3 punktlaser längs linjen
-txt(AX(0.5 * BENCH_L), y0 - 68, "3 punktlaser (V/C/H längs 500 mm → ankrar längsprofil)", 9, "middle", PURP, 700)
+txt(AX(0.5 * BENCH_L), y0 - 68, "3 punktlaser (V/C/H längs 500 mm → ankrar längsprofil · FAS 2)", 9, "middle", PURP, 700)
 rect(AX(-16), y0 - 60, AX(BENCH_L + 16) - AX(-16), 22, ALU, "#8a9099", 1.4, 3)
 txt(AX(8), y0 - 45, "MÄTHUVUD-BALK (T-spår) — 2 oblika moduler", 9.5, "start", MUTED, 700)
 for f in (0.1, 0.5, 0.9):
@@ -103,9 +104,8 @@ for f in (0.1, 0.5, 0.9):
 # matning i sidled (bredd)
 arrow(AX(BENCH_L * 0.32), y0 - 6, AX(BENCH_L * 0.32), y0 + FW + 6, "#b06", 2.2)
 txt(AX(BENCH_L * 0.32) + 10, y0 + FW - 22, f"matning (bredd {BW} mm)", 10, "start", "#b06", 700)
-# mäthjul/encoder mot brädan
-circ(AX(BENCH_L * 0.7), y0 + 10, 8, "#cfd2d6", "#7a7f86", 1.4)
-txt(AX(BENCH_L * 0.7) + 13, y0 + 14, "mäthjul (encoder)", 9, "start", MUTED, 700)
+# lägesåterkoppling via motorns Hall (ingen extern encoder)
+txt(AX(BENCH_L * 0.58), y0 + 14, "läge: motorns Hall-signal + bakkant-anslag (ingen extern encoder)", 9, "start", MUTED, 700)
 # Jetson
 rect(AX(BENCH_L) + 64, y0 + FW - 8, 150, 60, "#e6efe6", JET, 1.6, 6)
 txt(AX(BENCH_L) + 139, y0 + FW + 14, "JETSON Orin Nano", 11, "middle", JET, 700, SANS)
@@ -114,52 +114,88 @@ hdim(AX(0), AX(BENCH_L), y0 + FW + 96, "längd 500 mm (laserlinjens riktning)")
 vdim(y0, y0 + FW, AX(0) - 55, f"{BW} mm")
 add('</g>')
 
-# ===================== VY B — HUVUD/STATIV ÄNDVY =====================
+# ===================== VY B — HUVUD/STATIV ÄNDVY (NEDHÄNG) =====================
 gB = 690
 add(f'<g transform="translate(0,{gB})">')
-vlabel(48, 6, "B", "MÄTHUVUD + STATIV — ändvy (för 500 mm, FOV-matchad → kortare avstånd)")
-SC = 0.32; bx = 560; yb2 = 360
+vlabel(48, 6, "B", "MÄTHUVUD + STATIV — ändvy: varje sensor hänger med EGET NEDHÄNG → eget arbetsavstånd")
+SC = 0.32; bx = 600; yb2 = 360
 def UP(mm): return yb2 - mm * SC
+BEAM_H = 760                                   # portalbalkens nederkant över brädytan (FAST)
 bw, bt = BW * SC, BT * SC; bL, bR = bx - bw / 2, bx + bw / 2
 mxL, mxR = bx - SOFF * SC, bx + SOFF * SC; myL = myR = UP(MH)
-camY = UP(SURF_WD); beamY = camY - 30; legX = SOFF * SC + 70; floorY = yb2 + bt + 96
-# stativ: bas + två ben + toppbalk (mätram)
+camY = UP(SURF_WD); plY = UP(PLWD); plx = bx + 52
+beamY = UP(BEAM_H); beamB = beamY + 18; legX = SOFF * SC + 96; floorY = yb2 + bt + 96
+# stativ: bas + två ben + portalbalk (mätram, FAST höjd)
 rect(bx - legX - 40, floorY, 2 * (legX + 40), 16, "#bfc3c8", "#8a9099", 1.4, 3)
 txt(bx, floorY + 12, "BAS / GOLVPLATTA", 9, "middle", MUTED, 700)
 for lx in (bx - legX, bx + legX):
     rect(lx - 9, beamY, 18, floorY - beamY, ALU, "#8a9099", 1.4, 3)
 rect(bx - legX - 9, beamY, 2 * legX + 18, 18, ALU, "#8a9099", 1.4, 3)
-txt(bx, beamY + 13, "MÄTRAM / PORTALBALK (T-spår)", 9.5, "middle", MUTED, 700)
-vdim(beamY, floorY, bx - legX - 36, "stativ-\nhöjd")
-# överliggande line-scan ytkamera + RGB/NIR-strobe (rakt ovan)
+txt(bx, beamY + 13, "PORTALBALK / MÄTRAM (T-spår · FAST höjd)", 9.5, "middle", MUTED, 700)
+vdim(beamY, floorY, bx - legX - 36, f"~{BEAM_H}")
+# brädyta = referens (alla arbetsavstånd mäts härifrån)
+line(bx - legX - 9, yb2, bx + legX + 9, yb2, DIMC, 0.9, "6 4")
+txt(bx + legX + 13, yb2 + 3, "brädyta = 0", 8.5, "start", DIMC, 700)
+# --- FAS 1: 2 oblika moduler (röd/grön) — KORTAST nedhäng, sitter högst (MH) ---
+for mx, col, lab, ang in [(mxL, RED, f"RÖD {RED_NM}", OBL), (mxR, GRN, f"GRÖN {GRN_NM}", -OBL)]:
+    line(mx, beamB, mx, myL - 15, "#8a9099", 3)              # nedhäng-strut (kort)
+    add(f'<g transform="rotate({ang} {mx} {myL})">')
+    rect(mx - 42, myL - 15, 84, 30, "#fff", col, 1.6, 4); rect(mx - 42, myL - 15, 84, 10, col, col, 0, 4)
+    txt(mx, myL - 6, lab, 8.5, "middle", PAPER, 700, SANS); txt(mx, myL + 8, "laser+mono", 7, "middle", INK)
+    add('</g>')
+line(mxL + 13, myL + 14, bL, yb2, RED, 3); line(mxR - 13, myR + 14, bR, yb2, GRN, 3)
+circ(bL, yb2, 3, RED, RED, 0); circ(bR, yb2, 3, GRN, GRN, 0)
+txt(mxL - 4, myL + 58, f"{OBL:.0f}°", 11, "middle", RED, 700); txt(mxR + 4, myR + 58, f"{OBL:.0f}°", 11, "middle", GRN, 700)
+vdim(beamB, myL - 15, mxL - 26, f"{BEAM_H-MH}")              # nedhäng oblik
+# --- FAS 2: överliggande line-scan-ytkamera (rakt ovan brädans mitt) ---
+line(bx, beamB, bx, camY - 16, "#8a9099", 3)                # nedhäng-mast (mellan)
 rect(bx - 54, camY - 16, 108, 26, "#efe6f7", SURFC, 1.6, 5)
 txt(bx, camY - 3, "YTKAMERA line-scan", 8.5, "middle", SURFC, 700, SANS)
 txt(bx, camY + 7, "M72 + RGB/NIR-strobe", 7.5, "middle", INK)
-line(bx, beamY + 18, bx, camY - 16, "#8a9099", 3)             # mast till balk
 for sxmm in (-BW / 2, BW / 2):
     line(bx, camY + 10, bx + sxmm * SC, yb2, SURFC, 0.9, "3 3")
-vdim(camY, yb2, bR + 150, f"yt-WD ~{SURF_WD} mm")
-# 2 oblika moduler (laser+mono), monterade på portalbalken
-for mx, col, lab, ang in [(mxL, RED, f"RÖD {RED_NM}", OBL), (mxR, GRN, f"GRÖN {GRN_NM}", -OBL)]:
-    line(mx, beamY + 18, mx, myL - 16, "#8a9099", 2.4)        # fäste till balk
-    add(f'<g transform="rotate({ang} {mx} {myL})">')
-    rect(mx - 44, myL - 17, 88, 34, "#fff", col, 1.6, 4); rect(mx - 44, myL - 17, 88, 12, col, col, 0, 4)
-    txt(mx, myL - 7, lab, 9, "middle", PAPER, 700, SANS); txt(mx, myL + 9, "laser+mono", 7.5, "middle", INK)
-    add('</g>')
-line(mxL + 13, myL + 15, bL, yb2, RED, 3); line(mxR - 13, myR + 15, bR, yb2, GRN, 3)
-circ(bL, yb2, 3, RED, RED, 0); circ(bR, yb2, 3, GRN, GRN, 0)
-txt(mxL - 6, myL + 64, f"{OBL:.0f}°", 11, "middle", RED, 700); txt(mxR + 6, myR + 64, f"{OBL:.0f}°", 11, "middle", GRN, 700)
-# 3 punktlaser (centrerat skott; 3× in i bilden längs 500 mm)
-line(bx + 22, UP(MH * 0.5), bx + 22, yb2, PURP, 1.6, "2 3"); circ(bx + 22, yb2, 2.6, PURP, PURP, 0)
-rect(bx + 9, UP(MH * 0.5) - 12, 26, 18, "#f3e6fb", PURP, 1.4, 3); txt(bx + 22, UP(MH * 0.5), "PL", 8.5, "middle", PURP, 700)
-txt(bx + 40, UP(MH * 0.5) - 2, "3× punktlaser (V/C/H) — in i bilden", 9, "start", PURP, 700)
+# --- FAS 2: 3 punktlaser HG-C1400 — LÄNGST nedhäng, FAST mätavstånd (PLWD) ---
+# OBS: förskjuten i bilden så den inte krockar med ytkameran; sitter egentligen
+# längs brädans mitt (in i bilden), samma tvärläge som ytkameran.
+line(plx, beamB, plx, plY - 12, "#8a9099", 3)               # nedhäng-strut (lång)
+rect(plx - 14, plY - 12, 28, 20, "#f3e6fb", PURP, 1.4, 3); txt(plx, plY + 2, "PL", 8.5, "middle", PURP, 700)
+line(plx, plY + 8, bx, yb2, PURP, 1.4, "3 3"); circ(bx, yb2, 2.6, PURP, PURP, 0)
+txt(plx + 20, plY - 1, "3× HG-C1400", 8.5, "start", PURP, 700)
+txt(plx + 20, plY + 11, "(längs brädan, in i bilden)", 7.5, "start", MUTED)
+# arbetsavstånd (höger, med ledarstreck) — visar att de tre avstånden skiljer sig
+for (syv, x0, xd, lab, c) in [(myR, mxR + 42, 766, f"oblik {MH}", RED),
+                              (camY, bx + 54, 842, f"yta {SURF_WD}", SURFC),
+                              (plY, plx + 14, 918, f"punkt {PLWD}", PURP)]:
+    line(x0, syv, xd, syv, c, 0.8, "3 3"); vdim(syv, yb2, xd, lab, c)
 # bräda på transportband (ändstöd)
 rect(bL, yb2, bw, bt, "#e9e1cf", "#b9a96f", 1.4); txt(bx, yb2 + bt + 15, f"bräda {BW}×{BT} mm", 9.5, "middle", "#8a7d4e")
 rect(bL - 14, yb2 + bt, bw + 28, 14, BELT, "#2b2f35", 1.2, 3)
 for rx in (bL - 6, bR + 6): circ(rx, yb2 + bt + 7, 5, "#9aa0a8", "#2b2f35", 1)
 txt(bx, yb2 + bt + 36, "transportband (ändstöd, 24 V · 50 mm/s)", 8.5, "middle", MUTED)
-hdim(mxL, bx, myL - 30, f"sidooffset {SOFF}", DIMC)
-txt(bx - 6, UP(MH) - 46, f"arbetsavstånd ~{WD} mm (oblik) · modulhöjd {MH} mm", 9.5, "middle", DIMC, 700)
+hdim(mxL, mxR, beamB + 8, f"modulspann {2*SOFF}", DIMC)
+# --- sammanfattningsruta: nedhäng vs arbetsavstånd ---
+sx, sy, sw = 1000, 132, 562
+rect(sx, sy, sw, 30, INK, INK, 0, 5)
+txt(sx + 12, sy + 20, "NEDHÄNG vs ARBETSAVSTÅND (mm) — balk fast, fästen olika långa", 12, "start", PAPER, 700, SANS)
+rect(sx, sy + 30, sw, 26, PANEL, INK, 1)
+for t, hx in [("SENSOR", sx + 12), ("NEDHÄNG (balk→sensor)", sx + 250), ("ARB.AVSTÅND (→bräda)", sx + 400)]:
+    txt(hx, sy + 47, t, 9, "start", INK, 700, SANS)
+srows = [(RED, "Oblik RÖD/GRÖN (FAS 1)", f"{BEAM_H-MH}", f"{MH} vert · ~{WD} slant"),
+         (SURFC, "Ytkamera M72 (FAS 2)", f"{BEAM_H-SURF_WD}", f"{SURF_WD}"),
+         (PURP, "Punktlaser HG-C1400 (FAS 2)", f"{BEAM_H-PLWD}", f"{PLWD}  (FAST i sensorn)")]
+for i, (c, k, nh, wd) in enumerate(srows):
+    ry = sy + 56 + i * 30
+    if i % 2: rect(sx, ry, sw, 30, "#fff", "none", 0)
+    rect(sx + 8, ry + 9, 12, 12, c, c, 0, 2)
+    txt(sx + 28, ry + 20, k, 10, "start", INK, 700)
+    txt(sx + 250, ry + 20, nh, 11, "start", MUTED, 700)
+    txt(sx + 400, ry + 20, wd, 11, "start", INK, 700)
+rect(sx, sy + 146, sw, 3, INK, INK, 0)
+for i, ln_ in enumerate([
+        f"Balken sitter fast på ~{BEAM_H} mm. Höjs balken (12 mm-lins → större rigg)",
+        "ändras INTE punktlaserns 400 mm — det är låst av HG-C1400. Den hänger bara",
+        "på ett längre fäste. Varje sensor får sitt arbetsavstånd via sitt nedhäng."]):
+    txt(sx + 4, sy + 168 + i * 16, ln_, 9.5, "start", MUTED, 400, SANS)
 add('</g>')
 
 # ===================== BOM =====================
@@ -167,32 +203,32 @@ gT = 1180
 add(f'<g transform="translate(0,{gT})">')
 line(48, 0, W - 48, 0, INK, 1.5); txt(48, 26, "KOMPONENTLISTA — fasad uppbyggnad (1 huvud)", 16, "start", INK, 700, SANS)
 cols = [
-    (60, JET, "FAS 1 · COMPUTE + VÄNSTER", [
+    (60, JET, "FAS 1 · COMPUTE + RÖD MODUL", [
         ("Jetson Orin Nano", "Super dev kit (edge+U-Net)"),
-        ("Profilkamera V", f"MV-CS050-10UM mono (USB3)"),
-        ("Objektiv", "8 mm C-mount + bandpass 650"),
-        ("Linjelaser röd", f"iadiy 650 nm 100 mW (oblik)"),
-        ("Alu-ram", "enkel ram, putta för hand"),
+        ("Profilkamera RÖD", "MV-CS050-10UM mono (USB3)"),
+        ("Objektiv 12 mm", "MVL-MF1228M + bandpass 650"),
+        ("Linjelaser röd", "iadiy 650 nm 100 mW (oblik 30°)"),
+        ("Alu-portalram", "T-spår, fast höjd ~760 mm"),
     ]),
-    (430, GRN, "FAS 2 · HÖGER + MATNING", [
-        ("Profilkamera H", "MV-CS050-10UM + bandpass 520"),
-        ("Linjelaser grön", f"iadiy 520 nm 50 mW (oblik)"),
-        ("Transportband", "2× 24 V, 50 mm/s (V/H)"),
-        ("Motorregulator", "24 V PWM (trimma takt)"),
-        ("Encoder", "mäthjul mot bräda (RS422)"),
+    (430, GRN, "FAS 1 · GRÖN MODUL + MATNING", [
+        ("Profilkamera GRÖN", "MV-CS050-10UM + bandpass 520"),
+        ("Linjelaser grön", "iadiy 520 nm 50 mW (oblik 30°)"),
+        ("Transportband ×2", "24 V, 50 mm/s (V/H, cross-feed)"),
+        ("Motorstyrning ×2", "Pololu Jrk G2 (frekvens-FB)"),
+        ("Lägesgivare", "motorns Hall-signal + anslag"),
     ]),
-    (800, SURFC, "FAS 3 · YTA + PUNKTLASER", [
+    (800, SURFC, "FAS 2 · YTA + PUNKTLASER", [
         ("Ytkamera", "MindVision line-scan (NBASE-T)"),
-        ("Objektiv M72", "8K 55–60 mm (⌀≥62 mm)"),
+        ("Objektiv M72", "Chiopt LS4105B (8K, ⌀≥62)"),
         ("Belysning", "850 nm NIR + RGB strobe"),
-        ("Punktlaser", "3× HG-C1100 + MCP3008 ADC"),
+        ("Punktlaser ×3", "HG-C1400 (400 mm) + MCP3008"),
         ("LED-driver", "strobe via ytkam 3 utgångar"),
     ]),
     (1170, MUTED, "ANSLUTNING (Jetson)", [
         ("2 profilkam", "USB3 (~307 MB/s/st)"),
         ("Ytkamera", "NBASE-T → 1GbE direkt"),
         ("Punktlaser", "analog → MCP3008 (SPI)"),
-        ("Encoder", "RS422→ytkam + GPIO"),
+        ("Motorstyrning", "I²C ↔ 2× Jrk G2"),
         ("Strobe", "ytkamerans 3 strobe-ut"),
     ]),
 ]
