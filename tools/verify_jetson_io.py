@@ -41,7 +41,7 @@ rows = [
  ("Ytkamera 4K FÄRG",      "GbE (RJ45)",      f"{ycam:.1f} MB/s",  ycam < JET['gbe_MBs']),
  ("  – ytkamera @ MAX 8kHz","GbE (RJ45)",     f"{ycam_max:.0f} MB/s", ycam_max < JET['gbe_MBs']),
  ("2× Jrk G2 (motorer)",   "I²C (1 buss)",    "kbit/s",            JET['i2c'] >= 1),
- ("3× punktlaser → MCP3008","SPI (1 buss)",   "<0,1 MB/s",         JET['spi'] >= 1),
+ ("3× punktlaser LR400",   "RS-485 (USB/UART)","<0,1 MB/s",        JET['usb3_ports']>=3 or JET['uart']>=1),
  ("Röd laser enable",      "GPIO (MOSFET)",   "—",                 True),
  ("Grön laser enable",     "GPIO (MOSFET)",   "—",                 True),
  ("Ingångslaser (fotocell)","GPIO",           "kant-trig",         True),
@@ -58,16 +58,16 @@ budget = [
  ("USB 3.2 Gen2",  2, JET['usb3_ports']),
  ("Gigabit Ethernet", 1, JET['gbe_ports']),
  ("I²C-buss",      1, JET['i2c']),
- ("SPI-buss",      1, JET['spi']),
+ ("RS-485 (UART/USB)", 1, JET['uart']),
  ("GPIO-pinnar",   5, JET['gpio']),
 ]
 for nm, used, avail in budget:
     print(f"{nm:22}{used:<10}{avail:<8}{ok(used<=avail)}  ({avail-used} kvar)")
 
-# ---- det enda riktiga gapet: ingen analog in ----
-print(f"\n{'ANALOG IN (ADC)':22}{'krävs av':10}{'Jetson':8}LÖSNING")
+# ---- analog in: behövs INTE längre (LR400 = RS-485 digitalt) ----
+print(f"\n{'ANALOG IN (ADC)':22}{'krävs?':10}{'Jetson':8}KOMMENTAR")
 line()
-print(f"{'3× punktlaser (0–5V)':22}{'ja':10}{JET['adc']:<8}MCP3008 SPI-ADC + delare 5→3,3 V  {ok(True)}")
+print(f"{'Punktlaser':22}{'NEJ':10}{JET['adc']:<8}LR400 ger avstånd via RS-485 (Modbus) → ingen ADC  ✓")
 
 # ---- USB-aggregat ----
 usb_tot = 2*pcam

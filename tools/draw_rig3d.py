@@ -128,7 +128,7 @@ txt(jp[0] + 75, jp[1] - 6, "JETSON Orin Nano", 10, "middle", JET, 700, SANS); tx
 # ---- legend + mått + styrning (rad 1 höger) ----
 panel(1210, 116, 410, 372, "SENSORER / FAS", INK)
 leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 1),
-       (PURP, "3× punktlaser HG-C1400", 2), (SURFC, "Ytkamera 4K färg + vitt ljus", 2),
+       (PURP, "3× punktlaser LR400 (RS-485)", 2), (SURFC, "Ytkamera 4K färg + vitt ljus", 2),
        (BELT, "2× rullband + Hall-FB", 1), (ALU, "Stativ + ingångslaser + Jetson", 1)]
 for i, (c, k, fas) in enumerate(leg):
     ry = 160 + i * 40; rect(1224, ry, 20, 20, c, INK, 0.8, 4)
@@ -143,7 +143,7 @@ panel(1640, 116, 410, 372, "MÅTT (mm)", INK)
 dims = [("Arbetsavstånd (oblik)", f"~{WD}"), ("Oblik vinkel", f"{OBL:.0f}°"), ("Modulhöjd", f"~{MH}"),
         ("Sidooffset", f"~{SOFF}"), ("Avstånd modul↔modul", f"~{SEP}"), ("Laserlinje (längs)", f"{BENCH_L}"),
         ("Brädbredd (matning)", f"{BW}"), ("Punktlaser V/C/H", f"{PL_X[0]}/{PL_X[1]}/{PL_X[2]}"),
-        ("Punktlaser-WD (HG-C1400)", f"{PLWD}"), ("Ytkamera-WD (20 mm M42, =PL-plan)", f"{SURF_WD}")]
+        ("Punktlaser-WD (LR400)", f"{PLWD}"), ("Ytkamera-WD (20 mm M42, =PL-plan)", f"{SURF_WD}")]
 for i, (k, v) in enumerate(dims):
     ry = 152 + i * 30
     if i % 2: rect(1640, ry - 4, 410, 30, PANEL, "none", 0)
@@ -153,7 +153,7 @@ panel(2070, 116, 370, 372, "STYRNING (Jetson)", JET)
 for i, n in enumerate(["Ingångslaser nollställer brädans läge", "(rullband = ingen fast position).",
                        "Mathåll + sidoanslag = L-datum, känd start.", "DC-motordrivare: fram → mät → BACK.",
                        "Multi-pass: medel av N pass → brus ↓ √N", "+ repeterbarhet/kalibrering.",
-                       "Ytkamera GigE → Jetson 1GbE direkt (ingen switch).", "Analog punktlaser → MCP3008 (Jetson saknar ADC)."]):
+                       "Ytkamera GigE → Jetson 1GbE direkt (ingen switch).", "Punktlaser LR400 → RS-485 (digitalt, ingen ADC)."]):
     txt(2082, 158 + i * 28, "• " + n if not n.startswith("(") and not n.startswith("+") and not n.startswith("(rull") else "  " + n,
         9.6, "start", INK if not (n.startswith("(") or n.startswith("+")) else MUTED, 400)
 
@@ -163,9 +163,9 @@ JX, JY, JW, JH = 700, 1050, 240, 120
 rect(JX, JY, JW, JH, "#e6efe6", JET, 2, 8); rect(JX, JY, JW, 24, JET, JET, 0, 8)
 txt(JX + JW/2, JY + 17, "JETSON ORIN NANO SUPER", 11, "middle", "#fff", 700, SANS)
 txt(JX + JW/2, JY + 44, "4× USB3 · 1× GbE (RJ45)", 9.5, "middle", INK)
-txt(JX + JW/2, JY + 62, "40-pin: GPIO/SPI×2/I2C×2/PWM", 9.5, "middle", INK)
-txt(JX + JW/2, JY + 80, "INGEN analog-in", 9.5, "middle", "#b00", 700)
-txt(JX + JW/2, JY + 100, "→ analog via MCP3008 (SPI)", 9, "middle", MUTED)
+txt(JX + JW/2, JY + 62, "40-pin: GPIO/UART/I2C×2/PWM", 9.5, "middle", INK)
+txt(JX + JW/2, JY + 80, "Ingen analog behövs", 9.5, "middle", JET, 700)
+txt(JX + JW/2, JY + 100, "punktlaser → RS-485 (USB/UART)", 9, "middle", MUTED)
 def node(x, y, w, t, s, acc):
     rect(x, y, w, 50, "#fff", acc, 1.5, 7); rect(x, y, w, 20, acc, acc, 0, 7)
     txt(x + 9, y + 15, t, 10, "start", "#fff", 700, SANS); txt(x + 9, y + 36, s, 8.5, "start", INK)
@@ -173,7 +173,7 @@ def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
 left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "5V+GPIO"),
-        (1040, "Jrk G2 24v13 (matning)", "motorns Hall-Signal → frekvens-FB", F1, "USB/I²C"), (1120, "3× Punktlaser→MCP3008", "HG-C1400 (Fas 2)", F2, "SPI"),
+        (1040, "Jrk G2 24v13 (matning)", "motorns Hall-Signal → frekvens-FB", F1, "USB/I²C"), (1120, "3× Punktlaser LR400", "RS-485-buss (Fas 2)", F2, "RS-485"),
         (1200, "Ingångslaser", "E3F-DS30 (brädstart)", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c); conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
@@ -193,10 +193,10 @@ panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
 io = [("USB 3.2 Gen2 (×4)", "2 — RÖD + GRÖN kamera", "OK · 2 lediga", F1),
       ("Gigabit Ethernet", "1 — ytkamera (GigE 1GbE direkt)", "OK", F2),
       ("USB/UART/I²C", "1 — Jrk G2 (matning, målfart)", "OK", F1),
-      ("40-pin SPI (×2)", "1 — MCP3008 (3 punktlaser)", "OK", F1),
+      ("RS-485 (USB/UART)", "1 — 3× LR400 (Modbus-buss)", "OK", F2),
       ("40-pin GPIO (~28)", "~5 — ingångslaser, kam-trig×2, 2 laser-en", "OK · gott om", F1),
-      ("40-pin I2C/PWM", "0 — reserv (motor/enc på RoboClaw)", "ledig", DIMC),
-      ("Analog in (ADC)", "0 — SAKNAS → 3 punktlaser", "via MCP3008 (SPI)", "#b00"),
+      ("40-pin SPI/PWM", "0 — reserv (ingen ADC behövs)", "ledig", DIMC),
+      ("Analog in (ADC)", "0 — behövs EJ (LR400 = RS-485)", "✓ digitalt", JET),
       ("DC-in / 24 V / 5 V", "Jetson 7–25 V + separat 24/5 V", "OK", INK)]
 txt(1556, 884, "GRÄNSSNITT", 10.5, "start", MUTED, 700, MONO); txt(1820, 884, "ANVÄNDS", 10.5, "start", MUTED, 700, MONO); txt(2300, 884, "STATUS", 10.5, "start", MUTED, 700, MONO)
 L(1556, 892, 2424, 892, DIMC, 1)
@@ -208,13 +208,13 @@ for i, (a, b, c, col) in enumerate(io):
 
 # ============================================================ 3) PINOUT + BOM
 panel(40, 1388, 1000, 640, "3 · JETSON 40-PIN (J12) — prototyp-tilldelning", INK)
-PINS = {1:("3.3V","MCP3008 VDD",P33),2:("5V","ext laser",P5),3:("I2C1_SDA","reserv",BUSc),4:("5V","",P5),
+PINS = {1:("3.3V","logik",P33),2:("5V","ext laser",P5),3:("I2C1_SDA","reserv",BUSc),4:("5V","",P5),
  5:("I2C1_SCL","reserv",BUSc),6:("GND","",GNDc),7:("GPIO09","reserv",DIMC),8:("UART1_TX","JRK G2 TX",F1),
  9:("GND","",GNDc),10:("UART1_RX","JRK G2 RX",F1),11:("UART1_RTS","reserv",BUSc),12:("I2S0_SCLK","reserv",DIMC),
  13:("SPI1_SCK","KAM-TRIG GRÖN",F1),14:("GND","",GNDc),15:("GPIO12·PWM","reserv",DIMC),16:("SPI1_CS1","LASER RÖD en",F1),
- 17:("3.3V","logik",P33),18:("SPI1_CS0","LASER GRÖN en",F1),19:("SPI0_MOSI","MCP3008 DIN",F1),20:("GND","",GNDc),
- 21:("SPI0_MISO","MCP3008 DOUT",F1),22:("SPI1_MISO","INGÅNGSLASER",F1),23:("SPI0_SCK","MCP3008 CLK",F1),24:("SPI0_CS0","MCP3008 CS",F1),
- 25:("GND","MCP3008 AGND",GNDc),26:("SPI0_CS1","reserv",DIMC),27:("I2C0_SDA","reserv",BUSc),28:("I2C0_SCL","reserv",BUSc),
+ 17:("3.3V","logik",P33),18:("SPI1_CS0","LASER GRÖN en",F1),19:("SPI0_MOSI","reserv",DIMC),20:("GND","",GNDc),
+ 21:("SPI0_MISO","reserv",DIMC),22:("SPI1_MISO","INGÅNGSLASER",F1),23:("SPI0_SCK","reserv",DIMC),24:("SPI0_CS0","reserv",DIMC),
+ 25:("GND","",GNDc),26:("SPI0_CS1","reserv",DIMC),27:("I2C0_SDA","reserv",BUSc),28:("I2C0_SCL","reserv",BUSc),
  29:("GPIO01","reserv",DIMC),30:("GND","",GNDc),31:("GPIO11","reserv",DIMC),32:("GPIO07·PWM","reserv",DIMC),
  33:("GPIO13·PWM","reserv",DIMC),34:("GND","",GNDc),35:("I2S0_FS","KAM-TRIG RÖD",F1),36:("UART1_CTS","reserv",DIMC),
  37:("SPI1_MOSI","reserv",DIMC),38:("I2S0_SDIN","reserv",DIMC),39:("GND","",GNDc),40:("I2S0_SDOUT","reserv",DIMC)}
@@ -230,7 +230,7 @@ for i in range(20):
         tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
         txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
         if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
-txt(60, 2002, "Matning: Jrk G2 24v13 via USB/UART/I²C — motorns inbyggda Hall-Signal går till Jrk:s frekvens-FB (closed-loop fart). MCP3008 på SPI0. HG-C1400 → spänningsdelare ≤3,3 V. Gemensam GND.", 9.3, "start", MUTED, 400)
+txt(60, 2002, "Matning: Jrk G2 24v13 via UART/I²C — motorns inbyggda Hall-Signal går till Jrk:s frekvens-FB (closed-loop fart). Punktlaser LR400 → RS-485 (USB-dongle, 3 på 1 buss, Modbus) — ingen ADC. Gemensam GND.", 9.3, "start", MUTED, 400)
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)
@@ -248,8 +248,8 @@ def bomcol(items, x, head, acc):
     return tot
 f1items = [(m, q, p, src) for (k, m, q, r, i, u, p, f, src) in BOM if f == 1]
 f2items = [(m, q, p, src) for (k, m, q, r, i, u, p, f, src) in BOM if f == 2]
-bomcol(f1items, 1078, "FAS 1 — FULL 3D-MÄTRIGG (röd+grön+punktlaser+matning)", F1)
-bomcol(f2items, 1762, "FAS 2 — LINE-SCAN-YTKAMERA", F2)
+bomcol(f1items, 1078, "FAS 1 — FULL 3D-MÄTRIGG (röd+grön+matning)", F1)
+bomcol(f2items, 1762, "FAS 2 — LINE-SCAN-YTA + PUNKTLASER", F2)
 ry1 = 1454 + len(f1items) * RH + 8
 rect(1078, ry1, 670, 30, "#eaf5ee", F1, 1.2, 5); txt(1086, ry1 + 20, "SUMMA FAS 1", 11, "start", F1, 700, SANS)
 txt(1740, ry1 + 20, f"{bom_total(1):,} kr".replace(",", " "), 12, "end", F1, 700, MONO)
