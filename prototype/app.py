@@ -24,7 +24,8 @@ import matplotlib.pyplot as plt
 import streamlit as st
 from proto_sim import (simulate, metrics, datarate, PL_FRACS, fig_profile_cams,
                        fig_surface_cams, fig_length_profile, fig_cross_section,
-                       fig_heightmap, fig_surface3d, fig_throughput)
+                       fig_heightmap, fig_surface3d, fig_throughput,
+                       bom_rows, bom_total, interface_rows, fig_wiring, fig_assembly)
 from src.hardware import Rig
 
 st.set_page_config(page_title="Virkesskanner — prototyp", layout="wide", page_icon="🪵")
@@ -197,8 +198,9 @@ def kpi_row(sim):
 
 
 def render_sensors(sim, feed_frac, xpos, playing):
-    t1, t2, t3, t4 = st.tabs(["📷 Live-kameror", "📐 Profiler & 3D",
-                              "⚙️ Datatakt & fart", "🔩 Hårdvara"])
+    t1, t2, t3, t4, t5 = st.tabs(["📷 Live-kameror", "📐 Profiler & 3D",
+                                  "⚙️ Datatakt & fart", "🔩 Hårdvara",
+                                  "🧾 BOM & systemkoppling"])
     with t1:
         a, b = st.columns(2, gap="medium")
         with a:
@@ -231,6 +233,40 @@ def render_sensors(sim, feed_frac, xpos, playing):
                    "vid hög takt (begränsas av kamerans ROI-radtakt).")
     with t4:
         hardware_specs()
+    with t5:
+        bom_panel(sim)
+
+
+def bom_panel(sim):
+    st.markdown('<div class="ph-sec">Komplett materiallista (prototyp, ett mäthuvud)</div>',
+                unsafe_allow_html=True)
+    st.dataframe(bom_rows(), hide_index=True, width="stretch")
+    c = st.columns(3)
+    c[0].metric("Ca totalpris", f"{bom_total():,} kr".replace(",", " "))
+    c[1].metric("Profilkameror", "2× CS050 (USB3)")
+    c[2].metric("Punktlaser", "3× HG-C1100")
+    st.caption("Ca-priser exkl. moms/frakt — uppskattningar, verifiera hos säljare. "
+               "**Budget-alternativ punktlaser:** VL53L1X ToF (~70 kr/st, I²C) — men bara "
+               "±5 mm → räcker för att prova fusions-*konceptet*, ej för skarpt absolut ankare. "
+               "MindVision-line-scan kan bytas mot **CA013-A0UC (färg, USB3)** som Jetson-native "
+               "ytkamera tills 10GigE-värd finns.")
+
+    st.markdown('<div class="ph-sec">Så kopplas allt ihop</div>', unsafe_allow_html=True)
+    a, b = st.columns(2, gap="medium")
+    with a:
+        card(fig_wiring(sim))
+    with b:
+        card(fig_assembly(sim))
+
+    st.markdown('<div class="ph-sec">Alla gränssnitt & uppdateringsfrekvenser</div>',
+                unsafe_allow_html=True)
+    st.dataframe(interface_rows(sim), hide_index=True, width="stretch")
+    st.caption("**Profilkameror:** var sin USB3-controller (~307 MB/s/st ryms i ~500 MB/s). "
+               "**Ytkamera:** vid prototyptakt behövs bara ~10 MB/s → ryms även i 1 GbE; 10GigE "
+               "krävs först vid full radtakt (110 kHz). **Punktlaser:** 3× analoga, lästa via MCP3008 "
+               "(SPI) — sveper 150 mm under matningen → absolut **tvärsnittsprofil** (~0,1 mm/prov), "
+               "som *ankrar* linjelaserns form. **Encoder:** låser radtakten till matningen (TDI-synk). "
+               "**Strobe:** R/G/B + NIR växlas synkat med ytkamerans radtakt (färg = radtakt/4).")
 
 
 def hardware_specs():

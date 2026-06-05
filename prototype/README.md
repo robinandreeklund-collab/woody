@@ -26,10 +26,13 @@ streamlit run prototype/app.py
   **ytkamera FÄRG** (RGB-linjekamera) · **ytkanal NIR** (blånad/röta mörka).
 - **Profiler & 3D:** längsprofil (1 m) + **3 punktlaser** (absolut tjocklek) ·
   **tvärsnitt** (topp + sidor, röd/grön oblik) · höjdkarta + defekt-overlay · 3D-yta.
-- **Datatakt & fart:** bandhastighet ↔ upplösning ↔ kapacitet (pitch, profiler/s,
-  mätpunkter/s, brädor/min, MB/s). Justera **bandhastighet** och **profiltakt** och se
-  datan ändras live.
+- **Datatakt & fart:** takt ↔ upplösning ↔ bandhastighet (pitch, profiler/s,
+  mätpunkter/s, brädor/min, MB/s). Justera **takt** och **profiltakt** och se datan ändras live.
 - **Hårdvara:** exakta modul-specar (lasrar, kameror, punktlaser).
+- **BOM & systemkoppling:** komplett materiallista med ca-priser, kopplingsschema (allt
+  till Jetson, buss · takt · datatakt), monteringsritning (ändvy) och tabell över **alla
+  gränssnitt och uppdateringsfrekvenser** (prototyptakt vs buss-tak). Punktlasern visas
+  både som absolut tjockleksankare och som tvärsnittssvep över 150 mm.
 
 ## Hårdvara (prototyp, per huvud)
 - 1× NVIDIA Jetson Orin Nano Super (edge-compute + U-Net).

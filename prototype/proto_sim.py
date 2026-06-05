@@ -27,6 +27,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 
 from src.board import make_board
 from src.hardware import Rig
@@ -248,10 +249,16 @@ def fig_cross_section(sim, length_frac, figsize=(7.4, 3.2)):
             label="höger sida (grön 520)")
     ax.axhline(T, color=MUTED, ls="--", lw=0.8)
     ax.text(Wd, T + 0.4, f"nominell {T:.0f} mm", color=MUTED, fontsize=7.5, ha="right")
-    ax.plot(Wd * 0.5, top[Wpx // 2], marker="v", ms=11, color=PURP, mec="k", mew=0.6, zorder=6)
+    # punktlasern sveper 150 mm under matningen → ABSOLUT tvärsnitt (glesa prov)
+    btrue = sim["board"]["height"]
+    rng = np.random.default_rng(li)
+    ks = np.linspace(0, Wpx - 1, max(6, int(Wd / 8))).astype(int)
+    abs_samp = btrue[li, ks] + rng.normal(0, 0.04, ks.size)        # HG-C1100 ±~40 µm
+    ax.plot(ys[ks], abs_samp, "o", ms=3.2, color=PURP, mec="k", mew=0.3, zorder=6,
+            label="punktlaser-svep (absolut)")
     ax.set_xlim(-4, Wd + 4); ax.set_ylim(0, T * 1.4)
     ax.set_xlabel("bredd (mm) — matningsled"); ax.set_ylabel("höjd (mm)")
-    ax.legend(loc="lower center", fontsize=7, ncol=2, frameon=False)
+    ax.legend(loc="lower center", fontsize=7, ncol=3, frameon=False)
     fig.tight_layout(); return fig
 
 
@@ -346,6 +353,141 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
     fig.tight_layout(); return fig
 
 
+# ============================================================ BOM & systemintegration
+# Ca-priser SEK, exkl. moms/frakt – uppskattningar för budget, verifiera hos säljare.
+BOM = [
+    ("Edge-compute", "NVIDIA Jetson Orin Nano Super 8GB", 1, "U-Net + sensorfusion", "—", "—", 6000),
+    ("Profilkamera (oblik) ×2", "Hikrobot MV-CS050-10UM (mono)", 2, "3D-triangulering V+H", "USB3", "~490 prof/s (ROI)", 3800),
+    ("Objektiv C-mount", "8 mm", 2, "profiloptik (1 m FOV)", "—", "—", 500),
+    ("Bandpassfilter", "650 nm / 520 nm", 2, "isolerar laservåglängd", "—", "—", 350),
+    ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan)", "10GigE→1GbE", "1,2 kHz proto / 110 kHz max", 22000),
+    ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "profil V (650 nm, 100 mW)", "3 V PSU", "CW", 300),
+    ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350),
+    ("Punktlaser ×3 (rek.)", "Panasonic HG-C1100", 3, "absolut tjocklek + tvärsnitt", "analog→ADC", "1,5 kHz", 1800),
+    ("ADC", "MCP3008 (SPI, 200 kSPS)", 1, "läser 3 punktlaser analogt", "SPI", "—", 60),
+    ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "GPIO-strobe", "= radtakt", 900),
+    ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "GPIO-strobe", "radtakt/3", 1500),
+    ("Strobe-driver", "MOSFET (IRLZ44N) / LED-strobe", 1, "driver för strobe-ljus", "GPIO/PWM", "—", 300),
+    ("Encoder", "Inkrementell rotationsencoder", 1, "matningssynk / kameratrigger", "GPIO/trigger", "pulser", 800),
+    ("Nätverk", "NBASE-T-switch / 10GbE-omvandlare", 1, "MindVision↔Jetson (1GbE-fallback)", "10G/1G", "—", 1500),
+    ("Mekanik", "T-spårsram + transportband + motor", 1, "bänk för 1 m cross-feed", "—", "—", 5000),
+    ("Diverse", "Kablar, nätaggregat, fästen", 1, "—", "—", "—", 1500),
+]
+
+
+def bom_rows():
+    return [{"Komponent": k, "Modell": m, "Antal": q, "Roll": r, "Gränssnitt": i,
+             "Uppdateringstakt": u, "Ca pris (st)": f"{p:,}".replace(",", " ")}
+            for (k, m, q, r, i, u, p) in BOM]
+
+
+def bom_total():
+    return sum(q * p for (_, _, q, _, _, _, p) in BOM)
+
+
+def interface_rows(sim):
+    """Alla gränssnitt + uppdaterings-/datatakter, prototyptakt vs buss-tak."""
+    rig = sim["rig"]; rate = sim["profile_rate_hz"]; v = sim["feed_mps"]
+    pcam_mbs = rig.profile_cam.width_px * ROI_ROWS * rate / 1e6
+    s_mmpp = rig.surface_mm_per_px
+    s_line = v * 1000.0 / s_mmpp
+    s_mbs = rig.surface_cam.px_across * s_line / 1e6
+    s_max_mbs = rig.surface_cam.px_across * rig.surface_cam.line_rate_hz / 1e6
+    period = 60.0 / max(1.0, sim["takt"])
+    pl_rate = 1500.0
+    pl_pitch = sim["width"] / (pl_rate * period)
+    return [
+        {"Enhet": "Profilkamera RÖD", "Buss": "USB3 (5 Gbit/s)", "Takt (proto)": f"{rate:.0f} prof/s",
+         "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
+        {"Enhet": "Profilkamera GRÖN", "Buss": "USB3 (5 Gbit/s)", "Takt (proto)": f"{rate:.0f} prof/s",
+         "Datatakt": f"{pcam_mbs:.0f} MB/s", "Buss-tak": "~500 MB/s", "Marginal": f"{500/pcam_mbs:.1f}×"},
+        {"Enhet": "Ytkamera (line-scan)", "Buss": "10GigE→1GbE", "Takt (proto)": f"{s_line:.0f} rad/s",
+         "Datatakt": f"{s_mbs:.0f} MB/s", "Buss-tak": "118 MB/s (1GbE)", "Marginal": f"{118/max(s_mbs,1e-3):.0f}×"},
+        {"Enhet": "Ytkamera (MAX)", "Buss": "10GigE", "Takt (proto)": f"{rig.surface_cam.line_rate_hz/1e3:.0f} krad/s",
+         "Datatakt": f"{s_max_mbs:.0f} MB/s", "Buss-tak": "1250 MB/s (10GigE)", "Marginal": f"{1250/s_max_mbs:.1f}×"},
+        {"Enhet": "3× Punktlaser → ADC", "Buss": "analog→SPI", "Takt (proto)": f"{pl_rate:.0f} Hz",
+         "Datatakt": "<0,1 MB/s", "Buss-tak": "SPI 200 kSPS", "Marginal": f"tvärsnitt {pl_pitch:.2f} mm/prov"},
+        {"Enhet": "RGB/NIR-strobe", "Buss": "GPIO/PWM", "Takt (proto)": f"{s_line:.0f} Hz (sync)",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "färg = radtakt/4 (R/G/B+NIR)"},
+        {"Enhet": "Encoder", "Buss": "GPIO/trigger", "Takt (proto)": "pulser",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "låser radtakt till matning (TDI)"},
+    ]
+
+
+def _node(ax, x, y, w, h, title, sub, fc):
+    ax.add_patch(mpatches.FancyBboxPatch((x - w / 2, y - h / 2), w, h,
+                 boxstyle="round,pad=0.006,rounding_size=0.02", fc=fc, ec=INK, lw=1.1))
+    ax.text(x, y + 0.013, title, ha="center", va="center", fontsize=8, fontweight="bold", color=INK)
+    ax.text(x, y - 0.026, sub, ha="center", va="center", fontsize=6.6, color="#444")
+
+
+def fig_wiring(sim, figsize=(7.4, 4.3)):
+    ir = {r["Enhet"]: r for r in interface_rows(sim)}
+    fig = _fig(figsize); ax = fig.add_subplot(111); ax.set_xlim(0, 1); ax.set_ylim(0, 1); ax.axis("off")
+    _ax(ax, "SYSTEMKOPPLING — allt till Jetson (buss · takt · datatakt)")
+    _node(ax, 0.5, 0.5, 0.22, 0.17, "Jetson Orin Nano", "U-Net + fusion", "#dfe9f5")
+    USB, NET, AD, GP = BLUE, PURP, GOLD, GRN
+    nodes = [
+        (0.16, 0.83, "Profilkamera RÖD", "CS050 · 650 nm", "#fde9e3", USB,
+         f"USB3 · {ir['Profilkamera RÖD']['Datatakt']}"),
+        (0.16, 0.50, "Profilkamera GRÖN", "CS050 · 520 nm", "#e3f3ea", USB,
+         f"USB3 · {ir['Profilkamera GRÖN']['Datatakt']}"),
+        (0.16, 0.17, "Ytkamera line-scan", "MindVision 10GigE", "#efe6f7", NET,
+         f"10GigE→1GbE · {ir['Ytkamera (line-scan)']['Datatakt']}"),
+        (0.84, 0.83, "3× Punktlaser → MCP3008", "HG-C1100 · ±60 µm", "#fbf3df", AD,
+         f"SPI · {ir['3× Punktlaser → ADC']['Takt (proto)']}"),
+        (0.84, 0.50, "RGB/NIR-strobe", "linjeljus + MOSFET", "#e9f5ec", GP,
+         f"GPIO/PWM · {ir['RGB/NIR-strobe']['Takt (proto)']}"),
+        (0.84, 0.17, "Encoder", "inkrementell", "#e9f5ec", GP, "trigger · låser TDI"),
+    ]
+    for (x, y, t, s, fc, col, lbl) in nodes:
+        _node(ax, x, y, 0.235, 0.135, t, s, fc)
+        jx = 0.39 if x < 0.5 else 0.61
+        ax.annotate("", xy=(jx, 0.5 + (y - 0.5) * 0.35), xytext=(x + (0.12 if x < 0.5 else -0.12), y),
+                    arrowprops=dict(arrowstyle="-|>", color=col, lw=1.7))
+        mx = (jx + x) / 2
+        ax.text(mx, y + 0.05, lbl, ha="center", fontsize=6.2, color=col,
+                bbox=dict(fc="#fff", ec="none", pad=0.4))
+    ax.text(0.5, 0.30, "Linjelasrar röd+grön: CW, 3 V PSU (ingen datalänk)",
+            ha="center", fontsize=6.8, color=MUTED, style="italic")
+    fig.tight_layout(); return fig
+
+
+def fig_assembly(sim, figsize=(7.4, 4.0)):
+    Wd, T = sim["width"], sim["thickness"]
+    fig = _fig(figsize); ax = fig.add_subplot(111)
+    _ax(ax, "MÄTHUVUD — montering (ändvy, schematisk, ej skala)")
+    ax.add_patch(plt.Rectangle((-150, -9), 300, 9, fc="#cfcabb", ec=MUTED))      # transportband
+    ax.add_patch(plt.Rectangle((-Wd / 2, 0), Wd, T, fc="#efe9d8", ec=GOLD, lw=1.4))  # bräda
+    ax.text(0, T / 2, f"bräda {Wd:.0f}×{T:.0f} mm", ha="center", fontsize=7, color="#6a5a2a")
+    # överliggande ytkamera + RGB/NIR-strobe
+    ax.add_patch(mpatches.FancyBboxPatch((-22, 128), 44, 18, boxstyle="round,pad=1,rounding_size=3",
+                 fc="#efe6f7", ec=INK, lw=1.1))
+    ax.text(0, 137, "Ytkamera line-scan\n+ RGB/NIR-strobe", ha="center", va="center", fontsize=6.6, color=INK)
+    for sx in (-Wd / 2, Wd / 2):
+        ax.plot([0, sx], [128, T], color=PURP, lw=0.8, ls=(0, (3, 2)))
+    # oblika moduler
+    ax.add_patch(mpatches.FancyBboxPatch((-150, 92), 40, 20, boxstyle="round,pad=1,rounding_size=3",
+                 fc="#fde9e3", ec=INK, lw=1.1)); ax.text(-130, 102, "Modul V\nröd 650", ha="center", va="center", fontsize=6.6)
+    ax.add_patch(mpatches.FancyBboxPatch((110, 92), 40, 20, boxstyle="round,pad=1,rounding_size=3",
+                 fc="#e3f3ea", ec=INK, lw=1.1)); ax.text(130, 102, "Modul H\ngrön 520", ha="center", va="center", fontsize=6.6)
+    ax.annotate("", xy=(-Wd / 2 + 6, T), xytext=(-126, 92), arrowprops=dict(arrowstyle="-|>", color=RED, lw=1.8))
+    ax.annotate("", xy=(Wd / 2 - 6, T), xytext=(126, 92), arrowprops=dict(arrowstyle="-|>", color=GRN, lw=1.8))
+    ax.text(-92, 70, "45°", color=RED, fontsize=8); ax.text(74, 70, "45°", color=GRN, fontsize=8)
+    # 3 punktlaser (längs 1 m → projiceras här som ett läge)
+    for px in (-50, 0, 50):
+        ax.plot([px, px], [120, T], color=PURP, lw=1.0, ls=(0, (1, 1)))
+        ax.plot(px, 122, marker="v", ms=8, color=PURP, mec="k", mew=0.4)
+    ax.text(0, 116, "3× punktlaser (V/C/H längs 1 m) → absolut tjocklek + tvärsnitt vid svep",
+            ha="center", fontsize=6.3, color=PURP)
+    ax.text(-148, 122, f"standoff ≈ {sim['rig'].module_standoff_mm:.0f} mm", fontsize=6.3, color=MUTED)
+    ax.add_patch(plt.Rectangle((132, -9), 18, 12, fc="#bdb8aa", ec=MUTED))
+    ax.text(141, -3, "enc", ha="center", fontsize=5.8, color=INK)
+    ax.set_xlim(-165, 165); ax.set_ylim(-15, 155); ax.set_aspect("auto")
+    ax.set_xlabel("bredd (mm)"); ax.set_ylabel("höjd över band (mm)")
+    fig.tight_layout(); return fig
+
+
 # --------------------------------------------------------------------- metrics
 def metrics(sim):
     z = sim["meas"]["z_fused"]; lbl = sim["board"]["label"]; btrue = sim["board"]["height"]
@@ -368,10 +510,12 @@ def metrics(sim):
 if __name__ == "__main__":
     s = simulate(1000, 150, 45, seed=3, boards_per_min=60, bow_mm=1.5, cup_mm=0.8, twist_mm=2.2)
     print("metrics:", metrics(s))
+    print("bom_total:", bom_total(), "SEK")
     figs = [("bench", fig_bench(s, 0.55)), ("profcams", fig_profile_cams(s, 0.55)),
             ("surfcams", fig_surface_cams(s, 0.55)), ("length", fig_length_profile(s, 0.55)),
             ("cross", fig_cross_section(s, 0.5)), ("heightmap", fig_heightmap(s, 0.55)),
-            ("surface3d", fig_surface3d(s, 1.0)), ("throughput", fig_throughput(s))]
+            ("surface3d", fig_surface3d(s, 1.0)), ("throughput", fig_throughput(s)),
+            ("wiring", fig_wiring(s)), ("assembly", fig_assembly(s))]
     for name, f in figs:
         f.savefig(f"/tmp/proto_{name}.png", facecolor="#fff", bbox_inches="tight")
     print(f"renderade {len(figs)} figurer")
