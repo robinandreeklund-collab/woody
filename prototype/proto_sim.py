@@ -372,7 +372,7 @@ BOM = [
     ("Linjelaser röd", "iadiy LM9R650H100L60", 1, "linjelaser 650 nm 100 mW (oblik 30°)", "5 V + GPIO-en", "CW", 300, 1),
     ("Ramstativ (alu)", "2020 T-spår-profil + vinkelfästen (~4 m)", 1, "vänt stativ + tvärbalk över rullbandet", "—", "—", 600, 1),
     ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s (välj 'with Power Supply')", 2, "matning (cross-feed); 24 V-PSU ingår → matar RoboClaw", "24 V DC", "50 mm/s", 736, 1),
-    ("Motorstyrning", "Pololu Jrk G2 24v13 (#3147) — tachometer/frekvens-FB", 1, "closed-loop FART från motorns Hall-Signal; 6,5–40 V, 13 A; USB/UART/I²C", "USB/UART/I²C ↔ Jetson", "—", 900, 1),
+    ("Motorstyrning", "Pololu Jrk G2 24v13 (#3147) — tachometer/frekvens-FB", 1, "1 st för BÅDA motorerna (parallellt); closed-loop FART från motorns Hall; position via anslag+tid/pulser", "USB/UART/I²C ↔ Jetson", "—", 900, 1),
     ("Position (motorns Hall)", "Motorns inbyggda 'Signal' (1-kanal Hall/FG) + ev. nivåanpassning", 1, "Signal → Jrk G2 (frekvens-FB) = closed-loop fart. Position: pulsräkning + anslag-noll. Verifiera Signal-nivå!", "Signal → Jrk G2 (+ Jetson)", "kalibreras mm/puls", 30, 1),
     ("Ingångslaser", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "brädetektering + ev. om-nollning (anslag+encoder = primär pos.)", "GPIO", "kant-trig", 80, 1),
     ("Anslag / mathåll", "alu-vinkel (bakkant, laddläge)", 1, "lägg brädan mot → känd start, kvadrerar", "—", "—", 150, 1),
