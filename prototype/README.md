@@ -38,14 +38,17 @@ streamlit run prototype/app.py
 ## Hårdvara (prototyp, per huvud) — fasad uppbyggnad
 Se fliken **BOM & systemkoppling** för komplett lista med priser och faser.
 
-- **Fas 1 (vänster, minimal):** Jetson Orin Nano Super · 1× MV-CS050-10UM mono (USB3) +
-  C-mount 8 mm + bandpass 650 nm · 1× iadiy LM9R650H100L60 (röd 650 nm). Enkel **alu-ram**,
-  brädan **puttas för hand** för att verifiera trianguleringen (kamera free-run, ingen encoder).
-- **Fas 2 (höger):** +1× MV-CS050-10UM + bandpass 520 nm + iadiy LM9G520H50L60T (grön) →
-  full dubbel-oblik med occlusion-fyllning.
+- **Fas 1 (vänster, minimal — 500 mm-brädor):** Jetson Orin Nano Super · 1× MV-CS050-10UM
+  mono (USB3) + C-mount 8 mm + bandpass 650 nm · 1× iadiy LM9R650H100L60 (röd 650 nm). Enkel
+  **alu-ram**, brädan **puttas för hand** för att verifiera trianguleringen (kamera free-run,
+  **ingen encoder**). 500 mm ger kortare laserlinje + finare upplösning (~0,20 mm/px).
+- **Fas 2 (höger + automatiserad matning):** +1× MV-CS050-10UM + bandpass 520 nm +
+  iadiy LM9G520H50L60T (grön) → full dubbel-oblik · **2× mini-transportör (24 V, 50 mm/s)** en
+  vänster/en höger med öppet mätfält + **PWM-regulator** + **inkrementell encoder med mäthjul**
+  (RS422, ~0,1 mm/puls) → repeterbar, positionslåst matning (~20 brädor/min).
 - **Fas 3 (full svit):** MindVision MV-XGLC83BM-T4-90 (line-scan, NBASE-T) + M72-optik ·
   850 nm NIR + RGB strobad belysning · 3× Panasonic HG-C1100 punktlaser (längs 1 m,
-  ankrar längsprofilen) + MCP3008 ADC · inkrementell encoder (TDI-synk).
+  ankrar längsprofilen) + MCP3008 ADC.
 
 CS050 har C-mount och **kräver objektiv** (ingår, 1 per kamera). MindVision faller tillbaka
 till 1 GbE (NBASE-T) → ingen switch behövs.

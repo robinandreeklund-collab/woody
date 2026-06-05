@@ -66,9 +66,9 @@ st.markdown('<div class="ph-title">Multisensor virkesskanner — prototypbänk</
 
 
 # ---------------- simulering (cachad) ----------------
-@st.cache_data(show_spinner=False, max_entries=48)
-def run(width, thick, seed, subtle, takt, rate, bow, cup, twist):
-    return simulate(length_mm=1000, width_mm=width, thickness_mm=thick, seed=seed,
+@st.cache_data(show_spinner=False, max_entries=64)
+def run(length, width, thick, seed, subtle, takt, rate, bow, cup, twist):
+    return simulate(length_mm=length, width_mm=width, thickness_mm=thick, seed=seed,
                     subtle=subtle, boards_per_min=takt, profile_rate_hz=rate,
                     bow_mm=bow, cup_mm=cup, twist_mm=twist)
 
@@ -144,16 +144,20 @@ sb.header("LÄGE")
 ss.mode = sb.radio("Driftläge", ["Live-simulering", "Manuell inspektion"],
                    index=0 if ss.mode == "Live-simulering" else 1, label_visibility="collapsed")
 
+sb.header("BRÄDA")
+length = sb.selectbox("Brädlängd (mm)", [500, 1000], index=0,
+                      help="500 mm = Fas 1 (kortare laserlinje, finare upplösning). 1000 mm = full bräda.")
+
 sb.header("TRANSPORTBAND")
-takt = sb.slider("Takt (brädor/min)", 10, 180, 60, 5)
+takt = sb.slider("Takt (brädor/min)", 10, 180, 20, 5)
 rate = sb.slider("Profiltakt (profiler/s)", 100, 1200, 490, 10)
 _feed = 150 / 1000 * takt / 60
-sb.caption(f"Bandhastighet ≈ **{_feed:.2f} m/s** · matnings-pitch ≈ "
-           f"**{_feed*1000/rate:.2f} mm/profil** (fart ÷ profiltakt).")
+sb.caption(f"Bandhastighet ≈ **{_feed*1000:.0f} mm/s** ({_feed:.2f} m/s) · matnings-pitch ≈ "
+           f"**{_feed*1000/rate:.2f} mm/profil**. 20/min ≈ 50 mm/s (matchar mini-transportören).")
 xpos = sb.slider("Tvärsnitt vid längd (%)", 0, 100, 50, 1) / 100.0
 
 if ss.mode == "Manuell inspektion":
-    sb.header("BRÄDA")
+    sb.header("MÅTT (manuell)")
     width = sb.slider("Bredd (mm)", 140, 160, 150, 1)
     thick = sb.slider("Tjocklek (mm)", 38, 52, 45, 1)
     seed = sb.number_input("Bräd-id (seed)", 0, 9999, 3, 1)
@@ -301,8 +305,8 @@ def hardware_specs():
 
 # ---------------- körning ----------------
 if ss.mode == "Manuell inspektion":
-    sim = run(width, thick, int(seed), subtle, takt, rate, bow, cup, twist)
-    st.markdown(bench_svg(feed, 1000, width, False), unsafe_allow_html=True)
+    sim = run(length, width, thick, int(seed), subtle, takt, rate, bow, cup, twist)
+    st.markdown(bench_svg(feed, length, width, False), unsafe_allow_html=True)
     st.write("")
     kpi_row(sim)
     render_sensors(sim, feed, xpos, False)
@@ -320,7 +324,7 @@ else:
             period = 60.0 / max(1.0, takt)          # sek för en bräda att passera
             ss.feed += dt / period
             if ss.feed >= 1.0:
-                done = run(bp["width"], bp["thick"], bp["seed"], bp["subtle"],
+                done = run(length, bp["width"], bp["thick"], bp["seed"], bp["subtle"],
                            takt, rate, bp["bow"], bp["cup"], bp["twist"])
                 m = metrics(done)
                 top = max(m["defekter"], key=m["defekter"].get) if m["defekter"] else "—"
@@ -335,18 +339,18 @@ else:
         cur = ss.board
         status = "RIGG KÖR — matar bräda" if ss.running else "PAUSAD"
         dot = '<span class="live-dot"></span>' if ss.running else ""
-        st.markdown(f'<div class="live-bar">{dot}{status} &nbsp;·&nbsp; aktuell 1 m-bräda: '
-                    f'{cur["width"]}×{cur["thick"]} mm · vrid {cur["twist"]:+.1f} / bukt {cur["bow"]:.1f} '
+        st.markdown(f'<div class="live-bar">{dot}{status} &nbsp;·&nbsp; aktuell bräda: '
+                    f'{length}×{cur["width"]}×{cur["thick"]} mm · vrid {cur["twist"]:+.1f} / bukt {cur["bow"]:.1f} '
                     f'/ kupa {cur["cup"]:.1f} mm (seed {cur["seed"]}) &nbsp;·&nbsp; takt {takt}/min</div>',
                     unsafe_allow_html=True)
-        st.markdown(bench_svg(min(ss.feed, 1.0), 1000, cur["width"], ss.running),
+        st.markdown(bench_svg(min(ss.feed, 1.0), length, cur["width"], ss.running),
                     unsafe_allow_html=True)
 
     # --- tyngre sensor-loop: egen, lugnare takt så bänken hålls mjuk ---
     @st.fragment(run_every=SENSOR_TICK if ss.running else None)
     def sensor_loop():
         cur = ss.board
-        sim = run(cur["width"], cur["thick"], cur["seed"], cur["subtle"],
+        sim = run(length, cur["width"], cur["thick"], cur["seed"], cur["subtle"],
                   takt, rate, cur["bow"], cur["cup"], cur["twist"])
         kpi_row(sim)
         render_sensors(sim, min(ss.feed, 1.0), xpos, ss.running)
@@ -356,5 +360,5 @@ else:
     sensor_loop()
 
     if ss.log:
-        st.markdown('<div class="ph-sec">Strömmade 1 m-brädor (senaste)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="ph-sec">Strömmade brädor (senaste)</div>', unsafe_allow_html=True)
         st.dataframe(ss.log, hide_index=True, width="stretch")

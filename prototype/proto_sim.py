@@ -350,8 +350,8 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
 # ============================================================ BOM & systemintegration
 # Priser SEK exkl. moms/frakt (Jetson, CS050, MindVision verifierade; övriga ca).
 # Fas: 1 = vänster modul (röd) – minimal "funkar-det?"-test, handmatning på alu-ram;
-#      2 = komplettera höger modul (grön) – full dubbel-oblik (occlusion-fyllning);
-#      3 = full sensorsvit (ytkamera/NIR + punktlaser + encoder).
+#      2 = höger modul (grön) + 2 transportband + encoder/mäthjul – repeterbar dubbel-oblik;
+#      3 = full sensorsvit (ytkamera/NIR + punktlaser).
 BOM = [
     ("Edge-compute", "NVIDIA Jetson Orin Nano Super Dev Kit", 1, "U-Net + sensorfusion", "—", "—", 3695, 1),
     ("Profilkamera V (röd)", "Hikrobot MV-CS050-10UM (mono)", 1, "3D-triangulering vänster", "USB3", "~490 prof/s (ROI)", 3382, 1),
@@ -364,6 +364,9 @@ BOM = [
     ("Objektiv C-mount", "8 mm (profilkamera H)", 1, "profiloptik (1 m FOV)", "—", "—", 500, 2),
     ("Bandpassfilter 520", "520 nm", 1, "isolerar grön laser", "—", "—", 350, 2),
     ("Linjelaser grön", "iadiy LM9G520H50L60T", 1, "profil H (520 nm, 50 mW)", "3 V PSU", "CW", 350, 2),
+    ("Mini-transportör ×2", "rostfri 24 V, 50 mm/s, 600 mm (TUNGFUII-typ)", 2, "matning – en vänster, en höger (öppet mätfält)", "24 V DC", "50 mm/s", 900, 2),
+    ("Motorregulator", "24 V PWM-varvtalsreglering", 1, "trimma bandhastighet/takt", "PWM", "—", 120, 2),
+    ("Encoder + mäthjul", "Inkrementell encoder (RS422) + mäthjul mot brädan", 1, "matningssynk (TDI) + position (immun mot bandglapp)", "RS422→ytkamera / trig→profilkam + GPIO", "~0,1 mm/puls", 900, 2),
     ("Ytkamera", "MindVision MV-XGLC83BM-T4-90", 1, "yta färg+NIR (line-scan, 4-TDI)", "10GBase-T (NBASE-T)", "1,2 kHz proto / 110 kHz max", 6902, 3),
     ("Objektiv M72", "8K line-scan 55–60 mm (M72×0.75, ⌀≥62 mm)", 1, "8K-yta över 1 m (WD ~1 m)", "—", "—", 2600, 3),
     ("Punktlaser ×3 (rek.)", "Panasonic HG-C1100", 3, "absolut tjocklek — ankrar längsprofilen (3× längs 1 m)", "analog→ADC", "1,5 kHz", 1800, 3),
@@ -371,7 +374,6 @@ BOM = [
     ("NIR-belysning", "850 nm linjeljus (strobad)", 1, "ytkanal NIR", "ytkamera-strobe", "= radtakt", 900, 3),
     ("Färgbelysning", "RGB linjeljus (strobad R/G/B)", 1, "färg via sekventiell strobe", "ytkamera 3 strobe-ut", "radtakt/3", 1500, 3),
     ("LED-driver", "konstantström / strobe-driver", 1, "driver för strobe-ljus", "ytkamera-strobe-ut", "—", 300, 3),
-    ("Encoder", "Inkrementell encoder (RS422)", 1, "matningssynk (TDI) + kameratrigger", "RS422→ytkamera / trig→profilkam", "pulser", 800, 3),
 ]
 
 
