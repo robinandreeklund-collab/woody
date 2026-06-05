@@ -54,7 +54,7 @@ def panel(x, y, w, h, title, acc):
     txt(x + 12, y + 19, title, 12.5, "start", "#fff", 700, SANS)
 
 # iso-projektion
-S, OX, OY = 0.52, 720, 330
+S, OX, OY = 0.46, 560, 480
 CA, SA = math.cos(math.radians(30)), math.sin(math.radians(30))
 def P(x, y, z): return (OX + (x - y) * CA * S, OY + (x + y) * SA * S - z * S)
 def box(x0, x1, y0, y1, z0, z1, top, sideL, sideR, stroke=INK, sw=1):

@@ -118,7 +118,7 @@ add('</g>')
 gB = 690
 add(f'<g transform="translate(0,{gB})">')
 vlabel(48, 6, "B", "MÄTHUVUD + STATIV — ändvy (för 500 mm, FOV-matchad → kortare avstånd)")
-SC = 0.50; bx = 560; yb2 = 300
+SC = 0.32; bx = 560; yb2 = 360
 def UP(mm): return yb2 - mm * SC
 bw, bt = BW * SC, BT * SC; bL, bR = bx - bw / 2, bx + bw / 2
 mxL, mxR = bx - SOFF * SC, bx + SOFF * SC; myL = myR = UP(MH)

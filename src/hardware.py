@@ -107,7 +107,7 @@ class Rig:
     surface_wd_mm: float = 0.0              # [designval] 0 => auto: ytkameran på SAMMA nivå som linjelasern
 
     # --- profil/triangulering: optik som hänger ihop ---
-    profile_lens_mm: float = 8.0          # [designval] objektiv (8 mm -> ~1,1 m FOV/modul)
+    profile_lens_mm: float = 12.0         # [designval] HIKROBOT MVL-MF1228M-8MP (12 mm; har frontfiltergänga, mot 8 mm som saknar)
     profile_wd_mm: float = 1040.0         # [designval] arbetsavstånd profilkamera
     tri_angle_deg: float = 30.0           # [designval] trianguleringsvinkel (Scheimpflug)
     depth_range_mm: float = 50.0          # [designval] mätrange i höjd (±25 mm)
