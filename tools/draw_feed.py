@@ -110,7 +110,7 @@ for gx, y0 in ((1005, 295), (1250, 410), (1640, 270)): L(gx, y0, gx, gy, INK, 1,
 # ===================== BOTTEN: DELLISTA =====================
 panel(40, 736, 1640, 380, "DELAR FÖR JETSON-STYRD MATNING (allt ligger i Fas 1)", INK)
 rows = [
-    ("Motorstyrning", "RoboClaw 2x7A (closed-loop)", "Läser encodern + PID. Jetson kommenderar fart/läge över UART/USB → motorn. Jämn fart + exakt läge.", "~800 kr"),
+    ("Motorstyrning", "RoboClaw 2x7A V6B (#3682)", "6–34 V (täcker 24 V), 7,5 A/kanal, 2× encoder-in + PID. Jetson → UART/USB: fart/läge. 5 V-BEC matar AS5601.", "~850 kr"),
     ("Magnetencoder", "AS5601 12-bit + magnet", "KONTAKTLÖS på motoraxeln → bandets läge. A/B → RoboClaw (ej Jetson). Nollställs mot anslaget.", "~120 kr"),
     ("Fast anslag", "alu-vinkel (bakkant)", "Brädans bakkant vilar mot ramen vid laddning → KÄND nollposition.", "~150 kr"),
     ("Nätaggregat 24 V", "24 V 5 A", "Matar RoboClaw/motorn. Jetson-GPIO orkar INTE driva motorn direkt.", "~150 kr"),
