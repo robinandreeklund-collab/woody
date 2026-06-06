@@ -145,11 +145,18 @@ RowLayout {
                     c.beginPath(); c.moveTo(bx,ly-1.5); c.lineTo(bx+bw,ly-1.5); c.stroke();
                     c.strokeStyle=Theme.grn; c.shadowColor=Theme.grn;
                     c.beginPath(); c.moveTo(bx,ly+1.5); c.lineTo(bx+bw,ly+1.5); c.stroke(); c.shadowBlur=0;
-                    // punktlasrar (LR400) längs linjen
+                    // PUNKTLASER-ANKARE (3× LR400) — eget mätplan UPPSTRÖMS, utanför profil-FOV
                     var lp=ctrl.lrPositions;
-                    for (var i=0;i<lp.length;i++){ var px=bx+bw*(lp[i]/R.len);
-                        c.fillStyle=Theme.cyan; c.beginPath(); c.arc(px,ly,3.2,0,7); c.fill();
-                        c.strokeStyle=Qt.rgba(0.15,0.83,0.88,0.4); c.beginPath(); c.arc(px,ly,6,0,7); c.stroke(); }
+                    var ay=ly + bh*(R.lrLead/R.width);          // leder skanningen med feed-offset
+                    if(ay < by+bh-2){
+                        c.strokeStyle=Qt.rgba(0.15,0.83,0.88,0.55); c.setLineDash([5,4]); c.lineWidth=1.4;
+                        c.beginPath(); c.moveTo(bx,ay); c.lineTo(bx+bw,ay); c.stroke(); c.setLineDash([]);
+                        for(var i=0;i<lp.length;i++){ var px=bx+bw*(lp[i]/R.len);
+                            c.fillStyle=Theme.cyan; c.beginPath(); c.arc(px,ay,3.4,0,7); c.fill();
+                            c.strokeStyle=Qt.rgba(0.15,0.83,0.88,0.4); c.beginPath(); c.arc(px,ay,6,0,7); c.stroke(); }
+                        c.fillStyle=Theme.cyan; c.font="8px monospace"; c.textAlign="left";
+                        c.fillText("3× LR400 ankare · uppströms (utanför FOV)", bx+4, ay+14);
+                    }
                     // ytkamera i centrum
                     c.fillStyle="#16212e"; c.strokeStyle=Theme.blue; c.lineWidth=1.5;
                     c.fillRect((bx+bx+bw)/2-14, by+bh/2-7, 28, 14); c.strokeRect((bx+bx+bw)/2-14, by+bh/2-7, 28, 14);
@@ -174,7 +181,7 @@ RowLayout {
 
         Card {
             Layout.fillWidth: true; Layout.preferredHeight: 196
-            title: "PUNKTLASER · ABSOLUT TJOCKLEK"; chip: "3× LR400 · RS-485"
+            title: "PUNKTLASER · ABSOLUT TJOCKLEK"; chip: "3× LR400 · uppströms · RS-485"
             ColumnLayout {
                 anchors.fill: parent; spacing: 8
                 Repeater {

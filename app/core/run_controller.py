@@ -89,16 +89,21 @@ class AppController(QObject):
         s.jetson_load += (s.load_target - s.jetson_load) * min(1.0, dt * 1.5)
 
         # sensoravläsningar via HAL
-        if self._scanner.board() and s.phase == "scanning":
+        b = self._scanner.board()
+        if b is not None and s.phase == "scanning":
             y = min(BW - 1e-3, s.feed_pos_mm)
+            # LR400-ankaret sitter UPPSTRÖMS → mäter raden y_lr i förväg (utanför FOV)
+            y_lr = min(BW - 1e-3, y + RIG.lr_lead_mm)
             for i, pl in enumerate(self._scanner.point_lasers):
-                target = pl.read_mm(y)
+                target = pl.read_mm(y_lr)
                 self._lr[i] += (target - self._lr[i]) * min(1.0, dt * 8)
+            # ankaret för AKTUELL profilrad = värdet som fångades när raden passerade
+            # LR-planet (sim: brädan är statisk → läs sanna tjockleken vid den raden)
+            lr_anchor = [b.thickness_at(x, y) for x in RIG.point_lasers_x_mm]
             # ÄKTA mätning: dubbel-oblik stripe → subpixel → triangulering → fusion → ankring
-            z = measure_profile(self._scanner, y, self._lr, RIG.point_lasers_x_mm)
+            z = measure_profile(self._scanner, y, lr_anchor, RIG.point_lasers_x_mm)
             self._zprofile = [round(float(v), 3) for v in z]
-            b = self._scanner.board()
-            if b is not None:                                  # tvärprofil Z(y) vid skannfronten
+            if True:                                           # tvärprofil Z(y) vid skannfronten
                 xc = RIG.board_len_mm * 0.5
                 self._zprofile_w = [round(float(v), 3) for v in b.z_profile_col(xc)]
                 # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
@@ -346,6 +351,7 @@ class AppController(QObject):
             "laserHeight": round(RIG.laser_height_mm), "laserOffset": round(RIG.laser_offset_mm),
             "baseline": round(RIG.baseline_mm), "surfWd": RIG.surface_cam_wd_mm,
             "len": RIG.board_len_mm, "width": RIG.board_width_mm, "thick": RIG.board_thick_mm,
+            "lrLead": RIG.lr_lead_mm,
             "surfMmPx": round(RIG.surface_mm_per_px, 4), "profLatMmPx": round(RIG.profile_lat_mm_per_px, 4),
         }
 
