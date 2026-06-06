@@ -92,7 +92,7 @@ add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
 txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
-            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°. Huvuden monterade via VINKELADAPTER mot sidostativ (låg ram).", 13, "start", MUTED, 400, SANS)
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -115,32 +115,29 @@ beltY = bBL[1]
 rect(bL[0]-26, beltY, (bR[0]-bL[0])+52, 14, BLACK, "#1c1f24", 1.2, 3)
 txt(Ox, beltY+30, "transportband", 9, "middle", MUTED, 700)
 circ(Ox, Oy, 4.5, PURP, "#7a2fb0", 1.3); txt(Ox, Oy-12, "laserlinje (mätpunkt)", 9, "middle", PURP, 700)
-# ---- RAM: två sidostativ (alu T-spår) + låg topp-tvärbalk (bär ytkameran) ----
+# ---- PORTAL ÖVER RULLBANDET: topp-TVÄRBALK (ben + huvudbalk vid LÄNGSÄNDARNA, in i bilden) ----
 pby = WS(0, PORTZ)[1]
-baseY = WS(0, -55)[1]
-for sgn in (-1, 1):
-    ux = Ox + sgn*UPX*S
-    rect(ux-7, pby, 14, baseY-pby, ALU, ALU2, 1.5, 2)          # sidostativ (lodrätt)
-rect(Ox-UPX*S, pby-9, 2*UPX*S, 16, ALU, ALU2, 1.5, 3)           # topp-tvärbalk
-txt(Ox, pby-15, "RAM — sidostativ + låg topp-tvärbalk (alu T-spår)", 9.5, "middle", MUTED, 700)
-rect(Ox-UPX*S-26, baseY, 2*UPX*S+52, 12, "#bfc3c8", "#8a9099", 1.4, 3)   # bottenplatta
-txt(Ox, baseY+30, "bottenram / golv", 8.5, "middle", MUTED, 700)
-# ---- per huvud: kamera + laser + bänk + strålar ----
+TVX = camY + 80                                                   # tvärbalkens halva spann
+rect(Ox-TVX*S, pby-9, 2*TVX*S, 17, ALU, ALU2, 1.6, 3)            # TVÄRBALK (spänner bredden)
+txt(Ox-TVX*S+8, pby-15, "TOPP-TVÄRBALK (T-spår)", 9.5, "start", MUTED, 700)
+# huvudbalk + ben går in i bilden (vid längsändarna) — antydan
+rect(Ox-16, pby-30, 32, 22, "#c7cbcf", "#9aa0a6", 1.3, 3); txt(Ox+22, pby-22, "HUVUDBALK + ben → in i bilden", 8, "start", MUTED, 700)
+txt(Ox, pby-40, "(portalben vid brädans LÄNGSÄNDAR — utanför bandets gång)", 8.5, "middle", MUTED, 700)
+# rullbandets gång (matning i bild-led) — visar varför ben ej kan stå vid sidorna
+arrow(bL[0]-86, beltY+6, bL[0]-26, beltY+6, "#b06", 1.8)
+txt(bL[0]-88, beltY-5, "rullbandets gång (matning) →", 8, "end", "#b06", 700)
+# ---- per huvud: kamera + laser + bänk, HÄNGER från tvärbalken via vinkeladapter ----
 def head(sign, col, name):
     cam = WS(sign*camY, camZ); las = WS(sign*lasY, lasZ)
-    # optisk bänk (förbinder kamera & laser, samma sida)
-    cb = (cam[0]-sign* (las[0]-cam[0])*0.0, cam[1]); # placeholder
-    # bänk = linje kamera->laser, förlängd lite + portalstag
     ext = 26
     ux, uy = (las[0]-cam[0]), (las[1]-cam[1]); bl = math.hypot(ux,uy); ux,uy = ux/bl, uy/bl
     p_a = (cam[0]-ux*ext, cam[1]-uy*ext); p_b = (las[0]+ux*ext, las[1]+uy*ext)
-    line(p_a[0], p_a[1], p_b[0], p_b[1], ALU, 8)
-    # VINKELADAPTER: bänkens yttre ände monteras i vinkel direkt mot sidostativet
-    upx_s = Ox + sign*UPX*S
-    line(p_b[0], p_b[1], upx_s, p_b[1], ALU2, 7)                     # kort koppling till stativ
-    rect(min(p_b[0],upx_s)-2, p_b[1]-9, abs(upx_s-p_b[0])+4, 18, ALU3, STEEL, 1.3, 2)
-    txt(upx_s+sign*12, p_b[1]+4, "vinkel-", 7.5, "start" if sign>0 else "end", STEEL, 700)
-    txt(upx_s+sign*12, p_b[1]+15, "adapter", 7.5, "start" if sign>0 else "end", STEEL, 700)
+    line(p_a[0], p_a[1], p_b[0], p_b[1], ALU, 8)                     # optisk bänk
+    # VINKELADAPTER på tvärbalken → huvudet HÄNGER ned-ut (åt sin sida)
+    adp = WS(sign*camY, PORTZ)                                       # punkt på tvärbalken ovan kamera-änden
+    line(p_a[0], p_a[1], adp[0], adp[1], ALU2, 7)                    # häng-arm
+    rect(adp[0]-10, adp[1]-2, 20, 15, ALU3, STEEL, 1.4, 2)          # vinkeladapter vid balken
+    txt(adp[0]+sign*16, adp[1]+18, "vinkeladapter", 8, "start" if sign>0 else "end", STEEL, 700)
     # rikta-enhetsvektorer mot O
     def U(p): d=math.hypot(Ox-p[0], Oy-p[1]); return ((Ox-p[0])/d,(Oy-p[1])/d)
     uc, ul = U(cam), U(las)
