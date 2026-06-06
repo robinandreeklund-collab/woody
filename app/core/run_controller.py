@@ -122,7 +122,7 @@ class AppController(QObject):
 
     def _build_mesh(self, b, progress: float, full: bool) -> dict:
         """3D-höjdrutnät. full=True → hela brädan + skevhet; annars upp till skannfronten."""
-        NX, NY = 130, 20                                  # finare mesh (~3,8 mm-celler)
+        NX, NY = 200, 30                                  # full mesh (~2,5 mm-celler, GPU)
         ny = NY if full else max(2, min(NY, int(round(NY * progress)) or 2))
         row_limit = None if full else max(2, int(round(progress * b.h)))
         grid = b.mesh_grid(NX, ny, row_limit)
