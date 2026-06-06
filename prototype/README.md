@@ -7,6 +7,24 @@ som **live-simulering** mot strömmande, slumpade brädor. Återanvänder repo-r
 att köra på bänk-datorn (Jetson Orin Nano Super) och bli det riktiga bänk-GUI:t.
 
 ## Kör
+
+### Kontrollsystem-GUI (realtid, 500 mm-prototyp) — `control.html`
+Fristående, modernt HMI för bänk-riggen. Öppna bara filen i en webbläsare
+(ingen server, inga beroenden):
+```bash
+xdg-open prototype/control.html      # eller dra in den i Chrome/Firefox
+```
+Realtidssimulering i canvas/`requestAnimationFrame` (60 fps, inga hack): brädor
+**500×75×45 mm** matas genom mätzonen och skannas live med våra **exakta sensorer** —
+dubbel-oblik profilkamera (**RÖD 650 / GRÖN 520**, MV-CS050 mono + bandpass),
+**4K färg-radkamera** (Huateng GigE), **3× LR400 punktlaser** (RS-485, absolut
+tjocklek) och **24 V-transportör** (Pololu Jrk G2) på Jetson Orin Nano Super.
+Visar rigg ovanifrån, live-tvärsnitt Z(x), uppbyggd färgyta, rå laserstripe per
+huvud (med ocklusion), tjockleksmätare, matning samt defektlista och
+kvalitetssortering (Klass A/B/C/Vrak). Start/Pausa, Nästa bräda, justerbar
+matning & profiltakt, auto-mata.
+
+### Streamlit-GUI (analys/spec)
 ```bash
 pip install -r prototype/requirements.txt
 streamlit run prototype/app.py
