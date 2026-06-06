@@ -84,62 +84,52 @@ txt(46, 86, "Optisk bänk + kamera-tiltfäste + laserklämma + portalfäste. Kam
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== SIDOVY (1:1, trianguleringsplan)
-panel(46, 116, 690, 880, "SIDOVY — trianguleringsplan  (1:1)", INK)
-ox, plY = 250, 250                              # bänkens vänsterände (screen) , bänk-överkant
-def BX(mm): return ox + mm                        # 1 px = 1 mm
-plTpx = PL_T*1.6                                  # tjocklek lite överdriven för synlighet
-# --- optisk bänk ---
-hatchband(BX(0), plY, PL_L, plTpx)
-txt(BX(2), plY-16, "OPTISK BÄNK", 10, "start", INK, 700)
-# --- portalfäste (ovan bänk) + portalbalk ---
-for px in (PORT_X1, PORT_X2):
-    rect(BX(px)-16, plY-46, 32, 46, ALU3, STEEL, 1.4, 2); hole(BX(px), plY-12, 4, STEEL)
-rect(BX(PORT_X1)-30, plY-72, BX(PORT_X2)-BX(PORT_X1)+60, 24, ALU2, STEEL, 1.4, 3)
-txt(BX((PORT_X1+PORT_X2)/2), plY-56, "PORTALBALK (T-spår)", 9, "middle", MUTED, 700)
-txt(BX((PORT_X1+PORT_X2)/2), plY-30, "2× T-spårklämma", 8.5, "middle", STEEL, 700)
-# --- kamera-tiltfäste + kamera (oblik 15°, pekar ned mot T) ---
-cmx, cmy = BX(CAM_X), plY+plTpx
-T = (BX((CAM_X+LAS_X)/2), plY+plTpx+DEPTH)        # konvergenspunkt (mätlinje)
-def aim(px, py): d = math.hypot(T[0]-px, T[1]-py); return (T[0]-px)/d, (T[1]-py)/d
-ucx, ucy = aim(cmx, cmy); angc = math.degrees(math.atan2(ucy, ucx))-90
-# tiltfäste (kil)
-poly([(cmx-22,cmy),(cmx+22,cmy),(cmx+14,cmy+20),(cmx-30,cmy+20)], ALU, ALU2, 1.4)
-hole(cmx-12, cmy+10, 3, STEEL); hole(cmx+12, cmy+10, 3, STEEL)
-add(f'<g transform="translate({cmx-8:.1f},{cmy+20:.1f}) rotate({angc:.1f})">')
-rect(-CAM_W/2, 0, CAM_W, CAM_L, "#e9edf1", STEEL, 1.6, 2)          # kamera
-rect(-7, -7, 14, 7, BLACK, "#1c1f24", 1)                            # USB3
-rect(-LENS_D/2, CAM_L, LENS_D, LENS_L, "#dfe3e7", "#9aa0a6", 1.4, 2) # objektiv
-rect(-FILT_D/2, CAM_L+LENS_L, FILT_D, FILT_L, "#f6d9cf", RED, 1.6)   # filter
+panel(46, 116, 690, 880, "SIDOVY — RÖD huvud · kamera+laser PÅ SAMMA SIDA (NTS)", INK)
+# --- bräda (tvärsnitt) med VÄNSTER vankant = den kant huvudet läser ---
+bs = 2.1; bcx, btY = 392, 648
+bw, bt, wn = 75*bs, 45*bs, 22*bs
+poly([(bcx, btY+wn),(bcx+wn, btY),(bcx+bw, btY),(bcx+bw, btY+bt),(bcx, btY+bt)], WOOD, "#b9a96f", 1.8)
+for yy in range(int(btY)+18, int(btY+bt)-4, 15): line(bcx+6, yy, bcx+bw-6, yy, "#ddd2b4", 1)
+rect(bcx-16, btY+bt, bw+32, 13, BLACK, "#1c1f24", 1, 2)
+txt(bcx+bw/2, btY+bt+30, "BRÄDA 75 × 45 (tvärsnitt) på transportband", 9.5, "middle", "#8a7d4e", 700)
+txt(bcx-8, btY+wn+28, "VÄNSTER", 8, "end", "#8a7d4e", 700); txt(bcx-8, btY+wn+40, "vankant", 8, "end", "#8a7d4e", 700)
+Tp = (bcx+wn*0.45, btY+wn*0.45)               # mät-/laserpunkt på vänstra topphörnet
+# --- portal + RÖD huvud (upp-vänster, lutat) — BÅDA på vänster sida ---
+rect(150, 150, 360, 15, ALU, ALU2, 1.4, 3); txt(330, 161, "PORTALBALK (T-spår)", 8.5, "middle", MUTED, 700)
+camp, lasp = (300, 248), (180, 392)            # kamera brantare, laser mer oblik — BÅDA vänster
+def aimT(p): d = math.hypot(Tp[0]-p[0], Tp[1]-p[1]); return ((Tp[0]-p[0])/d, (Tp[1]-p[1])/d)
+uc, ul = aimT(camp), aimT(lasp)
+cb = (camp[0]-uc[0]*72, camp[1]-uc[1]*72); lb = (lasp[0]-ul[0]*99, lasp[1]-ul[1]*99)
+line(cb[0], cb[1], lb[0], lb[1], ALU, 9)        # OPTISK BÄNK (förbinder båda, på samma sida)
+midb = ((cb[0]+lb[0])/2, (cb[1]+lb[1])/2)
+line(midb[0], midb[1], 330, 165, ALU2, 6); rect(318, 150, 24, 18, ALU3, STEEL, 1.3, 2)   # portalklämma
+txt(352, 210, "OPTISK BÄNK", 8.5, "start", MUTED, 700); txt(352, 223, "+ portalklämma", 8.5, "start", MUTED, 700)
+# kamera (roterad, pekar ned-höger)
+angc = math.degrees(math.atan2(uc[1], uc[0]))-90
+add(f'<g transform="translate({camp[0]},{camp[1]}) rotate({angc:.1f})">')
+rect(-CAM_W/2,0,CAM_W,CAM_L,"#e9edf1",STEEL,1.6,2); rect(-7,-7,14,7,BLACK,"#1c1f24",1)
+rect(-LENS_D/2,CAM_L,LENS_D,LENS_L,"#dfe3e7","#9aa0a6",1.4,2); rect(-FILT_D/2,CAM_L+LENS_L,FILT_D,FILT_L,"#f6d9cf",RED,1.6)
 add('</g>')
-txt(cmx-44, cmy+50, "KAMERA-TILTFÄSTE", 8.5, "end", INK, 700); txt(cmx-44, cmy+63, "MV-CS050 + 12 mm + BP650", 8, "end", MUTED, 700)
-# --- laserklämma + laser (oblik 15°) ---
-lmx, lmy = BX(LAS_X), plY+plTpx
-ulx, uly = aim(lmx, lmy); angl = math.degrees(math.atan2(uly, ulx))-90
-poly([(lmx-22,lmy),(lmx+22,lmy),(lmx+30,lmy+20),(lmx-14,lmy+20)], ALU, ALU2, 1.4)
-hole(lmx-12, lmy+10, 3, STEEL); hole(lmx+12, lmy+10, 3, STEEL)
-add(f'<g transform="translate({lmx+8:.1f},{lmy+20:.1f}) rotate({angl:.1f})">')
-rect(-LAS_D/2, 0, LAS_D, LAS_L, "#d7b7b0", "#9a5a52", 1.5, 3)        # laser
-circ(0, LAS_L, 3.2, "#fff", RED, 1.2)                                # apertur
+txt(camp[0]+24, camp[1]-4, "KAMERA + 12 mm + BP650", 8.5, "start", INK, 700); txt(camp[0]+24, camp[1]+9, "(brantare arm)", 8, "start", MUTED, 700)
+# laser (roterad, pekar ned-höger, mer oblik)
+angl = math.degrees(math.atan2(ul[1], ul[0]))-90
+add(f'<g transform="translate({lasp[0]},{lasp[1]}) rotate({angl:.1f})">')
+rect(-LAS_D/2,0,LAS_D,LAS_L,"#d7b7b0","#9a5a52",1.5,3); circ(0,LAS_L,3.2,"#fff",RED,1.2)
 add('</g>')
-txt(lmx-30, lmy+44, "LASERKLÄMMA Ø18", 8.5, "end", INK, 700); txt(lmx-30, lmy+57, "MZLaser · roterbar+glidbar", 8, "end", MUTED, 700)
-# --- strålar konvergerar vid T ---
-line(cmx-8+ucx*75, cmy+20+ucy*75, T[0], T[1], "#8a9099", 1.2, "5 4")    # kamerasikt
-line(lmx+8+ulx*120, lmy+20+uly*120, T[0], T[1], RED, 2.2)               # laserblad
-circ(T[0], T[1], 4.5, RED, "#a8331a", 1.2)
-rect(T[0]-120, T[1], 240, 22, WOOD, "#b9a96f", 1.5); txt(T[0], T[1]+15, "BRÄDA — mätlinje", 9.5, "middle", "#8a7d4e", 700)
-rect(T[0]-140, T[1]+22, 280, 12, BLACK, "#1c1f24", 1, 2)
-# --- måttsättning ---
-hdim(cmx, lmx, plY+plTpx+42, f"BASLINJE {BASE}", INK, 11)              # kamera↔laser på bänken
-hdim(BX(0), BX(PL_L), plY-92, f"BÄNK {PL_L}", DIMC, 10)
-vdim(plY+plTpx, T[1], 116, f"DJUP {DEPTH}", DIMC, 10)                  # vinkelrätt djup (vänster)
-# WD längs laserstrålen
-mxw, myw = (lmx+T[0])/2, (lmy+T[1])/2
-txt(mxw+16, myw, f"WD {WD:.0f} (slant)", 11, "start", INK, 700, MONO, rot=math.degrees(math.atan2(uly,ulx)))
-# vinklar 15° vid T
-line(T[0], T[1], cmx-8, cmy+20, DIMC, 0.5); line(T[0], T[1], lmx+8, lmy+20, DIMC, 0.5); line(T[0], T[1], T[0], T[1]-150, DIMC, 0.5, "3 3")
-adim(T[0], T[1], 80, 270-15, 270, "15°", INK, 10); adim(T[0], T[1], 64, 270, 270+15, "15°", INK, 10)
-txt(T[0], T[1]-160, "θ = 30°", 11, "middle", INK, 700, MONO)
-txt(BX(PL_L/2), plY+plTpx+DEPTH+96, "Kamera & laser var sin 15° → konvergens 30° på samma linje. Vinklar nominella (finjusteras optiskt).", 9, "middle", MUTED, 400)
+txt(lasp[0]+22, lasp[1]+34, "LINJELASER (mer oblik arm)", 8.5, "start", RED, 700)
+# strålar → grazar VÄNSTER vankant
+line(camp[0]+uc[0]*78, camp[1]+uc[1]*78, Tp[0], Tp[1], "#8a9099", 1.3, "5 4")   # kamerasikt
+line(lasp[0]+ul[0]*102, lasp[1]+ul[1]*102, Tp[0], Tp[1], RED, 2.4)              # laserblad
+line(Tp[0], Tp[1], bcx, btY+wn, RED, 2.4, op=0.85)                              # laser ned längs vankanten
+circ(Tp[0], Tp[1], 4, RED, "#a8331a", 1.2)
+# mått (NTS-etiketter)
+txt((camp[0]+Tp[0])/2-60, (camp[1]+Tp[1])/2, "WD 710", 11, "middle", INK, 700, MONO, rot=math.degrees(math.atan2(uc[1],uc[0])))
+txt(midb[0]-6, midb[1]-12, "BASLINJE 368", 9.5, "middle", INK, 700, MONO, rot=math.degrees(math.atan2(lb[1]-cb[1], lb[0]-cb[0])))
+line(Tp[0], Tp[1], Tp[0], Tp[1]-180, DIMC, 0.6, "3 3"); txt(Tp[0]+8, Tp[1]-160, "lod", 8, "start", DIMC, 700)
+txt(Tp[0]-128, Tp[1]-92, "huvudet ~30° oblik", 9, "middle", INK, 700); txt(Tp[0]-128, Tp[1]-78, "θ 30° (kamera↔laser)", 8, "middle", MUTED, 700)
+# note
+txt(391, 920, "Kamera OCH laser sitter PÅ SAMMA SIDA (vänster) och tittar snett in →", 10, "middle", INK, 700)
+txt(391, 938, "läser brädans VÄNSTERKANT + höjd. GRÖN huvud = spegel, läser högerkant. NTS.", 9.5, "middle", MUTED, 400)
 
 # =================================================================== PLANVY (bänk ovanifrån)
 panel(752, 116, 700, 250, "PLANVY — optisk bänk (hålbild)", BLUE)
@@ -188,22 +178,32 @@ poly([(lx-30,ly+58),(lx+30,ly+58),(lx+38,ly+74),(lx-22,ly+74)], ALU, ALU2, 1.4)
 hole(lx-14, ly+66, 4); hole(lx+14, ly+66, 4); txt(lx, ly+92, "M4 → bänk", 8.5, "middle", INK, 700)
 adim(lx, ly+66, 30, 180, 195, "15°", INK, 9)
 
-# =================================================================== DETALJ: PORTALFÄSTE / MONTERING
-panel(1468, 116, 446, 360, "DETALJ D — portalfäste & MONTERING (30°)", INK)
-mx, my = 1620, 250
-# portalbalk (snitt) + klämma + bänk tiltad 30°
-rect(mx-70, my-70, 90, 90, ALU, ALU2, 1.6, 4); txt(mx-25, my-78, "portalbalk", 8.5, "middle", MUTED, 700)
-for sy in range(int(my-66), int(my+18), 12): line(mx-70, sy, mx-44, sy, HATCH, 0.6)
-rect(mx+20, my-58, 22, 70, ALU3, STEEL, 1.5, 2); hole(mx+31, my-30, 4, STEEL); txt(mx+58, my-40, "T-spårklämma", 8, "start", STEEL, 700)
-add(f'<g transform="translate({mx+42},{my+20}) rotate(30)">')
-rect(0, 0, 150, 16, ALU, ALU2, 1.6)
+# =================================================================== DETALJ D — MONTERING: BÅDA HUVUDEN
+panel(1468, 116, 446, 360, "MONTERING — BÅDA HUVUDEN (tvärsnitt)", INK)
+cxm, cym = 1690, 382
+rect(1496, 150, 388, 15, ALU, ALU2, 1.4, 3); txt(1690, 161, "PORTALBALK", 8, "middle", MUTED, 700)
+rect(cxm-44, cym, 88, 18, WOOD, "#b9a96f", 1.4); rect(cxm-54, cym+18, 108, 8, BLACK, "#1c1f24", 1, 2)
+txt(cxm, cym+40, "SAMMA laserlinje", 8.5, "middle", "#8a7d4e", 700)
+# RÖD huvud (vänster) — komplett bänk+kamera+laser, lutat ~30° inåt
+rhx, rhy = 1556, 232
+add(f'<g transform="translate({rhx},{rhy}) rotate(32)">')
+rect(0,-7,116,14, ALU, ALU2, 1.5); rect(4,-22,26,15,"#e9edf1",STEEL,1.3,2); rect(86,-22,22,15,"#d7b7b0",RED,1.4,2)
 add('</g>')
-txt(mx+150, my+120, "OPTISK BÄNK", 8.5, "middle", INK, 700)
-# obliquity-vinkel mot lod
-line(mx+42, my+20, mx+42, my+150, DIMC, 0.6, "3 3")
-line(mx+42, my+20, mx+42+150*math.cos(math.radians(30)), my+20+150*math.sin(math.radians(30)), DIMC, 0.6)
-adim(mx+42, my+20, 96, 90, 60, "30°", INK, 11)
-txt(mx-20, my+150, "Bänkens normal 30° från lod (obliquity). Klämman på T-spåret ger höjd- + vinkeljustering.", 8.5, "start", MUTED, 400)
+line(rhx+18, rhy+18, cxm-7, cym, "#8a9099", 1.1, "4 3"); line(rhx+88, rhy+58, cxm-7, cym, RED, 2.3)
+txt(rhx-6, rhy-30, "RÖD HUVUD (vänster)", 9, "start", RED, 700); txt(rhx-6, rhy-17, "kamera+laser+bänk", 7.5, "start", MUTED, 700)
+txt(cxm-150, cym+8, "→ topp + V vankant", 8, "start", RED, 700)
+# GRÖN huvud (höger) — spegel
+ghx, ghy = 1824, 232
+add(f'<g transform="translate({ghx},{ghy}) rotate(-32)">')
+rect(-116,-7,116,14, ALU, ALU2, 1.5); rect(-30,-22,26,15,"#e9edf1",STEEL,1.3,2); rect(-108,-22,22,15,"#d7b7b0",GRN,1.4,2)
+add('</g>')
+line(ghx-18, ghy+18, cxm+7, cym, "#8a9099", 1.1, "4 3"); line(ghx-88, ghy+58, cxm+7, cym, GRN, 2.3)
+txt(ghx+6, ghy-30, "GRÖN HUVUD (höger)", 9, "end", GRN, 700); txt(ghx+6, ghy-17, "spegelvänd kopia", 7.5, "end", MUTED, 700)
+txt(cxm+150, cym+8, "→ topp + H vankant", 8, "end", GRN, 700)
+circ(cxm, cym, 4.2, "#a23ad6", "#7a2fb0", 1.2)
+txt(1690, cym+62, "Var sitt KOMPLETT huvud (bänk+kamera+laser, baslinje 368),", 8.6, "middle", INK, 400)
+txt(1690, cym+76, "monterat lutat ~30° på VAR SIN sida → samma laserlinje.", 8.6, "middle", INK, 400)
+txt(1690, cym+90, "Olika färg (650/520) + matchande filter → stör ej varandra.", 8.6, "middle", INK, 400)
 
 # =================================================================== FÄSTDON / DELAR
 panel(1468, 492, 446, 286, "FÄSTDON & DELAR (per huvud)", BLUE)
