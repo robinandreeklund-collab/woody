@@ -110,7 +110,7 @@ RowLayout {
                         c.strokeStyle="rgba(0,0,0,0.10)"; c.lineWidth=0.4; c.stroke();
                     }
                     c.fillStyle="#61768c"; c.font="9px monospace"; c.textAlign="left";
-                    c.fillText("mätt topp · botten/sidor antagna (band-datum) · röd/grön = huvud · skevhet ×"+exag, 8, h-8);
+                    c.fillText("mätt: topp + sidor (röd/grön huvud) · underside antagen · skevhet ×"+exag, 8, h-8);
                 }
 
                 MouseArea {
@@ -189,7 +189,8 @@ RowLayout {
         Card {
             Layout.fillWidth: true; Layout.fillHeight: true
             title: "TVÄRPROFIL Z(y) · topp + kanter (75 mm)"; chip: "vankant/kupa"
-            ProfilePlot { values: ctrl.zProfileWidth; axisLabel: "y tvärs bräda (0–75 mm)"; accent: Theme.violet; crossSection: true }
+            ProfilePlot { values: ctrl.zProfileWidth; axisLabel: "y tvärs bräda (0–75 mm)"; accent: Theme.violet
+                          crossSection: true; leftFacet: ctrl.leftFacet; rightFacet: ctrl.rightFacet }
         }
     }
 }

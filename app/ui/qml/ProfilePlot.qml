@@ -10,6 +10,8 @@ Canvas {
     property string axisLabel: ""
     property color accent: Theme.cyan
     property bool crossSection: false
+    property var leftFacet: []
+    property var rightFacet: []
     Connections { target: ctrl; function onStateChanged() { plot.requestPaint() } }
     onPaint: {
         var c=getContext("2d"); c.reset();
@@ -33,24 +35,34 @@ Canvas {
             for(var k=0;k<zp.length;k++) c.lineTo(X(k), Y(zp[k]));
             c.lineTo(X(zp.length-1), Y(0)); c.closePath();
             c.fillStyle="rgba(201,164,104,0.14)"; c.fill();            // trä-snitt (antaget)
+            var BW=ctrl.rig.width;
+            function FX(y){ return gx+gw*(y/BW); }
             // TOPPYTA = MÄTT (heldragen)
             c.beginPath();
             for(var j=0;j<zp.length;j++){ var xx=X(j),yv=Y(zp[j]); j?c.lineTo(xx,yv):c.moveTo(xx,yv); }
             c.strokeStyle=accent; c.lineWidth=2; c.stroke();
-            // BOTTEN + SIDOR = ANTAGNA (ej mätt → streckat/dämpat)
-            c.setLineDash([4,3]);
-            c.strokeStyle="rgba(159,178,198,0.35)"; c.lineWidth=1.2;
-            c.beginPath(); c.moveTo(X(0),Y(0)); c.lineTo(X(zp.length-1),Y(0)); c.stroke();
+            // SIDOFASETTER = MÄTTA av oblika huvuden (heldragna, röd/grön) — ej spikraka
             c.lineWidth=2; c.lineCap="round";
-            c.strokeStyle=Qt.rgba(Theme.red.r,Theme.red.g,Theme.red.b,0.5);
-            c.beginPath(); c.moveTo(X(0),Y(0)); c.lineTo(X(0),Y(zp[0])); c.stroke();
-            c.strokeStyle=Qt.rgba(Theme.grn.r,Theme.grn.g,Theme.grn.b,0.5);
-            c.beginPath(); c.moveTo(X(zp.length-1),Y(0)); c.lineTo(X(zp.length-1),Y(zp[zp.length-1])); c.stroke();
-            c.setLineDash([]); c.lineCap="butt";
-            c.fillStyle=Theme.red;  c.font="8px monospace"; c.textAlign="left";  c.fillText("RÖD", X(0)+3, Y(zp[0])-4);
-            c.fillStyle=Theme.grn;  c.textAlign="right"; c.fillText("GRÖN", X(zp.length-1)-3, Y(zp[zp.length-1])-4);
+            if(leftFacet && leftFacet.length>1){
+                c.strokeStyle=Theme.red; c.beginPath();
+                for(var a=0;a<leftFacet.length;a++){ var pl=leftFacet[a]; a?c.lineTo(FX(pl[0]),Y(pl[1])):c.moveTo(FX(pl[0]),Y(pl[1])); }
+                c.stroke();
+            }
+            if(rightFacet && rightFacet.length>1){
+                c.strokeStyle=Theme.grn; c.beginPath();
+                for(var b2=0;b2<rightFacet.length;b2++){ var pr=rightFacet[b2]; b2?c.lineTo(FX(pr[0]),Y(pr[1])):c.moveTo(FX(pr[0]),Y(pr[1])); }
+                c.stroke();
+            }
+            c.lineCap="butt";
+            // UNDERSIDA = ENDA antagna (ingen sensor under bandet) → streckad
+            c.setLineDash([4,3]); c.strokeStyle="rgba(159,178,198,0.35)"; c.lineWidth=1.2;
+            var lyb = (leftFacet&&leftFacet.length)?leftFacet[leftFacet.length-1]:[0,0];
+            var ryb = (rightFacet&&rightFacet.length)?rightFacet[rightFacet.length-1]:[BW,0];
+            c.beginPath(); c.moveTo(FX(lyb[0]),Y(lyb[1])); c.lineTo(FX(ryb[0]),Y(ryb[1])); c.stroke(); c.setLineDash([]);
+            c.fillStyle=Theme.red;  c.font="8px monospace"; c.textAlign="left";  c.fillText("RÖD", FX(0)+3, Y(zp[0])-4);
+            c.fillStyle=Theme.grn;  c.textAlign="right"; c.fillText("GRÖN", FX(BW)-3, Y(zp[zp.length-1])-4);
             c.fillStyle="#3a4d62"; c.font="8px monospace"; c.textAlign="left";
-            c.fillText("— mätt topp · - - botten/sidor antagna (band-datum)", X(0)+2, Y(0)-5);
+            c.fillText("— mätt: topp + sidor · - - underside antagen (ingen sensor under band)", FX(0)+2, Y(0)-5);
         } else {
             c.beginPath(); c.moveTo(gx,gy+gh);
             for(var a=0;a<zp.length;a++) c.lineTo(X(a), Y(zp[a]));

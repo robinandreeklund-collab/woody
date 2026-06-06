@@ -42,6 +42,8 @@ class AppController(QObject):
         self._history: list = []
         self._store = None            # sätts av main (persistens)
         self._zprofile_w: list = []   # tvärprofil Z(y) (bredd)
+        self._left_facet: list = []   # mätt tjocklekfasett vänster (röd)
+        self._right_facet: list = []  # mätt tjocklekfasett höger (grön)
         self._mesh: dict = {}         # senaste 3D-data (live under skanning, full vid klar)
         self._mesh_t: float = 0.0     # senaste mesh-uppdatering (throttling)
         self._scanner.conveyor.set_speed(0.0)
@@ -106,6 +108,9 @@ class AppController(QObject):
             if True:                                           # tvärprofil Z(y) vid skannfronten
                 xc = RIG.board_len_mm * 0.5
                 self._zprofile_w = [round(float(v), 3) for v in b.z_profile_col(xc)]
+                lf, rf = b.cross_facets(xc)                     # mätta sidofasetter (röd/grön)
+                self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf]
+                self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in rf]
                 # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
                 if now - self._mesh_t > 0.08:
                     self._mesh = self._build_mesh(b, self.scanProgress, full=False)
@@ -288,6 +293,12 @@ class AppController(QObject):
 
     @Property("QVariantList", notify=stateChanged)
     def zProfileWidth(self): return self._zprofile_w
+
+    @Property("QVariantList", notify=stateChanged)
+    def leftFacet(self): return self._left_facet
+
+    @Property("QVariantList", notify=stateChanged)
+    def rightFacet(self): return self._right_facet
 
     @Property("QVariantMap", notify=meshChanged)
     def mesh3d(self): return self._mesh

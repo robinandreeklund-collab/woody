@@ -10,6 +10,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import math
+
 import numpy as np
 
 from ...geometry import RIG
@@ -37,6 +39,24 @@ class Board:
     zmap: np.ndarray                         # (h, w) float32 — tjockleksavvikelse [mm]
     defects: list = field(default_factory=list)
     warp: tuple = (0.0, 0.0, 0.0)            # (bow, cup, twist) mm
+    edge_bevel: tuple = (0.0, 0.0)           # sågad kant-lutning vänster/höger [mm]
+
+    def cross_facets(self, x_mm: float, n: int = 10):
+        """Tjocklekfasetterna (sidoytorna) vid längdpos x — MÄTS av de oblika huvudena.
+        Returnerar (vänster, höger) som listor [y_mm, z_mm] från topp till underkant.
+        Sågad kant har lätt lutning + sträv yta → inte spikrak."""
+        BW = RIG.board_width_mm
+        top_l = self.thickness_at(x_mm, 0.6)
+        top_r = self.thickness_at(x_mm, BW - 0.6)
+        bl, br = self.edge_bevel
+        left, right = [], []
+        for k in range(n):
+            t = k / (n - 1)
+            rl = math.sin(t * 9 + x_mm * 0.05) * 0.3
+            rr = math.cos(t * 8 + x_mm * 0.04) * 0.3
+            left.append([max(0.0, bl * t + rl), top_l * (1 - t)])
+            right.append([min(BW, BW - (br * t + rr)), top_r * (1 - t)])
+        return left, right
 
     def thickness_at(self, x_mm: float, y_mm: float) -> float:
         xx = int(np.clip(x_mm * PX_PER_MM, 0, self.w - 1))
@@ -247,4 +267,5 @@ def make_board(seed: int) -> Board:
 
     surface = np.clip(surf, 0, 255).astype(np.uint8)
     return Board(seed=seed, w=w, h=h, surface=np.ascontiguousarray(surface),
-                 zmap=z, defects=defects, warp=(bow, cup, twist))
+                 zmap=z, defects=defects, warp=(bow, cup, twist),
+                 edge_bevel=(float(rng.uniform(-2, 2)), float(rng.uniform(-2, 2))))
