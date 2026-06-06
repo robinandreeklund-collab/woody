@@ -122,10 +122,11 @@ class AppController(QObject):
 
     def _build_mesh(self, b, progress: float, full: bool) -> dict:
         """3D-höjdrutnät. full=True → hela brädan + skevhet; annars upp till skannfronten."""
-        ny = 16 if full else max(2, min(16, int(round(16 * progress)) or 2))
+        NX, NY = 130, 20                                  # finare mesh (~3,8 mm-celler)
+        ny = NY if full else max(2, min(NY, int(round(NY * progress)) or 2))
         row_limit = None if full else max(2, int(round(progress * b.h)))
-        grid = b.mesh_grid(56, ny, row_limit)
-        cg = b.color_grid(56, ny, row_limit)
+        grid = b.mesh_grid(NX, ny, row_limit)
+        cg = b.color_grid(NX, ny, row_limit)
         mesh = {
             "nx": int(grid.shape[1]), "ny": int(grid.shape[0]),
             "z": [round(float(v), 3) for v in grid.flatten()],

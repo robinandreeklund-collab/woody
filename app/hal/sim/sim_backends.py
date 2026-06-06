@@ -38,7 +38,7 @@ class SimProfileCamera(ProfileCameraIF):
         occ = fx if self._color == "red" else (1 - fx)        # motsatt kant skuggas
         shadow = (occ > 0.9) & (z < RIG.board_thick_mm - 2)
         img[:, shadow] *= 0.04
-        img += np.random.normal(0, 4, img.shape)
+        img += np.random.normal(0, 1.5, img.shape)        # realistiskt SNR → ~0,1 mm
         return np.clip(img, 0, 255)
 
 

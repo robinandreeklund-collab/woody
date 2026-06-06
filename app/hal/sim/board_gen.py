@@ -191,7 +191,7 @@ def make_board(seed: int) -> Board:
     z = (bow * np.sin(np.pi * fx)
          + cup * (np.cos(np.pi * (fy - 0.5)) - 0.6)
          + twist * (fx - 0.5) * (fy - 0.5) * 2.0
-         + np.sin(fx * 70 + fy * 9) * 0.18).astype(np.float32)
+         + np.sin(fx * 70 + fy * 9) * 0.08).astype(np.float32)   # mild ytsträvhet
 
     defects = []
 

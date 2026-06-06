@@ -81,9 +81,12 @@ RowLayout {
                         else { var g=Math.round(120+120*sh); col=[g,g,g]; }
                         add([a,b,cc,d2], tint(col,sh));
                     }
-                    // BOTTEN (platt, vilar på bandet) — tessellerad så djup-sorteringen stämmer
-                    for(var jb=0;jb<ny-1;jb++) for(var ib=0;ib<nx-1;ib++){
-                        add([proj(vx(ib),vy(jb),0),proj(vx(ib+1),vy(jb),0),proj(vx(ib+1),vy(jb+1),0),proj(vx(ib),vy(jb+1),0)],[16,24,34]);
+                    // UNDERSIDA (platt band-datum, mestadels dold) — grovt rutnät räcker
+                    var nbx=16, nby=4;
+                    for(var jb=0;jb<nby;jb++) for(var ib=0;ib<nbx;ib++){
+                        var bx0=(ib/nbx-0.5)*L, bx1=((ib+1)/nbx-0.5)*L;
+                        var by0=-W/2+(jb/nby)*(W*wf), by1=-W/2+((jb+1)/nby)*(W*wf);
+                        add([proj(bx0,by0,0),proj(bx1,by0,0),proj(bx1,by1,0),proj(bx0,by1,0)],[16,24,34]);
                     }
                     // LÅNGSIDOR: framkant = ledande kant (RÖD-huvud, mätt först).
                     // Bakre kanten har vi data på FÖRST när hela brädan skannats (wfrac≈1)
@@ -107,7 +110,7 @@ RowLayout {
                         c.beginPath(); c.moveTo(Q.pts[0].sx,Q.pts[0].sy);
                         for(var t2=1;t2<Q.pts.length;t2++) c.lineTo(Q.pts[t2].sx,Q.pts[t2].sy); c.closePath();
                         c.fillStyle="rgb("+Q.col[0]+","+Q.col[1]+","+Q.col[2]+")"; c.fill();
-                        c.strokeStyle="rgba(0,0,0,0.10)"; c.lineWidth=0.4; c.stroke();
+                        c.strokeStyle="rgba(0,0,0,0.06)"; c.lineWidth=0.25; c.stroke();
                     }
                     c.fillStyle="#61768c"; c.font="9px monospace"; c.textAlign="left";
                     c.fillText("mätt: topp + sidor (röd/grön huvud) · underside antagen · skevhet ×"+exag, 8, h-8);

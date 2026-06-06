@@ -29,7 +29,8 @@ if __name__ == "__main__":   # självtest: återvinner triangulering den sanna h
     s = SimScanner(); s.new_board(); b = s.board()
     y = RIG.board_width_mm * 0.5
     true = np.array(b.z_profile_row(y, 200))
-    meas = measure_profile(s, y, [RIG.board_thick_mm]*3, list(RIG.point_lasers_x_mm))
+    lr = [b.thickness_at(x, y) for x in RIG.point_lasers_x_mm]   # som riktiga LR400 ger
+    meas = measure_profile(s, y, lr, list(RIG.point_lasers_x_mm))
     err = np.abs(meas - true)
     print(f"triangulering: medel-fel {err.mean()*1000:.0f} µm, max {err.max()*1000:.0f} µm")
     dets = detect_defects(b.surface)
