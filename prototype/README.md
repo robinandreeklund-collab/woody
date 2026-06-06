@@ -9,10 +9,19 @@ att köra på bänk-datorn (Jetson Orin Nano Super) och bli det riktiga bänk-GU
 ## Kör
 
 ### Kontrollsystem-GUI (realtid, 500 mm-prototyp) — `control.html`
-Fristående, modernt HMI för bänk-riggen. Öppna bara filen i en webbläsare
-(ingen server, inga beroenden):
+Fristående, modernt HMI för bänk-riggen. **Inga beroenden, ingen server** — du
+behöver bara en webbläsare.
+
+**Enklast att starta:**
+- **Linux/macOS:** kör `./prototype/start-gui.sh`
+- **Windows:** dubbelklicka på `prototype/start-gui.bat`
+- **Eller:** dubbelklicka helt enkelt på `prototype/control.html`
+
+Manuellt från terminalen om du hellre vill:
 ```bash
-xdg-open prototype/control.html      # eller dra in den i Chrome/Firefox
+xdg-open prototype/control.html      # Linux
+open prototype/control.html          # macOS
+start prototype\control.html         # Windows
 ```
 Realtidssimulering i canvas/`requestAnimationFrame` (60 fps, inga hack): brädor
 **500×75×45 mm** matas genom mätzonen och skannas live med våra **exakta sensorer** —
