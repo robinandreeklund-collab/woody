@@ -42,7 +42,8 @@ class AppController(QObject):
         self._history: list = []
         self._store = None            # sätts av main (persistens)
         self._zprofile_w: list = []   # tvärprofil Z(y) (bredd)
-        self._mesh: dict = {}         # senaste färdigskannade brädans 3D-data
+        self._mesh: dict = {}         # senaste 3D-data (live under skanning, full vid klar)
+        self._mesh_t: float = 0.0     # senaste mesh-uppdatering (throttling)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -97,12 +98,36 @@ class AppController(QObject):
             z = measure_profile(self._scanner, y, self._lr, RIG.point_lasers_x_mm)
             self._zprofile = [round(float(v), 3) for v in z]
             b = self._scanner.board()
-            if b is not None:                                  # tvärprofil Z(y) vid brädans mitt
-                self._zprofile_w = [round(float(v), 3)
-                                    for v in b.z_profile_col(RIG.board_len_mm * 0.5)]
+            if b is not None:                                  # tvärprofil Z(y) vid skannfronten
+                xc = RIG.board_len_mm * 0.5
+                self._zprofile_w = [round(float(v), 3) for v in b.z_profile_col(xc)]
+                # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
+                if now - self._mesh_t > 0.08:
+                    self._mesh = self._build_mesh(b, self.scanProgress, full=False)
+                    self._mesh_t = now
+                    self.meshChanged.emit()
         self.stateChanged.emit()
 
     def _set_phase(self, p): self._s.phase = p
+
+    def _build_mesh(self, b, progress: float, full: bool) -> dict:
+        """3D-höjdrutnät. full=True → hela brädan + skevhet; annars upp till skannfronten."""
+        ny = 16 if full else max(2, min(16, int(round(16 * progress)) or 2))
+        row_limit = None if full else max(2, int(round(progress * b.h)))
+        grid = b.mesh_grid(56, ny, row_limit)
+        mesh = {
+            "nx": int(grid.shape[1]), "ny": int(grid.shape[0]),
+            "z": [round(float(v), 3) for v in grid.flatten()],
+            "len": RIG.board_len_mm,
+            "width": RIG.board_width_mm if full else max(1.0, progress * RIG.board_width_mm),
+            "thick": RIG.board_thick_mm,
+            "zmin": float(grid.min()), "zmax": float(grid.max()),
+        }
+        if full and self._grade is not None:
+            mesh.update(b.warp_metrics())
+            mesh["cls"] = self._grade.cls
+            mesh["color"] = self._grade.color
+        return mesh
 
     def _new_board(self):
         self._scanner.new_board()
@@ -115,6 +140,8 @@ class AppController(QObject):
         self._s.feed_pos_mm = 0.0
         self._s.detected = []
         self._grade = None
+        self._mesh = {}; self._mesh_t = 0.0
+        self.meshChanged.emit()
         self._s.load_target = 58 + 22 * random.random()
         self.surfaceChanged.emit()
         self.defectsChanged.emit()
@@ -141,17 +168,9 @@ class AppController(QObject):
         }
         self._history.insert(0, entry)
         del self._history[200:]
-        # 3D-rekonstruktion + skevhet av den färdigskannade brädan
+        # full 3D-rekonstruktion + skevhet av den färdigskannade brädan
         if b is not None:
-            grid = b.mesh_grid()
-            warp = b.warp_metrics()
-            self._mesh = {
-                "nx": grid.shape[1], "ny": grid.shape[0],
-                "z": [round(float(v), 3) for v in grid.flatten()],
-                "len": RIG.board_len_mm, "width": RIG.board_width_mm, "thick": RIG.board_thick_mm,
-                "zmin": float(grid.min()), "zmax": float(grid.max()),
-                "cls": self._grade.cls, "color": self._grade.color, **warp,
-            }
+            self._mesh = self._build_mesh(b, 1.0, full=True)
             self.meshChanged.emit()
         if self._store is not None:
             try:

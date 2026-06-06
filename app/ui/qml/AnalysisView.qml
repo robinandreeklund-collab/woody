@@ -77,8 +77,10 @@ RowLayout {
                                 : [Math.round(120+120*sh),Math.round(120+120*sh),Math.round(120+120*sh)];
                         add([a,b,cc,d2], tint(col,sh));
                     }
-                    // BOTTEN (platt, vilar på bandet)
-                    add([proj(vx(0),vy(0),0),proj(vx(nx-1),vy(0),0),proj(vx(nx-1),vy(ny-1),0),proj(vx(0),vy(ny-1),0)],[16,24,34]);
+                    // BOTTEN (platt, vilar på bandet) — tessellerad så djup-sorteringen stämmer
+                    for(var jb=0;jb<ny-1;jb++) for(var ib=0;ib<nx-1;ib++){
+                        add([proj(vx(ib),vy(jb),0),proj(vx(ib+1),vy(jb),0),proj(vx(ib+1),vy(jb+1),0),proj(vx(ib),vy(jb+1),0)],[16,24,34]);
+                    }
                     // LÅNGSIDOR: framkant (RÖD-huvudet ser denna), bakkant (GRÖN)
                     for(var i2=0;i2<nx-1;i2++){
                         add([proj(vx(i2),vy(0),0),proj(vx(i2+1),vy(0),0),proj(vx(i2+1),vy(0),topZ(i2+1,0)),proj(vx(i2),vy(0),topZ(i2,0))],[150,40,52]);

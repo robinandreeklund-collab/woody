@@ -55,10 +55,12 @@ class Board:
         ys = np.linspace(0, self.h - 1, n).astype(int)
         return RIG.board_thick_mm + self.zmap[ys, xx]
 
-    def mesh_grid(self, nx: int = 56, ny: int = 16):
-        """Nedskalat höjdrutnät (nx×ny) för 3D — returnerar Z-matris [mm-avvikelse]."""
+    def mesh_grid(self, nx: int = 56, ny: int = 16, row_limit: int | None = None):
+        """Nedskalat höjdrutnät (nx×ny) för 3D. row_limit = bygg bara upp till den
+        skannade raden (live-tillväxt). Returnerar Z-matris [mm-avvikelse]."""
+        rmax = self.h if row_limit is None else max(2, min(self.h, row_limit))
         xs = np.linspace(0, self.w - 1, nx).astype(int)
-        ys = np.linspace(0, self.h - 1, ny).astype(int)
+        ys = np.linspace(0, rmax - 1, ny).astype(int)
         return self.zmap[np.ix_(ys, xs)]
 
     def warp_metrics(self) -> dict:
