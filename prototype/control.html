@@ -126,6 +126,43 @@ header{
 .def .dd{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-left:auto}
 .def-empty{color:var(--ink3);font-size:11px;text-align:center;padding:18px;font-style:italic}
 
+/* view tabs */
+.tabs{display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;margin-left:8px}
+.tab{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--ink3);cursor:pointer;
+  display:flex;align-items:center;gap:7px;transition:.15s;user-select:none;white-space:nowrap}
+.tab:hover{color:var(--ink2)}
+.tab.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 8px rgba(0,0,0,.3)}
+.tab.active svg{color:var(--cyan)}
+.tab svg{display:block;opacity:.85}
+.hidden{display:none!important}
+
+/* sensor telemetry view */
+.sensorview{flex:1;min-height:0;overflow:auto;padding:2px;
+  display:grid;gap:12px;align-content:start;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.sensorview::-webkit-scrollbar{width:8px}.sensorview::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
+.scard{background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0)),var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 8px 22px rgba(0,0,0,.25)}
+.scard-h{display:flex;align-items:flex-start;gap:10px}
+.scard-led{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:0 0 auto;background:var(--ink3);transition:.3s}
+.scard-led.on{background:var(--teal);box-shadow:0 0 9px var(--teal);animation:pulse 1.6s infinite}
+.scard-led.warn{background:var(--amber);box-shadow:0 0 9px var(--amber)}
+.scard-tt{min-width:0;flex:1}
+.scard-tt .nm{font-size:12.5px;font-weight:650;letter-spacing:.2px}
+.scard-tt .md{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scard-if{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:6px;background:var(--panel2);
+  border:1px solid var(--line);color:var(--ink2);flex:0 0 auto;letter-spacing:.3px}
+.spark{height:42px;width:100%;border-radius:8px;background:var(--panel2);border:1px solid var(--line);display:block}
+.scard-rows{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px}
+.srow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);padding-bottom:3px}
+.srow .k{font-size:10px;color:var(--ink3);white-space:nowrap}
+.srow .v{font-family:var(--mono);font-size:11.5px;color:var(--ink);font-weight:600;text-align:right}
+.srow .v.live{color:var(--cyan)} .srow .v.spec{color:var(--ink2);font-weight:400}
+.srow.full{grid-column:1 / -1}
+.scard-tag{font-size:9px;font-family:var(--mono);color:var(--violet);letter-spacing:.4px;
+  background:rgba(154,123,255,.1);border:1px solid rgba(154,123,255,.25);border-radius:6px;padding:3px 7px;align-self:flex-start}
+
 /* footer controls */
 footer{display:flex;align-items:center;gap:14px;padding:11px 16px;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
@@ -170,6 +207,10 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
         <h1>VIRKE · Kontrollsystem</h1>
         <div class="sub">Dubbel-oblik laserskanner · Prototyp 500&nbsp;mm</div>
       </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-view="dash"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg>Översikt</div>
+      <div class="tab" data-view="sensors"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 7h2l1.5-4 3 8 2-6 1.5 2h2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sensorer</div>
     </div>
     <div class="hstats">
       <div class="kpi"><span class="lab">Genomflöde</span><span class="val cyan" id="kpi-tp">0 <small>br/min</small></span></div>
@@ -253,6 +294,8 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
     </div>
 
   </div>
+
+  <section class="sensorview hidden" id="sensorview"></section>
 
   <footer>
     <div class="btn primary" id="btn-run"><svg width="13" height="13" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1 L11 6 L2 11 Z"/></svg><span id="btn-run-txt">Starta</span></div>
@@ -766,6 +809,139 @@ function pushDef(d){
   defCount.textContent=S.detected.length;
 }
 
+/* ============================================================================
+   SENSORVY — alla sensorers live-telemetri mot RIKTIGA databladsspecar.
+   Värdena simuleras nu, men varje fält och takt är härlett ur produktspeccen
+   (samma siffror vi kopplar in mot fysiska sensorer senare).
+============================================================================ */
+const MMPP_SURF = BL/4096;                              // ytkamera mm/px (0,122)
+const LATRES    = BL/2448;                              // profil mm/px längs linjen (0,204)
+const ZRES_UM   = Math.round(LATRES/Math.tan(20*Math.PI/180)*0.1*1000);  // ~Z-uppl @0,1px subpx
+const PROF_ROI  = 256;                                  // ROI-band rader (höjd) profilkamera
+const TLM = {};                                         // delade datatakter → Jetson summerar
+S.view="dash"; S.encoder=0;
+
+function profSensor(color){
+  const red=color==="red";
+  return {id:"prof"+color,
+    name:"Profilkamera "+(red?"RÖD 650":"GRÖN 520"),
+    model:"Hikrobot MV-CS050-10UM · mono", iface:"USB3 Vision",
+    tag:"datablad: Sony IMX264 · 5 MP global shutter",
+    spec:[["Upplösning","2448×2048"],["Pixel","3,45 µm"],["Slutare","global"],
+          ["Sensor","2/3″ IMX264"],["Filter","bandpass "+(red?"650":"520")+" nm"],["Lins","12 mm MVL-MF1228M"]],
+    live:[["fps","Bildtakt"],["centroid","Stripe-centroid"],["exp","Exponering"],["sub","Subpixel"],
+          ["zres","Z-upplösning"],["data","Datatakt"],["sig","Signal"],["temp","Temp"]],
+    spark:{label:"signal %",color:red?"#ff4d5e":"#52ff7a"},
+    read(){
+      const sc=S.phase==="scanning";
+      const dr=2448*PROF_ROI*S.rate/1e6; TLM["prof"+color]=sc?dr:0;
+      const zc=board&&sc?board.thicknessAt(LRPOS[1].pos,Math.min(BW-1,S.posY))-BT:0;
+      const centroid=1024 - zc/LATRES;
+      const occl=board&&sc?(red?S.posY/BW:1-S.posY/BW):0;     // ocklusion ena kanten
+      const sig=sc?(90 - occl*8 + Math.sin(performance.now()/700+(red?0:2))*3 + (Math.random()-.5)*2):0;
+      return {led:sc?"on":"", spark:sc?sig:0, vals:{
+        fps:(sc?S.rate:0)+" Hz", centroid:centroid.toFixed(1)+" px",
+        exp:Math.round(sc?1e6/S.rate*0.4:0)+" µs", sub:"0,05 px",
+        zres:"~"+ZRES_UM+" µm", data:(sc?dr:0).toFixed(0)+" MB/s",
+        sig:(sc?sig:0).toFixed(0)+" %", temp:(38+S.load*0.12).toFixed(0)+" °C"}};
+    }};
+}
+const surfaceSensor={id:"surf",
+  name:"Ytkamera · 4K färg-radskanner", model:"Huateng 4096×4 TDI · färg", iface:"GigE Vision",
+  tag:"datablad: 7 µm · ~8 kHz färg · M42",
+  spec:[["Upplösning","4096×4 TDI"],["Pixel","7,0 µm"],["Sensor","28,7 mm"],
+        ["Färg","RGB888 8-bit"],["Lins","20 mm ZLKC M42"],["Belysning","vitt LED-linjeljus"]],
+  live:[["rate","Radtakt"],["rows","Rader/bräda"],["mmpp","Upplösning"],["data","Datatakt"],["cap","Av kapacitet"],["light","Belysning"]],
+  spark:{label:"radtakt Hz",color:"#27d3e0"},
+  read(){
+    const sc=S.phase==="scanning";
+    const lr=sc?S.feed/MMPP_SURF:0; const dr=4096*3*lr/1e6; TLM.surf=dr;
+    return {led:sc?"on":"", spark:lr, vals:{
+      rate:lr.toFixed(0)+" Hz", rows:(board?Math.round(S.posY/MMPP_SURF):0)+" / "+Math.round(BW/MMPP_SURF),
+      mmpp:MMPP_SURF.toFixed(3).replace(".",",")+" mm/px", data:dr.toFixed(1)+" MB/s",
+      cap:(lr/8000*100).toFixed(1)+" %", light:(sc?100:0)+" %"}};
+  }};
+function lrSensor(i){const p=LRPOS[i];
+  return {id:"lr"+i, name:"Punktlaser "+p.id, model:"LR400 · CMOS-triangulering", iface:"RS-485 ch"+(i+1),
+    tag:"datablad: 60–400 mm · 8 µm",
+    spec:[["Mätområde","60–400 mm"],["Position","x = "+p.pos+" mm"],["Upplösning","8 µm"],["Protokoll","Modbus RTU"]],
+    live:[["thk","Tjocklek"],["dist","Avstånd"],["rate","Sampeltakt"],["dev","Δ nominell"]],
+    spark:{label:"tjocklek mm",color:"#34e6b5"},
+    read(){const g=lrEls[i];const sc=S.phase==="scanning";
+      const rate=sc?640+(Math.random()-.5)*30:0; const dist=100-(g.val-BT);
+      const d=g.val-BT;
+      return {led:sc?"on":"", spark:g.val, vals:{
+        thk:g.val.toFixed(2)+" mm", dist:dist.toFixed(2)+" mm",
+        rate:rate.toFixed(0)+" Hz", dev:(d>=0?"+":"")+d.toFixed(2)+" mm"}};
+    }};
+}
+const convSensor={id:"conv",
+  name:"Transportör · matning", model:"24 V DC borstad · 30 rpm", iface:"Pololu Jrk G2 · USB",
+  tag:"designval: 50 mm/s nominellt",
+  spec:[["Matarhjul","Ø ~50 mm"],["Drivare","Jrk G2 21v3"],["Spänning","24 V"],["Återkoppling","Hall/kvadratur"]],
+  live:[["spd","Hastighet"],["set","Börvärde"],["cur","Motorström"],["enc","Encoder"],["pwm","PWM-pådrag"],["dir","Riktning"]],
+  spark:{label:"hastighet mm/s",color:"#34e6b5"},
+  read(dt){const run=S.running&&S.phase!=="gap"&&S.phase!=="idle"; const spd=run?S.feed:0;
+    S.encoder+=spd*dt; const cur=run?(0.35+spd*0.004+(Math.random()-.5)*0.04):0.05;
+    return {led:run?"on":"", spark:spd, vals:{
+      spd:spd.toFixed(0)+" mm/s", set:S.feed+" mm/s", cur:cur.toFixed(2)+" A",
+      enc:Math.round(S.encoder)+" mm", pwm:(run?Math.round(spd/120*78+12):0)+" %", dir:run?"framåt":"stopp"}};
+  }};
+const jetSensor={id:"jet",
+  name:"Jetson Orin Nano Super", model:"1024 CUDA · 32 Tensor · 8 GB", iface:"aarch64 · JetPack",
+  tag:"beräkningsnod — total inström från alla kameror",
+  spec:[["GPU","Ampere 1024-kärnor"],["CPU","6× Cortex-A78AE"],["Minne","8 GB LPDDR5"],["Läge","MAXN Super 25 W"]],
+  live:[["cpu","CPU"],["gpu","GPU"],["ram","RAM"],["ingest","Total inström"],["pwr","Effekt"],["temp","Temp"]],
+  spark:{label:"GPU %",color:"#9a7bff"},
+  read(){const ingest=(TLM.profred||0)+(TLM.profgreen||0)+(TLM.surf||0);
+    const gpu=S.load, cpu=22+S.load*0.45+(Math.random()-.5)*3;
+    return {led:S.load>80?"warn":(S.running?"on":""), spark:gpu, vals:{
+      cpu:cpu.toFixed(0)+" %", gpu:gpu.toFixed(0)+" %", ram:(38+S.load*0.12).toFixed(0)+" %",
+      ingest:ingest.toFixed(0)+" MB/s", pwr:(7+S.load*0.16).toFixed(1)+" W", temp:(45+S.load*0.18).toFixed(0)+" °C"}};
+  }};
+
+const SENSORS=[profSensor("red"),profSensor("green"),surfaceSensor,lrSensor(0),lrSensor(1),lrSensor(2),convSensor,jetSensor];
+const sparks={}, liveSpans={};
+(function buildSensors(){
+  const sv=e("sensorview");
+  SENSORS.forEach(s=>{
+    let rows="";
+    s.spec.forEach(([k,v])=>rows+=`<div class="srow"><span class="k">${k}</span><span class="v spec">${v}</span></div>`);
+    s.live.forEach(([key,lab])=>rows+=`<div class="srow"><span class="k">${lab}</span><span class="v live" data-k="${s.id}:${key}">–</span></div>`);
+    const card=document.createElement("div");card.className="scard";
+    card.innerHTML=`<div class="scard-h"><span class="scard-led" data-led="${s.id}"></span>
+      <div class="scard-tt"><div class="nm">${s.name}</div><div class="md">${s.model}</div></div>
+      <span class="scard-if">${s.iface}</span></div>
+      <canvas class="spark" data-spark="${s.id}"></canvas>
+      <div class="scard-rows">${rows}</div>
+      <div class="scard-tag">${s.tag}</div>`;
+    sv.appendChild(card);
+    sparks[s.id]={cv:card.querySelector("[data-spark]"),buf:new Array(72).fill(null),color:s.spark.color,label:s.spark.label};
+    s._led=card.querySelector(`[data-led="${s.id}"]`);
+    s.live.forEach(([key])=>liveSpans[`${s.id}:${key}`]=card.querySelector(`[data-k="${s.id}:${key}"]`));
+  });
+})();
+function drawSpark(sp){
+  const {c,w,h}=fit(sp.cv);c.clearRect(0,0,w,h);
+  const n=sp.buf.length,pad=5;
+  let mn=Infinity,mx=-Infinity;for(const v of sp.buf){if(v==null)continue;if(v<mn)mn=v;if(v>mx)mx=v;}
+  c.fillStyle="rgba(159,178,198,.55)";c.font="8px var(--mono),monospace";c.textAlign="left";c.fillText(sp.label,pad+1,10);
+  if(mn===Infinity)return; if(mx-mn<1e-6){mx+=0.5;mn-=0.5;}
+  const X=i=>pad+(w-2*pad)*i/(n-1), Y=v=>h-pad-(h-2*pad)*(v-mn)/(mx-mn);
+  let started=false;c.beginPath();
+  for(let i=0;i<n;i++){const v=sp.buf[i];if(v==null)continue;const x=X(i),y=Y(v);if(!started){c.moveTo(x,y);started=true;}else c.lineTo(x,y);}
+  c.strokeStyle=sp.color;c.lineWidth=1.6;c.shadowColor=sp.color;c.shadowBlur=5;c.stroke();c.shadowBlur=0;
+  const lv=sp.buf[n-1];if(lv!=null){c.fillStyle=sp.color;c.beginPath();c.arc(X(n-1),Y(lv),2.4,0,7);c.fill();}
+}
+function updateSensors(dt){
+  SENSORS.forEach(s=>{
+    const r=s.read(dt);
+    for(const k in r.vals){const el=liveSpans[`${s.id}:${k}`];if(el&&el.textContent!==r.vals[k])el.textContent=r.vals[k];}
+    s._led.className="scard-led"+(r.led?" "+r.led:"");
+    const sp=sparks[s.id];sp.buf.push(r.spark);sp.buf.shift();drawSpark(sp);
+  });
+}
+
 /* ---------- huvudloop ---------- */
 let last=performance.now();
 function loop(now){
@@ -798,8 +974,9 @@ function loop(now){
   } else if(S.phase==="idle"){ lrEls.forEach(g=>g.target=BT); }
   lrEls.forEach(g=>{ g.val+=(g.target-g.val)*Math.min(1,dt*8) + (Math.random()-0.5)*0.01; });
 
-  // ---- rita ----
-  drawRig(dt);drawCross();drawSurface();drawProfiles();drawFeed();drawLR();
+  // ---- rita (endast aktiv vy) ----
+  if(S.view==="sensors"){ updateSensors(dt); }
+  else { drawRig(dt);drawCross();drawSurface();drawProfiles();drawFeed();drawLR(); }
 
   // ---- HUD ----
   e("kpi-tp").innerHTML=`${S.tp.toFixed(1)} <small>br/min</small>`;
@@ -834,6 +1011,12 @@ function setRunning(v){
 btnRun.onclick=()=>setRunning(!S.running);
 e("btn-next").onclick=()=>{ newBoard(); if(!S.running)setRunning(true); };
 e("tg-auto").onclick=function(){S.auto=!S.auto;this.classList.toggle("on",S.auto);};
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));
+  S.view=t.dataset.view;
+  e("sensorview").classList.toggle("hidden",S.view!=="sensors");
+  document.querySelector(".grid").classList.toggle("hidden",S.view!=="dash");
+});
 const sf=e("sld-feed"),rf=e("rv-feed");sf.oninput=()=>{S.feed=+sf.value;rf.textContent=S.feed+" mm/s";};
 const sr=e("sld-rate"),rr=e("rv-rate");sr.oninput=()=>{S.rate=+sr.value;rr.textContent=S.rate+" Hz";};
 
