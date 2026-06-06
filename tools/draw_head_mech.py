@@ -15,14 +15,15 @@ CAM_A = 20.0                      # kamera-arm, vinkel från lod  (kompakt: θ=2
 LAS_A = 40.0                      # laser-arm (mer oblik), vinkel från lod
 THETA = LAS_A - CAM_A             # trianguleringsvinkel = 30°
 OBL   = (CAM_A + LAS_A) / 2       # huvudets obliquity (siktbisektris) = 30°
-camZ = round(WD * math.cos(math.radians(CAM_A)))    # 686  kamerahöjd ö. brädyta
-camY = round(WD * math.sin(math.radians(CAM_A)))    # 184  kamera-offset fr. mitt
-lasZ = round(WD * math.cos(math.radians(LAS_A)))    # 502  laserhöjd
-lasY = round(WD * math.sin(math.radians(LAS_A)))    # 502  laser-offset
+camZ = round(WD * math.cos(math.radians(CAM_A)))    # 667  kamerahöjd ö. brädyta
+camY = round(WD * math.sin(math.radians(CAM_A)))    # 243  kamera-offset fr. mitt
+lasZ = round(WD * math.cos(math.radians(LAS_A)))    # 544  laserhöjd
+lasY = round(WD * math.sin(math.radians(LAS_A)))    # 456  laser-offset
 BASE = round(2 * WD * math.sin(math.radians(THETA / 2)))   # 368  baslinje kamera↔laser
 CAMCAM = 2 * camY                  # 368  kamera↔kamera (de två huvudena)
 LASLAS = 2 * lasY                  # 1004 laser↔laser
-PORTZ  = 800                       # portalbalkens underkant ö. brädyta
+PORTZ  = 760                       # ram-topp ö. brädyta (precis ovan kamerorna ~733)
+UPX    = 540                        # sidostativens offset (utanför lasrarna ±456)
 BW, BT = 75, 45                    # bräda bredd × tjocklek
 CAM_L, CAM_W = 29, 29; LENS_L, LENS_D = 40, 32; FILT_L, FILT_D = 6, 32; LAS_L, LAS_D = 99, 18
 
@@ -91,7 +92,7 @@ add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
 txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
-            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°.", 13, "start", MUTED, 400, SANS)
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°. Huvuden monterade via VINKELADAPTER mot sidostativ (låg ram).", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -114,10 +115,16 @@ beltY = bBL[1]
 rect(bL[0]-26, beltY, (bR[0]-bL[0])+52, 14, BLACK, "#1c1f24", 1.2, 3)
 txt(Ox, beltY+30, "transportband", 9, "middle", MUTED, 700)
 circ(Ox, Oy, 4.5, PURP, "#7a2fb0", 1.3); txt(Ox, Oy-12, "laserlinje (mätpunkt)", 9, "middle", PURP, 700)
-# ---- portalbalk ----
+# ---- RAM: två sidostativ (alu T-spår) + låg topp-tvärbalk (bär ytkameran) ----
 pby = WS(0, PORTZ)[1]
-rect(WS(-camY-90, 0)[0], pby-9, WS(camY+90,0)[0]-WS(-camY-90,0)[0], 18, ALU, ALU2, 1.5, 3)
-txt(Ox, pby-16, "PORTALBALK (T-spår)", 9.5, "middle", MUTED, 700)
+baseY = WS(0, -55)[1]
+for sgn in (-1, 1):
+    ux = Ox + sgn*UPX*S
+    rect(ux-7, pby, 14, baseY-pby, ALU, ALU2, 1.5, 2)          # sidostativ (lodrätt)
+rect(Ox-UPX*S, pby-9, 2*UPX*S, 16, ALU, ALU2, 1.5, 3)           # topp-tvärbalk
+txt(Ox, pby-15, "RAM — sidostativ + låg topp-tvärbalk (alu T-spår)", 9.5, "middle", MUTED, 700)
+rect(Ox-UPX*S-26, baseY, 2*UPX*S+52, 12, "#bfc3c8", "#8a9099", 1.4, 3)   # bottenplatta
+txt(Ox, baseY+30, "bottenram / golv", 8.5, "middle", MUTED, 700)
 # ---- per huvud: kamera + laser + bänk + strålar ----
 def head(sign, col, name):
     cam = WS(sign*camY, camZ); las = WS(sign*lasY, lasZ)
@@ -128,8 +135,12 @@ def head(sign, col, name):
     ux, uy = (las[0]-cam[0]), (las[1]-cam[1]); bl = math.hypot(ux,uy); ux,uy = ux/bl, uy/bl
     p_a = (cam[0]-ux*ext, cam[1]-uy*ext); p_b = (las[0]+ux*ext, las[1]+uy*ext)
     line(p_a[0], p_a[1], p_b[0], p_b[1], ALU, 8)
-    mid = ((cam[0]+las[0])/2, (cam[1]+las[1])/2)
-    line(mid[0], mid[1], Ox+sign*camY*S*0.5, pby+9, ALU2, 5)         # stag upp till portal
+    # VINKELADAPTER: bänkens yttre ände monteras i vinkel direkt mot sidostativet
+    upx_s = Ox + sign*UPX*S
+    line(p_b[0], p_b[1], upx_s, p_b[1], ALU2, 7)                     # kort koppling till stativ
+    rect(min(p_b[0],upx_s)-2, p_b[1]-9, abs(upx_s-p_b[0])+4, 18, ALU3, STEEL, 1.3, 2)
+    txt(upx_s+sign*12, p_b[1]+4, "vinkel-", 7.5, "start" if sign>0 else "end", STEEL, 700)
+    txt(upx_s+sign*12, p_b[1]+15, "adapter", 7.5, "start" if sign>0 else "end", STEEL, 700)
     # rikta-enhetsvektorer mot O
     def U(p): d=math.hypot(Ox-p[0], Oy-p[1]); return ((Ox-p[0])/d,(Oy-p[1])/d)
     uc, ul = U(cam), U(las)
@@ -159,6 +170,7 @@ txt(glas[0]+8, glas[1]+4, "GRÖN: laser", 8.5, "start", GRN, 700)
 SURF_WD = 400
 lc = WS(0, SURF_WD)                                   # rakt över brädmitten, höjd 400
 lcw, lcl, lld, lll = 36, 40, 44, 50                   # kamera-hus + M42-objektiv (mm)
+line(Ox, pby+8, lc[0], lc[1]-(lcl+lll)*S, ALU2, 5)   # bär-stag från topp-tvärbalk ned till ytkameran
 add(f'<g transform="translate({lc[0]:.1f},{lc[1]:.1f})">')
 rect(-lcw*S/2, -(lcl+lll)*S, lcw*S, lcl*S, "#efe6f7", PURP, 1.6, 2)        # kamera-hus
 rect(-lld*S/2, -lll*S, lld*S, lll*S, "#e6dcf0", "#9a7fc0", 1.4, 2)         # M42-objektiv
@@ -206,7 +218,7 @@ hdim(bL[0], bR[0], beltY+52, f"{BW}", INK, 11, ext=10)
 vdim(bR[1], bBR[1], bR[0]+44, f"{BT}", INK, 11, ext=10)
 line(bR[0], bR[1], bR[0]+50, bR[1], DIMC, 0.5, "3 3"); line(bBR[0], bBR[1], bR[0]+50, bBR[1], DIMC, 0.5, "3 3")
 # portalhöjd
-vdim(Oy, pby, gcam[0]+int(camY*S)+90, f"{PORTZ}", DIMC, 10); txt(gcam[0]+int(camY*S)+74, (Oy+pby)/2, "portalhöjd", 8.5, "middle", MUTED, 700, rot=-90)
+vdim(Oy, pby, gcam[0]+int(camY*S)+90, f"{PORTZ}", DIMC, 10); txt(gcam[0]+int(camY*S)+74, (Oy+pby)/2, "ramhöjd", 8.5, "middle", MUTED, 700, rot=-90)
 txt(Ox, PY+PH-16, f"Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 710 + armvinklar {CAM_A:.0f}°/{LAS_A:.0f}° (θ {THETA:.0f}°).", 9.5, "middle", MUTED, 400)
 
 # =================================================================== HÖGER: MÅTT-TABELL
@@ -225,7 +237,7 @@ tab = [
     ("Laser-offset fr. mitt", f"{lasY} mm", "= WD·sin 45°"),
     ("Kamera ↔ kamera", f"{CAMCAM} mm", "de två huvudena"),
     ("Laser ↔ laser", f"{LASLAS} mm", "de två huvudena"),
-    ("Portalhöjd ö. brädyta", f"{PORTZ} mm", "balkens underkant"),
+    ("Ramhöjd (topp-tvärbalk)", f"{PORTZ} mm", "precis ovan kamerorna ~733"),
     ("Ytkamera-WD (line-scan)", f"{400} mm", "rakt ned · avbildar längden"),
     ("Bräda (prototyp)", f"{BW} × {BT} mm", "tvärsnitt, på band"),
 ]
@@ -262,7 +274,7 @@ detbracket(CXr+366, 492, 354, 222, "DETALJ C — laserklämma Ø18", INK, d_las)
 # portalfäste
 def d_port(x, y):
     mx, my = x+90, y+92
-    rect(mx-60, my-60, 80, 80, ALU, ALU2, 1.6, 4); txt(mx-20, my-68, "portalbalk", 8.5, "middle", MUTED, 700)
+    rect(mx-60, my-60, 80, 80, ALU, ALU2, 1.6, 4); txt(mx-20, my-68, "sidostativ", 8.5, "middle", MUTED, 700)
     for s in range(int(my-56), int(my+12), 11): line(mx-60, s, mx-38, s, HATCH, 0.6)
     rect(mx+20, my-50, 20, 64, ALU3, STEEL, 1.5, 2); hole(mx+30, my-26, 4, STEEL)
     add(f'<g transform="translate({mx+40},{my+14}) rotate(30)"><rect x="0" y="0" width="150" height="15" fill="{ALU}" stroke="{ALU2}" stroke-width="1.6"/></g>')
@@ -270,13 +282,13 @@ def d_port(x, y):
     line(mx+40, my+14, mx+40, my+120, DIMC, 0.6, "3 3")
     line(mx+40, my+14, mx+40+120*math.cos(math.radians(30)), my+14+120*math.sin(math.radians(30)), DIMC, 0.6)
     adim(mx+40, my+14, 78, 90, 60, f"{OBL:.0f}°", INK, 11)
-    txt(x+14, y+200, "Klämman på T-spåret ger höjd + vinkel (obliquity). Bänkens normal 30° fr. lod.", 8.5, "start", MUTED, 400)
-detbracket(CXr, 730, CWr, 222, "DETALJ D — portalfäste & obliquity", INK, d_port)
+    txt(x+14, y+200, "Vinkeladaptern (justerbar) mot sidostativet ger obliquity. Bänkens normal 30° fr. lod.", 8.5, "start", MUTED, 400)
+detbracket(CXr, 730, CWr, 222, "DETALJ D — vinkeladapter & obliquity", INK, d_port)
 
 # =================================================================== HÖGER: FÄSTDON + NOTER + HUVUD
 panel(CXr, 968, 354, 196, "FÄSTDON (per huvud)", BLUE)
-parts = [("Optisk bänk", "alu 440×80×10", "1"), ("Kamera-tiltfäste", "15°-fläns", "1"),
-         ("Laserklämma Ø18", "split + 45°-tilt", "1"), ("Portalklämma", "T-spår", "1"),
+parts = [("Optisk bänk", "alu ~320×80×10", "1"), ("Kamera-tiltfäste", "θ/2-fläns (10°)", "1"),
+         ("Laserklämma Ø18", "split + 10°-tilt", "1"), ("Vinkeladapter", "justerbar, T-spår", "2"),
          ("M3×6 / M4×10 / M6×16", "+ T-muttrar", "set")]
 yy = 1000
 for nm, sp, q in parts:
