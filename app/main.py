@@ -64,6 +64,20 @@ def main(argv=None) -> int:
     provider = LiveImageProvider()
     engine.addImageProvider("live", provider)
 
+    # Qt Quick 3D (GPU) för 3D-vyn — registrera geometrin + känn av om den kan rendera.
+    # I offscreen/headless saknas RHI → fall tillbaka till software-3D (Canvas).
+    quick3d = False
+    if app.platformName() != "offscreen":
+        try:
+            import PySide6.QtQuick3D  # noqa: F401
+            from PySide6.QtQml import qmlRegisterType
+            from .ui.board_geometry import BoardGeometry
+            qmlRegisterType(BoardGeometry, "Woody3D", 1, 0, "BoardGeometry")
+            quick3d = True
+        except Exception as exc:
+            print("Qt Quick 3D ej tillgängligt (software-3D används):", exc)
+    engine.rootContext().setContextProperty("quick3dAvailable", quick3d)
+
     controller = AppController(cfg, provider)
     if getattr(cfg, "_db", None):
         try:

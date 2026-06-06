@@ -11,3 +11,5 @@ LogView 1.0 LogView.qml
 CalibrationView 1.0 CalibrationView.qml
 AnalysisView 1.0 AnalysisView.qml
 ProfilePlot 1.0 ProfilePlot.qml
+Board3DSoft 1.0 Board3DSoft.qml
+Board3DGpu 1.0 Board3DGpu.qml
