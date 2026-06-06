@@ -117,9 +117,10 @@ txt(Ox, beltY+30, "transportband", 9, "middle", MUTED, 700)
 circ(Ox, Oy, 4.5, PURP, "#7a2fb0", 1.3); txt(Ox, Oy-12, "laserlinje (mätpunkt)", 9, "middle", PURP, 700)
 # ---- PORTAL ÖVER RULLBANDET: topp-TVÄRBALK (ben + huvudbalk vid LÄNGSÄNDARNA, in i bilden) ----
 pby = WS(0, PORTZ)[1]
-TVX = camY + 80                                                   # tvärbalkens halva spann
-rect(Ox-TVX*S, pby-9, 2*TVX*S, 17, ALU, ALU2, 1.6, 3)            # TVÄRBALK (spänner bredden)
-txt(Ox-TVX*S+8, pby-15, "TOPP-TVÄRBALK (T-spår)", 9.5, "start", MUTED, 700)
+ADPY = camY + (PORTZ-camZ)*(lasY-camY)/(lasZ-camZ)               # där bänken (baslinjen) möter tvärbalken
+TVX = round(ADPY) + 35                                            # tvärbalken sträcker sig bara strax förbi fästena
+rect(Ox-TVX*S, pby-9, 2*TVX*S, 17, ALU, ALU2, 1.6, 3)            # TVÄRBALK (kort — bär bara adaptrar + ytkamera)
+txt(Ox-TVX*S-8, pby+4, "TOPP-TVÄRBALK (T-spår)", 9.5, "end", MUTED, 700)
 # huvudbalk + ben går in i bilden (vid längsändarna) — antydan
 rect(Ox-16, pby-30, 32, 22, "#c7cbcf", "#9aa0a6", 1.3, 3); txt(Ox+22, pby-22, "HUVUDBALK + ben → in i bilden", 8, "start", MUTED, 700)
 txt(Ox, pby-40, "(portalben vid brädans LÄNGSÄNDAR — utanför bandets gång)", 8.5, "middle", MUTED, 700)
