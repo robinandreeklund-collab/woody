@@ -109,7 +109,7 @@ class Rig:
     # --- profil/triangulering: optik som hänger ihop ---
     profile_lens_mm: float = 12.0         # [designval] HIKROBOT MVL-MF1228M-8MP (12 mm; har frontfiltergänga, mot 8 mm som saknar)
     profile_wd_mm: float = 1040.0         # [designval] arbetsavstånd profilkamera
-    tri_angle_deg: float = 30.0           # [designval] trianguleringsvinkel (Scheimpflug)
+    tri_angle_deg: float = 20.0           # [designval] trianguleringsvinkel (kompakt huvud: baslinje ~247 mm @ WD 710)
     depth_range_mm: float = 50.0          # [designval] mätrange i höjd (±25 mm)
     overlap_mm: float = 150.0             # [designval] överlapp mellan segment
 

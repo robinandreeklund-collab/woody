@@ -172,8 +172,8 @@
 <line x1="1092.0" y1="448.0" x2="832.0" y2="238.0" stroke="#9a9ea4" stroke-width="0.5" opacity="1"/>
 <line x1="1092.0" y1="448.0" x2="802.0" y2="328.0" stroke="#9a9ea4" stroke-width="0.5" opacity="1"/>
 <path d="M 1056.2 419.1 A 46 46 0 0 1 1049.5 430.4" fill="none" stroke="#23262b" stroke-width="1.2"/>
-<text x="1048.0" y="394.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle">θ=30°</text>
-<text x="776.0" y="496.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">Baslinje kamera↔laser ~368 mm · obliquity 30° · θ 30° · ej skalenlig</text>
+<text x="1048.0" y="394.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle">θ=20°</text>
+<text x="776.0" y="496.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">Baslinje kamera↔laser ~247 mm · obliquity 30° · θ 20° · ej skalenlig</text>
 <rect x="762.0" y="524.0" width="458.0" height="294.0" rx="9" fill="#fff" stroke="#2f6fb0" stroke-width="1.4" opacity="1"/>
 <rect x="762.0" y="524.0" width="458.0" height="30.0" rx="9" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
 <rect x="762.0" y="542.0" width="458.0" height="12.0" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
@@ -241,9 +241,9 @@
 <text x="1260.0" y="431.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Obliquity (laser+kamera fr. lod)</text>
 <text x="1680.0" y="431.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">30°</text>
 <text x="1260.0" y="450.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Trianguleringsvinkel θ</text>
-<text x="1680.0" y="450.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">30°</text>
+<text x="1680.0" y="450.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">20°</text>
 <text x="1260.0" y="469.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Baslinje kamera↔laser</text>
-<text x="1680.0" y="469.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">368 mm</text>
+<text x="1680.0" y="469.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">247 mm</text>
 <text x="1260.0" y="488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#23262b" text-anchor="start">Laser Powell-fläkt → linje</text>
 <text x="1680.0" y="488.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">45° → 500 mm</text>
 <rect x="1244.0" y="522.0" width="452.0" height="296.0" rx="9" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
@@ -265,8 +265,8 @@
 <line x1="1244.0" y1="878.0" x2="1497.1" y2="878.0" stroke="#23262b" stroke-width="0.8" opacity="1"/>
 <text x="1258.0" y="854.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#23262b" text-anchor="start">VIRKESSKANNER — PROFILHUVUD</text>
 <text x="1258.0" y="870.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">Dubbel-oblik · RÖD 650 (1 av 2)</text>
-<text x="1258.0" y="898.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Oblik 30° · θ 30° · WD 710 · baslinje 368</text>
-<text x="1258.0" y="914.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">Topp + båda vankanter · Z ~0,05–0,15 mm</text>
+<text x="1258.0" y="898.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#23262b" text-anchor="start">Oblik 30° · θ 20° · WD 710 · baslinje 247</text>
+<text x="1258.0" y="914.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="start">Topp + båda vankanter · Z ~0,1–0,2 mm (θ 20°)</text>
 <text x="1509.1" y="854.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">RITN. NR</text>
 <text x="1684.0" y="854.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">PH-650-02</text>
 <text x="1509.1" y="878.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">SKALA</text>

@@ -12,7 +12,7 @@ from __future__ import annotations
 import os, sys, math
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-WD, TRI, OBL, FAN = 710.0, 30.0, 30.0, 45.0          # slant-WD, triangulering, obliquity, Powell-fläkt
+WD, TRI, OBL, FAN = 710.0, 20.0, 30.0, 45.0          # slant-WD, triangulering, obliquity, Powell-fläkt
 BW, BT = 75.0, 45.0                                   # brädans tvärsnitt (bredd × tjocklek)
 CAM_L, CAM_W = 29.0, 29.0
 LENS_L, LENS_D = 40.0, 32.0
@@ -242,7 +242,7 @@ line(tbx, tby+92, tbx+tbw, tby+92, INK, 1); line(tbx+tbw*0.56, tby, tbx+tbw*0.56
 txt(tbx+14, tby+22, "VIRKESSKANNER — PROFILHUVUD", 12.5, "start", INK, 700)
 txt(tbx+14, tby+38, "Dubbel-oblik · RÖD 650 (1 av 2)", 9.5, "start", MUTED, 400)
 txt(tbx+14, tby+66, f"Oblik {OBL:.0f}° · θ {TRI:.0f}° · WD {WD:.0f} · baslinje {BASE}", 9.5, "start", INK, 400)
-txt(tbx+14, tby+82, "Topp + båda vankanter · Z ~0,05–0,15 mm", 9.5, "start", MUTED, 400)
+txt(tbx+14, tby+82, "Topp + båda vankanter · Z ~0,1–0,2 mm (θ 20°)", 9.5, "start", MUTED, 400)
 txt(tbx+tbw*0.56+12, tby+22, "RITN. NR", 8.5, "start", MUTED, 700); txt(tbx+tbw-12, tby+22, "PH-650-02", 11, "end", INK, 700, MONO)
 txt(tbx+tbw*0.56+12, tby+46, "SKALA", 8.5, "start", MUTED, 700); txt(tbx+tbw-12, tby+46, "NTS", 11, "end", INK, 400, MONO)
 txt(tbx+tbw*0.56+12, tby+70, "ENHET", 8.5, "start", MUTED, 700); txt(tbx+tbw-12, tby+70, "mm", 11, "end", INK, 400, MONO)

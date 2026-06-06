@@ -102,7 +102,7 @@
 <rect x="16.0" y="16.0" width="2228.0" height="1548.0" rx="0" fill="none" stroke="#23262b" stroke-width="2" opacity="1"/>
 <rect x="24.0" y="24.0" width="2212.0" height="1532.0" rx="0" fill="none" stroke="#6a6e74" stroke-width="0.8" opacity="1"/>
 <text x="46.0" y="60.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="25" font-weight="700" fill="#23262b" text-anchor="start">MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)</text>
-<text x="46.0" y="86.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="400" fill="#6a6e74" text-anchor="start">Två kompletta huvuden (var sitt kamera+laser PÅ SAMMA SIDA) monterade på var sin sida om brädan, lutade inåt mot samma laserlinje. RÖD läser V-kant, GRÖN läser H-kant.</text>
+<text x="46.0" y="86.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="400" fill="#6a6e74" text-anchor="start">Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje (RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°.</text>
 <line x1="46.0" y1="100.0" x2="2214.0" y2="100.0" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="46.0" y="116.0" width="1430.0" height="1180.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="46.0" y="116.0" width="1430.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
@@ -117,129 +117,150 @@
 <text x="740.0" y="1117.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="middle">transportband</text>
 <circle cx="740.0" cy="1050.0" r="4.5" fill="#a23ad6" stroke="#7a2fb0" stroke-width="1.3"/>
 <text x="740.0" y="1038.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#a23ad6" text-anchor="middle">laserlinje (mätpunkt)</text>
-<rect x="509.8" y="369.0" width="460.3" height="18.0" rx="3" fill="#cfd3d8" stroke="#b3b9bf" stroke-width="1.5" opacity="1"/>
+<rect x="460.3" y="369.0" width="559.4" height="18.0" rx="3" fill="#cfd3d8" stroke="#b3b9bf" stroke-width="1.5" opacity="1"/>
 <text x="740.0" y="362.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#6a6e74" text-anchor="middle">PORTALBALK (T-spår)</text>
-<line x1="607.9" y1="460.7" x2="295.8" y2="641.3" stroke="#cfd3d8" stroke-width="8" opacity="1"/>
-<line x1="451.9" y1="551.0" x2="662.7" y2="387.0" stroke="#b3b9bf" stroke-width="5" opacity="1"/>
-<line x1="367.8" y1="677.8" x2="740.0" y2="1050.0" stroke="#e8542c" stroke-width="2.4" opacity="1"/>
-<line x1="600.5" y1="529.8" x2="740.0" y2="1050.0" stroke="#8a9099" stroke-width="1.3" stroke-dasharray="5 4" opacity="1"/>
-<g transform="translate(585.4,473.8) rotate(-15.0)">
+<line x1="558.4" y1="476.7" x2="334.4" y2="606.0" stroke="#cfd3d8" stroke-width="8" opacity="1"/>
+<line x1="446.4" y1="541.4" x2="637.9" y2="387.0" stroke="#b3b9bf" stroke-width="5" opacity="1"/>
+<line x1="401.9" y1="646.7" x2="740.0" y2="1050.0" stroke="#e8542c" stroke-width="2.4" opacity="1"/>
+<line x1="555.7" y1="544.2" x2="740.0" y2="1050.0" stroke="#8a9099" stroke-width="1.3" stroke-dasharray="5 4" opacity="1"/>
+<g transform="translate(535.9,489.7) rotate(-20.0)">
 <rect x="-12.2" y="0.0" width="24.4" height="24.4" rx="1" fill="#e9edf1" stroke="#8a9099" stroke-width="1.4" opacity="1"/>
 <rect x="-13.4" y="24.4" width="26.9" height="33.6" rx="1" fill="#dfe3e7" stroke="#9aa0a6" stroke-width="1.2" opacity="1"/>
 <rect x="-13.4" y="58.0" width="26.9" height="5.0" rx="0" fill="#f6d9cf" stroke="#e8542c" stroke-width="1.4" opacity="1"/>
 </g>
-<g transform="translate(318.3,628.3) rotate(-45.0)">
+<g transform="translate(357.0,593.0) rotate(-40.0)">
 <rect x="-7.6" y="0.0" width="15.1" height="83.2" rx="2" fill="#d7b7b0" stroke="#9a5a52" stroke-width="1.3" opacity="1"/>
 </g>
-<line x1="872.1" y1="460.7" x2="1184.2" y2="641.3" stroke="#cfd3d8" stroke-width="8" opacity="1"/>
-<line x1="1028.1" y1="551.0" x2="817.3" y2="387.0" stroke="#b3b9bf" stroke-width="5" opacity="1"/>
-<line x1="1112.2" y1="677.8" x2="740.0" y2="1050.0" stroke="#2f9e6e" stroke-width="2.4" opacity="1"/>
-<line x1="879.5" y1="529.8" x2="740.0" y2="1050.0" stroke="#8a9099" stroke-width="1.3" stroke-dasharray="5 4" opacity="1"/>
-<g transform="translate(894.6,473.8) rotate(15.0)">
+<line x1="921.6" y1="476.7" x2="1145.6" y2="606.0" stroke="#cfd3d8" stroke-width="8" opacity="1"/>
+<line x1="1033.6" y1="541.4" x2="842.1" y2="387.0" stroke="#b3b9bf" stroke-width="5" opacity="1"/>
+<line x1="1078.1" y1="646.7" x2="740.0" y2="1050.0" stroke="#2f9e6e" stroke-width="2.4" opacity="1"/>
+<line x1="924.3" y1="544.2" x2="740.0" y2="1050.0" stroke="#8a9099" stroke-width="1.3" stroke-dasharray="5 4" opacity="1"/>
+<g transform="translate(944.1,489.7) rotate(20.0)">
 <rect x="-12.2" y="0.0" width="24.4" height="24.4" rx="1" fill="#e9edf1" stroke="#8a9099" stroke-width="1.4" opacity="1"/>
 <rect x="-13.4" y="24.4" width="26.9" height="33.6" rx="1" fill="#dfe3e7" stroke="#9aa0a6" stroke-width="1.2" opacity="1"/>
 <rect x="-13.4" y="58.0" width="26.9" height="5.0" rx="0" fill="#f6d9cf" stroke="#2f9e6e" stroke-width="1.4" opacity="1"/>
 </g>
-<g transform="translate(1161.7,628.3) rotate(45.0)">
+<g transform="translate(1123.0,593.0) rotate(40.0)">
 <rect x="-7.6" y="0.0" width="15.1" height="83.2" rx="2" fill="#d7b7b0" stroke="#9a5a52" stroke-width="1.3" opacity="1"/>
 </g>
-<text x="577.4" y="461.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="end">RÖD: kamera</text>
-<text x="310.3" y="632.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="end">RÖD: laser</text>
-<text x="902.6" y="461.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">GRÖN: kamera</text>
-<text x="1169.7" y="632.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">GRÖN: laser</text>
-<line x1="740.0" y1="1050.0" x2="740.0" y2="434.0" stroke="#9aa0a6" stroke-width="0.7" stroke-dasharray="4 4" opacity="1"/>
-<text x="748.0" y="444.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#9aa0a6" text-anchor="start">lod</text>
-<path d="M 740.0 934.0 A 116 116 0 0 0 709.9 938.0" fill="none" stroke="#e8542c" stroke-width="1.2"/>
-<rect x="711.8" y="913.4" width="22.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
-<text x="723.0" y="924.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e8542c" text-anchor="middle">15°</text>
-<path d="M 699.1 897.4 A 158 158 0 0 0 628.3 938.3" fill="none" stroke="#e8542c" stroke-width="1.2"/>
-<rect x="635.3" y="893.4" width="37.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
-<text x="654.0" y="904.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e8542c" text-anchor="middle">θ 30°</text>
-<path d="M 770.1 938.0 A 116 116 0 0 0 740.0 934.0" fill="none" stroke="#2f9e6e" stroke-width="1.2"/>
-<rect x="745.8" y="913.4" width="22.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
-<text x="757.0" y="924.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="middle">15°</text>
-<path d="M 851.7 938.3 A 158 158 0 0 0 780.9 897.4" fill="none" stroke="#2f9e6e" stroke-width="1.2"/>
-<rect x="807.3" y="893.4" width="37.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
-<text x="826.0" y="904.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="middle">θ 30°</text>
-<text x="315.0" y="603.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="end">laser 45° fr lod</text>
-<text x="1165.0" y="603.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">laser 45° fr lod</text>
-<text x="513.2" y="839.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#e8542c" text-anchor="middle" transform="rotate(45.0 513.2 839.2)">WD 710</text>
-<text x="833.3" y="761.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-74.98544008390263 833.3 761.9)">WD 710</text>
-<text x="441.9" y="539.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-30.05437608287434 441.9 539.0)">BASLINJE 368</text>
-<text x="1038.1" y="539.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(30.05437608287437 1038.1 539.0)">BASLINJE 368</text>
+<text x="527.9" y="477.7" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="end">RÖD: kamera</text>
+<text x="349.0" y="597.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="end">RÖD: laser</text>
+<text x="952.1" y="477.7" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">GRÖN: kamera</text>
+<text x="1131.0" y="597.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">GRÖN: laser</text>
+<g transform="translate(740.0,714.0)">
+<rect x="-15.1" y="-75.6" width="30.2" height="33.6" rx="2" fill="#efe6f7" stroke="#a23ad6" stroke-width="1.6" opacity="1"/>
+<rect x="-18.5" y="-42.0" width="37.0" height="42.0" rx="2" fill="#e6dcf0" stroke="#9a7fc0" stroke-width="1.4" opacity="1"/>
+</g>
+<line x1="740.0" y1="714.0" x2="740.0" y2="1050.0" stroke="#a23ad6" stroke-width="1.3" stroke-dasharray="6 4" opacity="1"/>
+<rect x="768.5" y="670.0" width="28.0" height="9.0" rx="2" fill="#fff8e0" stroke="#c9a13a" stroke-width="1.3" opacity="1"/>
+<text x="782.5" y="664.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#8a6510" text-anchor="middle">vitt LED</text>
+<text x="714.9" y="648.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#a23ad6" text-anchor="end">YTKAMERA (line-scan)</text>
+<text x="714.9" y="661.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="end">4K färg · M42 20 mm</text>
+<text x="714.9" y="674.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="end">avbildar LÄNGDEN (in i bilden)</text>
+<line x1="797.0" y1="1050.0" x2="807.0" y2="1050.0" stroke="#a23ad6" stroke-width="0.8" opacity="1"/>
+<line x1="797.0" y1="714.0" x2="807.0" y2="714.0" stroke="#a23ad6" stroke-width="0.8" opacity="1"/>
+<line x1="802.0" y1="882.0" x2="802.0" y2="1050.0" stroke="#a23ad6" stroke-width="1" opacity="1"/>
+<line x1="802.0" y1="1050.0" x2="798.9" y2="1042.6" stroke="#a23ad6" stroke-width="1" opacity="1"/>
+<line x1="802.0" y1="1050.0" x2="805.1" y2="1042.6" stroke="#a23ad6" stroke-width="1" opacity="1"/>
+<line x1="802.0" y1="882.0" x2="802.0" y2="714.0" stroke="#a23ad6" stroke-width="1" opacity="1"/>
+<line x1="802.0" y1="714.0" x2="805.1" y2="721.4" stroke="#a23ad6" stroke-width="1" opacity="1"/>
+<line x1="802.0" y1="714.0" x2="798.9" y2="721.4" stroke="#a23ad6" stroke-width="1" opacity="1"/>
+<rect x="791.8" y="874.1" width="20.5" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="802.0" y="885.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#a23ad6" text-anchor="middle" transform="rotate(-90 802.0 885.7)">400</text>
+<text x="818.0" y="882.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#a23ad6" text-anchor="start" transform="rotate(-90 818.0 882.0)">yt-WD</text>
+<line x1="740.0" y1="1050.0" x2="740.0" y2="450.0" stroke="#9aa0a6" stroke-width="0.7" stroke-dasharray="4 4" opacity="1"/>
+<text x="748.0" y="460.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#9aa0a6" text-anchor="start">lod</text>
+<path d="M 740.0 934.0 A 116 116 0 0 0 700.3 941.0" fill="none" stroke="#e8542c" stroke-width="1.2"/>
+<rect x="706.2" y="914.3" width="22.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="717.4" y="925.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e8542c" text-anchor="middle">20°</text>
+<path d="M 685.9 901.5 A 158 158 0 0 0 638.5 928.9" fill="none" stroke="#e8542c" stroke-width="1.2"/>
+<rect x="635.3" y="893.3" width="37.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="654.0" y="904.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e8542c" text-anchor="middle">θ 20°</text>
+<path d="M 779.7 941.0 A 116 116 0 0 0 740.0 934.0" fill="none" stroke="#2f9e6e" stroke-width="1.2"/>
+<rect x="751.4" y="914.3" width="22.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="762.6" y="925.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="middle">20°</text>
+<path d="M 841.5 928.9 A 158 158 0 0 0 794.1 901.5" fill="none" stroke="#2f9e6e" stroke-width="1.2"/>
+<rect x="807.3" y="893.3" width="37.4" height="13.2" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="826.0" y="904.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="middle">θ 20°</text>
+<text x="353.0" y="568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="end">laser 40° fr lod</text>
+<text x="1127.0" y="568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">laser 40° fr lod</text>
+<text x="532.5" y="821.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#e8542c" text-anchor="middle" transform="rotate(50.02907358178544 532.5 821.5)">WD 710</text>
+<text x="858.1" y="769.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-69.98241533837364 858.1 769.9)">WD 710</text>
+<text x="436.4" y="529.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-30.00492087082398 436.4 529.4)">BASLINJE 247</text>
+<text x="1043.6" y="529.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(30.00492087082401 1043.6 529.4)">BASLINJE 247</text>
 <line x1="115.0" y1="1050.0" x2="125.0" y2="1050.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="115.0" y1="473.8" x2="125.0" y2="473.8" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="120.0" y1="761.9" x2="120.0" y2="1050.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="115.0" y1="489.7" x2="125.0" y2="489.7" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="120.0" y1="769.9" x2="120.0" y2="1050.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="120.0" y1="1050.0" x2="116.9" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="120.0" y1="1050.0" x2="123.1" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="120.0" y1="761.9" x2="120.0" y2="473.8" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="120.0" y1="473.8" x2="123.1" y2="481.1" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="120.0" y1="473.8" x2="116.9" y2="481.1" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="109.8" y="754.0" width="20.5" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="120.0" y="765.6" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 120.0 765.6)">686</text>
-<text x="104.0" y="701.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(-90 104.0 701.9)">kamerahöjd</text>
+<line x1="120.0" y1="769.9" x2="120.0" y2="489.7" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="120.0" y1="489.7" x2="123.1" y2="497.1" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="120.0" y1="489.7" x2="116.9" y2="497.1" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="109.8" y="761.9" width="20.5" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="120.0" y="773.6" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 120.0 773.6)">667</text>
+<text x="104.0" y="709.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(-90 104.0 709.9)">kamerahöjd</text>
 <line x1="169.0" y1="1050.0" x2="179.0" y2="1050.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="169.0" y1="628.3" x2="179.0" y2="628.3" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="174.0" y1="839.2" x2="174.0" y2="1050.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="169.0" y1="593.0" x2="179.0" y2="593.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="174.0" y1="821.5" x2="174.0" y2="1050.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="174.0" y1="1050.0" x2="170.9" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="174.0" y1="1050.0" x2="177.1" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="174.0" y1="839.2" x2="174.0" y2="628.3" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="174.0" y1="628.3" x2="177.1" y2="635.7" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="174.0" y1="628.3" x2="170.9" y2="635.7" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="163.8" y="831.2" width="20.5" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="174.0" y="842.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 174.0 842.9)">502</text>
-<text x="158.0" y="789.2" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(-90 158.0 789.2)">laserhöjd</text>
-<line x1="585.4" y1="473.8" x2="110.0" y2="473.8" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
-<line x1="318.3" y1="628.3" x2="164.0" y2="628.3" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
+<line x1="174.0" y1="821.5" x2="174.0" y2="593.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="174.0" y1="593.0" x2="177.1" y2="600.4" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="174.0" y1="593.0" x2="170.9" y2="600.4" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="163.8" y="813.6" width="20.5" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="174.0" y="825.3" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 174.0 825.3)">544</text>
+<text x="158.0" y="771.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(-90 158.0 771.5)">laserhöjd</text>
+<line x1="535.9" y1="489.7" x2="110.0" y2="489.7" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
+<line x1="357.0" y1="593.0" x2="164.0" y2="593.0" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
 <line x1="708.5" y1="1050.0" x2="184.0" y2="1050.0" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
-<line x1="585.4" y1="375.8" x2="585.4" y2="419.8" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="894.6" y1="375.8" x2="894.6" y2="419.8" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="585.4" y1="414.8" x2="585.4" y2="424.8" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="894.6" y1="414.8" x2="894.6" y2="424.8" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="740.0" y1="419.8" x2="585.4" y2="419.8" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="585.4" y1="419.8" x2="592.8" y2="416.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="585.4" y1="419.8" x2="592.8" y2="422.9" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="740.0" y1="419.8" x2="894.6" y2="419.8" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="894.6" y1="419.8" x2="887.2" y2="422.9" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="894.6" y1="419.8" x2="887.2" y2="416.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="671.8" y="411.8" width="136.4" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="740.0" y="423.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 740.0 423.5)">368  (kamera↔kamera)</text>
-<line x1="318.3" y1="758.3" x2="318.3" y2="778.3" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="1161.7" y1="758.3" x2="1161.7" y2="778.3" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="318.3" y1="773.3" x2="318.3" y2="783.3" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="1161.7" y1="773.3" x2="1161.7" y2="783.3" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="740.0" y1="778.3" x2="318.3" y2="778.3" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="318.3" y1="778.3" x2="325.7" y2="775.2" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="318.3" y1="778.3" x2="325.7" y2="781.4" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="740.0" y1="778.3" x2="1161.7" y2="778.3" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1161.7" y1="778.3" x2="1154.3" y2="781.4" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1161.7" y1="778.3" x2="1154.3" y2="775.2" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="675.2" y="770.4" width="129.6" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="740.0" y="782.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 740.0 782.1)">1004  (laser↔laser)</text>
-<line x1="740.0" y1="437.8" x2="740.0" y2="451.8" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="585.4" y1="437.8" x2="585.4" y2="451.8" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="740.0" y1="446.8" x2="740.0" y2="456.8" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="585.4" y1="446.8" x2="585.4" y2="456.8" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="662.7" y1="451.8" x2="740.0" y2="451.8" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="740.0" y1="451.8" x2="732.6" y2="454.9" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="740.0" y1="451.8" x2="732.6" y2="448.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="662.7" y1="451.8" x2="585.4" y2="451.8" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="585.4" y1="451.8" x2="592.8" y2="448.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="585.4" y1="451.8" x2="592.8" y2="454.9" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="653.4" y="444.6" width="18.6" height="12.6" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="662.7" y="455.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 662.7 455.2)">184</text>
-<line x1="740.0" y1="710.3" x2="740.0" y2="724.3" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="318.3" y1="710.3" x2="318.3" y2="724.3" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
-<line x1="740.0" y1="719.3" x2="740.0" y2="729.3" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="318.3" y1="719.3" x2="318.3" y2="729.3" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="529.2" y1="724.3" x2="740.0" y2="724.3" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="740.0" y1="724.3" x2="732.6" y2="727.4" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="740.0" y1="724.3" x2="732.6" y2="721.2" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="529.2" y1="724.3" x2="318.3" y2="724.3" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="318.3" y1="724.3" x2="325.7" y2="721.2" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="318.3" y1="724.3" x2="325.7" y2="727.4" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="519.9" y="717.1" width="18.6" height="12.6" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="529.2" y="727.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 529.2 727.7)">502</text>
+<line x1="535.9" y1="391.7" x2="535.9" y2="435.7" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="944.1" y1="391.7" x2="944.1" y2="435.7" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="535.9" y1="430.7" x2="535.9" y2="440.7" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="944.1" y1="430.7" x2="944.1" y2="440.7" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="740.0" y1="435.7" x2="535.9" y2="435.7" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="535.9" y1="435.7" x2="543.2" y2="432.6" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="535.9" y1="435.7" x2="543.2" y2="438.8" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="740.0" y1="435.7" x2="944.1" y2="435.7" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="944.1" y1="435.7" x2="936.8" y2="438.8" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="944.1" y1="435.7" x2="936.8" y2="432.6" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="671.8" y="427.8" width="136.4" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="740.0" y="439.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 740.0 439.5)">486  (kamera↔kamera)</text>
+<line x1="357.0" y1="723.0" x2="357.0" y2="743.0" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="1123.0" y1="723.0" x2="1123.0" y2="743.0" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="357.0" y1="738.0" x2="357.0" y2="748.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="1123.0" y1="738.0" x2="1123.0" y2="748.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="740.0" y1="743.0" x2="357.0" y2="743.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="357.0" y1="743.0" x2="364.3" y2="739.9" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="357.0" y1="743.0" x2="364.3" y2="746.2" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="740.0" y1="743.0" x2="1123.0" y2="743.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1123.0" y1="743.0" x2="1115.7" y2="746.2" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1123.0" y1="743.0" x2="1115.7" y2="739.9" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="678.6" y="735.1" width="122.8" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="740.0" y="746.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 740.0 746.8)">912  (laser↔laser)</text>
+<line x1="740.0" y1="453.7" x2="740.0" y2="467.7" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="535.9" y1="453.7" x2="535.9" y2="467.7" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="740.0" y1="462.7" x2="740.0" y2="472.7" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="535.9" y1="462.7" x2="535.9" y2="472.7" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="637.9" y1="467.7" x2="740.0" y2="467.7" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="740.0" y1="467.7" x2="732.6" y2="470.8" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="740.0" y1="467.7" x2="732.6" y2="464.6" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="637.9" y1="467.7" x2="535.9" y2="467.7" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="535.9" y1="467.7" x2="543.2" y2="464.6" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="535.9" y1="467.7" x2="543.2" y2="470.8" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="628.6" y="460.5" width="18.6" height="12.6" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="637.9" y="471.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 637.9 471.1)">243</text>
+<line x1="740.0" y1="675.0" x2="740.0" y2="689.0" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="357.0" y1="675.0" x2="357.0" y2="689.0" stroke="#9aa0a6" stroke-width="0.6" opacity="1"/>
+<line x1="740.0" y1="684.0" x2="740.0" y2="694.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="357.0" y1="684.0" x2="357.0" y2="694.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="548.5" y1="689.0" x2="740.0" y2="689.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="740.0" y1="689.0" x2="732.6" y2="692.2" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="740.0" y1="689.0" x2="732.6" y2="685.9" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="548.5" y1="689.0" x2="357.0" y2="689.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="357.0" y1="689.0" x2="364.3" y2="685.9" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="357.0" y1="689.0" x2="364.3" y2="692.2" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="539.2" y="681.8" width="18.6" height="12.6" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="548.5" y="692.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(0 548.5 692.4)">456</text>
 <line x1="708.5" y1="1129.8" x2="708.5" y2="1139.8" stroke="#23262b" stroke-width="0.6" opacity="1"/>
 <line x1="771.5" y1="1129.8" x2="771.5" y2="1139.8" stroke="#23262b" stroke-width="0.6" opacity="1"/>
 <line x1="708.5" y1="1134.8" x2="708.5" y2="1144.8" stroke="#23262b" stroke-width="0.8" opacity="1"/>
@@ -266,18 +287,18 @@
 <text x="815.5" y="1072.6" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 815.5 1072.6)">45</text>
 <line x1="771.5" y1="1050.0" x2="821.5" y2="1050.0" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
 <line x1="771.5" y1="1087.8" x2="821.5" y2="1087.8" stroke="#9aa0a6" stroke-width="0.5" stroke-dasharray="3 3" opacity="1"/>
-<line x1="1133.6" y1="1050.0" x2="1143.6" y2="1050.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="1133.6" y1="378.0" x2="1143.6" y2="378.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
-<line x1="1138.6" y1="714.0" x2="1138.6" y2="1050.0" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1138.6" y1="1050.0" x2="1135.4" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1138.6" y1="1050.0" x2="1141.7" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1138.6" y1="714.0" x2="1138.6" y2="378.0" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1138.6" y1="378.0" x2="1141.7" y2="385.4" stroke="#23262b" stroke-width="1" opacity="1"/>
-<line x1="1138.6" y1="378.0" x2="1135.4" y2="385.4" stroke="#23262b" stroke-width="1" opacity="1"/>
-<rect x="1129.3" y="706.8" width="18.6" height="12.6" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
-<text x="1138.6" y="717.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 1138.6 717.4)">800</text>
-<text x="1122.6" y="714.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(-90 1122.6 714.0)">portalhöjd</text>
-<text x="740.0" y="1280.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="middle">Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 710 + armvinklar 15°/45°.</text>
+<line x1="1233.1" y1="1050.0" x2="1243.1" y2="1050.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="1233.1" y1="378.0" x2="1243.1" y2="378.0" stroke="#9aa0a6" stroke-width="0.8" opacity="1"/>
+<line x1="1238.1" y1="714.0" x2="1238.1" y2="1050.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1238.1" y1="1050.0" x2="1235.0" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1238.1" y1="1050.0" x2="1241.2" y2="1042.6" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1238.1" y1="714.0" x2="1238.1" y2="378.0" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1238.1" y1="378.0" x2="1241.2" y2="385.4" stroke="#23262b" stroke-width="1" opacity="1"/>
+<line x1="1238.1" y1="378.0" x2="1235.0" y2="385.4" stroke="#23262b" stroke-width="1" opacity="1"/>
+<rect x="1228.8" y="706.8" width="18.6" height="12.6" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
+<text x="1238.1" y="717.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(-90 1238.1 717.4)">800</text>
+<text x="1222.1" y="714.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(-90 1222.1 714.0)">portalhöjd</text>
+<text x="740.0" y="1280.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="middle">Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 710 + armvinklar 20°/40° (θ 20°).</text>
 <rect x="1496.0" y="116.0" width="720.0" height="360.0" rx="8" fill="#fff" stroke="#2f6fb0" stroke-width="1.4" opacity="1"/>
 <rect x="1496.0" y="116.0" width="720.0" height="28.0" rx="8" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
 <rect x="1496.0" y="132.0" width="720.0" height="12.0" rx="0" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
@@ -286,44 +307,47 @@
 <text x="1826.0" y="156.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">710 mm</text>
 <text x="1966.0" y="156.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">kamera &amp; laser → laserlinjen</text>
 <text x="1512.0" y="178.7" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Trianguleringsvinkel θ</text>
-<text x="1826.0" y="178.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">30°</text>
+<text x="1826.0" y="178.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">20°</text>
 <text x="1966.0" y="178.7" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">mellan kamera &amp; laser (per huvud)</text>
 <text x="1512.0" y="201.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Kamera-arm fr. lod</text>
-<text x="1826.0" y="201.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">15°</text>
+<text x="1826.0" y="201.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">20°</text>
 <text x="1966.0" y="201.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">brantare armen</text>
 <text x="1512.0" y="224.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Laser-arm fr. lod</text>
-<text x="1826.0" y="224.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">45°</text>
+<text x="1826.0" y="224.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">40°</text>
 <text x="1966.0" y="224.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">mer oblika armen (grazar kanten)</text>
 <text x="1512.0" y="246.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Obliquity (siktbisektris)</text>
 <text x="1826.0" y="246.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">30°</text>
 <text x="1966.0" y="246.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">huvudets lutning fr. lod</text>
 <text x="1512.0" y="269.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Baslinje kamera↔laser</text>
-<text x="1826.0" y="269.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">368 mm</text>
+<text x="1826.0" y="269.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">247 mm</text>
 <text x="1966.0" y="269.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">= 2·WD·sin(θ/2)</text>
 <text x="1512.0" y="292.2" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Kamerahöjd ö. brädyta</text>
-<text x="1826.0" y="292.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">686 mm</text>
+<text x="1826.0" y="292.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">667 mm</text>
 <text x="1966.0" y="292.2" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">= WD·cos 15°</text>
 <text x="1512.0" y="314.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Kamera-offset fr. mitt</text>
-<text x="1826.0" y="314.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">184 mm</text>
+<text x="1826.0" y="314.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">243 mm</text>
 <text x="1966.0" y="314.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">= WD·sin 15°</text>
 <text x="1512.0" y="337.6" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Laserhöjd ö. brädyta</text>
-<text x="1826.0" y="337.6" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">502 mm</text>
+<text x="1826.0" y="337.6" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">544 mm</text>
 <text x="1966.0" y="337.6" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">= WD·cos 45°</text>
 <text x="1512.0" y="360.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Laser-offset fr. mitt</text>
-<text x="1826.0" y="360.3" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">502 mm</text>
+<text x="1826.0" y="360.3" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">456 mm</text>
 <text x="1966.0" y="360.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">= WD·sin 45°</text>
 <text x="1512.0" y="383.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Kamera ↔ kamera</text>
-<text x="1826.0" y="383.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">368 mm</text>
+<text x="1826.0" y="383.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">486 mm</text>
 <text x="1966.0" y="383.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">de två huvudena</text>
 <text x="1512.0" y="405.7" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Laser ↔ laser</text>
-<text x="1826.0" y="405.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">1004 mm</text>
+<text x="1826.0" y="405.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">912 mm</text>
 <text x="1966.0" y="405.7" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">de två huvudena</text>
 <text x="1512.0" y="428.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Portalhöjd ö. brädyta</text>
 <text x="1826.0" y="428.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">800 mm</text>
 <text x="1966.0" y="428.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">balkens underkant</text>
-<text x="1512.0" y="451.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Bräda (prototyp)</text>
-<text x="1826.0" y="451.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">75 × 45 mm</text>
-<text x="1966.0" y="451.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">tvärsnitt, på band</text>
+<text x="1512.0" y="451.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Ytkamera-WD (line-scan)</text>
+<text x="1826.0" y="451.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">400 mm</text>
+<text x="1966.0" y="451.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">rakt ned · avbildar längden</text>
+<text x="1512.0" y="473.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Bräda (prototyp)</text>
+<text x="1826.0" y="473.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">75 × 45 mm</text>
+<text x="1966.0" y="473.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.2" font-weight="400" fill="#6a6e74" text-anchor="start">tvärsnitt, på band</text>
 <rect x="1496.0" y="492.0" width="354.0" height="222.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="1496.0" y="492.0" width="354.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <rect x="1496.0" y="508.0" width="354.0" height="12.0" rx="0" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
@@ -345,13 +369,13 @@
 <line x1="69.0" y1="0.0" x2="79.0" y2="0.0" stroke="#8a9099" stroke-width="0.6" opacity="1"/>
 <line x1="74.0" y1="-5.0" x2="74.0" y2="5.0" stroke="#8a9099" stroke-width="0.6" opacity="1"/>
 </g>
-<text x="1732.0" y="564.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start">fläns 15° fr. bänk-</text>
+<text x="1732.0" y="564.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start">fläns 10° fr. bänk-</text>
 <text x="1732.0" y="578.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">normal · justerslits</text>
 <text x="1732.0" y="602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start">2× M3 → kamerans</text>
 <text x="1732.0" y="616.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start">M3-hålbild (c/c 20)</text>
-<path d="M 1650.0 603.0 A 36 36 0 0 1 1651.2 593.7" fill="none" stroke="#23262b" stroke-width="1.2"/>
-<rect x="1626.2" y="589.5" width="20.4" height="12.0" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
-<text x="1636.4" y="599.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">15°</text>
+<path d="M 1650.0 603.0 A 36 36 0 0 1 1650.5 596.7" fill="none" stroke="#23262b" stroke-width="1.2"/>
+<rect x="1626.0" y="591.6" width="20.4" height="12.0" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.9"/>
+<text x="1636.2" y="602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">10°</text>
 <rect x="1862.0" y="492.0" width="354.0" height="222.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="1862.0" y="492.0" width="354.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <rect x="1862.0" y="508.0" width="354.0" height="12.0" rx="0" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
@@ -376,7 +400,7 @@
 <circle cx="1996.0" cy="666.0" r="4.0" fill="#fff" stroke="#23262b" stroke-width="1.2"/>
 <line x1="1990.0" y1="666.0" x2="2002.0" y2="666.0" stroke="#23262b" stroke-width="0.6" opacity="1"/>
 <line x1="1996.0" y1="660.0" x2="1996.0" y2="672.0" stroke="#23262b" stroke-width="0.6" opacity="1"/>
-<text x="1982.0" y="692.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="middle">M4 → bänk · tilt 45°</text>
+<text x="1982.0" y="692.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="middle">M4 → bänk · tilt 10° fr normal</text>
 <rect x="1496.0" y="730.0" width="720.0" height="222.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="1496.0" y="730.0" width="720.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <rect x="1496.0" y="746.0" width="720.0" height="12.0" rx="0" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
@@ -444,15 +468,15 @@
 <text x="1722.0" y="1202.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">WD</text>
 <text x="1722.0" y="1224.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">710</text>
 <text x="1923.6" y="1202.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">θ / OBLIK</text>
-<text x="1923.6" y="1224.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">30°/30°</text>
+<text x="1923.6" y="1224.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">20°/30°</text>
 <text x="2082.0" y="1202.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">RITN</text>
 <text x="2082.0" y="1224.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">PH-650-M2</text>
 <text x="1722.0" y="1202.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">BASLINJE</text>
 <text x="1722.0" y="1224.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start"></text>
 <text x="1722.0" y="1252.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">BASLINJE</text>
-<text x="1722.0" y="1274.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">368</text>
+<text x="1722.0" y="1274.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">247</text>
 <text x="1923.6" y="1252.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">KAM/LAS-H</text>
-<text x="1923.6" y="1274.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">686/502</text>
+<text x="1923.6" y="1274.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">667/544</text>
 <text x="2082.0" y="1252.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="start">SKALA</text>
 <text x="2082.0" y="1274.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">1:2,5</text>
 <text x="2082.0" y="1300.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">ENHET mm</text>

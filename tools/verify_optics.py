@@ -47,7 +47,7 @@ print(f"  Förstoring m           : {m_prof:.5f}×   (1/m = {1/m_prof:.1f})")
 print(f"  Arbetsavstånd (slant)  : {WD_prof:.1f} mm   för FOV = {BOARD_LEN:.0f} mm")
 print(f"  → FOV längs linjen      : {fov_long:.1f} mm   {ok(abs(fov_long-BOARD_LEN)<1)}  (täcker brädan)")
 print(f"  → Upplösning längs linje: {res_long:.3f} mm/px ({P_PXW} px över {BOARD_LEN:.0f} mm)")
-print(f"  → Kort axel i objektrymd: {fov_short:.0f} mm (höjd-/djupkanal via 30° triangulering)")
+print(f"  → Kort axel i objektrymd: {fov_short:.0f} mm (höjd-/djupkanal via 20° triangulering)")
 print(f"  Diag {P_DIAG:.2f} mm vs lins-bildcirkel ~11 mm : {ok(P_DIAG <= 11.05)}  (2/3\"-lins täcker 2/3\"-sensor)")
 print(f"  Riggplacering          : modulhöjd MH = {MH:.0f} mm, sidooffset = {SOFF:.0f} mm")
 
@@ -104,17 +104,18 @@ print(f"  38,8° vore exakt passning; 40° för tajt ({2*R*math.tan(math.radians
 # ============================================================ 4) FÖRVÄNTAD PRECISION
 print("\n[4] FÖRVÄNTAD PROFILPRECISION  (uppskattning)")
 line()
-TRI = 30.0                                   # trianguleringsvinkel (laser↔kamera)
+TRI = 20.0                                   # trianguleringsvinkel (laser↔kamera) — kompakt huvud
 opx = res_long                               # objekt mm/px lateralt (= 0,204)
 print(f"  Triangulering: obj {opx:.3f} mm/px · vinkel {TRI:.0f}°  →  δz = subpix·{opx:.3f}/sin{TRI:.0f}°")
 for sub in (0.10, 0.05):
     dz = sub * opx / math.sin(math.radians(TRI))
     print(f"    subpixel {sub:.2f} px  →  Z-upplösning ~{dz*1000:.0f} µm   (TEORETISKT, ideal yta)")
+t10 = 0.10 * opx / math.sin(math.radians(TRI))      # mm, teoretiskt @ 0,1 px subpixel
 print("  Verklighet på VIRKE (subsurface-spridning + skrovligt + laserspräckel):")
-print("    räkna ×2–4 sämre  →  enkelprofil ~0,05–0,15 mm; med fler-pass-medel ~0,03–0,08 mm")
+print(f"    ×2–4 sämre  →  enkelprofil ~{t10*2:.2f}–{t10*4:.2f} mm; fler-pass-medel ~{t10*1.2:.2f}–{t10*2.4:.2f} mm")
 print(f"  Lateralt (XY): ~{opx:.2f} mm/px längs linjen · ~0,20 mm matningssteg · linjebredd ~0,1–0,3 mm")
 print("  ABSOLUT tjocklek: ankrad till ~0,1 mm av 3× LR400 uppströms")
 print("    → de korrigerar global offset / tilt / bow i trianguleringen (ej lokal finupplösning)")
-print("  NETTO: lokal relativ ~0,05–0,15 mm, absolut ~0,1 mm — gott för virkesgradering")
+print(f"  NETTO: lokal relativ ~{t10*2:.2f}–{t10*4:.2f} mm, absolut ~0,1 mm (LR400) — gott för virkesgradering")
 
 print(); line("="); print("KLART — alla tre verifierade mot databladsmått. Se omdömen ovan."); line("=")

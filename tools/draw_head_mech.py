@@ -11,8 +11,8 @@ import os, sys, math
 
 # ===================== EXAKT GEOMETRI (mm / grader) =====================
 WD   = 710.0                      # arbetsavstånd (slant), kamera & laser → laserlinjen
-CAM_A = 15.0                      # kamera-arm, vinkel från lod
-LAS_A = 45.0                      # laser-arm (mer oblik), vinkel från lod
+CAM_A = 20.0                      # kamera-arm, vinkel från lod  (kompakt: θ=20°)
+LAS_A = 40.0                      # laser-arm (mer oblik), vinkel från lod
 THETA = LAS_A - CAM_A             # trianguleringsvinkel = 30°
 OBL   = (CAM_A + LAS_A) / 2       # huvudets obliquity (siktbisektris) = 30°
 camZ = round(WD * math.cos(math.radians(CAM_A)))    # 686  kamerahöjd ö. brädyta
@@ -90,8 +90,8 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
-txt(46, 86, "Två kompletta huvuden (var sitt kamera+laser PÅ SAMMA SIDA) monterade på var sin sida om brädan, "
-            "lutade inåt mot samma laserlinje. RÖD läser V-kant, GRÖN läser H-kant.", 13, "start", MUTED, 400, SANS)
+txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°.", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -155,6 +155,22 @@ txt(rlas[0]-8, rlas[1]+4, "RÖD: laser", 8.5, "end", RED, 700)
 txt(gcam[0]+8, gcam[1]-12, "GRÖN: kamera", 8.5, "start", GRN, 700)
 txt(glas[0]+8, glas[1]+4, "GRÖN: laser", 8.5, "start", GRN, 700)
 
+# ---- LINJEKAMERA (ytkamera) i CENTRUM, rakt ovanifrån ----
+SURF_WD = 400
+lc = WS(0, SURF_WD)                                   # rakt över brädmitten, höjd 400
+lcw, lcl, lld, lll = 36, 40, 44, 50                   # kamera-hus + M42-objektiv (mm)
+add(f'<g transform="translate({lc[0]:.1f},{lc[1]:.1f})">')
+rect(-lcw*S/2, -(lcl+lll)*S, lcw*S, lcl*S, "#efe6f7", PURP, 1.6, 2)        # kamera-hus
+rect(-lld*S/2, -lll*S, lld*S, lll*S, "#e6dcf0", "#9a7fc0", 1.4, 2)         # M42-objektiv
+add('</g>')
+line(lc[0], lc[1], Ox, Oy, PURP, 1.3, "6 4")                              # siktlinje rakt ned till mätlinjen
+rect(lc[0]+lld*S/2+10, lc[1]-lll*S-2, 28, 9, "#fff8e0", "#c9a13a", 1.3, 2) # vit LED-list
+txt(lc[0]+lld*S/2+24, lc[1]-lll*S-8, "vitt LED", 7.5, "middle", "#8a6510", 700)
+txt(lc[0]-lcw*S/2-10, lc[1]-(lcl+lll)*S+10, "YTKAMERA (line-scan)", 9, "end", PURP, 700)
+txt(lc[0]-lcw*S/2-10, lc[1]-(lcl+lll)*S+23, "4K färg · M42 20 mm", 8, "end", MUTED, 700)
+txt(lc[0]-lcw*S/2-10, lc[1]-(lcl+lll)*S+36, "avbildar LÄNGDEN (in i bilden)", 8, "end", MUTED, 700)
+vdim(Oy, lc[1], Ox+62, f"{SURF_WD}", PURP, 11); txt(Ox+78, (Oy+lc[1])/2, "yt-WD", 8.5, "start", PURP, 700, rot=-90)
+
 # ---- LOD-referens + vinklar vid O ----
 line(Ox, Oy, Ox, Oy-int(camZ*S)-40, DIMC, 0.7, "4 4"); txt(Ox+8, Oy-int(camZ*S)-30, "lod", 8.5, "start", DIMC, 700)
 # röd sida: 15° (lod->kam), 30° (kam->laser); grön spegel
@@ -191,7 +207,7 @@ vdim(bR[1], bBR[1], bR[0]+44, f"{BT}", INK, 11, ext=10)
 line(bR[0], bR[1], bR[0]+50, bR[1], DIMC, 0.5, "3 3"); line(bBR[0], bBR[1], bR[0]+50, bBR[1], DIMC, 0.5, "3 3")
 # portalhöjd
 vdim(Oy, pby, gcam[0]+int(camY*S)+90, f"{PORTZ}", DIMC, 10); txt(gcam[0]+int(camY*S)+74, (Oy+pby)/2, "portalhöjd", 8.5, "middle", MUTED, 700, rot=-90)
-txt(Ox, PY+PH-16, "Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 710 + armvinklar 15°/45°.", 9.5, "middle", MUTED, 400)
+txt(Ox, PY+PH-16, f"Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 710 + armvinklar {CAM_A:.0f}°/{LAS_A:.0f}° (θ {THETA:.0f}°).", 9.5, "middle", MUTED, 400)
 
 # =================================================================== HÖGER: MÅTT-TABELL
 CXr = 1496; CWr = 720
@@ -210,6 +226,7 @@ tab = [
     ("Kamera ↔ kamera", f"{CAMCAM} mm", "de två huvudena"),
     ("Laser ↔ laser", f"{LASLAS} mm", "de två huvudena"),
     ("Portalhöjd ö. brädyta", f"{PORTZ} mm", "balkens underkant"),
+    ("Ytkamera-WD (line-scan)", f"{400} mm", "rakt ned · avbildar längden"),
     ("Bräda (prototyp)", f"{BW} × {BT} mm", "tvärsnitt, på band"),
 ]
 yy = 156
@@ -227,9 +244,9 @@ def d_cam(x, y):
     hole(bx+40, by-7, 4); hole(bx+110, by-7, 4); txt(bx+75, by+18, "M4 → bänk (c/c 70)", 8.5, "middle", INK, 700)
     add(f'<g transform="translate({bx+150},{by-7}) rotate(-105)">')
     rect(0,-8,104,16,ALU2,STEEL,1.5,2); hole(26,0,3,STEEL); hole(74,0,3,STEEL); add('</g>')
-    txt(bx+196, y+72, "fläns 15° fr. bänk-", 8.5, "start", INK, 700); txt(bx+196, y+86, "normal · justerslits", 8.5, "start", MUTED, 700)
+    txt(bx+196, y+72, f"fläns {THETA/2:.0f}° fr. bänk-", 8.5, "start", INK, 700); txt(bx+196, y+86, "normal · justerslits", 8.5, "start", MUTED, 700)
     txt(bx+196, y+110, "2× M3 → kamerans", 8.5, "start", INK, 700); txt(bx+196, y+124, "M3-hålbild (c/c 20)", 8.5, "start", INK, 700)
-    adim(bx+150, by-7, 36, 180, 195, "15°", INK, 10)
+    adim(bx+150, by-7, 36, 180, 190, f"{THETA/2:.0f}°", INK, 10)
 detbracket(CXr, 492, 354, 222, "DETALJ B — kamera-tiltfäste", INK, d_cam)
 # laserklämma
 def d_las(x, y):
@@ -240,7 +257,7 @@ def d_las(x, y):
     txt(lx+54, ly-4, "rotera → räta linjen", 8.5, "start", MUTED, 700)
     txt(lx+54, ly+10, "glid → fokus @ 710", 8.5, "start", MUTED, 700)
     poly([(lx-30,ly+58),(lx+30,ly+58),(lx+38,ly+74),(lx-22,ly+74)], ALU, ALU2, 1.4); hole(lx-14,ly+66,4); hole(lx+14,ly+66,4)
-    txt(lx, ly+92, "M4 → bänk · tilt 45°", 8.5, "middle", INK, 700)
+    txt(lx, ly+92, f"M4 → bänk · tilt {THETA/2:.0f}° fr normal", 8.5, "middle", INK, 700)
 detbracket(CXr+366, 492, 354, 222, "DETALJ C — laserklämma Ø18", INK, d_las)
 # portalfäste
 def d_port(x, y):
