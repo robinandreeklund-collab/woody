@@ -85,11 +85,15 @@ RowLayout {
                     for(var jb=0;jb<ny-1;jb++) for(var ib=0;ib<nx-1;ib++){
                         add([proj(vx(ib),vy(jb),0),proj(vx(ib+1),vy(jb),0),proj(vx(ib+1),vy(jb+1),0),proj(vx(ib),vy(jb+1),0)],[16,24,34]);
                     }
-                    // LÅNGSIDOR: framkant (RÖD-huvudet ser denna), bakkant (GRÖN)
+                    // LÅNGSIDOR: framkant = ledande kant (RÖD-huvud, mätt först).
+                    // Bakre kanten har vi data på FÖRST när hela brädan skannats (wfrac≈1)
+                    // → grön då; annars neutral "skann-front" (ej mätt grön kant ännu).
+                    var done = wf >= 0.999;
+                    var backCol = done ? [50,170,84] : [60,72,86];
                     for(var i2=0;i2<nx-1;i2++){
                         add([proj(vx(i2),vy(0),0),proj(vx(i2+1),vy(0),0),proj(vx(i2+1),vy(0),topZ(i2+1,0)),proj(vx(i2),vy(0),topZ(i2,0))],[150,40,52]);
                         var jj=ny-1;
-                        add([proj(vx(i2),vy(jj),0),proj(vx(i2+1),vy(jj),0),proj(vx(i2+1),vy(jj),topZ(i2+1,jj)),proj(vx(i2),vy(jj),topZ(i2,jj))],[50,170,84]);
+                        add([proj(vx(i2),vy(jj),0),proj(vx(i2+1),vy(jj),0),proj(vx(i2+1),vy(jj),topZ(i2+1,jj)),proj(vx(i2),vy(jj),topZ(i2,jj))],backCol);
                     }
                     // ÄNDAR (kapsnitten) — neutral
                     for(var j2=0;j2<ny-1;j2++){

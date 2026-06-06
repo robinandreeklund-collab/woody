@@ -118,37 +118,51 @@ def make_board(seed: int) -> Board:
     yy, xx = np.mgrid[0:h, 0:w]
     fx, fy = xx / w, yy / h
 
-    # --- grundton trä + längsgående gradient ---
-    base_h = (28 + rng.uniform(0, 10)) / 360.0
-    base_l = (0.58 + rng.uniform(0, 0.10))
-    top = np.array(_hsl_to_rgb(base_h, 0.42, base_l), float)
-    bot = np.array(_hsl_to_rgb(base_h - 0.011, 0.40, base_l - 0.08), float)
-    surf = (top[None, None, :] * (1 - fy[..., None]) + bot[None, None, :] * fy[..., None])
+    # --- yttextur: ÄKTA virke ur Kodytek-datasetet om det finns, annars procedurellt ---
+    tex = None
+    try:
+        from .textures import texture_bank
+        tb = texture_bank()
+        if tb.available():
+            tex = tb.random_patch(rng, w, h)
+    except Exception:
+        tex = None
 
-    # --- ådring (böljande längsgående linjer, mörkare) ---
-    grain = np.zeros((h, w), float)
-    for _ in range(46):
-        y0 = rng.uniform(0, h)
-        amp = rng.uniform(2, 9) * PX_PER_MM
-        frq = rng.uniform(0.004, 0.014) / PX_PER_MM
-        phase = rng.uniform(0, 7)
-        line_y = y0 + np.sin(xx * frq + phase) * amp
-        grain += np.exp(-((yy - line_y) ** 2) / (2 * (1.4 * PX_PER_MM) ** 2)) * rng.uniform(0.12, 0.30)
-    surf *= (1 - 0.5 * np.clip(grain, 0, 1))[..., None]
+    if tex is not None:
+        surf = tex.astype(float)
+    else:
+        # --- grundton trä + längsgående gradient ---
+        base_h = (28 + rng.uniform(0, 10)) / 360.0
+        base_l = (0.58 + rng.uniform(0, 0.10))
+        top = np.array(_hsl_to_rgb(base_h, 0.42, base_l), float)
+        bot = np.array(_hsl_to_rgb(base_h - 0.011, 0.40, base_l - 0.08), float)
+        surf = (top[None, None, :] * (1 - fy[..., None]) + bot[None, None, :] * fy[..., None])
 
-    # katedral-/flammådring (äkta flatsågad brädkänsla)
-    ncat = int(rng.integers(2, 4))
-    cat = np.zeros((h, w), float)
-    for _ in range(ncat):
-        cx = rng.uniform(0.2, 0.8) * w
-        curv = rng.uniform(0.0006, 0.0018) * (1 if rng.random() < 0.5 else -1)
-        phase = cx + curv * (yy - h / 2.0) ** 2
-        cat += 0.5 + 0.5 * np.cos((xx - phase) * rng.uniform(0.03, 0.06))
-    surf *= (1 - 0.20 * np.clip(cat / ncat - 0.45, 0, 1))[..., None]
-    # fina mörka porstreck längs fibern + låg-frekvent tonvariation
-    fine = (np.sin(xx * 0.5 + np.sin(yy * 0.06) * 3) > 0.96).astype(float)
-    surf *= (1 - 0.12 * fine)[..., None]
-    surf *= (1 + (np.sin(xx * 0.006 + 1) * np.cos(yy * 0.02)) * 0.06)[..., None]
+        # --- ådring (böljande längsgående linjer, mörkare) ---
+        grain = np.zeros((h, w), float)
+        for _ in range(46):
+            y0 = rng.uniform(0, h)
+            amp = rng.uniform(2, 9) * PX_PER_MM
+            frq = rng.uniform(0.004, 0.014) / PX_PER_MM
+            phase = rng.uniform(0, 7)
+            line_y = y0 + np.sin(xx * frq + phase) * amp
+            grain += np.exp(-((yy - line_y) ** 2) / (2 * (1.4 * PX_PER_MM) ** 2)) * rng.uniform(0.12, 0.30)
+        surf *= (1 - 0.5 * np.clip(grain, 0, 1))[..., None]
+
+        # katedral-/flammådring (äkta flatsågad brädkänsla)
+        ncat = int(rng.integers(2, 4))
+        cat = np.zeros((h, w), float)
+        for _ in range(ncat):
+            cx = rng.uniform(0.2, 0.8) * w
+            curv = rng.uniform(0.0006, 0.0018) * (1 if rng.random() < 0.5 else -1)
+            phase = cx + curv * (yy - h / 2.0) ** 2
+            cat += 0.5 + 0.5 * np.cos((xx - phase) * rng.uniform(0.03, 0.06))
+        surf *= (1 - 0.20 * np.clip(cat / ncat - 0.45, 0, 1))[..., None]
+        # fina mörka porstreck längs fibern + låg-frekvent tonvariation
+        fine = (np.sin(xx * 0.5 + np.sin(yy * 0.06) * 3) > 0.96).astype(float)
+        surf *= (1 - 0.12 * fine)[..., None]
+        surf *= (1 + (np.sin(xx * 0.006 + 1) * np.cos(yy * 0.02)) * 0.06)[..., None]
+
 
     # --- höjdkarta: global skevhet + mikro-sträv ---
     bow = float(rng.uniform(-1.5, 1.5))
