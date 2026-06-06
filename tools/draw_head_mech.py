@@ -129,15 +129,15 @@ txt(bL[0]-88, beltY-5, "rullbandets gång (matning) →", 8, "end", "#b06", 700)
 # ---- per huvud: kamera + laser + bänk, HÄNGER från tvärbalken via vinkeladapter ----
 def head(sign, col, name):
     cam = WS(sign*camY, camZ); las = WS(sign*lasY, lasZ)
-    ext = 26
     ux, uy = (las[0]-cam[0]), (las[1]-cam[1]); bl = math.hypot(ux,uy); ux,uy = ux/bl, uy/bl
-    p_a = (cam[0]-ux*ext, cam[1]-uy*ext); p_b = (las[0]+ux*ext, las[1]+uy*ext)
-    line(p_a[0], p_a[1], p_b[0], p_b[1], ALU, 8)                     # optisk bänk
-    # VINKELADAPTER på tvärbalken → huvudet HÄNGER ned-ut (åt sin sida)
-    adp = WS(sign*camY, PORTZ)                                       # punkt på tvärbalken ovan kamera-änden
-    line(p_a[0], p_a[1], adp[0], adp[1], ALU2, 7)                    # häng-arm
-    rect(adp[0]-10, adp[1]-2, 20, 15, ALU3, STEEL, 1.4, 2)          # vinkeladapter vid balken
-    txt(adp[0]+sign*16, adp[1]+18, "vinkeladapter", 8, "start" if sign>0 else "end", STEEL, 700)
+    # OPTISK BÄNK = EN vinklad bar, går från TVÄRBALKEN (vinkeladapter) ned-ut till lasern.
+    t_top = (cam[1]-pby)/uy                                          # backa upp längs bänken till tvärbalkshöjd
+    p_top = (cam[0]-ux*t_top, cam[1]-uy*t_top)                       # bänkens övre ände = vid tvärbalken
+    p_b   = (las[0]+ux*34, las[1]+uy*34)                             # lite förbi lasern
+    line(p_top[0], p_top[1], p_b[0], p_b[1], ALU, 9)                 # bänken (en enda bar, i vinkel)
+    rect(p_top[0]-11, p_top[1]-3, 22, 16, ALU3, STEEL, 1.4, 2)       # VINKELADAPTER vid tvärbalken
+    txt(p_top[0]+sign*15, p_top[1]+5, "vinkeladapter", 8, "start" if sign>0 else "end", STEEL, 700)
+    txt(p_top[0]+sign*15, p_top[1]+17, "(bänk i vinkel)", 7.5, "start" if sign>0 else "end", MUTED, 700)
     # rikta-enhetsvektorer mot O
     def U(p): d=math.hypot(Ox-p[0], Oy-p[1]); return ((Ox-p[0])/d,(Oy-p[1])/d)
     uc, ul = U(cam), U(las)
