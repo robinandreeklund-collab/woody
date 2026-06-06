@@ -63,6 +63,13 @@ class Board:
         ys = np.linspace(0, rmax - 1, ny).astype(int)
         return self.zmap[np.ix_(ys, xs)]
 
+    def color_grid(self, nx: int = 56, ny: int = 16, row_limit: int | None = None):
+        """Färg (RGB) på samma rutnät som mesh_grid → foto-textur på 3D-plankan."""
+        rmax = self.h if row_limit is None else max(2, min(self.h, row_limit))
+        xs = np.linspace(0, self.w - 1, nx).astype(int)
+        ys = np.linspace(0, rmax - 1, ny).astype(int)
+        return self.surface[np.ix_(ys, xs)]
+
     def warp_metrics(self) -> dict:
         """Verklig skevhet ur höjdkartan (mm), enligt virkesgraderingens begrepp."""
         z = self.zmap
@@ -128,6 +135,20 @@ def make_board(seed: int) -> Board:
         line_y = y0 + np.sin(xx * frq + phase) * amp
         grain += np.exp(-((yy - line_y) ** 2) / (2 * (1.4 * PX_PER_MM) ** 2)) * rng.uniform(0.12, 0.30)
     surf *= (1 - 0.5 * np.clip(grain, 0, 1))[..., None]
+
+    # katedral-/flammådring (äkta flatsågad brädkänsla)
+    ncat = int(rng.integers(2, 4))
+    cat = np.zeros((h, w), float)
+    for _ in range(ncat):
+        cx = rng.uniform(0.2, 0.8) * w
+        curv = rng.uniform(0.0006, 0.0018) * (1 if rng.random() < 0.5 else -1)
+        phase = cx + curv * (yy - h / 2.0) ** 2
+        cat += 0.5 + 0.5 * np.cos((xx - phase) * rng.uniform(0.03, 0.06))
+    surf *= (1 - 0.20 * np.clip(cat / ncat - 0.45, 0, 1))[..., None]
+    # fina mörka porstreck längs fibern + låg-frekvent tonvariation
+    fine = (np.sin(xx * 0.5 + np.sin(yy * 0.06) * 3) > 0.96).astype(float)
+    surf *= (1 - 0.12 * fine)[..., None]
+    surf *= (1 + (np.sin(xx * 0.006 + 1) * np.cos(yy * 0.02)) * 0.06)[..., None]
 
     # --- höjdkarta: global skevhet + mikro-sträv ---
     bow = float(rng.uniform(-1.5, 1.5))

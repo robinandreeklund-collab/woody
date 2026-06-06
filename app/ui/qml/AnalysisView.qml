@@ -44,6 +44,7 @@ RowLayout {
                         c.fillText("Skanna en bräda → 3D-modell visas här", w/2, h/2); return;
                     }
                     var nx=m.nx, ny=m.ny, Z=m.z, L=m.len, W=m.width, T=m.thick;
+                    var RGB=m.rgb, wf=(m.wfrac!==undefined)?m.wfrac:1.0;
                     var zmin=m.zmin, zmax=m.zmax, span=Math.max(0.5,zmax-zmin);
                     var maxabs=Math.max(Math.abs(zmin),Math.abs(zmax),0.5);
                     var cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
@@ -51,7 +52,8 @@ RowLayout {
                     // solid bräda: topp = uppmätt tjocklek (skevhet ×exag), botten platt (band)
                     function topZ(i,j){ return T + Z[j*nx+i]*exag; }
                     function vx(i){ return (i/(nx-1)-0.5)*L; }
-                    function vy(j){ return (j/(ny-1)-0.5)*W; }
+                    // brädan växer från ledande kanten (−W/2) framåt med skannad andel wf
+                    function vy(j){ return -W/2 + (j/(ny-1))*(W*wf); }
                     function proj(x,y,z){
                         var zc=z - T/2;                                  // centrera vertikalt
                         var x1=x*cy - y*sy, y1=x*sy + y*cy;
@@ -72,9 +74,11 @@ RowLayout {
                         var nzx=(Z[j*nx+i+1]-zv)*exag, nzy=(Z[(j+1)*nx+i]-zv)*exag;
                         var nlen=Math.hypot(nzx*dy,nzy*dx,dx*dy)||1;
                         var sh=0.55+0.45*Math.max(0,(-nzx*dy*light[0]-nzy*dx*light[1]+dx*dy*light[2])/nlen);
-                        var col = mode===0 ? turbo((zv-zmin)/span)
-                                : mode===1 ? diverge(zv/maxabs)
-                                : [Math.round(120+120*sh),Math.round(120+120*sh),Math.round(120+120*sh)];
+                        var col;
+                        if(mode===0) col=turbo((zv-zmin)/span);
+                        else if(mode===1) col=diverge(zv/maxabs);
+                        else if(mode===3 && RGB){ var p=(j*nx+i)*3; col=[RGB[p],RGB[p+1],RGB[p+2]]; }
+                        else { var g=Math.round(120+120*sh); col=[g,g,g]; }
                         add([a,b,cc,d2], tint(col,sh));
                     }
                     // BOTTEN (platt, vilar på bandet) — tessellerad så djup-sorteringen stämmer
@@ -122,7 +126,7 @@ RowLayout {
             Row {
                 anchors.top: parent.top; anchors.right: parent.right; spacing: 6
                 Repeater {
-                    model: ["Höjd","Avvikelse","Skuggad"]
+                    model: ["Höjd","Avvikelse","Skuggad","Foto"]
                     delegate: Rectangle {
                         radius: 7; implicitHeight: 24; implicitWidth: t.width+18
                         color: view3d.mode===index ? Theme.cyan : Theme.panel2

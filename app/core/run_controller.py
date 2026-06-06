@@ -115,11 +115,13 @@ class AppController(QObject):
         ny = 16 if full else max(2, min(16, int(round(16 * progress)) or 2))
         row_limit = None if full else max(2, int(round(progress * b.h)))
         grid = b.mesh_grid(56, ny, row_limit)
+        cg = b.color_grid(56, ny, row_limit)
         mesh = {
             "nx": int(grid.shape[1]), "ny": int(grid.shape[0]),
             "z": [round(float(v), 3) for v in grid.flatten()],
-            "len": RIG.board_len_mm,
-            "width": RIG.board_width_mm if full else max(1.0, progress * RIG.board_width_mm),
+            "rgb": [int(v) for v in cg.reshape(-1)],     # foto-textur (ny·nx·3, radvis)
+            "len": RIG.board_len_mm, "width": RIG.board_width_mm,
+            "wfrac": 1.0 if full else max(0.02, progress),   # skannad andel (växer från ledande kant)
             "thick": RIG.board_thick_mm,
             "zmin": float(grid.min()), "zmax": float(grid.max()),
         }
