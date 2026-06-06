@@ -7,7 +7,7 @@ Item {
     id: root
     anchors.fill: parent
     property int mode: 3
-    property bool spin: true
+    property bool spin: false
     property real exag: 3
     property real yaw: -28
     property real pitch: -62
@@ -41,6 +41,7 @@ Item {
 
             Model {
                 id: board
+                pickable: true
                 geometry: BoardGeometry { id: geom; mode: root.mode; exaggeration: root.exag }
                 materials: PrincipledMaterial {
                     baseColor: "white"; vertexColorsEnabled: true
@@ -49,16 +50,18 @@ Item {
                 }
             }
 
-            // defekt-pins (klickbara) — i brädans toppyta
+            // defekt-pins (kon-markörer, klickbara) — står på brädans toppyta
             Repeater3D {
                 model: ctrl.defects
                 Node {
-                    position: Qt.vector3d(modelData.x - root.blen/2, modelData.y - root.bwid/2, root.bthk/2 + 3)
+                    position: Qt.vector3d(modelData.x - root.blen/2, modelData.y - root.bwid/2, root.bthk/2)
                     Model {
-                        source: "#Sphere"; scale: Qt.vector3d(0.12,0.12,0.12)
-                        objectName: "pin:" + modelData.name + " @x" + modelData.x + " y" + modelData.y
+                        source: "#Cone"; pickable: true
+                        eulerRotation.x: 90; scale: Qt.vector3d(0.10, 0.18, 0.10)
+                        position: Qt.vector3d(0, 0, 9)        // basen på ytan, spetsen upp
+                        objectName: "Defekt: " + modelData.name + "  (x" + modelData.x + " · y" + modelData.y + " · ⌀" + modelData.dia + " mm)"
                         materials: PrincipledMaterial { baseColor: modelData.color
-                            emissiveFactor: Qt.vector3d(0.5,0.5,0.5); roughness: 0.4 }
+                            emissiveFactor: Qt.vector3d(0.30,0.30,0.30); roughness: 0.45 }
                     }
                 }
             }
@@ -66,10 +69,10 @@ Item {
             // mät-markörer
             Repeater3D {
                 model: root.measurePts
-                Model { source: "#Sphere"; scale: Qt.vector3d(0.09,0.09,0.09)
+                Model { source: "#Sphere"; scale: Qt.vector3d(0.07,0.07,0.07)
                     position: modelData
                     materials: PrincipledMaterial { baseColor: Theme.cyan
-                        emissiveFactor: Qt.vector3d(0.6,0.6,0.6) } }
+                        emissiveFactor: Qt.vector3d(0.7,0.7,0.7) } }
             }
         }
     }
@@ -97,7 +100,7 @@ Item {
         id: drag
         anchors.fill: parent
         property real px: 0; property real py: 0; property bool moved: false
-        onPressed: (e)=>{ px=e.x; py=e.y; moved=false }
+        onPressed: (e)=>{ px=e.x; py=e.y; moved=false; root.spin=false }
         onPositionChanged: (e)=>{
             if (Math.abs(e.x-px) + Math.abs(e.y-py) > 3) { moved=true; root.spin=false; }
             root.yaw += (e.x-px)*0.3; root.pitch += (e.y-py)*0.3;

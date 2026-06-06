@@ -110,64 +110,63 @@ RowLayout {
             Canvas {
                 id: rigCv; anchors.fill: parent
                 Connections { target: ctrl; function onStateChanged() { rigCv.requestPaint() } }
+                // Maskinvy: sensorerna är FASTA, brädan matas igenom. Ledande kanten
+                // passerar LR400-ankaret (uppströms) FÖRST → 3 absolutmått, sedan laser/yta.
                 onPaint: {
                     var c=getContext("2d"); c.reset();
                     var w=width, h=height, R=ctrl.rig;
-                    // brädans yta uppifrån: X (längd 500) horisontellt, Y (bredd 75) vertikalt
-                    var asp=R.len/R.width, hpad=70, vpad=42;
-                    var bw=Math.min(w-2*hpad, (h-2*vpad)*asp), bh=bw/asp;
-                    var bx=(w-bw)/2, by=(h-bh)/2;
-                    // transportband vid längd-ändarna (vänster/höger)
-                    c.fillStyle="#0c121a";
-                    c.fillRect(bx-16, by-6, 12, bh+12); c.fillRect(bx+bw+4, by-6, 12, bh+12);
+                    var hpad=58, vpad=24;
+                    var bx=hpad, bw=w-2*hpad;
+                    var mmY=(h-2*vpad)/(R.width + R.lrLead + 70);    // px per mm i matningsled
+                    var bhB=R.width*mmY;
+                    var yLAS=h*0.60;                                 // FAST laserlinje + ytkamera
+                    var yLR=yLAS - R.lrLead*mmY;                     // FAST LR-plan uppströms
+                    var p=ctrl.scanProgress;
+                    var yLead=yLAS + p*bhB;                          // ledande kant (nedströms)
+                    var yTrail=yLead - bhB;                          // bakkant (uppströms)
+                    // transportband vid längd-ändarna
+                    c.fillStyle="#0c121a"; c.fillRect(bx-16, vpad, 12, h-2*vpad); c.fillRect(bx+bw+4, vpad, 12, h-2*vpad);
                     c.strokeStyle="#1b2735"; c.lineWidth=1;
-                    for (var bb=by-4; bb<by+bh; bb+=9){ c.beginPath(); c.moveTo(bx-16,bb); c.lineTo(bx-4,bb); c.moveTo(bx+bw+4,bb); c.lineTo(bx+bw+16,bb); c.stroke(); }
-                    // bräda
-                    c.fillStyle="#c9a468"; c.fillRect(bx,by,bw,bh);
-                    c.strokeStyle="#7a5230"; c.lineWidth=1; c.strokeRect(bx,by,bw,bh);
-                    // matningsled
-                    var ly=by + bh*ctrl.scanProgress;
-                    // RÖD huvud (ovanför brädan) — fläkt täcker hela 500 mm
-                    function head(yPos, col, nm, align){
-                        c.strokeStyle=col; c.globalAlpha=0.18; c.lineWidth=1;
-                        c.beginPath(); c.moveTo((bx+bx+bw)/2, yPos); c.lineTo(bx, ly); c.lineTo(bx+bw, ly); c.closePath();
-                        c.fillStyle=col; c.fill(); c.globalAlpha=1;
-                        // kamera+laser-modul
-                        c.fillStyle="#16212e"; c.strokeStyle=col; c.lineWidth=1.5;
-                        c.fillRect((bx+bx+bw)/2-22, yPos-9, 44, 18); c.strokeRect((bx+bx+bw)/2-22, yPos-9, 44, 18);
-                        c.fillStyle="#9fb2c6"; c.font="9px monospace"; c.textAlign="center";
-                        c.fillText(nm, (bx+bx+bw)/2, align<0 ? yPos-13 : yPos+22);
+                    for(var bb=vpad; bb<h-vpad; bb+=10){ c.beginPath(); c.moveTo(bx-16,bb); c.lineTo(bx-4,bb); c.moveTo(bx+bw+4,bb); c.lineTo(bx+bw+16,bb); c.stroke(); }
+                    // BRÄDAN glider genom (klippt till zonen)
+                    c.save(); c.beginPath(); c.rect(bx-2, vpad-2, bw+4, h-2*vpad+4); c.clip();
+                    if(p>0){
+                        c.fillStyle="#c9a468"; c.fillRect(bx, yTrail, bw, bhB);
+                        c.strokeStyle="#7a5230"; c.lineWidth=1; c.strokeRect(bx, yTrail, bw, bhB);
+                        if(yLead>yLAS){ c.fillStyle="rgba(39,211,224,0.07)"; c.fillRect(bx, yLAS, bw, Math.min(yLead,h-vpad)-yLAS); }
                     }
-                    head(by-26, Theme.red, "RÖD 650 (huvud A)", -1);
-                    head(by+bh+26, Theme.grn, "GRÖN 520 (huvud B)", 1);
-                    // laserlinjen (längs hela längden) — röd+grön
-                    c.lineWidth=3; c.strokeStyle=Theme.red; c.shadowColor=Theme.red; c.shadowBlur=8;
-                    c.beginPath(); c.moveTo(bx,ly-1.5); c.lineTo(bx+bw,ly-1.5); c.stroke();
-                    c.strokeStyle=Theme.grn; c.shadowColor=Theme.grn;
-                    c.beginPath(); c.moveTo(bx,ly+1.5); c.lineTo(bx+bw,ly+1.5); c.stroke(); c.shadowBlur=0;
-                    // PUNKTLASER-ANKARE (3× LR400) — eget mätplan UPPSTRÖMS, utanför profil-FOV
+                    c.restore();
+                    c.fillStyle="#3a4d62"; c.font="9px monospace"; c.textAlign="left"; c.fillText("matning ↓", bx+2, vpad+11);
+                    // ---- FASTA sensorer ----
+                    // LR400-ankarplan (uppströms — mäts FÖRST). Lyser när brädan är under det.
+                    var lrOn = (p>0 && yLR<=yLead && yLR>=yTrail);
+                    c.strokeStyle=Qt.rgba(0.15,0.83,0.88,lrOn?0.75:0.3); c.setLineDash([5,4]); c.lineWidth=1.4;
+                    c.beginPath(); c.moveTo(bx,yLR); c.lineTo(bx+bw,yLR); c.stroke(); c.setLineDash([]);
                     var lp=ctrl.lrPositions;
-                    var ay=ly + bh*(R.lrLead/R.width);          // leder skanningen med feed-offset
-                    if(ay < by+bh-2){
-                        c.strokeStyle=Qt.rgba(0.15,0.83,0.88,0.55); c.setLineDash([5,4]); c.lineWidth=1.4;
-                        c.beginPath(); c.moveTo(bx,ay); c.lineTo(bx+bw,ay); c.stroke(); c.setLineDash([]);
-                        for(var i=0;i<lp.length;i++){ var px=bx+bw*(lp[i]/R.len);
-                            c.fillStyle=Theme.cyan; c.beginPath(); c.arc(px,ay,3.4,0,7); c.fill();
-                            c.strokeStyle=Qt.rgba(0.15,0.83,0.88,0.4); c.beginPath(); c.arc(px,ay,6,0,7); c.stroke(); }
-                        c.fillStyle=Theme.cyan; c.font="8px monospace"; c.textAlign="left";
-                        c.fillText("3× LR400 ankare · uppströms (utanför FOV)", bx+4, ay+14);
-                    }
-                    // ytkamera i centrum
+                    for(var i=0;i<lp.length;i++){ var px=bx+bw*(lp[i]/R.len);
+                        c.fillStyle=lrOn?Theme.cyan:Qt.rgba(0.15,0.83,0.88,0.35); c.beginPath(); c.arc(px,yLR,3.6,0,7); c.fill();
+                        c.strokeStyle=Qt.rgba(0.15,0.83,0.88,0.4); c.beginPath(); c.arc(px,yLR,6.5,0,7); c.stroke(); }
+                    c.fillStyle=Theme.cyan; c.font="8px monospace"; c.textAlign="left";
+                    c.fillText("3× LR400 ankare · uppströms — mäts FÖRST (utanför FOV)", bx+2, yLR-7);
+                    // FASTA huvuden + laserlinje + ytkamera
+                    function head(off,col,nm,dir){ var hy=yLAS+off;
+                        c.globalAlpha=0.15; c.fillStyle=col; c.beginPath();
+                        c.moveTo((bx+bx+bw)/2,hy); c.lineTo(bx,yLAS); c.lineTo(bx+bw,yLAS); c.closePath(); c.fill(); c.globalAlpha=1;
+                        c.fillStyle="#16212e"; c.strokeStyle=col; c.lineWidth=1.5;
+                        c.fillRect((bx+bx+bw)/2-20,hy-8,40,16); c.strokeRect((bx+bx+bw)/2-20,hy-8,40,16);
+                        c.fillStyle="#9fb2c6"; c.font="8px monospace"; c.textAlign="center"; c.fillText(nm,(bx+bx+bw)/2, dir<0?hy-11:hy+18); }
+                    head(-36,Theme.red,"RÖD 650 (huvud A)",-1);
+                    head(36,Theme.grn,"GRÖN 520 (huvud B)",1);
+                    c.lineWidth=3; c.strokeStyle=Theme.red; c.shadowColor=Theme.red; c.shadowBlur=8;
+                    c.beginPath(); c.moveTo(bx,yLAS-1.5); c.lineTo(bx+bw,yLAS-1.5); c.stroke();
+                    c.strokeStyle=Theme.grn; c.shadowColor=Theme.grn; c.beginPath(); c.moveTo(bx,yLAS+1.5); c.lineTo(bx+bw,yLAS+1.5); c.stroke(); c.shadowBlur=0;
                     c.fillStyle="#16212e"; c.strokeStyle=Theme.blue; c.lineWidth=1.5;
-                    c.fillRect((bx+bx+bw)/2-14, by+bh/2-7, 28, 14); c.strokeRect((bx+bx+bw)/2-14, by+bh/2-7, 28, 14);
-                    c.fillStyle=Theme.blue; c.font="8px monospace"; c.textAlign="center"; c.fillText("ytkamera 4K", (bx+bx+bw)/2, by+bh/2+18);
+                    c.fillRect((bx+bx+bw)/2-13, yLAS-7, 26, 14); c.strokeRect((bx+bx+bw)/2-13, yLAS-7, 26, 14);
                     // etiketter
                     c.fillStyle="#61768c"; c.font="9px monospace";
-                    c.textAlign="left"; c.fillText("0", bx, by+bh+16);
-                    c.textAlign="right"; c.fillText(R.len.toFixed(0)+" mm  (längd X — laserlinjens riktning)", bx+bw, by+bh+16);
-                    c.textAlign="left"; c.fillText("matning ↓ (bredd "+R.width.toFixed(0)+" mm, Y)", bx, by-14);
-                    c.fillStyle=Theme.cyan; c.textAlign="center";
-                    c.fillText("laserlinje "+R.len.toFixed(0)+" mm — täcker hela långsidan", (bx+bx+bw)/2, ly>by+bh/2 ? ly-8 : ly+16);
+                    c.textAlign="left"; c.fillText("0", bx, h-8);
+                    c.textAlign="right"; c.fillText(R.len.toFixed(0)+" mm (längd X — laserlinjen)", bx+bw, h-8);
+                    c.fillStyle="#3a4d62"; c.textAlign="center"; c.fillText("sensorer FASTA — brädan matas igenom", (bx+bx+bw)/2, h-8);
                 }
             }
         }
