@@ -28,16 +28,35 @@ def parse_args(argv=None) -> AppConfig:
     p.add_argument("--db", default="data/woody.db", help="SQLite-loggfil")
     p.add_argument("--no-store", action="store_true", help="logga inte till disk")
     p.add_argument("--save-images", action="store_true", help="spara yt-bild per bräda")
+    p.add_argument("--probe", action="store_true", help="testa hårdvaruanslutning (real) och avsluta")
     a = p.parse_args(argv)
     cfg = AppConfig(mode=a.mode, feed_mm_s=a.feed, profile_rate_hz=a.rate,
                     fullscreen=a.fullscreen).validate()
     cfg._db = None if a.no_store else a.db
     cfg._save_images = a.save_images
+    cfg._probe = a.probe
     return cfg
+
+
+def probe(cfg: AppConfig) -> int:
+    """Testa hårdvaruanslutning och skriv en rapport (bring-up)."""
+    from .hal.factory import build_scanner
+    scanner = build_scanner(cfg)
+    if not hasattr(scanner, "connect_report"):
+        print("Probe stöds bara i --mode real."); return 1
+    print(f"\nHårdvaruprobe ({cfg.mode}):")
+    ok_all = True
+    for name, ok, msg in scanner.connect_report():
+        print(f"  [{'OK ' if ok else 'FEL'}] {name:28} {msg}")
+        ok_all = ok_all and ok
+    print("Klart." if ok_all else "Vissa enheter saknas/SDK ej installerad — se docs/jetson-setup.md.")
+    return 0 if ok_all else 2
 
 
 def main(argv=None) -> int:
     cfg = parse_args(argv)
+    if getattr(cfg, "_probe", False):
+        return probe(cfg)
     app = QGuiApplication(sys.argv)
     app.setApplicationName("VIRKE Kontrollsystem")
 

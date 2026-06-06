@@ -100,10 +100,11 @@ class AppController(QObject):
     def _new_board(self):
         self._scanner.new_board()
         b = self._scanner.board()
-        self._surface_provider.set_array(b.surface, "surface")
-        self._surface_provider.set_array(b.height_rgb(), "height")
+        if b is not None:                      # sim ger en bräda direkt
+            self._surface_provider.set_array(b.surface, "surface")
+            self._surface_provider.set_array(b.height_rgb(), "height")
         self._surface_rev += 1
-        self._s.phase = "scanning"
+        self._s.phase = "scanning" if b is not None else "idle"
         self._s.feed_pos_mm = 0.0
         self._s.detected = []
         self._grade = None

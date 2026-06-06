@@ -10,6 +10,6 @@ def build_scanner(cfg: AppConfig) -> Scanner:
         from .sim.sim_backends import SimScanner
         return SimScanner()
     if cfg.mode == "real":
-        raise NotImplementedError(
-            "Real-HAL (MVS/Aravis/Modbus/Jrk) implementeras i Fas 4 — kör --mode sim tills vidare.")
+        from .real.real_backends import RealScanner
+        return RealScanner(cfg)
     raise ValueError(f"okänt läge: {cfg.mode!r}")
