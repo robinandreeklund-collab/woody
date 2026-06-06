@@ -32,21 +32,25 @@ Canvas {
             c.beginPath(); c.moveTo(X(0), Y(0));
             for(var k=0;k<zp.length;k++) c.lineTo(X(k), Y(zp[k]));
             c.lineTo(X(zp.length-1), Y(0)); c.closePath();
-            c.fillStyle="rgba(201,164,104,0.18)"; c.fill();            // trä-snitt
-            // toppyta
+            c.fillStyle="rgba(201,164,104,0.14)"; c.fill();            // trä-snitt (antaget)
+            // TOPPYTA = MÄTT (heldragen)
             c.beginPath();
             for(var j=0;j<zp.length;j++){ var xx=X(j),yv=Y(zp[j]); j?c.lineTo(xx,yv):c.moveTo(xx,yv); }
             c.strokeStyle=accent; c.lineWidth=2; c.stroke();
-            // botten
-            c.strokeStyle="rgba(159,178,198,0.4)"; c.lineWidth=1.5;
+            // BOTTEN + SIDOR = ANTAGNA (ej mätt → streckat/dämpat)
+            c.setLineDash([4,3]);
+            c.strokeStyle="rgba(159,178,198,0.35)"; c.lineWidth=1.2;
             c.beginPath(); c.moveTo(X(0),Y(0)); c.lineTo(X(zp.length-1),Y(0)); c.stroke();
-            // tjockleks-sidor: vänster RÖD-huvud, höger GRÖN-huvud
-            c.lineWidth=3; c.lineCap="round";
-            c.strokeStyle=Theme.red;  c.beginPath(); c.moveTo(X(0),Y(0)); c.lineTo(X(0),Y(zp[0])); c.stroke();
-            c.strokeStyle=Theme.grn;  c.beginPath(); c.moveTo(X(zp.length-1),Y(0)); c.lineTo(X(zp.length-1),Y(zp[zp.length-1])); c.stroke();
-            c.lineCap="butt";
+            c.lineWidth=2; c.lineCap="round";
+            c.strokeStyle=Qt.rgba(Theme.red.r,Theme.red.g,Theme.red.b,0.5);
+            c.beginPath(); c.moveTo(X(0),Y(0)); c.lineTo(X(0),Y(zp[0])); c.stroke();
+            c.strokeStyle=Qt.rgba(Theme.grn.r,Theme.grn.g,Theme.grn.b,0.5);
+            c.beginPath(); c.moveTo(X(zp.length-1),Y(0)); c.lineTo(X(zp.length-1),Y(zp[zp.length-1])); c.stroke();
+            c.setLineDash([]); c.lineCap="butt";
             c.fillStyle=Theme.red;  c.font="8px monospace"; c.textAlign="left";  c.fillText("RÖD", X(0)+3, Y(zp[0])-4);
             c.fillStyle=Theme.grn;  c.textAlign="right"; c.fillText("GRÖN", X(zp.length-1)-3, Y(zp[zp.length-1])-4);
+            c.fillStyle="#3a4d62"; c.font="8px monospace"; c.textAlign="left";
+            c.fillText("— mätt topp · - - botten/sidor antagna (band-datum)", X(0)+2, Y(0)-5);
         } else {
             c.beginPath(); c.moveTo(gx,gy+gh);
             for(var a=0;a<zp.length;a++) c.lineTo(X(a), Y(zp[a]));
