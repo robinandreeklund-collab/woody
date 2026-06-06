@@ -49,6 +49,16 @@ class Board:
         xs = np.linspace(0, self.w - 1, n).astype(int)
         return RIG.board_thick_mm + self.zmap[yy, xs]
 
+    def height_rgb(self) -> np.ndarray:
+        """Höjdkarta som färglagd RGB-bild (turbo-liknande colormap)."""
+        z = self.zmap
+        lo, hi = float(z.min()), float(z.max())
+        t = (z - lo) / (hi - lo + 1e-6)
+        r = np.clip(34 + t * 221, 0, 255)
+        g = np.clip(60 + np.sin(t * np.pi) * 180, 0, 255)
+        b = np.clip(220 - t * 180, 0, 255)
+        return np.ascontiguousarray(np.stack([r, g, b], axis=-1).astype(np.uint8))
+
 
 def _hsl_to_rgb(h, s, l):
     """h∈[0,1], s,l∈[0,1] → (r,g,b) 0–255 ints."""

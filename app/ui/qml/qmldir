@@ -1,0 +1,11 @@
+singleton Theme 1.0 Theme.qml
+Card 1.0 Card.qml
+Btn 1.0 Btn.qml
+Kpi 1.0 Kpi.qml
+CtrlSlider 1.0 CtrlSlider.qml
+NavTab 1.0 NavTab.qml
+BoardImage 1.0 BoardImage.qml
+DashboardView 1.0 DashboardView.qml
+SensorsView 1.0 SensorsView.qml
+LogView 1.0 LogView.qml
+CalibrationView 1.0 CalibrationView.qml

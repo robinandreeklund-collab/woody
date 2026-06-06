@@ -6,6 +6,7 @@ tråd (simulering är lätt); i Fas 4 flyttas förvärv/behandling till egna tr�
 """
 from __future__ import annotations
 
+import math
 import random
 import time
 
@@ -23,6 +24,7 @@ class AppController(QObject):
     stateChanged = Signal()           # generell ändring (per frame) → QML rebindar
     surfaceChanged = Signal()         # ny yt-bild tillgänglig (busta image-cache)
     defectsChanged = Signal()         # defektlistan ändrad (ej per frame)
+    historyChanged = Signal()         # ny bräda klar → logg uppdaterad
 
     def __init__(self, cfg: AppConfig, surface_provider, parent=None):
         super().__init__(parent)
@@ -34,6 +36,8 @@ class AppController(QObject):
         self._lr = [RIG.board_thick_mm] * len(RIG.point_lasers_x_mm)
         self._zprofile: list = []
         self._grade = None
+        self._history: list = []
+        self._store = None            # sätts av main (persistens)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -93,7 +97,8 @@ class AppController(QObject):
     def _new_board(self):
         self._scanner.new_board()
         b = self._scanner.board()
-        self._surface_provider.set_array(b.surface)
+        self._surface_provider.set_array(b.surface, "surface")
+        self._surface_provider.set_array(b.height_rgb(), "height")
         self._surface_rev += 1
         self._s.phase = "scanning"
         self._s.feed_pos_mm = 0.0
@@ -112,6 +117,20 @@ class AppController(QObject):
         b = self._scanner.board()
         self._grade = grade_board(s.detected, b.warp if b else (0, 0, 0))
         s.load_target = 22 + 10 * random.random()
+        entry = {
+            "n": s.board_count,
+            "cls": self._grade.cls, "title": self._grade.title, "color": self._grade.color,
+            "score": self._grade.score, "ndef": len(s.detected),
+            "time": time.strftime("%H:%M:%S"),
+        }
+        self._history.insert(0, entry)
+        del self._history[200:]
+        if self._store is not None:
+            try:
+                self._store.log_board(entry, s.detected, b)
+            except Exception as exc:           # persistens får aldrig stoppa drift
+                print("persistens-fel:", exc)
+        self.historyChanged.emit()
 
     # ----------------------------------------------------------------- slots
     @Slot()
@@ -241,3 +260,60 @@ class AppController(QObject):
 
     @Property(str, constant=True)
     def modeText(self): return self._cfg.mode.upper()
+
+    @Property("QVariantList", notify=historyChanged)
+    def history(self): return self._history
+
+    def set_store(self, store):
+        self._store = store
+
+    # -------------------------------------------------- riggens geometri (= head-mech.svg)
+    @Property("QVariantMap", constant=True)
+    def rig(self):
+        return {
+            "wd": RIG.work_distance_mm,
+            "camArm": RIG.cam_arm_deg, "laserArm": RIG.laser_arm_deg,
+            "theta": RIG.tri_angle_deg, "oblique": RIG.oblique_deg,
+            "camHeight": round(RIG.cam_height_mm), "camOffset": round(RIG.cam_offset_mm),
+            "laserHeight": round(RIG.laser_height_mm), "laserOffset": round(RIG.laser_offset_mm),
+            "baseline": round(RIG.baseline_mm), "surfWd": RIG.surface_cam_wd_mm,
+            "len": RIG.board_len_mm, "width": RIG.board_width_mm, "thick": RIG.board_thick_mm,
+            "surfMmPx": round(RIG.surface_mm_per_px, 4), "profLatMmPx": round(RIG.profile_lat_mm_per_px, 4),
+        }
+
+    # ------------------------------------------------------ sensor-telemetri (live)
+    @Property("QVariantMap", notify=stateChanged)
+    def telemetry(self):
+        sc = self._s.phase == "scanning"
+        rate = self._cfg.profile_rate_hz
+        feed = self._cfg.feed_mm_s
+        load = self._s.jetson_load
+        # profilkameror
+        dr_prof = 2448 * 256 * rate / 1e6                 # MB/s (ROI 256 rader)
+        zres_um = round(RIG.profile_lat_mm_per_px / math.tan(math.radians(RIG.tri_angle_deg)) * 0.1 * 1000)
+        sig = (88 + 4 * math.sin(time.perf_counter())) if sc else 0
+        # ytkamera
+        mmpx = RIG.surface_mm_per_px
+        srate = feed / mmpx if sc else 0
+        dr_surf = 4096 * 3 * srate / 1e6
+        rows_now = round(self._s.feed_pos_mm / mmpx) if self._scanner.board() else 0
+        rows_tot = round(RIG.board_width_mm / mmpx)
+        # transportör
+        spd = feed if (self._s.running and sc) else 0
+        cur = (0.35 + spd * 0.004) if spd else 0.05
+        enc = round(self._scanner.conveyor.position_mm())
+        # jetson
+        ingest = (2 * dr_prof if sc else 0) + dr_surf
+        return {
+            "profRate": f"{rate:.0f} Hz", "profData": f"{(dr_prof if sc else 0):.0f} MB/s",
+            "profZres": f"~{zres_um} µm", "profSig": f"{sig:.0f} %",
+            "profExp": f"{(1e6/rate*0.4 if sc else 0):.0f} µs",
+            "surfRate": f"{srate:.0f} Hz", "surfData": f"{dr_surf:.1f} MB/s",
+            "surfRows": f"{rows_now} / {rows_tot}", "surfMmPx": f"{mmpx:.3f} mm/px",
+            "surfCap": f"{srate/8000*100:.1f} %",
+            "convSpeed": f"{spd:.0f} mm/s", "convCurrent": f"{cur:.2f} A",
+            "convEnc": f"{enc} mm", "convPwm": f"{(round(spd/120*78+12) if spd else 0)} %",
+            "jetCpu": f"{22 + load*0.45:.0f} %", "jetGpu": f"{load:.0f} %",
+            "jetRam": f"{38 + load*0.12:.0f} %", "jetIngest": f"{ingest:.0f} MB/s",
+            "jetPwr": f"{7 + load*0.16:.1f} W", "jetTemp": f"{45 + load*0.18:.0f} °C",
+        }
