@@ -190,8 +190,13 @@ def make_board(seed: int) -> Board:
     twist = float(rng.uniform(-1.3, 1.3))
     z = (bow * np.sin(np.pi * fx)
          + cup * (np.cos(np.pi * (fy - 0.5)) - 0.6)
-         + twist * (fx - 0.5) * (fy - 0.5) * 2.0
-         + np.sin(fx * 70 + fy * 9) * 0.08).astype(np.float32)   # mild ytsträvhet
+         + twist * (fx - 0.5) * (fy - 0.5) * 2.0).astype(np.float32)
+    # liten ICKE-periodisk ytsträvhet (slät slumpfält, ej en jämn våg)
+    rough = rng.standard_normal((h, w)).astype(np.float32)
+    k = np.hanning(9).astype(np.float32); k /= k.sum()
+    rough = np.apply_along_axis(lambda r: np.convolve(r, k, mode="same"), 1, rough)
+    z += rough * 0.05
+
 
     defects = []
 
