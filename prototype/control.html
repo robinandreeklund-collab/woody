@@ -336,7 +336,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;heigh
 // ---- bräddimensioner (mm) ----
 const BL = 500;          // längd (X, laserlinjens riktning)
 const BW = 75;           // bredd (Y, matningsled)
-const BT = 45;           // tjocklek (nominell, mm)
+const BT = 20;           // tjocklek (nominell, mm)
 const GAP = 25;          // mellanrum mellan brädor på bandet (mm)
 
 // ---- LR400 punktlaser-positioner längs X (mm) ----
@@ -424,7 +424,7 @@ function makeBoard(seed){
   // vankant (saknad kant längs en sida över ett parti) — Z faller mot kanten
   if(rnd()<0.55){
     const side=rnd()<0.5?0:1;                       // y=0 eller y=BW
-    const x0=rnd()*BL*0.5, len=80+rnd()*200, depth=6+rnd()*14;
+    const x0=rnd()*BL*0.5, len=80+rnd()*200, depth=4+rnd()*(BT*0.5);
     addDef({type:"wane",x:x0+len/2,y:side?BW-depth/2:depth/2,r:len/2,side,len,depth});
     const py0=side?(BW-depth)*PPMM:0, py1=side?H:depth*PPMM;
     sg.fillStyle="hsl(30,30%,30%)";
@@ -611,7 +611,7 @@ function drawCross(){
 
   if(board && S.phase!=="idle"){
     const row=Math.min(board.H-1,Math.round(S.posY/BW*board.H));
-    const zToY=z=>gy+gh*(1-( (z+15)/30 ));
+    const zToY=z=>gy+gh*(1-( (z-BT+15)/30 ));
     // RÖD täcker vänster halva bäst, GRÖN höger — visa båda + sammanslagen
     const N=160;
     const sample=fx=>{const xx=Math.min(board.W-1,Math.round(fx*board.W));return BT+board.zmap[row*board.W+xx];};
@@ -731,7 +731,7 @@ function drawLR(){
     const a0=Math.PI,a1=0;
     c.lineWidth=Math.max(5,R*0.16);
     c.strokeStyle="#16222f";c.beginPath();c.arc(cx,cy,R,a0,a1);c.stroke();
-    const lo=30,hi=60;const t=(g.val-lo)/(hi-lo);const ang=a0+(a1-a0)*Math.max(0,Math.min(1,t));
+    const lo=BT-15,hi=BT+15;const t=(g.val-lo)/(hi-lo);const ang=a0+(a1-a0)*Math.max(0,Math.min(1,t));
     // nominellt-band runt 45
     const near=Math.abs(g.val-BT)<1.2;
     const col=near?"#34e6b5":(Math.abs(g.val-BT)<3?"#ffb33d":"#ff4d5e");
