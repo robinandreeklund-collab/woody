@@ -2,7 +2,8 @@ import QtQuick
 import QtQuick3D
 import Woody3D
 
-// GPU-renderad 3D (Qt Quick 3D): ljus, MSAA, UV-foto-textur, defekt-pins, mätverktyg.
+// GPU-renderad 3D (Qt Quick 3D): ljus, MSAA, UV-foto-textur, mätverktyg.
+// Turntable-orbit via nästlade yaw/pitch-noder → naturlig navigering.
 Item {
     id: root
     anchors.fill: parent
@@ -15,7 +16,6 @@ Item {
     property bool measure: false
     property var measurePts: []         // modell-koordinater (mm)
     property real measureDist: -1
-    property string pickedInfo: ""
 
     readonly property real blen: ctrl.rig.len
     readonly property real bwid: ctrl.rig.width
@@ -31,48 +31,34 @@ Item {
         PerspectiveCamera { id: cam; z: root.dist; fieldOfView: 38; clipFar: 6000; clipNear: 1 }
         DirectionalLight { eulerRotation.x: -38; eulerRotation.y: -35; brightness: 1.15 }
         DirectionalLight { eulerRotation.x: 30;  eulerRotation.y: 150; brightness: 0.45 }
-
         Texture { id: woodTex; source: "image://live/surface/" + ctrl.surfaceRev }
 
+        // turntable: yaw kring världens vertikal, pitch kring den yaw-roterade horisontalen
         Node {
-            id: pivot
-            eulerRotation.x: root.pitch
+            id: yawNode
             eulerRotation.y: root.yaw
+            Node {
+                id: pitchNode
+                eulerRotation.x: root.pitch
 
-            Model {
-                id: board
-                pickable: true
-                geometry: BoardGeometry { id: geom; mode: root.mode; exaggeration: root.exag }
-                materials: PrincipledMaterial {
-                    baseColor: "white"; vertexColorsEnabled: true
-                    baseColorMap: root.mode === 3 ? woodTex : null
-                    roughness: 0.82; metalness: 0.0; cullMode: Material.NoCulling
-                }
-            }
-
-            // defekt-pins (kon-markörer, klickbara) — står på brädans toppyta
-            Repeater3D {
-                model: ctrl.defects
-                Node {
-                    position: Qt.vector3d(modelData.x - root.blen/2, modelData.y - root.bwid/2, root.bthk/2)
-                    Model {
-                        source: "#Cone"; pickable: true
-                        eulerRotation.x: 90; scale: Qt.vector3d(0.10, 0.18, 0.10)
-                        position: Qt.vector3d(0, 0, 9)        // basen på ytan, spetsen upp
-                        objectName: "Defekt: " + modelData.name + "  (x" + modelData.x + " · y" + modelData.y + " · ⌀" + modelData.dia + " mm)"
-                        materials: PrincipledMaterial { baseColor: modelData.color
-                            emissiveFactor: Qt.vector3d(0.30,0.30,0.30); roughness: 0.45 }
+                Model {
+                    id: board
+                    pickable: true
+                    geometry: BoardGeometry { id: geom; mode: root.mode; exaggeration: root.exag }
+                    materials: PrincipledMaterial {
+                        baseColor: "white"; vertexColorsEnabled: true
+                        baseColorMap: root.mode === 3 ? woodTex : null
+                        roughness: 0.82; metalness: 0.0; cullMode: Material.NoCulling
                     }
                 }
-            }
-
-            // mät-markörer
-            Repeater3D {
-                model: root.measurePts
-                Model { source: "#Sphere"; scale: Qt.vector3d(0.07,0.07,0.07)
-                    position: modelData
-                    materials: PrincipledMaterial { baseColor: Theme.cyan
-                        emissiveFactor: Qt.vector3d(0.7,0.7,0.7) } }
+                // mät-markörer (roterar med brädan)
+                Repeater3D {
+                    model: root.measurePts
+                    Model { source: "#Sphere"; scale: Qt.vector3d(0.07,0.07,0.07)
+                        position: modelData
+                        materials: PrincipledMaterial { baseColor: Theme.cyan
+                            emissiveFactor: Qt.vector3d(0.7,0.7,0.7) } }
+                }
             }
         }
     }
@@ -82,18 +68,15 @@ Item {
     Timer { running: root.spin; interval: 16; repeat: true; onTriggered: root.yaw += 0.35 }
 
     function clickAt(mx, my) {
+        if (!root.measure) return;
         var r = v3d.pick(mx, my);
         if (!r.objectHit) return;
-        if (root.measure) {
-            var local = pivot.mapPositionFromScene(r.scenePosition);
-            var pts = root.measurePts.slice();
-            if (pts.length >= 2) pts = [];
-            pts.push(local);
-            root.measurePts = pts;
-            root.measureDist = (pts.length === 2) ? pts[0].minus(pts[1]).length() : -1;
-        } else {
-            root.pickedInfo = r.objectHit.objectName || "";
-        }
+        var local = pitchNode.mapPositionFromScene(r.scenePosition);
+        var pts = root.measurePts.slice();
+        if (pts.length >= 2) pts = [];
+        pts.push(local);
+        root.measurePts = pts;
+        root.measureDist = (pts.length === 2) ? pts[0].minus(pts[1]).length() : -1;
     }
 
     MouseArea {
@@ -102,16 +85,16 @@ Item {
         property real px: 0; property real py: 0; property bool moved: false
         onPressed: (e)=>{ px=e.x; py=e.y; moved=false; root.spin=false }
         onPositionChanged: (e)=>{
-            if (Math.abs(e.x-px) + Math.abs(e.y-py) > 3) { moved=true; root.spin=false; }
-            root.yaw += (e.x-px)*0.3; root.pitch += (e.y-py)*0.3;
-            root.pitch = Math.max(-89, Math.min(-5, root.pitch));
+            if (Math.abs(e.x-px) + Math.abs(e.y-py) > 2) moved=true;
+            root.yaw += (e.x-px)*0.45; root.pitch += (e.y-py)*0.45;
+            root.pitch = Math.max(-89, Math.min(-2, root.pitch));
             px=e.x; py=e.y;
         }
         onReleased: (e)=>{ if (!moved) root.clickAt(e.x, e.y) }
         onWheel: (e)=> root.dist = Math.max(280, Math.min(2200, root.dist * (e.angleDelta.y>0 ? 0.9 : 1.1)))
     }
 
-    // verktyg (färgläge, snurr, mät)
+    // verktyg (färgläge, mät, snurr)
     Row {
         anchors.top: parent.top; anchors.right: parent.right; spacing: 6
         Repeater {
@@ -139,24 +122,20 @@ Item {
         }
     }
 
-    // info-overlay (mätning / pickad defekt)
+    // mät-overlay
     Rectangle {
         anchors.left: parent.left; anchors.top: parent.top; anchors.margins: 10
-        visible: root.measure || root.pickedInfo !== ""
+        visible: root.measure
         radius: 8; color: Qt.rgba(0.05,0.08,0.11,0.85); border.color: Theme.line
-        width: col.width+20; height: col.height+14
-        Column { id: col; x: 10; y: 7; spacing: 3
-            Text { visible: root.measure; color: Theme.amber; font.pixelSize: 11; font.weight: Font.DemiBold
-                   text: root.measureDist >= 0 ? ("Δ = " + root.measureDist.toFixed(1) + " mm")
-                                               : "Mät: klicka två punkter på brädan" }
-            Text { visible: root.pickedInfo !== "" && !root.measure; color: Theme.ink2; font.pixelSize: 11
-                   text: root.pickedInfo }
-        }
+        width: mtxt.width+20; height: mtxt.height+14
+        Text { id: mtxt; x: 10; y: 7; color: Theme.amber; font.pixelSize: 11; font.weight: Font.DemiBold
+               text: root.measureDist >= 0 ? ("Δ = " + root.measureDist.toFixed(1) + " mm")
+                                           : "Mät: klicka två punkter på brädan" }
     }
 
     Text { anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.margins: 8
            text: "mätt: topp + sidor (röd/grön) · underside antagen · Qt Quick 3D (GPU)"
            color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
     Text { anchors.bottom: parent.bottom; anchors.right: parent.right; anchors.margins: 8
-           text: "dra = rotera · hjul = zoom · pins = klicka"; color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
+           text: "dra = rotera · hjul = zoom"; color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
 }
