@@ -6,11 +6,21 @@ Card {
     title: "BRÄD-LOGG · HISTORIK"
     chip: model.length + " brädor"
     property var model: []
-    Connections { target: ctrl; function onHistoryChanged() { root.model = ctrl.history } }
+    property string exportMsg: ""
+    Connections { target: ctrl
+        function onHistoryChanged() { root.model = ctrl.history }
+        function onExportDone(msg) { root.exportMsg = msg }
+    }
     Component.onCompleted: root.model = ctrl.history
 
     ColumnLayout {
         anchors.fill: parent; spacing: 0
+        // verktygsrad
+        RowLayout {
+            Layout.fillWidth: true; Layout.bottomMargin: 8; spacing: 12
+            Btn { text: "Exportera CSV"; onClicked: ctrl.exportLog() }
+            Text { text: root.exportMsg; color: Theme.teal; font.family: Theme.mono; font.pixelSize: 10; Layout.fillWidth: true }
+        }
         // rubrikrad
         Rectangle {
             Layout.fillWidth: true; height: 28; color: "transparent"

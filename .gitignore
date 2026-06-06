@@ -9,3 +9,6 @@ venv/
 # Lokal data (Kodytek-nedladdning/rastrering) + nedladdningsrester
 data/
 *.part
+
+# körtidsdata (loggdb, export, bilder)
+/data/

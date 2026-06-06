@@ -25,9 +25,15 @@ def parse_args(argv=None) -> AppConfig:
     p.add_argument("--feed", type=float, default=50.0, help="matning mm/s")
     p.add_argument("--rate", type=float, default=500.0, help="profiltakt Hz")
     p.add_argument("--fullscreen", action="store_true")
+    p.add_argument("--db", default="data/woody.db", help="SQLite-loggfil")
+    p.add_argument("--no-store", action="store_true", help="logga inte till disk")
+    p.add_argument("--save-images", action="store_true", help="spara yt-bild per bräda")
     a = p.parse_args(argv)
-    return AppConfig(mode=a.mode, feed_mm_s=a.feed, profile_rate_hz=a.rate,
-                     fullscreen=a.fullscreen).validate()
+    cfg = AppConfig(mode=a.mode, feed_mm_s=a.feed, profile_rate_hz=a.rate,
+                    fullscreen=a.fullscreen).validate()
+    cfg._db = None if a.no_store else a.db
+    cfg._save_images = a.save_images
+    return cfg
 
 
 def main(argv=None) -> int:
@@ -40,6 +46,12 @@ def main(argv=None) -> int:
     engine.addImageProvider("live", provider)
 
     controller = AppController(cfg, provider)
+    if getattr(cfg, "_db", None):
+        try:
+            from .persistence.store import BoardStore
+            controller.set_store(BoardStore(cfg._db, save_images=getattr(cfg, "_save_images", False)))
+        except Exception as exc:
+            print("persistens av:", exc)
     engine.rootContext().setContextProperty("ctrl", controller)
     engine.rootContext().setContextProperty("startFullscreen", cfg.fullscreen)
 

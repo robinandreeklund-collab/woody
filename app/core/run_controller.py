@@ -275,6 +275,19 @@ class AppController(QObject):
     def set_store(self, store):
         self._store = store
 
+    exportDone = Signal(str)
+
+    @Slot()
+    def exportLog(self):
+        if self._store is None:
+            self.exportDone.emit("ingen loggdatabas aktiv")
+            return
+        try:
+            path = self._store.export_csv()
+            self.exportDone.emit("Exporterad: " + str(path))
+        except Exception as exc:
+            self.exportDone.emit("export-fel: " + str(exc))
+
     # -------------------------------------------------- riggens geometri (= head-mech.svg)
     @Property("QVariantMap", constant=True)
     def rig(self):
