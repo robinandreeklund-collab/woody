@@ -18,9 +18,9 @@ RowLayout {
                 id: view3d
                 anchors.fill: parent
                 property real yaw: -0.6
-                property real pitch: 0.95
+                property real pitch: 0.62
                 property real zoom: 1.0
-                property real exag: 8
+                property real exag: 3
                 property int mode: 0          // 0=höjd 1=avvikelse 2=skuggad
                 property bool spin: true
 
@@ -43,54 +43,64 @@ RowLayout {
                         c.fillStyle="#3a4d62"; c.font="13px sans-serif"; c.textAlign="center";
                         c.fillText("Skanna en bräda → 3D-modell visas här", w/2, h/2); return;
                     }
-                    var nx=m.nx, ny=m.ny, Z=m.z, L=m.len, W=m.width;
+                    var nx=m.nx, ny=m.ny, Z=m.z, L=m.len, W=m.width, T=m.thick;
                     var zmin=m.zmin, zmax=m.zmax, span=Math.max(0.5,zmax-zmin);
                     var maxabs=Math.max(Math.abs(zmin),Math.abs(zmax),0.5);
                     var cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
-                    var s=Math.min(w,h)*0.62/L*zoom, cx=w/2, cyc=h*0.52;
-                    function P(i,j){
-                        var x=(i/(nx-1)-0.5)*L, y=(j/(ny-1)-0.5)*W, z=Z[j*nx+i]*exag;
-                        var x1=x*cy - y*sy, y1=x*sy + y*cy;          // yaw kring vertikal
-                        var y2=y1*cp - z*sp, z2=y1*sp + z*cp;        // pitch
+                    var s=Math.min(w,h)*0.56/L*zoom, cx=w/2, cyc=h*0.56;
+                    // solid bräda: topp = uppmätt tjocklek (skevhet ×exag), botten platt (band)
+                    function topZ(i,j){ return T + Z[j*nx+i]*exag; }
+                    function vx(i){ return (i/(nx-1)-0.5)*L; }
+                    function vy(j){ return (j/(ny-1)-0.5)*W; }
+                    function proj(x,y,z){
+                        var zc=z - T/2;                                  // centrera vertikalt
+                        var x1=x*cy - y*sy, y1=x*sy + y*cy;
+                        var y2=y1*cp - zc*sp, z2=y1*sp + zc*cp;
                         return {sx:cx + x1*s, sy:cyc - z2*s, d:y2};
                     }
-                    // referensplan (ideal, platt) — visar avvikelse
-                    var p00=P(0,0),p10=P(nx-1,0),p11=P(nx-1,ny-1),p01=P(0,ny-1);
-                    // OBS: referensplanet ritas vid z=0 → approximera med exag*0 (platt)
-                    function flat(i,j){ var x=(i/(nx-1)-0.5)*L,y=(j/(ny-1)-0.5)*W;
-                        var x1=x*cy-y*sy,y1=x*sy+y*cy; var y2=y1*cp,z2=y1*sp; return {sx:cx+x1*s,sy:cyc-z2*s}; }
-                    var f00=flat(0,0),f10=flat(nx-1,0),f11=flat(nx-1,ny-1),f01=flat(0,ny-1);
-                    c.beginPath(); c.moveTo(f00.sx,f00.sy); c.lineTo(f10.sx,f10.sy); c.lineTo(f11.sx,f11.sy); c.lineTo(f01.sx,f01.sy); c.closePath();
-                    c.strokeStyle="rgba(159,178,198,0.25)"; c.lineWidth=1; c.setLineDash([5,4]); c.stroke(); c.setLineDash([]);
+                    var light=[0.35,0.45,0.82], faces=[];
+                    function add(pts,col){ var d=0; for(var t=0;t<pts.length;t++) d+=pts[t].d;
+                        faces.push({pts:pts, depth:d/pts.length, col:col}); }
+                    function tint(col,sh){ return [Math.round(col[0]*sh),Math.round(col[1]*sh),Math.round(col[2]*sh)]; }
 
-                    // bygg quads med djup + färg + skuggning
-                    var light=[0.35,0.45,0.82];
-                    var quads=[];
+                    // TOPPYTA (uppmätt) — färg efter läge + skuggning
+                    var dx=L/(nx-1), dy=W/(ny-1);
                     for(var j=0;j<ny-1;j++) for(var i=0;i<nx-1;i++){
-                        var a=P(i,j),b=P(i+1,j),cc=P(i+1,j+1),d=P(i,j+1);
-                        // normal i världsrymd (för skuggning)
+                        var a=proj(vx(i),vy(j),topZ(i,j)), b=proj(vx(i+1),vy(j),topZ(i+1,j)),
+                            cc=proj(vx(i+1),vy(j+1),topZ(i+1,j+1)), d2=proj(vx(i),vy(j+1),topZ(i,j+1));
                         var zv=Z[j*nx+i];
                         var nzx=(Z[j*nx+i+1]-zv)*exag, nzy=(Z[(j+1)*nx+i]-zv)*exag;
-                        var dx=L/(nx-1), dy=W/(ny-1);
-                        var nlen=Math.hypot(nzx*dy, nzy*dx, dx*dy)||1;
-                        var shade=0.5+0.5*Math.max(0,(-nzx*dy*light[0]-nzy*dx*light[1]+dx*dy*light[2])/nlen);
-                        var col;
-                        if(mode===0){ col=turbo((zv-zmin)/span); }
-                        else if(mode===1){ col=diverge(zv/maxabs); }
-                        else { var g=Math.round(120+120*shade); col=[g,g,g]; }
-                        quads.push({pts:[a,b,cc,d], depth:(a.d+b.d+cc.d+d.d)/4,
-                                    col:[Math.round(col[0]*shade),Math.round(col[1]*shade),Math.round(col[2]*shade)]});
+                        var nlen=Math.hypot(nzx*dy,nzy*dx,dx*dy)||1;
+                        var sh=0.55+0.45*Math.max(0,(-nzx*dy*light[0]-nzy*dx*light[1]+dx*dy*light[2])/nlen);
+                        var col = mode===0 ? turbo((zv-zmin)/span)
+                                : mode===1 ? diverge(zv/maxabs)
+                                : [Math.round(120+120*sh),Math.round(120+120*sh),Math.round(120+120*sh)];
+                        add([a,b,cc,d2], tint(col,sh));
                     }
-                    quads.sort(function(p,q){ return q.depth-p.depth; });   // bortre först
-                    for(var k=0;k<quads.length;k++){ var Q=quads[k];
+                    // BOTTEN (platt, vilar på bandet)
+                    add([proj(vx(0),vy(0),0),proj(vx(nx-1),vy(0),0),proj(vx(nx-1),vy(ny-1),0),proj(vx(0),vy(ny-1),0)],[16,24,34]);
+                    // LÅNGSIDOR: framkant (RÖD-huvudet ser denna), bakkant (GRÖN)
+                    for(var i2=0;i2<nx-1;i2++){
+                        add([proj(vx(i2),vy(0),0),proj(vx(i2+1),vy(0),0),proj(vx(i2+1),vy(0),topZ(i2+1,0)),proj(vx(i2),vy(0),topZ(i2,0))],[150,40,52]);
+                        var jj=ny-1;
+                        add([proj(vx(i2),vy(jj),0),proj(vx(i2+1),vy(jj),0),proj(vx(i2+1),vy(jj),topZ(i2+1,jj)),proj(vx(i2),vy(jj),topZ(i2,jj))],[50,170,84]);
+                    }
+                    // ÄNDAR (kapsnitten) — neutral
+                    for(var j2=0;j2<ny-1;j2++){
+                        add([proj(vx(0),vy(j2),0),proj(vx(0),vy(j2+1),0),proj(vx(0),vy(j2+1),topZ(0,j2+1)),proj(vx(0),vy(j2),topZ(0,j2))],[78,92,108]);
+                        var ii=nx-1;
+                        add([proj(vx(ii),vy(j2),0),proj(vx(ii),vy(j2+1),0),proj(vx(ii),vy(j2+1),topZ(ii,j2+1)),proj(vx(ii),vy(j2),topZ(ii,j2))],[78,92,108]);
+                    }
+                    // måla bakifrån
+                    faces.sort(function(p,q){ return q.depth-p.depth; });
+                    for(var k=0;k<faces.length;k++){ var Q=faces[k];
                         c.beginPath(); c.moveTo(Q.pts[0].sx,Q.pts[0].sy);
-                        for(var t=1;t<4;t++) c.lineTo(Q.pts[t].sx,Q.pts[t].sy); c.closePath();
+                        for(var t2=1;t2<Q.pts.length;t2++) c.lineTo(Q.pts[t2].sx,Q.pts[t2].sy); c.closePath();
                         c.fillStyle="rgb("+Q.col[0]+","+Q.col[1]+","+Q.col[2]+")"; c.fill();
-                        c.strokeStyle="rgba(0,0,0,0.12)"; c.lineWidth=0.5; c.stroke();
+                        c.strokeStyle="rgba(0,0,0,0.10)"; c.lineWidth=0.4; c.stroke();
                     }
-                    // axel-etikett
                     c.fillStyle="#61768c"; c.font="9px monospace"; c.textAlign="left";
-                    c.fillText("längd 500 · bredd 75 · tjocklek 20 mm  (skevhet förstorad ×"+exag+")", 8, h-8);
+                    c.fillText("solid bräda · röd långsida = RÖD-huvud · grön = GRÖN-huvud · skevhet ×"+exag, 8, h-8);
                 }
 
                 MouseArea {
@@ -169,7 +179,7 @@ RowLayout {
         Card {
             Layout.fillWidth: true; Layout.fillHeight: true
             title: "TVÄRPROFIL Z(y) · topp + kanter (75 mm)"; chip: "vankant/kupa"
-            ProfilePlot { values: ctrl.zProfileWidth; axisLabel: "y tvärs bräda (0–75 mm)"; accent: Theme.violet }
+            ProfilePlot { values: ctrl.zProfileWidth; axisLabel: "y tvärs bräda (0–75 mm)"; accent: Theme.violet; crossSection: true }
         }
     }
 }
