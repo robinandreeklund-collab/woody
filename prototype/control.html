@@ -1022,6 +1022,8 @@ const sr=e("sld-rate"),rr=e("rv-rate");sr.oninput=()=>{S.rate=+sr.value;rr.textC
 
 window.addEventListener("resize",()=>{});  // fit() läser storlek varje frame
 requestAnimationFrame(loop);
+// auto-starta direkt så vyn aldrig är tom — simuleringen kör på en gång
+setRunning(true);
 </script>
 </body>
 </html>
