@@ -9,3 +9,5 @@ DashboardView 1.0 DashboardView.qml
 SensorsView 1.0 SensorsView.qml
 LogView 1.0 LogView.qml
 CalibrationView 1.0 CalibrationView.qml
+AnalysisView 1.0 AnalysisView.qml
+ProfilePlot 1.0 ProfilePlot.qml

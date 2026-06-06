@@ -33,7 +33,7 @@ RowLayout {
 
             Card {
                 Layout.fillWidth: true; Layout.fillHeight: true
-                title: "TVÄRSNITT · LIVE-PROFIL Z(x)"; chip: "θ " + ctrl.rig.theta.toFixed(0) + "° · RÖD+GRÖN"
+                title: "LÄNGSPROFIL · LIVE Z(x) längs 500 mm"; chip: "θ " + ctrl.rig.theta.toFixed(0) + "° · RÖD+GRÖN"
                 Canvas {
                     id: crossCv; anchors.fill: parent
                     Connections { target: ctrl; function onStateChanged() { crossCv.requestPaint() } }

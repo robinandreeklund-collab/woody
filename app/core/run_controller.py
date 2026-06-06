@@ -27,6 +27,7 @@ class AppController(QObject):
     surfaceChanged = Signal()         # ny yt-bild tillgänglig (busta image-cache)
     defectsChanged = Signal()         # defektlistan ändrad (ej per frame)
     historyChanged = Signal()         # ny bräda klar → logg uppdaterad
+    meshChanged = Signal()            # ny 3D-rekonstruktion klar (bräda färdigskannad)
 
     def __init__(self, cfg: AppConfig, surface_provider, parent=None):
         super().__init__(parent)
@@ -40,6 +41,8 @@ class AppController(QObject):
         self._grade = None
         self._history: list = []
         self._store = None            # sätts av main (persistens)
+        self._zprofile_w: list = []   # tvärprofil Z(y) (bredd)
+        self._mesh: dict = {}         # senaste färdigskannade brädans 3D-data
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -93,6 +96,10 @@ class AppController(QObject):
             # ÄKTA mätning: dubbel-oblik stripe → subpixel → triangulering → fusion → ankring
             z = measure_profile(self._scanner, y, self._lr, RIG.point_lasers_x_mm)
             self._zprofile = [round(float(v), 3) for v in z]
+            b = self._scanner.board()
+            if b is not None:                                  # tvärprofil Z(y) vid brädans mitt
+                self._zprofile_w = [round(float(v), 3)
+                                    for v in b.z_profile_col(RIG.board_len_mm * 0.5)]
         self.stateChanged.emit()
 
     def _set_phase(self, p): self._s.phase = p
@@ -134,6 +141,18 @@ class AppController(QObject):
         }
         self._history.insert(0, entry)
         del self._history[200:]
+        # 3D-rekonstruktion + skevhet av den färdigskannade brädan
+        if b is not None:
+            grid = b.mesh_grid()
+            warp = b.warp_metrics()
+            self._mesh = {
+                "nx": grid.shape[1], "ny": grid.shape[0],
+                "z": [round(float(v), 3) for v in grid.flatten()],
+                "len": RIG.board_len_mm, "width": RIG.board_width_mm, "thick": RIG.board_thick_mm,
+                "zmin": float(grid.min()), "zmax": float(grid.max()),
+                "cls": self._grade.cls, "color": self._grade.color, **warp,
+            }
+            self.meshChanged.emit()
         if self._store is not None:
             try:
                 self._store.log_board(entry, s.detected, b)
@@ -240,6 +259,12 @@ class AppController(QObject):
 
     @Property("QVariantList", notify=stateChanged)
     def zProfile(self): return self._zprofile
+
+    @Property("QVariantList", notify=stateChanged)
+    def zProfileWidth(self): return self._zprofile_w
+
+    @Property("QVariantMap", notify=meshChanged)
+    def mesh3d(self): return self._mesh
 
     @Property(float, constant=True)
     def nominalThick(self): return RIG.board_thick_mm

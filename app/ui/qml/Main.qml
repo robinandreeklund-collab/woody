@@ -55,9 +55,10 @@ ApplicationWindow {
                     RowLayout {
                         id: navRow; anchors.centerIn: parent; spacing: 4
                         NavTab { text: "Översikt";    active: navIndex===0; onClicked: navIndex=0 }
-                        NavTab { text: "Sensorer";    active: navIndex===1; onClicked: navIndex=1 }
-                        NavTab { text: "Logg";        active: navIndex===2; onClicked: navIndex=2 }
-                        NavTab { text: "Kalibrering"; active: navIndex===3; onClicked: navIndex=3 }
+                        NavTab { text: "3D & Analys"; active: navIndex===1; onClicked: navIndex=1 }
+                        NavTab { text: "Sensorer";    active: navIndex===2; onClicked: navIndex=2 }
+                        NavTab { text: "Logg";        active: navIndex===3; onClicked: navIndex=3 }
+                        NavTab { text: "Kalibrering"; active: navIndex===4; onClicked: navIndex=4 }
                     }
                 }
                 Item { Layout.fillWidth: true }
@@ -91,6 +92,7 @@ ApplicationWindow {
             Layout.fillWidth: true; Layout.fillHeight: true
             currentIndex: navIndex
             DashboardView {}
+            AnalysisView {}
             SensorsView {}
             LogView {}
             CalibrationView {}

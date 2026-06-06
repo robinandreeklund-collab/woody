@@ -49,6 +49,39 @@ class Board:
         xs = np.linspace(0, self.w - 1, n).astype(int)
         return RIG.board_thick_mm + self.zmap[yy, xs]
 
+    def z_profile_col(self, x_mm: float, n: int = 120) -> np.ndarray:
+        """Tjocklek längs Y (bredd) vid given längdposition x — visar kupa/vankant."""
+        xx = int(np.clip(x_mm * PX_PER_MM, 0, self.w - 1))
+        ys = np.linspace(0, self.h - 1, n).astype(int)
+        return RIG.board_thick_mm + self.zmap[ys, xx]
+
+    def mesh_grid(self, nx: int = 56, ny: int = 16):
+        """Nedskalat höjdrutnät (nx×ny) för 3D — returnerar Z-matris [mm-avvikelse]."""
+        xs = np.linspace(0, self.w - 1, nx).astype(int)
+        ys = np.linspace(0, self.h - 1, ny).astype(int)
+        return self.zmap[np.ix_(ys, xs)]
+
+    def warp_metrics(self) -> dict:
+        """Verklig skevhet ur höjdkartan (mm), enligt virkesgraderingens begrepp."""
+        z = self.zmap
+        h, w = z.shape
+        # längsprofil (medel över bredd) → bukt/krok (bow)
+        Lx = z.mean(axis=0)
+        line = np.linspace(Lx[0], Lx[-1], w)
+        bow = float(np.max(np.abs(Lx - line)))
+        # tvärprofil (medel över längd) → kupa (cup)
+        Wy = z.mean(axis=1)
+        cline = np.linspace(Wy[0], Wy[-1], h)
+        cup = float(np.max(np.abs(Wy - cline)))
+        # vridning (twist) ur hörnen
+        twist = float(abs((z[0, 0] - z[0, -1]) - (z[-1, 0] - z[-1, -1])))
+        # plankrok (spring/crook) — kantens avvikelse i planet approximeras av kant-bow
+        edge = z[0, :]
+        eline = np.linspace(edge[0], edge[-1], w)
+        crook = float(np.max(np.abs(edge - eline)))
+        return {"bow": round(bow, 2), "cup": round(cup, 2),
+                "twist": round(twist, 2), "crook": round(crook, 2)}
+
     def height_rgb(self) -> np.ndarray:
         """Höjdkarta som färglagd RGB-bild (turbo-liknande colormap)."""
         z = self.zmap
