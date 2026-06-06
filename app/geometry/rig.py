@@ -40,6 +40,15 @@ class RigGeometry:
     surface_px: int = 4096               # Huateng 4K radkamera
     point_lasers_x_mm: tuple = (60.0, 250.0, 440.0)   # LR400 V / C / H längs X
 
+    # --- fysiska kroppar (för montering & krock) ---
+    # VIKTIGT: WD-datum = laserns FRÄMRE apertur (Powell-linsen = fläktens virtuella
+    # origo). Det är den punkt som sitter på trianguleringsgeometrin. Modulkroppen
+    # sticker ut BAKÅT längs laser-armen → mäts i framkant, inte bakkant.
+    laser_len_mm: float = 99.0           # linjelaser-modulens längd (optisk axel)
+    laser_dia_mm: float = 18.0           # modulens diameter (för krock/clearance)
+    cam_body_len_mm: float = 42.0        # MV-CS050-kropp (datum = sensorplan)
+    cam_lens_len_mm: float = 35.0        # MVL-MF1228M 12 mm-objektiv (sticker framåt)
+
     @property
     def tri_angle_deg(self) -> float:
         """Trianguleringsvinkel θ = laser-arm − kamera-arm."""
@@ -71,6 +80,27 @@ class RigGeometry:
     def baseline_mm(self) -> float:
         """Sidledsavstånd kamera↔laser (fysisk monteringsbaslinje)."""
         return 2.0 * self.work_distance_mm * math.sin(math.radians(self.tri_angle_deg / 2.0))
+
+    # ---- laserns fysiska placering (datum = FRÄMRE apertur, kropp bakåt) ----
+    def _pt(self, dist_mm: float, arm_deg: float) -> tuple:
+        """(offset, höjd) för en punkt på en arm-linje, avstånd från brädpunkten."""
+        a = math.radians(arm_deg)
+        return (dist_mm * math.sin(a), dist_mm * math.cos(a))
+
+    @property
+    def laser_front_mm(self) -> tuple:
+        """Laserns främre apertur = WD-datum (offset, höjd). Här ligger fläktens origo."""
+        return self._pt(self.work_distance_mm, self.laser_arm_deg)
+
+    @property
+    def laser_back_mm(self) -> tuple:
+        """Laserns bakkant/montage-ände, 99 mm bakåt längs armen (offset, höjd)."""
+        return self._pt(self.work_distance_mm + self.laser_len_mm, self.laser_arm_deg)
+
+    @property
+    def laser_line_len_mm(self) -> float:
+        """Laserlinjens längd på brädan vid WD (Powell 45° → överfyller 500 mm)."""
+        return 2.0 * self.work_distance_mm * math.tan(math.radians(45.0 / 2.0))
 
     # ---- upplösningar (mm/px) ----
     @property
