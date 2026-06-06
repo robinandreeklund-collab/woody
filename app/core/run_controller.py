@@ -15,6 +15,8 @@ from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 from ..geometry import RIG
 from ..hal.factory import build_scanner
 from ..processing.grade import grade_board
+from ..processing.pipeline import measure_profile
+from ..processing.surface import detect_defects
 from ..hal.sim.board_gen import DEFECT_INFO
 from .config import AppConfig
 from .state import AppState
@@ -88,8 +90,9 @@ class AppController(QObject):
             for i, pl in enumerate(self._scanner.point_lasers):
                 target = pl.read_mm(y)
                 self._lr[i] += (target - self._lr[i]) * min(1.0, dt * 8)
-            self._zprofile = [round(float(v), 3)
-                              for v in self._scanner.profile_red.read_profile(y)]
+            # ÄKTA mätning: dubbel-oblik stripe → subpixel → triangulering → fusion → ankring
+            z = measure_profile(self._scanner, y, self._lr, RIG.point_lasers_x_mm)
+            self._zprofile = [round(float(v), 3) for v in z]
         self.stateChanged.emit()
 
     def _set_phase(self, p): self._s.phase = p
@@ -117,10 +120,15 @@ class AppController(QObject):
         b = self._scanner.board()
         self._grade = grade_board(s.detected, b.warp if b else (0, 0, 0))
         s.load_target = 22 + 10 * random.random()
+        # ytdetektion ur färgbilden (äkta CV) — för logg/jämförelse mot facit
+        try:
+            n_vision = len(detect_defects(b.surface)) if b else 0
+        except Exception:
+            n_vision = 0
         entry = {
             "n": s.board_count,
             "cls": self._grade.cls, "title": self._grade.title, "color": self._grade.color,
-            "score": self._grade.score, "ndef": len(s.detected),
+            "score": self._grade.score, "ndef": len(s.detected), "nvision": n_vision,
             "time": time.strftime("%H:%M:%S"),
         }
         self._history.insert(0, entry)

@@ -25,6 +25,22 @@ class SimProfileCamera(ProfileCameraIF):
         b = self._scanner.board()
         return b.z_profile_row(y_mm) if b else np.full(200, RIG.board_thick_mm)
 
+    def read_stripe(self, y_mm: float, n: int = 200) -> np.ndarray:
+        """Syntetisk laserstripe-ROI (rows×n) som riktig profilkamera skulle ge:
+        ljus stripe vars radposition kodar höjden, med ocklusion på fel kant."""
+        from ...processing.triangulate import STRIPE_ROWS, z_to_row
+        b = self._scanner.board()
+        z = b.z_profile_row(y_mm, n) if b else np.full(n, RIG.board_thick_mm)
+        stripe = z_to_row(z)                                   # (n,)
+        rr = np.arange(STRIPE_ROWS)[:, None]
+        img = np.exp(-((rr - stripe[None, :]) ** 2) / (2 * 1.6 ** 2)) * 220.0
+        fx = np.linspace(0, 1, n)
+        occ = fx if self._color == "red" else (1 - fx)        # motsatt kant skuggas
+        shadow = (occ > 0.9) & (z < RIG.board_thick_mm - 2)
+        img[:, shadow] *= 0.04
+        img += np.random.normal(0, 4, img.shape)
+        return np.clip(img, 0, 255)
+
 
 class SimSurfaceCamera(SurfaceCameraIF):
     def __init__(self, scanner: "SimScanner"):
