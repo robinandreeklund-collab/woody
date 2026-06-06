@@ -5,7 +5,10 @@ hårdvara, bildbehandling, gradering, GUI. Kör på bänk-datorn (Jetson Orin Na
 Super) och i simuleringsläge på vilken dator som helst.
 
 > Arkitektur, faser och beslut: se [`../docs/control-app-design.md`](../docs/control-app-design.md).
-> Detta är **M0** (app-skelett + riggens geometri + simulerad HAL + korrekt live-vy).
+> Driftsättning på Jetson (kiosk/systemd): se [`deploy/README.md`](deploy/README.md).
+
+**Status:** M0–M5 byggda. Simuleringsläget är komplett och verifierat; verkligt
+hårdvaruläge har drivrutiner + probe klara (full radackumulering = sista bring-up).
 
 ## Kör
 
@@ -14,11 +17,22 @@ pip install -r app/requirements.txt
 python -m app.main                 # simulering (standard)
 python -m app.main --feed 40 --rate 600
 python -m app.main --fullscreen    # kiosk på bänken
-python -m app.main --mode real     # fysisk hårdvara (Fas 4 — ej klart)
+python -m app.main --mode real --probe   # testa hårdvaruanslutning
+python -m app.main --mode real     # fysisk hårdvara (kräver SDK + kalibrering)
+python -m app.tests.test_core      # kör testsviten
 ```
 
 På Linux/Jetson krävs Qt:s GL-bibliotek (finns i JetPack; på en bar Ubuntu:
 `sudo apt-get install libegl1 libgl1 libxkbcommon0 libfontconfig1`).
+Hårdvaruberoenden (verkligt läge): `pip install -r app/requirements-hw.txt`.
+
+## Vyer
+- **Översikt** — ytkamera + höjdkarta (rätt proportion, reveal), tvärsnitt Z(x),
+  profilkameror rå-stripe (röd/grön m. ocklusion), **rigg ovanifrån** (laserlinjen
+  längs 500 mm-långsidan), LR400-tjocklek, gradering, defekter.
+- **Sensorer** — live-telemetri per sensor mot databladsspec.
+- **Logg** — bräd-historik (SQLite) + CSV-export.
+- **Kalibrering** — riggens geometri + kalibreringsflöden (Fas 3).
 
 ## Vad finns i M0
 - **`geometry/rig.py`** — EN sanningskälla för riggens geometri (WD 710, kamera-arm

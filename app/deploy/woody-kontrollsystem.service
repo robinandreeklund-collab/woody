@@ -1,0 +1,18 @@
+[Unit]
+Description=VIRKE Kontrollsystem (virkesskanner-HMI)
+After=multi-user.target
+
+[Service]
+Type=simple
+User=woody
+WorkingDirectory=/opt/woody
+# Helskärm/kiosk på bänkpanelen, verkligt hårdvaruläge.
+ExecStart=/opt/woody/.venv/bin/python -m app.main --mode real --fullscreen
+Environment=QT_QPA_PLATFORM=eglfs
+# Peka ut GenICam-producenten (MVS/Aravis CTI) för kamerorna:
+# Environment=GENICAM_CTI=/opt/MVS/lib/aarch64/MvProducerU3V.cti
+Restart=on-failure
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
