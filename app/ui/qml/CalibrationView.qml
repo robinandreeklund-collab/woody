@@ -54,7 +54,10 @@ RowLayout {
                 model: [
                     ["Kamera-intrinsics", "Schackbräde/charuco per profilkamera → linsdistorsion + fokallängd.", "Ej kalibrerad"],
                     ["Trianguleringsplan", "Mät känd referenstrappa → laser/kamera-plan → mm/px i Z.", "Ej kalibrerad"],
-                    ["Punktlaser-nollning", "Nolla LR400 mot referensyta → absolut tjocklek-ankare.", "Ej kalibrerad"],
+                    ["Nollplan (bandbaslinje B(x))", "Tomt band → spara band-profilen som noll. Tjocklek = topp − B(x). Se docs/zero-reference.md.", "Ej satt"],
+                    ["Auto-omnollning", "Uppdatera B(x) i varje brädmellanrum (glidande medel) → kompenserar drift/slitage.", "Inaktiv"],
+                    ["Referensskenor", "Fasta datum-skenor vid linjens ändar → absolut noll + nivå i varje bild.", "Ej monterade"],
+                    ["Punktlaser-nollning", "Nolla LR400 mot tomt band (D0) → absolut tjocklek-ankare.", "Ej kalibrerad"],
                     ["Ytkamera-vitbalans", "Vitreferens under LED → färg/skin-korrektion.", "Ej kalibrerad"],
                     ["Matnings-encoder", "Mät känd sträcka → mm/puls för positionslås.", "Ej kalibrerad"],
                 ]
