@@ -1,5 +1,9 @@
 # Virkesskanner — prototypbänk (GUI)
 
+> **OBS:** Det riktiga huvudprogrammet är nu **[`../app/`](../app/)** (native
+> PySide6 + QML — kör `python -m app.main`). `control.html` här var en tidig
+> proof-of-concept-skiss; `app/` är det program som körs på bänken/Jetson.
+
 Webbaserat prototyp-GUI för **ett** dubbel-oblikt mäthuvud, brädor **1 m**
 (cross-feed). Visar **alla sensorer live** enligt produktspecarna och kan köras
 som **live-simulering** mot strömmande, slumpade brädor. Återanvänder repo-roten

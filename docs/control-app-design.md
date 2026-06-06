@@ -5,7 +5,9 @@
 > programmet för hela skannern: hårdvara, bildbehandling, gradering, GUI, loggning
 > och kalibrering. Ersätter `prototype/control.html` (en proof-of-concept-skiss).
 
-Datum: 2026-06-06 · Status: **förslag, inväntar beslut om teknikstack**
+Datum: 2026-06-06 · Status: **byggt** — PySide6 + QML vald; M0–M5 implementerade i
+[`../app/`](../app/) (simläge komplett & verifierat, verkligt läge har drivrutiner +
+probe klara, full radackumulering = sista bring-up).
 
 ---
 
