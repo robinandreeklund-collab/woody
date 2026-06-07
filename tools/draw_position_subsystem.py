@@ -49,7 +49,7 @@ BOARD_L, BOARD_R = 470, 1230    # brädans utbredning (75 mm bredd — schematis
 circ(150, BELT_Y+22, 24, ALU, INK, 1.6); circ(1490, BELT_Y+22, 24, ALU, INK, 1.6)
 line(150, BELT_Y, 1490, BELT_Y, INK, 2.2)
 line(150, BELT_Y+44, 1490, BELT_Y+44, INK, 2.2)
-txt(150, BELT_Y+78, "transportband (24 V motor + Jrk G2 = hastighet)", 11, "start", MUTED)
+txt(1480, BELT_Y+92, "transportband (24 V) — drivrullar i ändarna · övre bana = bräda, nedre = retur", 11, "end", MUTED)
 # bräda
 rect(BOARD_L, BELT_Y-BT, BOARD_R-BOARD_L, BT, WOOD, "#7a5230", 1.6)
 txt(770, BELT_Y-BT-9, "BRÄDA — matas →", 12, "middle", "#7a5230", 700)
@@ -65,18 +65,22 @@ def station_label(x, top, lines, col=INK):
 # ---- UPPSTRÖMS POSITIONS-/ANKARGIVARE (vänster, utanför FOV) ----
 zoneU = (430, 150, 560, 760)
 rect(zoneU[0], zoneU[1], zoneU[2], zoneU[3]-zoneU[1], "none", CY, 1.3, rx=10, dash="7 5", op=0.7)
-txt(zoneU[0]+12, zoneU[1]+20, "UPPSTRÖMS — POSITION & ANKARE (utanför optisk FOV)", 12, "start", CY, 700)
+txt(zoneU[0]+12, zoneU[1]+20, "UPPSTRÖMS — TJOCKLEK-ANKARE + KANT-NOLLA (utanför optisk FOV)", 12, "start", CY, 700)
 
-# 1) Mäthjuls-encoder
-ex = 540
-circ(ex, BELT_Y-BT-30, 30, "#bfe6c8", GRN, 2)          # mäthjul mot brädans ovansida
-circ(ex, BELT_Y-BT-30, 5, GRN, GRN, 2)
-line(ex, BELT_Y-BT, ex, BELT_Y-BT-0.1, GRN, 1)         # kontaktpunkt
-rect(ex+26, BELT_Y-BT-150, 56, 30, "#16212e", INK, 1.5)  # encoderkropp
-line(ex+22, BELT_Y-BT-60, ex, BELT_Y-BT-44, INK, 2)      # fjäderarm
-line(ex+54, BELT_Y-BT-120, ex+30, BELT_Y-BT-58, INK, 2)
-station_label(ex, 250, [("MÄTHJUL-ENCODER",700),("E6B2-CWZ1X (line-driver)",400),
-                        ("Ø40 + 1000P → 0,126 mm/puls",400),("rullar mot BRÄDAN",400)], GRN)
+# 1) Mäthjuls-encoder MOT BANDETS RETURSIDA (bar yta, utanför FOV, dubbelriktad)
+ex = 330
+ret = BELT_Y + 44                                  # nedre (retur) bandbana
+circ(ex, ret+30, 30, "#bfe6c8", GRN, 2)            # mäthjul under returbandet
+circ(ex, ret+30, 5, GRN, GRN, 2)
+circ(ex, ret-10, 11, ALU, INK, 1.4)                # backidler som håller bandet mot hjulet
+rect(ex+34, ret+16, 52, 28, "#16212e", INK, 1.5)   # encoderkropp
+line(ex+30, ret+30, ex+12, ret+30, INK, 2)         # nav → kropp
+txt(60, 300, "MÄTHJUL-ENCODER", 12, "start", GRN, 700)
+txt(60, 318, "mot bandets RETURSIDA (alltid bar yta)", 10.5, "start", GRN)
+txt(60, 334, "kvadratur → DUBBELRIKTAD (upp/ned)", 10.5, "start", GRN)
+txt(60, 350, "rör aldrig brädan · ingen dödzon · ingen skevkraft", 10, "start", GRN)
+txt(60, 366, "E6B2-CWZ1X · Ø40+1000P → 0,126 mm/puls", 9.5, "start", MUTED)
+line(150, 372, ex, ret-22, GRN, 1, dash="4 4")     # ledare till hjulet
 # 2) Fotocell (valfri)
 px = 700
 rect(px-8, BELT_Y-BT-86, 22, 30, "#16212e", INK, 1.4)
@@ -121,18 +125,19 @@ def hd(x1,x2,lbl):
     arrow((x1+x2)/2,ydim,x1,ydim,DIM,1); arrow((x1+x2)/2,ydim,x2,ydim,DIM,1)
     rect((x1+x2)/2-len(lbl)*4, ydim-9, len(lbl)*8, 18, PAPER, "none", 0, op=0.95)
     txt((x1+x2)/2, ydim+5, lbl, 11, "middle", INK, 700, MONO)
-line(ex, BELT_Y+30, ex, ydim, DIM, 0.7); line(lx, BELT_Y+30, lx, ydim, DIM, 0.7); line(laser_x, BELT_Y+30, laser_x, ydim, DIM, 0.7)
-hd(lx, laser_x, "LR-lead ~45 mm"); hd(ex, lx, "encoder-offset (fast)")
+line(lx, BELT_Y+30, lx, ydim, DIM, 0.7); line(laser_x, BELT_Y+30, laser_x, ydim, DIM, 0.7)
+hd(lx, laser_x, "LR-lead ~45 mm")
+txt(lx-120, ydim+4, "(encoderns läge kräver ingen offset — mäter bandet)", 9.5, "end", MUTED)
 
 # noter
 nx, ny = 40, 880
 rect(nx, ny, W-80, 110, "#fff", GRID, 1.4, rx=8)
 notes = [
- "POSITION(rad)  =  encoder-pulser sedan LEDANDE-KANT-nollan  ×  mm/puls  +  fast offset givare→laserlinje.   Encodern = kontinuerlig förflyttning; nollan = kant-händelsen.",
- "LR400 svarar på din fråga: JA — när ledande kanten når LR-planet ser alla 3 brädan 'dyka upp' → det ger kant-nollan OCH skevnad. Så LR400 kan ERSÄTTA fotocellen som nolla.",
- "MEN LR400 ger bara tjocklek vid sina punkter, inte hur långt brädan färdats efteråt → encodern behövs ändå för positionen mellan/efter kanten.",
- "Alla uppströms-givare (mäthjul · fotocell · LR400) sitter FÖRE den optiska zonen och utanför FOV. Linjekameran exponerar EN rad och de oblika lasrarna träffar bara sin linje",
- "→ mäthjulet stör aldrig bilden (din poäng stämmer). Håll klustret inom brädans 75 mm så brädan täcker givarna under hela skanningen (här schematiskt utdraget).",
+ "POSITION = encoder-inkrement (mäthjul mot bandet)  +  KANT-NOLLA (LR400/fotocell vid linjen).   Absolut åt BÅDA hållen — kvadratur räknar upp/ned vid backning.",
+ "Encodern rullar mot bandets RETURSIDA → alltid kontakt, rör aldrig brädan, ingen dödzon vid vändning, ingen skevkraft. Dess fysiska läge behöver INGEN offset (mäter bandet).",
+ "Pris: band↔bräda-slir. Mildras med gripande/mönstrat band (+ ev. hålldon) och, vid sub-mm-krav, mjukvarukorrektion via brädans kanter (hela brädan avbildas ändå).",
+ "Alternativ: encoder kopplad direkt till en rullaxel → eliminerar även hjul-mot-band-slir.",
+ "LR400-planet ger kant-nolla + skevhet (3 punkter) → kan ERSÄTTA fotocellen. Uppströms-givare + linjekamera ligger utanför FOV; kameran exponerar bara sin rad.",
 ]
 for i,l in enumerate(notes):
     txt(nx+14, ny+24+i*18, l, 10.6, "start", INK, 700 if i==0 else 400)
