@@ -50,7 +50,7 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(18, 18, W - 36, H - 36, "none", INK, 2); rect(26, 26, W - 52, H - 52, "none", MUTED, 0.8)
 txt(48, 64, "VIRKESSKANNER — FAS 1-LAYOUT + KOMPLETT KOPPLINGSSCHEMA", 23, "start", INK, 700, SANS)
-txt(48, 90, "Fas 1 = komplett röd-profilerare på 2 transportband (RoboClaw 2x7A synkar banden via 2 rull-encodrar, ref→kameratrigg, anhåll+fotocell=nolla). "
+txt(48, 90, "Fas 1 = röd-profilerare på 2 transportband (RoboClaw 2x7A synkar banden via 2 rull-encodrar; band B = RS-422 → kamerans Line0 native + 26C32→EN2; anhåll+fotocell=nolla). "
             "Fas 2 = grön modul + 3× LR400 (RS-485) + line-scan-färgyta + vitljus. Alla anslutningar + Jetson I/O-budget.", 13, "start", MUTED, 400, SANS)
 line(48, 104, W - 48, 104, INK, 1.5)
 # fas-legend
@@ -76,8 +76,8 @@ txt(ox + 134, oy - 76, "FAST ANHÅLL", 8, "end", MUTED, 700)
 rect(ox + 122, oy - 48, 11, 15, "#16212e", "#c98a16", 1.2)
 txt(ox + 116, oy - 56, "fotocell", 8, "end", "#c98a16", 700)
 txt(ox + 116, oy - 44, "(nolla)", 8, "end", "#c98a16", 700)
-# rull-encodrar mot bandens retursida (en per band, under) → RoboClaw
-circ(ox + 250, oy + 30, 9, "#bfe6c8", GRN, 1.4); txt(ox + 264, oy + 34, "2× rull-encoder (1/band) → RoboClaw + ref→kamera", 8, "start", GRN, 700)
+# rull-encodrar mot bandens retursida (A single-ended→RoboClaw; B RS-422→kamera+26C32→RoboClaw)
+circ(ox + 250, oy + 30, 9, "#bfe6c8", GRN, 1.4); txt(ox + 264, oy + 34, "encoder A (single-end)→EN1 · B (RS-422)→kamera Line0 + 26C32→EN2", 7.5, "start", GRN, 700)
 line(ox + 250, oy + 21, ox + 250, oy, GRN, 1, "2 3", 0.7)
 # RÖD-HUVUD (oblik 30°): laser+kamera
 hx, hy = ox + 120, oy - 230
@@ -120,19 +120,22 @@ left = [
     (wy + 70, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3 (egen)"),
     (wy + 150, "Linjelaser RÖD 650", "MZLaser, CW", F1, "24 V + GPIO-en"),
     (wy + 230, "RoboClaw 2x7A", "2 bandmotorer, synk", F1, "USB (1 kort)"),
-    (wy + 310, "2× rull-encoder (band)", "kvadratur, 1/band", F1, "→ RoboClaw"),
-    (wy + 390, "Anhåll-fotocell", "nolla / home", F1, "GPIO"),
+    (wy + 305, "Encoder band A", "E6B2-CWZ6C (single-end)", F1, "→ EN1"),
+    (wy + 370, "Encoder band B (ref)", "E6B2-CWZ1X (RS-422)", F1, "→ kamera+EN2"),
+    (wy + 435, "Anhåll-fotocell", "nolla / home", F1, "GPIO"),
 ]
 for (ly, t, s, c, lab) in left:
-    node(wx + 20, ly, 230, 52, t, s, c)
-    if "encoder" in t.lower():               # encodrar → RoboClaw (closed-loop/synk); ref → kamera; position→Jetson via RoboClaw-USB
-        line(wx + 135, ly, wx + 135, ly - 28, c, 1.8)          # upp till RoboClaw-noden
-        txt(wx + 142, ly - 12, "kvadratur → RoboClaw (synk)", 8, "start", c, 700)
-        line(wx + 250, ly + 30, wx + 286, ly + 30, c, 1.8, "4 3")
-        txt(wx + 290, ly + 26, "→ kamera (ref) line-trigg", 8, "start", c, 700)
-        txt(wx + 290, ly + 38, "position → Jetson via RoboClaw-USB", 7.5, "start", MUTED, 400)
+    node(wx + 20, ly, 230, 46, t, s, c)
+    if t == "Encoder band A":                # single-ended → RoboClaw EN1 (closed-loop)
+        line(wx + 135, ly, wx + 135, ly - 30, c, 1.8)          # upp till RoboClaw-noden
+        txt(wx + 142, ly - 12, "single-ended → RoboClaw EN1", 7.5, "start", c, 700)
+    elif "band B" in t:                      # RS-422 → kamera Line0 (native) + 26C32 → RoboClaw EN2
+        line(wx + 250, ly + 12, wx + 286, ly + 12, c, 1.8, "4 3")
+        txt(wx + 290, ly + 9, "→ kamera Line0 (RS-422, terminerad)", 7.5, "start", c, 700)
+        line(wx + 250, ly + 33, wx + 286, ly + 33, MUTED, 1.6)
+        txt(wx + 290, ly + 30, "26C32 → RoboClaw EN2 (sluter loop)", 7.5, "start", MUTED, 700)
     else:
-        conn((wx + 250, ly + 26), (Lc[0], Lc[1] + (ly + 26 - JY - JH / 2) * 0.25), lab, c)
+        conn((wx + 250, ly + 23), (Lc[0], Lc[1] + (ly + 23 - JY - JH / 2) * 0.25), lab, c)
 # höger: grön + punktlaser + yta + ljus
 right = [
     (wy + 70, "Profilkamera GRÖN", "MV-CS050-10UM", F2, "USB3 (egen)"),
@@ -163,8 +166,8 @@ rows = [
     ("USB 3.2 Gen2 (Type-A)", "4 st", "4 — RÖD+GRÖN kam + RS-485 4CH + RoboClaw 2x7A", "OK · ingen hubb", F1),
     ("USB → RS-485 4CH", "Waveshare 4CH", "3× LR400 Modbus (ch1–3) · ch4 LEDIG", "OK · reserv kvar", F2),
     ("Gigabit Ethernet (RJ45)", "1 st", "1 — ytkamera FÄRG (Huateng line-scan)", "OK", F2),
-    ("Motor + position", "RoboClaw 2x7A", "2 bandmotorer + 2 kvadratur-encodrar → synk", "position via USB", F1),
-    ("Encoder → kamera (ref)", "tap från 1 band", "referensbandets A/B → line-trigg (ev. RS-422)", "pixel-exakt scan", F1),
+    ("Motor + position", "RoboClaw 2x7A", "A:CWZ6C→EN1 · B:CWZ1X→26C32→EN2 → synk", "position via USB", F1),
+    ("Encoder → kamera (ref)", "band B RS-422", "CWZ1X → kamera Line0 (diff, terminerad, native)", "pixel-exakt scan", F1),
     ("40-pin GPIO (3,3 V)", "~28", "~5 — fotocell, 2× laser-en, 2× LED-en", "OK · gott om kvar", F1),
     ("Analog in (ADC)", "0 — saknas", "0 — behövs ej (allt digitalt)", "ingen ADC krävs", F1),
     ("DC-in (barrel)", "1", "Jetson 7–25 V; separat 24 V (band/laser/LED) + 5 V logik", "OK", INK),

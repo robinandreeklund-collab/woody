@@ -391,9 +391,10 @@ BOM = [
     ("Linjelaser grön", "MZLaser PWAJHFX520 — 520 nm Powell (beställ 45°/100 mW)", 1, "jämn linje (Powell); 520 nm i gröna filtret (505–545); OBS 12/24 V (ej 5 V)", "24 V + GPIO-en (MOSFET)", "CW", 350, 1, "AliExpress/MZLaser · ditt val"),
     ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s ('with Power Supply')", 2, "matning (cross-feed); 50 mm/s = 40 brädor/min. TÄNKT 60/min kräver ~75 mm/s (~45 rpm) → snabbare motor", "24 V DC", "50 mm/s (→40/min)", 736, 1, "AliExpress · ditt val"),
     ("Motorstyrning RoboClaw 2x7A", "BasicMicro RoboClaw 2x7A (V6) — 2 kanaler, 7,5 A/15 A peak, dubbla kvadratur-encodrar", 1, "DRIVER BÅDA bandmotorerna; closed-loop hastighets-/positions-PID per kanal → synk; rapporterar position/fart till Jetson", "USB (el. UART)", "kvadratur-PID", 1099, 1, "Electrokit · ditt val"),
-    ("Rull-encoder ×2 (kvadratur)", "E6B2-CWZ6C (NPN/push-pull, single-ended 5 V) — Ø40 mm-hjul mot bandets retur", 2, "EN per band (under, utanför FOV) → RoboClaw closed-loop/synk; referensbandets A/B tappas även → kamera line-trigg + Jetson via RoboClaw-USB; anslag-noll", "→ RoboClaw + kamera", "12,6 µm/puls", 250, 1, "Omron · att köpa"),
+    ("Rull-encoder band A", "E6B2-CWZ6C (NPN/push-pull, single-ended 5 V) — Ø40 mm-hjul mot bandets retur", 1, "band A (under, utanför FOV) → RoboClaw EN1 closed-loop", "→ RoboClaw EN1", "12,6 µm/puls", 250, 1, "Omron · att köpa"),
+    ("Rull-encoder band B (ref)", "E6B2-CWZ1X (RS-422 line-driver) — Ø40 mm-hjul, samma PPR som A", 1, "band B → KAMERANS Line0 (RS-422 diff, terminerad, native) + 26C32 → RoboClaw EN2; referens för line-trigg", "→ kamera Line0 + EN2", "12,6 µm/puls", 250, 1, "Omron · att köpa"),
+    ("RS-422-mottagare 26C32", "AM26LS32/26C32 (diff→single-ended) för band B → RoboClaw EN2", 1, "sluter band B:s closed-loop på RoboClaw (kameran tar RS-422 direkt)", "—", "—", 60, 1, "att köpa"),
     ("Anhåll-fotocell", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "bakkant mot fast anhåll → mekanisk nolla/home + ev. om-nollning", "GPIO", "kant-trig", 80, 1, "att köpa"),
-    ("Line-driver (vid behov)", "AM26LS31 single-ended→RS-422 (om kameran kräver diff. encoder-in)", 1, "referensbandets A/B → kamerans RS-422 line-trigg", "—", "—", 60, 1, "att köpa (ev.)"),
     ("Ramstativ (alu)", "2020 T-spår-profil + vinkelfästen (~4 m)", 1, "vänt stativ + tvärbalk över rullbandet", "—", "—", 600, 1, "att köpa (alu)"),
     ("Anslag / mathåll", "alu-vinkel (bakkant, laddläge)", 1, "lägg brädan mot → känd nollposition", "—", "—", 150, 1, "DIY (alu)"),
     ("Sidoanslag / styrskena", "alu-profil längs ENA sidan", 1, "brädans ena kant rider mot → anti-skev", "—", "—", 150, 1, "DIY (alu)"),
@@ -453,7 +454,7 @@ def interface_rows(sim):
         {"Enhet": "Motorstyrning (fram/back)", "Buss": "USB → RoboClaw 2x7A", "Takt (proto)": "—",
          "Datatakt": "—", "Buss-tak": "1 kort, 2 kanaler", "Marginal": "Jetson: load→fram→mät→back→upprepa; banden synkade"},
         {"Enhet": "Läge (rull-encoder ×2)", "Buss": "kvadratur→RoboClaw", "Takt (proto)": "pulser",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "1/band → closed-loop/synk; ref → kamera line-trigg; position via RoboClaw-USB"},
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "A: CWZ6C→EN1; B: CWZ1X→kamera Line0 (RS-422) + 26C32→EN2; synk; position via USB"},
     ]
 
 

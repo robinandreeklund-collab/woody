@@ -43,8 +43,9 @@ rows = [
  ("Matning RoboClaw 2x7A",  "USB #4 (1 kort)", "2 motorer + 2 enc",  True),
  ("3× LR400 punktlaser",   "RS-485 ch1–3 (Waveshare 4CH USB)","<0,1 MB/s", True),
  ("RS-485 ch4 (Waveshare)","LEDIG — Modbus-reserv","—",            True),
- ("2× rull-encoder (band)","→ RoboClaw (kvadratur)","synk + position", True),
- ("  – ref-band → kamera",  "tap → line-trigg (ev. RS-422)","per rad", True),
+ ("Encoder band A",        "E6B2-CWZ6C → RoboClaw EN1","single-ended", True),
+ ("Encoder band B (ref)",  "E6B2-CWZ1X → kamera Line0","RS-422 diff",  True),
+ ("  – band B → RoboClaw",  "26C32 (diff→single) → EN2","sluter loop", True),
  ("  – position → Jetson",  "via RoboClaw-USB","counts/fart",       True),
  ("Röd/Grön laser enable", "GPIO (MOSFET)",   "—",                 True),
  ("Anhåll-fotocell (nolla)","GPIO (digital)", "home/nolla",        True),
@@ -88,14 +89,17 @@ print()
 print("  SYNK: två kanaler vid SAMMA hastighets-börvärde → integraldelen nollar drift → banden")
 print("  går i synk; brädan brygger dessutom banden mekaniskt (master/följare om hårdare krävs).")
 print()
-print("  ENCODRAR: en rull-encoder per band (Ø40 mm mot retursidan, under, utanför FOV).")
-print("   • → RoboClaw : closed-loop/synk; RoboClaw rapporterar counts/fart till Jetson via USB")
-print("                  → Jetson vet position (från anhålls-nollan) → beslutar stopp/BACK.")
-print("   • ref-band   → tappas till KAMERANS line-trigg (hårdvarupuls, pixel-exakt scan).")
-print("   El-typ: RoboClaw-ingång = single-ended 5 V → E6B2-CWZ6C (NPN/push-pull). Kräver kameran")
-print("           RS-422 → lägg AM26LS31 (single-ended→diff) på referensbandets A/B mot kameran.")
+print("  ENCODRAR: en rull-encoder per band (Ø40 mm mot retursidan, under, utanför FOV), SAMMA PPR.")
+print("   Varje konsument får sin NATIVA signaltyp (ingen omvandlare i den känsliga vägen):")
+print("   • Band A: E6B2-CWZ6C (single-ended 5 V) → RoboClaw EN1 (single-ended-ingång) — direkt.")
+print("   • Band B: E6B2-CWZ1X (RS-422 diff) → KAMERANS Line0 (dedik. diff-in, terminerad, native)")
+print("            + 26C32 (diff→single) → RoboClaw EN2 → sluter band B:s closed-loop.")
+print("   Kamerans Encoder Module tar A/B, internt → ratio (N rader/puls) → radtakt, kvadr. pixlar.")
+print("   RoboClaw kör båda kanalerna closed-loop @ samma börvärde → banden i synk; rapporterar")
+print("   position/fart till Jetson via USB → back/stopp-beslut. Jetson räknar INGET på GPIO.")
 print(f"   Takt: Ø40 mm-hjul, 2500 ppr, {rig.feed_mps*1000:.0f} mm/s → ~4 kHz, ~12,6 µm/puls.")
-print("  → Jetson behöver INTE räkna kvadratur på GPIO (position kommer via RoboClaw-USB).")
+print("   [Kamerastöd bekräftat ur GigE-line-scan-firmwaren (Hikrobot/Visiondatum/Contrastech, som")
+print("    Huateng rebrandar): Line0 = differentiell RS-422-encoderingång m. terminering = bäst.]")
 print("  Kan encodern ligga på Waveshares ch4? NEJ — kvadraturpulser ≠ serie-bytes → ch4 LEDIG.")
 
 # ---- compute + ström ----
@@ -163,8 +167,8 @@ print("  OBS: USB3 → höj usbcore.usbfs_memory_mb;  GigE → samma subnät + j
 print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano.")
 print("  • 2 profilkameror + Waveshare (4CH RS-485) + RoboClaw 2x7A = 4 USB-portar, ALLA DIREKT (ingen hubb).")
 print("  • Ytkamera på GbE; 3 LR400 på RS-485 ch1–3 → ch4 LEDIG (Modbus-reserv).")
-print("  • RoboClaw 2x7A driver BÅDA banden + 2 rull-encodrar → synk; position → Jetson via USB.")
-print("    Ref-bandets encoder → kamerans line-trigg; anhåll-fotocell + lasrar/LED → GPIO (~21 kvar).")
+print("  • RoboClaw 2x7A driver BÅDA banden → synk; position → Jetson via USB. Encoder A (CWZ6C,")
+print("    single-end)→EN1; B (CWZ1X, RS-422)→kamerans Line0 (native) + 26C32→EN2. GPIO ~21 kvar.")
 print("  • Ingen ADC behövs (LR400 = RS-485 digitalt).")
 print("  Enda att hålla koll på: ytkameran @ MAX 8 kHz färg = {:.0f} % av GbE (proto-takt = {:.0f} %).".format(
       100*ycam_max/JET['gbe_MBs'], 100*ycam/JET['gbe_MBs'])); line("=")

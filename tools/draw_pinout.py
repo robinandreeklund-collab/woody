@@ -3,8 +3,8 @@
 Verifierad pinout (JetsonHacks/NVIDIA). Färgkodad per funktion/fas + sammanfattning
 och kopplingsnoter. Aktuellt schema: LR400 på RS-485 (Waveshare 4CH USB), matning via
 RoboClaw 2x7A (USB) som driver båda banden + läser 2 rull-encodrar (synk) och rapporterar
-position till Jetson; referensbandets encoder → kamerans line-trigg; anhåll+fotocell = nolla
-(GPIO), linjelaser/vitljus-enable via MOSFET. Headern används glest — det mesta går via USB.
+position till Jetson; band A=CWZ6C(single-ended)→EN1, band B=CWZ1X(RS-422)→kamerans Line0
+(native diff) + 26C32→EN2; anhåll+fotocell = nolla (GPIO), linjelaser/vitljus-enable via MOSFET.
 
     python tools/draw_pinout.py   # -> prototype-pinout.svg i projektroten
 """
@@ -106,7 +106,7 @@ y = block(y, "FAS 1 — matning + position + röd", F1, [
     ("Anhåll-fotocell (nolla/home) in", "pin 7"),
     ("Linjelaser RÖD enable (→ MOSFET)", "pin 16"),
     ("RoboClaw 2x7A (2 motorer+2 enc) → USB", "USB"),
-    ("Band-encodrar → RoboClaw (ej header)", "kvadr."),
+    ("Enc A→EN1 · B(RS-422)→kamera+26C32→EN2", "ej header"),
     ("Profilkamera RÖD → USB3", "USB3"),
 ])
 y = block(y, "FAS 2 — grön + punktlaser + yta + ljus", F2, [
@@ -126,15 +126,15 @@ rect(sx, y, 500, 240, "#fff", INK, 1.2, 8)
 rect(sx, y, 500, 26, INK, INK, 0, 8); txt(sx + 10, y + 18, "KOPPLINGSNOTER", 12, "start", "#fff", 700, SANS)
 notes = [
     "RoboClaw 2x7A (USB) DRIVER BÅDA bandmotorerna +",
-    "  läser 2 kvadratur-encodrar (1/band) → closed-loop-",
-    "  synk; rapporterar position/fart till Jetson via USB.",
-    "  → Jetson behöver INTE räkna encoder på GPIO.",
-    "Referensbandets A/B tappas till KAMERANS line-trigg",
-    "  (single-ended; AM26LS31→RS-422 om kameran kräver).",
-    "Encoder single-ended 5 V (E6B2-CWZ6C) → RoboClaw-in.",
+    "  läser 2 rull-encodrar → closed-loop-synk; position",
+    "  till Jetson via USB (ej kvadratur på GPIO).",
+    "Encoder band A = E6B2-CWZ6C (single-ended) → EN1.",
+    "Encoder band B = E6B2-CWZ1X (RS-422) → KAMERANS",
+    "  Line0 (dedik. diff-in, terminerad, NATIVE) + 26C32",
+    "  (diff→single) → RoboClaw EN2 (sluter band B:s loop).",
+    "  Kamerans encoder-modul: A/B → ratio → radtakt.",
     "LR400 = RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig).",
     "Anhåll+fotocell = nolla (pin 7); lasrar/LED via MOSFET.",
-    "Gemensam GND: Jetson + 24 V-PSU + logik.",
 ]
 for k, n in enumerate(notes):
     txt(sx + 12, y + 46 + k * 21, n, 10.3, "start", INK if not n.startswith("  ") else MUTED, 400, SANS)

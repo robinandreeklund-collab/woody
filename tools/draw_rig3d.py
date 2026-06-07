@@ -99,7 +99,7 @@ txt(fp[0]+10, fp[1]+2, "PC", 8, "middle", "#c98a16", 700); txt(fp[0]+28, fp[1]-2
 # RULL-ENCODRAR mot bandens retursida (en per band) → RoboClaw (synk) + ref → kamera
 ep = P(BENCH_L - 40, FY0 - 18, 14)
 dot(ep, 9, "#bfe6c8", GRN, 1.4); dot(ep, 2.5, GRN)
-txt(ep[0]+14, ep[1]+2, "2× rull-encoder (1/band) → RoboClaw synk + ref → kamera", 8.5, "start", GRN, 700)
+txt(ep[0]+14, ep[1]+2, "encoder A→RoboClaw EN1 · B (RS-422)→kamera Line0 + 26C32→EN2", 8.5, "start", GRN, 700)
 for lx in (LEGX0, LEGX1):
     box(lx - 18, lx + 18, CY - 18, CY + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)
     box(lx - 14, lx + 14, CY - 14, CY + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
@@ -137,7 +137,7 @@ txt(jp[0] + 75, jp[1] - 6, "JETSON Orin Nano", 10, "middle", JET, 700, SANS); tx
 panel(1210, 116, 410, 372, "SENSORER / FAS", INK)
 leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 1),
        (PURP, "3× punktlaser LR400 (RS-485)", 2), (SURFC, "Ytkamera 4K färg + vitt ljus", 2),
-       (BELT, "2 transportband + RoboClaw 2x7A (USB)", 1), (ALU, "Stativ · anhåll+fotocell · 2 rull-encodrar (synk)", 1)]
+       (BELT, "2 transportband + RoboClaw 2x7A (USB)", 1), (ALU, "Stativ · anhåll+fotocell · enc A→EN1 · B(RS-422)→kamera", 1)]
 for i, (c, k, fas) in enumerate(leg):
     ry = 160 + i * 40; rect(1224, ry, 20, 20, c, INK, 0.8, 4)
     txt(1252, ry + 14, k, 11, "start", INK, 700, SANS)
@@ -160,7 +160,7 @@ for i, (k, v) in enumerate(dims):
 panel(2070, 116, 370, 372, "STYRNING (Jetson)", JET)
 for i, n in enumerate(["Fast anhåll + fotocell = mekanisk NOLLA/home", "(bräda läggs an → encoder-nollan sätts).",
                        "RoboClaw 2x7A driver BÅDA banden + 2 enc:", "closed-loop hastighet → banden i SYNK.",
-                       "Position/fart → Jetson via RoboClaw-USB →", "fram → mät → BACK; ref-enc → kamera line-trigg.",
+                       "Position/fart → Jetson via RoboClaw-USB →", "fram → mät → BACK; band B (RS-422) → kamera Line0.",
                        "Ytkamera GigE → Jetson 1GbE direkt (ingen switch).", "Punktlaser LR400 → RS-485 (digitalt, ingen ADC)."]):
     txt(2082, 158 + i * 28, "• " + n if not n.startswith("(") and not n.startswith("+") and not n.startswith("(rull") else "  " + n,
         9.6, "start", INK if not (n.startswith("(") or n.startswith("+")) else MUTED, 400)
@@ -181,15 +181,15 @@ def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
 left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "24V+GPIO"),
-        (1040, "RoboClaw 2x7A", "2 bandmotorer, synk", F1, "USB (1 kort)"), (1120, "2× rull-encoder (band)", "kvadratur, 1/band", F1, "→ RoboClaw"),
+        (1040, "RoboClaw 2x7A", "2 bandmotorer, synk", F1, "USB (1 kort)"), (1120, "Encoder A/B (band)", "A:CWZ6C · B:CWZ1X", F1, "→ RoboClaw"),
         (1200, "Anhåll-fotocell", "nolla / home", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c)
-    if lab == "→ RoboClaw":              # encodrar → RoboClaw (synk); ref → kamera; position→Jetson via RoboClaw-USB
+    if lab == "→ RoboClaw":              # A single-ended→EN1; B RS-422→kamera Line0 + 26C32→EN2
         L(190, ly, 190, ly - 30, c, 1.7)                 # upp till RoboClaw-noden
-        txt(196, ly - 14, "kvadr.→RoboClaw", 8, "start", c, 700, SANS)
-        L(310, ly + 32, 360, ly + 32, c, 1.7, "4 3")
-        txt(366, ly + 30, "→ kamera (ref) line-trigg", 8, "start", c, 700, SANS)
+        txt(196, ly - 14, "A single-end→EN1", 8, "start", c, 700, SANS)
+        L(310, ly + 28, 360, ly + 28, c, 1.7, "4 3")
+        txt(366, ly + 26, "B RS-422 → kamera Line0 + 26C32→EN2", 8, "start", c, 700, SANS)
     else:
         conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
 SCY = 980
@@ -206,8 +206,8 @@ panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
 io = [("USB-portar (×4)", "4 — RÖD+GRÖN kam + RS-485 4CH + RoboClaw 2x7A", "OK · ingen hubb", F1),
       ("Gigabit Ethernet", "1 — ytkamera (GigE 1GbE direkt)", "OK", F2),
       ("RS-485 (USB 4CH)", "3× LR400 (ch1–3) · ch4 LEDIG", "OK · reserv", F2),
-      ("RoboClaw 2x7A (USB)", "2 bandmotorer + 2 kvadratur-enc → synk + position", "via USB", F1),
-      ("Encoder → kamera (ref)", "referensbandets A/B → line-trigg (pixel-exakt)", "tap, ev. RS-422", F1),
+      ("RoboClaw 2x7A (USB)", "A:CWZ6C→EN1 · B:CWZ1X→26C32→EN2 → synk + position", "via USB", F1),
+      ("Encoder band B → kamera", "CWZ1X RS-422 → kamerans Line0 (dedik. diff, terminerad)", "native, pixel-exakt", F1),
       ("40-pin GPIO (~28)", "~5 — anhåll-fotocell, 2 laser-en, 2 LED-en", "OK · gott om", F1),
       ("Analog in (ADC)", "0 — behövs EJ (allt digitalt)", "✓ digitalt", JET),
       ("DC-in / 24 V / 5 V", "Jetson 7–25 V + separat 24/5 V", "OK", INK)]
@@ -243,7 +243,7 @@ for i in range(20):
         tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
         txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
         if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
-txt(60, 2002, "Matning: RoboClaw 2x7A (1 USB) driver BÅDA bandmotorerna + läser 2 rull-encodrar (1/band, retur) → closed-loop hastighet → banden i synk; rapporterar position/fart till Jetson (back-beslut). Referensbandets encoder tappas till kamerans line-trigg (pixel-exakt). Anhåll+fotocell = nolla. LR400 → RS-485 (4CH, ch4 ledig). Gemensam GND.", 9.3, "start", MUTED, 400)
+txt(60, 2002, "Matning: RoboClaw 2x7A (1 USB) driver BÅDA bandmotorerna → closed-loop synk; position/fart → Jetson via USB. Encoder band A=E6B2-CWZ6C (single-ended)→EN1; band B=E6B2-CWZ1X (RS-422)→kamerans Line0 (dedik. diff-in, terminerad, native) + 26C32 (diff→single)→EN2 (sluter B:s loop). Anhåll+fotocell=nolla. LR400→RS-485 (ch4 ledig). Gemensam GND.", 9.3, "start", MUTED, 400)
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)
