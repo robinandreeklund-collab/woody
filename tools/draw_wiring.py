@@ -121,7 +121,7 @@ left = [
     (wy + 150, "Linjelaser RÖD 650", "MZLaser, CW", F1, "24 V + GPIO-en"),
     (wy + 230, "RoboClaw 2x7A", "2 bandmotorer, synk", F1, "USB (1 kort)"),
     (wy + 305, "Encoder band A", "E6B2-CWZ6C (single-end)", F1, "→ EN1"),
-    (wy + 370, "Encoder band B (ref)", "E6B2-CWZ1X (RS-422)", F1, "→ kamera+EN2"),
+    (wy + 370, "Encoder band B (ref)", "E6B2-CWZ1X (RS-422 @5V)", F1, "→ kamera+EN2"),
     (wy + 435, "Anhåll-fotocell", "nolla / home", F1, "GPIO"),
 ]
 for (ly, t, s, c, lab) in left:
@@ -129,9 +129,9 @@ for (ly, t, s, c, lab) in left:
     if t == "Encoder band A":                # single-ended → RoboClaw EN1 (closed-loop)
         line(wx + 135, ly, wx + 135, ly - 30, c, 1.8)          # upp till RoboClaw-noden
         txt(wx + 142, ly - 12, "single-ended → RoboClaw EN1", 7.5, "start", c, 700)
-    elif "band B" in t:                      # RS-422 → kamera Line0 (native) + 26C32 → RoboClaw EN2
+    elif "band B" in t:                      # RS-422 diff → kamera IN1±/IN2± (native) + 26C32 → RoboClaw EN2
         line(wx + 250, ly + 12, wx + 286, ly + 12, c, 1.8, "4 3")
-        txt(wx + 290, ly + 9, "→ kamera Line0 (RS-422, terminerad)", 7.5, "start", c, 700)
+        txt(wx + 290, ly + 9, "→ kamera IN1± (pin3/4) · IN2± (pin5/6) · 5V diff", 7.5, "start", c, 700)
         line(wx + 250, ly + 33, wx + 286, ly + 33, MUTED, 1.6)
         txt(wx + 290, ly + 30, "26C32 → RoboClaw EN2 (sluter loop)", 7.5, "start", MUTED, 700)
     else:

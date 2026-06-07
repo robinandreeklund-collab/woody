@@ -62,9 +62,11 @@ class SurfaceCam:
     interface: str = "GigE (1000Base-T, RJ45)"  # [datablad] → rakt in i Jetson GbE
     mount: str = "M42×1.0"                # [datablad]
     power_w: float = 6.0                  # [datablad] <6 W
-    # [familje-firmware] GenICam Encoder Module (kvadratur A/B → ratio → radtakt);
-    # opto-isolerad I/O + differentiell RS-422-ingång (Line0) för encoder = bäst.
-    # OBS: exakt Line0-pinout/kontakt för HT-GELM44C-T2 → bekräfta i MDvisions I/O-blad.
+    # [datablad HT-GELM44C-T2, M12 12-pin A-code] Encoder A/B = DIFFERENTIELLA 5V-ingångar:
+    #   IN1± (pin 3 Grey /4 Pink) = Encoder A±, IN2± (pin 5 Brown /6 White) = Encoder B±
+    #   ("differential signal source is 5V"). IN3 (pin 7/8) = opto-isolerad trigger (en).
+    #   OUT1/OUT2 (pin 9–12) = opto-utgångar. Matning 12–24 V (pin 1 PWR- /2 PWR+).
+    #   → encoder MÅSTE vara line-driver/RS-422 (E6B2-CWZ1X @ 5V); single-ended duger ej hit.
 
     @property
     def sensor_w_mm(self) -> float:

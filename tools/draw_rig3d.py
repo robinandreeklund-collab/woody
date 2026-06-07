@@ -189,7 +189,7 @@ for (ly, t, s, c, lab) in left:
         L(190, ly, 190, ly - 30, c, 1.7)                 # upp till RoboClaw-noden
         txt(196, ly - 14, "A single-end→EN1", 8, "start", c, 700, SANS)
         L(310, ly + 28, 360, ly + 28, c, 1.7, "4 3")
-        txt(366, ly + 26, "B RS-422 → kamera Line0 + 26C32→EN2", 8, "start", c, 700, SANS)
+        txt(366, ly + 26, "B RS-422 → kamera IN1±/IN2± (pin3-6, 5V diff) + 26C32→EN2", 8, "start", c, 700, SANS)
     else:
         conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
 SCY = 980
@@ -207,7 +207,7 @@ io = [("USB-portar (×4)", "4 — RÖD+GRÖN kam + RS-485 4CH + RoboClaw 2x7A", 
       ("Gigabit Ethernet", "1 — ytkamera (GigE 1GbE direkt)", "OK", F2),
       ("RS-485 (USB 4CH)", "3× LR400 (ch1–3) · ch4 LEDIG", "OK · reserv", F2),
       ("RoboClaw 2x7A (USB)", "A:CWZ6C→EN1 · B:CWZ1X→26C32→EN2 → synk + position", "via USB", F1),
-      ("Encoder band B → kamera", "CWZ1X RS-422 → kamerans Line0 (dedik. diff, terminerad)", "native, pixel-exakt", F1),
+      ("Encoder band B → kamera", "CWZ1X RS-422 @5V → kamera IN1± (pin3/4) + IN2± (pin5/6) diff", "native, pixel-exakt", F1),
       ("40-pin GPIO (~28)", "~5 — anhåll-fotocell, 2 laser-en, 2 LED-en", "OK · gott om", F1),
       ("Analog in (ADC)", "0 — behövs EJ (allt digitalt)", "✓ digitalt", JET),
       ("DC-in / 24 V / 5 V", "Jetson 7–25 V + separat 24/5 V", "OK", INK)]
@@ -243,7 +243,7 @@ for i in range(20):
         tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
         txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
         if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
-txt(60, 2002, "Matning: RoboClaw 2x7A (1 USB) driver BÅDA bandmotorerna → closed-loop synk; position/fart → Jetson via USB. Encoder band A=E6B2-CWZ6C (single-ended)→EN1; band B=E6B2-CWZ1X (RS-422)→kamerans Line0 (dedik. diff-in, terminerad, native) + 26C32 (diff→single)→EN2 (sluter B:s loop). Anhåll+fotocell=nolla. LR400→RS-485 (ch4 ledig). Gemensam GND.", 9.3, "start", MUTED, 400)
+txt(60, 2002, "Matning: RoboClaw 2x7A (1 USB) driver BÅDA bandmotorerna → closed-loop synk; position/fart → Jetson via USB. Encoder band A=E6B2-CWZ6C (single-ended)→EN1; band B=E6B2-CWZ1X (RS-422 @5V)→kamerans diff encoder A/B (IN1± pin3/4, IN2± pin5/6, native) + 26C32 (diff→single)→EN2 (sluter B:s loop). Anhåll+fotocell=nolla. LR400→RS-485 (ch4 ledig). Gemensam GND.", 9.3, "start", MUTED, 400)
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)
