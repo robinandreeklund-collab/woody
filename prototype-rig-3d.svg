@@ -159,7 +159,7 @@
 <text x="621.5" y="426.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#c98a16" text-anchor="start">fotocell (nolla)</text>
 <circle cx="786.3" cy="554.5" r="9.0" fill="#bfe6c8" stroke="#2f9e6e" stroke-width="1.4"/>
 <circle cx="786.3" cy="554.5" r="2.5" fill="#2f9e6e" stroke="#23262b" stroke-width="0"/>
-<text x="800.3" y="556.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">mäthjuls-encoder (mot band → kamera-trigg)</text>
+<text x="800.3" y="556.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="start">mäthjuls-encoder mot band → kamera (RS-422) + Jetson</text>
 <polygon points="513.2,459.2 527.5,467.5 513.2,475.7 498.8,467.5" fill="#bfc3c8" stroke="#969ba0" stroke-width="1" opacity="1"/>
 <polygon points="498.8,467.5 513.2,475.7 513.2,485.9 498.8,477.6" fill="#a7acb1" stroke="#969ba0" stroke-width="1" opacity="1"/>
 <polygon points="527.5,467.5 513.2,475.7 513.2,485.9 527.5,477.6" fill="#b0b5ba" stroke="#969ba0" stroke-width="1" opacity="1"/>
@@ -244,11 +244,11 @@
 <rect x="1530.0" y="282.0" width="78.0" height="16.0" rx="8" fill="#7a3fb0" stroke="#7a3fb0" stroke-width="0" opacity="1"/>
 <text x="1569.0" y="294.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 2</text>
 <rect x="1224.0" y="320.0" width="20.0" height="20.0" rx="4" fill="#444a52" stroke="#23262b" stroke-width="0.8" opacity="1"/>
-<text x="1252.0" y="334.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Transportband + Jrk G2 (USB)</text>
+<text x="1252.0" y="334.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Transportband + Jrk G2 (USB direkt)</text>
 <rect x="1530.0" y="322.0" width="78.0" height="16.0" rx="8" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="1569.0" y="334.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 1</text>
 <rect x="1224.0" y="360.0" width="20.0" height="20.0" rx="4" fill="#c3c6ca" stroke="#23262b" stroke-width="0.8" opacity="1"/>
-<text x="1252.0" y="374.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Stativ · anhåll+fotocell · encoder · Jetson</text>
+<text x="1252.0" y="374.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Stativ · anhåll+fotocell · encoder→kamera+Jetson</text>
 <rect x="1530.0" y="362.0" width="78.0" height="16.0" rx="8" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="1569.0" y="374.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#fff" text-anchor="middle">FAS 1</text>
 <rect x="1224.0" y="408.0" width="384.0" height="70.0" rx="5" fill="#ecebe4" stroke="#9a9ea4" stroke-width="0.8" opacity="1"/>
@@ -288,8 +288,8 @@
 <text x="2082.0" y="135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">STYRNING (Jetson)</text>
 <text x="2082.0" y="158.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#23262b" text-anchor="start">• Fast anhåll + fotocell = mekanisk NOLLA/home</text>
 <text x="2082.0" y="186.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#6a6e74" text-anchor="start">  (bräda läggs an → encodern nollas).</text>
-<text x="2082.0" y="214.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#23262b" text-anchor="start">• Mäthjuls-encoder mot band → ABSOLUT position</text>
-<text x="2082.0" y="242.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#6a6e74" text-anchor="start">  + kamerans line-trigg (HW, ej Jetson).</text>
+<text x="2082.0" y="214.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#23262b" text-anchor="start">• Encoder (RS-422) förgrenas: kamera line-trigg</text>
+<text x="2082.0" y="242.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#6a6e74" text-anchor="start">  + Jetson kvadratur → position/back-beslut.</text>
 <text x="2082.0" y="270.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#23262b" text-anchor="start">• Transportör Jrk G2 (USB): fram → mät → BACK.</text>
 <text x="2082.0" y="298.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#23262b" text-anchor="start">• Multi-pass: medel av N pass → brus ↓ √N.</text>
 <text x="2082.0" y="326.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="400" fill="#23262b" text-anchor="start">• Ytkamera GigE → Jetson 1GbE direkt (ingen switch).</text>
@@ -330,14 +330,18 @@
 <line x1="700.0" y1="1096.0" x2="690.9" y2="1100.1" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
 <line x1="700.0" y1="1096.0" x2="691.6" y2="1090.5" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
 <rect x="469.0" y="1072.5" width="72.0" height="15.0" rx="3" fill="#fff" stroke="#2f9e6e" stroke-width="0.8" opacity="1"/>
-<text x="505.0" y="1083.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="middle">USB (hubb)</text>
+<text x="505.0" y="1083.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="middle">USB direkt</text>
 <rect x="70.0" y="1120.0" width="240.0" height="50.0" rx="7" fill="#fff" stroke="#2f9e6e" stroke-width="1.5" opacity="1"/>
 <rect x="70.0" y="1120.0" width="240.0" height="20.0" rx="7" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="79.0" y="1135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="start">Mäthjuls-encoder A/B/Z</text>
-<text x="79.0" y="1156.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#23262b" text-anchor="start">mot band → line-trigg</text>
-<line x1="310.0" y1="1145.0" x2="360.0" y2="1145.0" stroke="#2f9e6e" stroke-width="1.7" stroke-dasharray="4 3" opacity="1"/>
-<text x="366.0" y="1141.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="start">→ kamera enc-in</text>
-<text x="366.0" y="1153.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">(ej Jetson)</text>
+<text x="79.0" y="1156.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#23262b" text-anchor="start">RS-422 line-driver</text>
+<line x1="310.0" y1="1138.0" x2="360.0" y2="1128.0" stroke="#2f9e6e" stroke-width="1.7" stroke-dasharray="4 3" opacity="1"/>
+<text x="366.0" y="1126.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="start">→ kamera RS-422 (line-trigg)</text>
+<line x1="310.0" y1="1152.0" x2="700.0" y2="1112.0" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
+<line x1="700.0" y1="1112.0" x2="691.8" y2="1117.7" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
+<line x1="700.0" y1="1112.0" x2="690.8" y2="1108.1" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
+<rect x="453.0" y="1124.0" width="104.0" height="15.0" rx="3" fill="#fff" stroke="#2f9e6e" stroke-width="0.8" opacity="1"/>
+<text x="505.0" y="1135.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="middle">→ Jetson kvadr.</text>
 <rect x="70.0" y="1200.0" width="240.0" height="50.0" rx="7" fill="#fff" stroke="#2f9e6e" stroke-width="1.5" opacity="1"/>
 <rect x="70.0" y="1200.0" width="240.0" height="20.0" rx="7" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="79.0" y="1215.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="start">Anhåll-fotocell</text>
@@ -393,9 +397,9 @@
 <text x="2300.0" y="884.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">STATUS</text>
 <line x1="1556.0" y1="892.0" x2="2424.0" y2="892.0" stroke="#9a9ea4" stroke-width="1" opacity="1"/>
 <rect x="1556.0" y="911.0" width="12.0" height="12.0" rx="2" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
-<text x="1576.0" y="923.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">USB 3.2 Gen2 (×4)</text>
-<text x="1820.0" y="923.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">3 — RÖD+GRÖN kamera + Jrk G2 (hubb)</text>
-<text x="2300.0" y="923.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">OK · 1 ledig</text>
+<text x="1576.0" y="923.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">USB-portar (×4)</text>
+<text x="1820.0" y="923.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">4 — RÖD+GRÖN kam + RS-485 4CH + Jrk G2 (alla direkt)</text>
+<text x="2300.0" y="923.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">OK · ingen hubb</text>
 <rect x="1548.0" y="936.0" width="884.0" height="36.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <rect x="1556.0" y="947.0" width="12.0" height="12.0" rx="2" fill="#7a3fb0" stroke="#7a3fb0" stroke-width="0" opacity="1"/>
 <text x="1576.0" y="959.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Gigabit Ethernet</text>
@@ -407,18 +411,18 @@
 <text x="2300.0" y="995.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#7a3fb0" text-anchor="start">OK · reserv</text>
 <rect x="1548.0" y="1008.0" width="884.0" height="36.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <rect x="1556.0" y="1019.0" width="12.0" height="12.0" rx="2" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
-<text x="1576.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Kamerans encoder-IN</text>
-<text x="1820.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">mäthjuls-encoder (HW line-trigg)</text>
-<text x="2300.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">ej Jetson</text>
+<text x="1576.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Encoder (RS-422)</text>
+<text x="1820.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">→ kamera (line-trigg) + Jetson GPIO (kvadratur)</text>
+<text x="2300.0" y="1031.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">position+back</text>
 <rect x="1556.0" y="1055.0" width="12.0" height="12.0" rx="2" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="1576.0" y="1067.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">40-pin GPIO (~28)</text>
-<text x="1820.0" y="1067.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">~5 — anhåll-fotocell, 2 laser-en, 2 LED-en</text>
+<text x="1820.0" y="1067.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">~8 — encoder A/B/Z, fotocell, 2 laser-en, 2 LED-en</text>
 <text x="2300.0" y="1067.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#2f9e6e" text-anchor="start">OK · gott om</text>
 <rect x="1548.0" y="1080.0" width="884.0" height="36.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <rect x="1556.0" y="1091.0" width="12.0" height="12.0" rx="2" fill="#9a9ea4" stroke="#9a9ea4" stroke-width="0" opacity="1"/>
 <text x="1576.0" y="1103.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">40-pin SPI/I²C</text>
-<text x="1820.0" y="1103.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">0 — reserv (ingen ADC behövs)</text>
-<text x="2300.0" y="1103.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">ledig</text>
+<text x="1820.0" y="1103.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">0/1 — ev. LS7366R kvadraturräknare</text>
+<text x="2300.0" y="1103.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#6a6e74" text-anchor="start">valfritt</text>
 <rect x="1556.0" y="1127.0" width="12.0" height="12.0" rx="2" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0" opacity="1"/>
 <text x="1576.0" y="1139.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">Analog in (ADC)</text>
 <text x="1820.0" y="1139.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">0 — behövs EJ (allt digitalt)</text>
@@ -583,7 +587,7 @@
 <text x="540.0" y="1984.5" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="middle">40</text>
 <text x="561.0" y="1980.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9" font-weight="700" fill="#23262b" text-anchor="start">I2S0_SDOUT</text>
 <text x="561.0" y="1992.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#6a6e74" text-anchor="start">reserv</text>
-<text x="60.0" y="2002.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#6a6e74" text-anchor="start">Matning: Jrk G2 över USB (closed-loop fart). Position: mäthjuls-encoder mot bandets retursida → kamerans encoder-in (HW line-trigg, ej Jetson); fast anhåll + fotocell = mekanisk nolla/home. LR400 → RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig) — ingen ADC. Gemensam GND.</text>
+<text x="60.0" y="2002.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.3" font-weight="400" fill="#6a6e74" text-anchor="start">Matning: Jrk G2 över USB (direkt, ingen hubb). Position: mäthjuls-encoder (RS-422 line-driver) mot bandets retur FÖRGRENAS → kameran (line-trigg) OCH Jetson (kvadratur → vet position, beslutar back); fast anhåll + fotocell = mekanisk nolla/home. LR400 → RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig). Gemensam GND.</text>
 <rect x="1060.0" y="1388.0" width="1380.0" height="640.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="1060.0" y="1388.0" width="1380.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <text x="1072.0" y="1407.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12.5" font-weight="700" fill="#fff" text-anchor="start">4 · KOMPLETT BOM (priser SEK)</text>

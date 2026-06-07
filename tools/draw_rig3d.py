@@ -96,10 +96,10 @@ txt(*P(250, FY1 + 30, 17), "Jetson: ladda→fram→mät→BACK→upprepa", 10, "
 fp = P(BX0 - 10, FY0 - 4, 60)
 poly([(fp[0]-2,fp[1]-12),(fp[0]+22,fp[1]-12),(fp[0]+22,fp[1]+9),(fp[0]-2,fp[1]+9)], "#16212e", "#c98a16", 1.4)
 txt(fp[0]+10, fp[1]+2, "PC", 8, "middle", "#c98a16", 700); txt(fp[0]+28, fp[1]-2, "fotocell (nolla)", 8.5, "start", "#c98a16", 700)
-# MÄTHJULS-ENCODER mot bandets retursida (under bandet, uppströms, utanför FOV)
+# MÄTHJULS-ENCODER mot bandets retursida (RS-422 → kamera-trigg + Jetson-kvadratur)
 ep = P(BENCH_L - 40, FY0 - 18, 14)
 dot(ep, 9, "#bfe6c8", GRN, 1.4); dot(ep, 2.5, GRN)
-txt(ep[0]+14, ep[1]+2, "mäthjuls-encoder (mot band → kamera-trigg)", 8.5, "start", GRN, 700)
+txt(ep[0]+14, ep[1]+2, "mäthjuls-encoder mot band → kamera (RS-422) + Jetson", 8.5, "start", GRN, 700)
 for lx in (LEGX0, LEGX1):
     box(lx - 18, lx + 18, CY - 18, CY + 18, -16, 6, "#bfc3c8", "#a7acb1", "#b0b5ba", "#969ba0", 1)
     box(lx - 14, lx + 14, CY - 14, CY + 14, 0, TOPZ, ALU, "#aeb3b8", "#b8bdc2", "#9aa0a6", 1)
@@ -137,7 +137,7 @@ txt(jp[0] + 75, jp[1] - 6, "JETSON Orin Nano", 10, "middle", JET, 700, SANS); tx
 panel(1210, 116, 410, 372, "SENSORER / FAS", INK)
 leg = [(RED, "Linjelaser+kamera RÖD 650", 1), (GRN, "Linjelaser+kamera GRÖN 520", 1),
        (PURP, "3× punktlaser LR400 (RS-485)", 2), (SURFC, "Ytkamera 4K färg + vitt ljus", 2),
-       (BELT, "Transportband + Jrk G2 (USB)", 1), (ALU, "Stativ · anhåll+fotocell · encoder · Jetson", 1)]
+       (BELT, "Transportband + Jrk G2 (USB direkt)", 1), (ALU, "Stativ · anhåll+fotocell · encoder→kamera+Jetson", 1)]
 for i, (c, k, fas) in enumerate(leg):
     ry = 160 + i * 40; rect(1224, ry, 20, 20, c, INK, 0.8, 4)
     txt(1252, ry + 14, k, 11, "start", INK, 700, SANS)
@@ -159,7 +159,7 @@ for i, (k, v) in enumerate(dims):
 
 panel(2070, 116, 370, 372, "STYRNING (Jetson)", JET)
 for i, n in enumerate(["Fast anhåll + fotocell = mekanisk NOLLA/home", "(bräda läggs an → encodern nollas).",
-                       "Mäthjuls-encoder mot band → ABSOLUT position", "+ kamerans line-trigg (HW, ej Jetson).",
+                       "Encoder (RS-422) förgrenas: kamera line-trigg", "+ Jetson kvadratur → position/back-beslut.",
                        "Transportör Jrk G2 (USB): fram → mät → BACK.", "Multi-pass: medel av N pass → brus ↓ √N.",
                        "Ytkamera GigE → Jetson 1GbE direkt (ingen switch).", "Punktlaser LR400 → RS-485 (digitalt, ingen ADC)."]):
     txt(2082, 158 + i * 28, "• " + n if not n.startswith("(") and not n.startswith("+") and not n.startswith("(rull") else "  " + n,
@@ -181,13 +181,14 @@ def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
 left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "24V+GPIO"),
-        (1040, "Transportör Jrk G2", "24 V motor, closed-loop", F1, "USB (hubb)"), (1120, "Mäthjuls-encoder A/B/Z", "mot band → line-trigg", F1, "→ KAMERA"),
+        (1040, "Transportör Jrk G2", "24 V motor, closed-loop", F1, "USB direkt"), (1120, "Mäthjuls-encoder A/B/Z", "RS-422 line-driver", F1, "FÖRGRENAS"),
         (1200, "Anhåll-fotocell", "nolla / home", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
     node(70, ly, 240, t, s, c)
-    if lab == "→ KAMERA":               # encodern → KAMERANS encoder-in (EJ Jetson)
-        L(310, ly + 25, 360, ly + 25, c, 1.7, "4 3")
-        txt(366, ly + 21, "→ kamera enc-in", 8, "start", c, 700, SANS); txt(366, ly + 33, "(ej Jetson)", 7.5, "start", MUTED, 400, SANS)
+    if lab == "FÖRGRENAS":               # encodern → BÅDE kamera (RS-422) OCH Jetson (kvadratur)
+        L(310, ly + 18, 360, ly + 8, c, 1.7, "4 3")
+        txt(366, ly + 6, "→ kamera RS-422 (line-trigg)", 8, "start", c, 700, SANS)
+        conn((310, ly + 32), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), "→ Jetson kvadr.", c)
     else:
         conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
 SCY = 980
@@ -201,12 +202,12 @@ txt(JX + 120, JY + JH + 48, "PSU 24 V (band/laser/LED) · 5 V logik · DC-in (Je
 
 # I/O-budget
 panel(1540, 832, 900, 540, "JETSON I/O-BUDGET (räcker med marginal)", INK)
-io = [("USB 3.2 Gen2 (×4)", "3 — RÖD+GRÖN kamera + Jrk G2 (hubb)", "OK · 1 ledig", F1),
+io = [("USB-portar (×4)", "4 — RÖD+GRÖN kam + RS-485 4CH + Jrk G2 (alla direkt)", "OK · ingen hubb", F1),
       ("Gigabit Ethernet", "1 — ytkamera (GigE 1GbE direkt)", "OK", F2),
       ("RS-485 (USB 4CH)", "3× LR400 (ch1–3) · ch4 LEDIG", "OK · reserv", F2),
-      ("Kamerans encoder-IN", "mäthjuls-encoder (HW line-trigg)", "ej Jetson", F1),
-      ("40-pin GPIO (~28)", "~5 — anhåll-fotocell, 2 laser-en, 2 LED-en", "OK · gott om", F1),
-      ("40-pin SPI/I²C", "0 — reserv (ingen ADC behövs)", "ledig", DIMC),
+      ("Encoder (RS-422)", "→ kamera (line-trigg) + Jetson GPIO (kvadratur)", "position+back", F1),
+      ("40-pin GPIO (~28)", "~8 — encoder A/B/Z, fotocell, 2 laser-en, 2 LED-en", "OK · gott om", F1),
+      ("40-pin SPI/I²C", "0/1 — ev. LS7366R kvadraturräknare", "valfritt", DIMC),
       ("Analog in (ADC)", "0 — behövs EJ (allt digitalt)", "✓ digitalt", JET),
       ("DC-in / 24 V / 5 V", "Jetson 7–25 V + separat 24/5 V", "OK", INK)]
 txt(1556, 884, "GRÄNSSNITT", 10.5, "start", MUTED, 700, MONO); txt(1820, 884, "ANVÄNDS", 10.5, "start", MUTED, 700, MONO); txt(2300, 884, "STATUS", 10.5, "start", MUTED, 700, MONO)
@@ -241,7 +242,7 @@ for i in range(20):
         tx = cx - 21 if left_ else cx + 21; an = "end" if left_ else "start"
         txt(tx, cy - 1, dn, 9, an, INK, 700, MONO)
         if us: txt(tx, cy + 11, us, 8.5, an, col if col not in (BUSc, DIMC, GNDc) else MUTED, 700 if col in (F1, F2) else 400, SANS)
-txt(60, 2002, "Matning: Jrk G2 över USB (closed-loop fart). Position: mäthjuls-encoder mot bandets retursida → kamerans encoder-in (HW line-trigg, ej Jetson); fast anhåll + fotocell = mekanisk nolla/home. LR400 → RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig) — ingen ADC. Gemensam GND.", 9.3, "start", MUTED, 400)
+txt(60, 2002, "Matning: Jrk G2 över USB (direkt, ingen hubb). Position: mäthjuls-encoder (RS-422 line-driver) mot bandets retur FÖRGRENAS → kameran (line-trigg) OCH Jetson (kvadratur → vet position, beslutar back); fast anhåll + fotocell = mekanisk nolla/home. LR400 → RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig). Gemensam GND.", 9.3, "start", MUTED, 400)
 
 # ---- BOM ----
 panel(1060, 1388, 1380, 640, "4 · KOMPLETT BOM (priser SEK)", INK)

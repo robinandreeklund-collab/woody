@@ -2,8 +2,8 @@
 """Jetson Orin Nano — komplett 40-pin header med prototyp-tilldelning (SVG).
 Verifierad pinout (JetsonHacks/NVIDIA). Färgkodad per funktion/fas + sammanfattning
 och kopplingsnoter. Aktuellt schema: LR400 på RS-485 (Waveshare 4CH USB), transportör
-Jrk G2 (USB), mäthjuls-encoder → kamerans encoder-in, anhåll+fotocell = nolla (GPIO),
-linjelaser/vitljus-enable via MOSFET. Headern används glest — det mesta går via USB.
+Jrk G2 (USB direkt), mäthjuls-encoder (RS-422) FÖRGRENAS → kamera (line-trigg) + Jetson
+(kvadratur, position), anhåll+fotocell = nolla (GPIO), linjelaser/vitljus-enable via MOSFET.
 
     python tools/draw_pinout.py   # -> prototype-pinout.svg i projektroten
 """
@@ -33,17 +33,17 @@ PINS = {
  7:("GPIO09","ANHÅLL-FOTOCELL in  (F1)",F1),    8:("UART1_TX","reserv/debug",BUS),
  9:("GND","",GND),                              10:("UART1_RX","reserv/debug",BUS),
  11:("UART1_RTS","reserv",BUS),                 12:("I2S0_SCLK","reserv",DIMC),
- 13:("SPI1_SCK","KAM-TRIG reserv (HW-enc)",DIMC),14:("GND","",GND),
- 15:("GPIO12·PWM","reserv",DIMC),               16:("SPI1_CS1","LINJELASER RÖD en  (F1)",F1),
+ 13:("SPI1_SCK","VITT LED A enable  (F2)",F2),  14:("GND","",GND),
+ 15:("GPIO12·PWM","VITT LED B enable  (F2)",F2),16:("SPI1_CS1","LINJELASER RÖD en  (F1)",F1),
  17:("3.3V","logik 3.3V",P33),                  18:("SPI1_CS0","LINJELASER GRÖN en  (F2)",F2),
  19:("SPI0_MOSI","reserv",DIMC),                20:("GND","",GND),
  21:("SPI0_MISO","reserv",DIMC),                22:("SPI1_MISO","reserv",DIMC),
  23:("SPI0_SCK","reserv",DIMC),                 24:("SPI0_CS0","reserv",DIMC),
  25:("GND","",GND),                             26:("SPI0_CS1","reserv",DIMC),
  27:("I2C0_SDA","reserv I²C",BUS),              28:("I2C0_SCL","reserv I²C",BUS),
- 29:("GPIO01","VITT LED A enable  (F2)",F2),    30:("GND","",GND),
- 31:("GPIO11","VITT LED B enable  (F2)",F2),    32:("GPIO07·PWM","reserv",DIMC),
- 33:("GPIO13·PWM","reserv",DIMC),               34:("GND","",GND),
+ 29:("GPIO01","ENCODER A in (kvadr.)  (F1)",F1),30:("GND","",GND),
+ 31:("GPIO11","ENCODER B in (kvadr.)  (F1)",F1),32:("GPIO07·PWM","reserv",DIMC),
+ 33:("GPIO13·PWM","ENCODER Z index  (F1)",F1),  34:("GND","",GND),
  35:("I2S0_FS","KAM-TRIG reserv (HW-enc)",DIMC),36:("UART1_CTS","reserv",DIMC),
  37:("SPI1_MOSI","reserv GPIO",DIMC),           38:("I2S0_SDIN","reserv",DIMC),
  39:("GND","",GND),                             40:("I2S0_SDOUT","reserv",DIMC),
@@ -57,7 +57,7 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(18, 18, W - 36, H - 36, "none", INK, 2); rect(26, 26, W - 52, H - 52, "none", MUTED, 0.8)
 txt(48, 64, "JETSON ORIN NANO — 40-PIN HEADER (J12), prototyp-tilldelning", 22, "start", INK, 700, SANS)
-txt(48, 90, "Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). Headern används glest — LR400/Jrk/encoder går via USB.", 13, "start", MUTED, 400)
+txt(48, 90, "Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). LR400/Jrk via USB; encoder förgrenas till kamera + Jetson.", 13, "start", MUTED, 400)
 line(48, 104, W - 48, 104, INK, 1.5)
 # färglegend
 leg = [("3.3V", P33), ("5V", P5), ("GND", GND), ("Buss/reserv", BUS), ("Fas 1", F1), ("Fas 2", F2)]
@@ -101,16 +101,16 @@ def block(y, title, acc, rows):
     return y + 30 + len(rows) * 26 + 22
 
 y = 130
-y = block(y, "FAS 1 — matning + röd profilerare", F1, [
+y = block(y, "FAS 1 — matning + position + röd", F1, [
     ("Anhåll-fotocell (nolla/home) in", "pin 7"),
+    ("Encoder A · B · Z (kvadratur in)", "29 · 31 · 33"),
     ("Linjelaser RÖD enable (→ MOSFET)", "pin 16"),
     ("Transportör Jrk G2 → USB (ej header)", "USB"),
-    ("Mäthjuls-encoder → kamerans enc-in", "ej header"),
     ("Profilkamera RÖD → USB3", "USB3"),
 ])
 y = block(y, "FAS 2 — grön + punktlaser + yta + ljus", F2, [
     ("Linjelaser GRÖN enable (→ MOSFET)", "pin 18"),
-    ("2× Vitt LED-linjeljus enable", "pin 29 · 31"),
+    ("2× Vitt LED-linjeljus enable", "pin 13 · 15"),
     ("3× LR400 → RS-485 (Waveshare 4CH)", "USB ch1–3"),
     ("Ytkamera FÄRG (Huateng) → GbE", "RJ45"),
     ("Profilkamera GRÖN → USB3", "USB3"),
@@ -121,16 +121,17 @@ y = block(y, "STRÖM / GND", P33, [
     ("GND (gemensam)", "6·9·14·20·25·30·34·39"),
 ])
 # noter
-rect(sx, y, 500, 210, "#fff", INK, 1.2, 8)
+rect(sx, y, 500, 224, "#fff", INK, 1.2, 8)
 rect(sx, y, 500, 26, INK, INK, 0, 8); txt(sx + 10, y + 18, "KOPPLINGSNOTER", 12, "start", "#fff", 700, SANS)
 notes = [
-    "LR400 = RS-485 Modbus via Waveshare USB 4CH (ch1–3,",
-    "  ch4 ledig). Ingen ADC/MCP3008 behövs — allt digitalt.",
-    "Transportör = Jrk G2 över USB (ingen PWM/DIR på headern).",
-    "Mäthjuls-encoder A/B/Z → KAMERANS encoder-in (HW line-",
-    "  trigg) — avlastar Jetson. GPIO-trigg (13/35) = reserv.",
-    "Anhåll + fotocell = mekanisk nolla/home (GPIO-in, pin 7).",
-    "Lasrar/LED via EXTERN 24 V + MOSFET; GPIO styr bara gate.",
+    "Encoder (RS-422 line-driver, E6B2-CWZ1X) FÖRGRENAS:",
+    "  → kameran (RS-422 line-trigg, pixel-exakt) OCH",
+    "  → Jetson (A/B/Z räknas som kvadratur → position).",
+    "  Diff→3,3V via 26C32; el. LS7366R-räknare på SPI.",
+    "LR400 = RS-485 Modbus (Waveshare USB 4CH, ch1–3, ch4",
+    "  ledig). Ingen ADC behövs. Jrk G2 = USB (ej header).",
+    "Anhåll + fotocell = mekanisk nolla/home (pin 7).",
+    "Lasrar/LED via EXTERN 24 V + MOSFET; GPIO styr gate.",
     "Gemensam GND: Jetson + 24 V-PSU + logik — annars feltrigg.",
 ]
 for k, n in enumerate(notes):

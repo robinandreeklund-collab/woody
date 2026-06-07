@@ -102,7 +102,7 @@
 <rect x="16.0" y="16.0" width="2228.0" height="1548.0" rx="0" fill="none" stroke="#23262b" stroke-width="2" opacity="1"/>
 <rect x="24.0" y="24.0" width="2212.0" height="1532.0" rx="0" fill="none" stroke="#6a6e74" stroke-width="0.8" opacity="1"/>
 <text x="46.0" y="60.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="25" font-weight="700" fill="#23262b" text-anchor="start">MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)</text>
-<text x="46.0" y="86.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="400" fill="#6a6e74" text-anchor="start">Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje (RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +30 mm (EJ på laserlinjen → ingen laser i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).</text>
+<text x="46.0" y="86.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="400" fill="#6a6e74" text-anchor="start">Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje (RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +30 mm (EJ på laserlinjen → laserlinjen utanför FOV + baffel → ingen laser/glimt i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).</text>
 <line x1="46.0" y1="100.0" x2="2214.0" y2="100.0" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="46.0" y="116.0" width="1430.0" height="1180.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <rect x="46.0" y="116.0" width="1430.0" height="28.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
@@ -192,6 +192,10 @@
 <rect x="791.8" y="874.1" width="20.5" height="13.9" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.92"/>
 <text x="802.0" y="885.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f6fb0" text-anchor="middle" transform="rotate(-90 802.0 885.7)">400</text>
 <text x="818.0" y="882.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f6fb0" text-anchor="start" transform="rotate(-90 818.0 882.0)">yt-WD</text>
+<line x1="752.6" y1="1042.0" x2="752.6" y2="520.0" stroke="#15171a" stroke-width="9" opacity="1"/>
+<text x="746.6" y="514.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#15171a" text-anchor="end">BAFFEL (matt svart)</text>
+<text x="790.3" y="687.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#8a6510" text-anchor="start">laserlinjen utanför FOV + baffel → ingen laser/glimt in</text>
+<text x="790.3" y="698.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7" font-weight="400" fill="#6a6e74" text-anchor="start">(laserplan osynligt i ren luft; baffel fångar damm/spegling)</text>
 <line x1="740.0" y1="1050.0" x2="740.0" y2="450.0" stroke="#9aa0a6" stroke-width="0.7" stroke-dasharray="4 4" opacity="1"/>
 <text x="748.0" y="460.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#9aa0a6" text-anchor="start">lod</text>
 <path d="M 740.0 934.0 A 116 116 0 0 0 700.3 941.0" fill="none" stroke="#e8542c" stroke-width="1.2"/>
