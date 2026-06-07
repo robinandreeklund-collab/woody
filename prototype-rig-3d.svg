@@ -316,12 +316,12 @@
 <rect x="70.0" y="960.0" width="240.0" height="50.0" rx="7" fill="#fff" stroke="#2f9e6e" stroke-width="1.5" opacity="1"/>
 <rect x="70.0" y="960.0" width="240.0" height="20.0" rx="7" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="79.0" y="975.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="start">Linjelaser röd+grön</text>
-<text x="79.0" y="996.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#23262b" text-anchor="start">iadiy 650/520, CW</text>
+<text x="79.0" y="996.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#23262b" text-anchor="start">röd 5V·TTL / grön 12-24V</text>
 <line x1="310.0" y1="985.0" x2="700.0" y2="1080.0" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
 <line x1="700.0" y1="1080.0" x2="690.3" y2="1082.6" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
 <line x1="700.0" y1="1080.0" x2="692.6" y2="1073.3" stroke="#2f9e6e" stroke-width="1.7" opacity="1"/>
-<rect x="475.4" y="1024.5" width="59.2" height="15.0" rx="3" fill="#fff" stroke="#2f9e6e" stroke-width="0.8" opacity="1"/>
-<text x="505.0" y="1035.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="middle">24V+GPIO</text>
+<rect x="478.6" y="1024.5" width="52.8" height="15.0" rx="3" fill="#fff" stroke="#2f9e6e" stroke-width="0.8" opacity="1"/>
+<text x="505.0" y="1035.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#2f9e6e" text-anchor="middle">GPIO-en</text>
 <rect x="70.0" y="1040.0" width="240.0" height="50.0" rx="7" fill="#fff" stroke="#2f9e6e" stroke-width="1.5" opacity="1"/>
 <rect x="70.0" y="1040.0" width="240.0" height="20.0" rx="7" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="79.0" y="1055.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="start">RoboClaw 2x7A</text>
@@ -664,9 +664,9 @@
 <text x="1548.0" y="1868.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
 <text x="1740.0" y="1868.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">80</text>
 <rect x="1078.0" y="1874.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1085.0" y="1888.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">4× AOD4184/D4184 OPTO-ISOLERAD logic-level</text>
-<text x="1548.0" y="1888.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · att k</text>
-<text x="1740.0" y="1888.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">120</text>
+<text x="1085.0" y="1888.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">TTL/MOD-ingång direkt från GPIO (om lasern</text>
+<text x="1548.0" y="1888.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa (ev.)</text>
+<text x="1740.0" y="1888.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">10</text>
 <text x="1085.0" y="1908.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">skyddsglasögon 650/520 + skylt</text>
 <text x="1548.0" y="1908.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
 <text x="1740.0" y="1908.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">200</text>
@@ -676,36 +676,43 @@
 <text x="1740.0" y="1928.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">400</text>
 <rect x="1762.0" y="1428.0" width="670.0" height="24.0" rx="5" fill="#7a3fb0" stroke="#7a3fb0" stroke-width="0" opacity="1"/>
 <text x="1770.0" y="1445.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#fff" text-anchor="start">FAS 2 — LINE-SCAN-YTA + PUNKTLASER</text>
-<text x="1769.0" y="1468.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">3× LR400 CMOS-triangulering (60–400 mm, RS</text>
-<text x="2232.0" y="1468.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
-<text x="2424.0" y="1468.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">2 700</text>
+<text x="1769.0" y="1468.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">AOD4184/D4184 OPTO-ISOLERAD logic-level MO</text>
+<text x="2232.0" y="1468.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · att k</text>
+<text x="2424.0" y="1468.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">30</text>
 <rect x="1762.0" y="1474.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1769.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Waveshare USB→4CH RS-485 (isolerad) — 1 LR</text>
-<text x="2232.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/Wavesha</text>
-<text x="2424.0" y="1488.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">400</text>
-<text x="1769.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Huateng HT-GELM44C-T2 4K FÄRG (M42, GigE, </text>
-<text x="2232.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MDvisio</text>
-<text x="2424.0" y="1508.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">4 134</text>
+<text x="1769.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">2× samma AOD4184-typ när LED-lampa/spännin</text>
+<text x="2232.0" y="1488.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa (TBD)</text>
+<text x="2424.0" y="1488.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">60</text>
+<text x="1769.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">3× LR400 CMOS-triangulering (60–400 mm, RS</text>
+<text x="2232.0" y="1508.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress · ditt </text>
+<text x="2424.0" y="1508.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">2 700</text>
 <rect x="1762.0" y="1514.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1769.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">ZLKC TM2004MPC (20 mm, M42, Φ30, 0,05–0,2×</text>
-<text x="2232.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">ZLKC/AliExpress · </text>
-<text x="2424.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">1 000</text>
-<text x="1769.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Cat5e/6 — ytkamera → Jetson (GigE direkt, </text>
-<text x="2232.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
-<text x="2424.0" y="1548.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">80</text>
+<text x="1769.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Waveshare USB→4CH RS-485 (isolerad) — 1 LR</text>
+<text x="2232.0" y="1528.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/Wavesha</text>
+<text x="2424.0" y="1528.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">400</text>
+<text x="1769.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Huateng HT-GELM44C-T2 4K FÄRG (M42, GigE, </text>
+<text x="2232.0" y="1548.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">AliExpress/MDvisio</text>
+<text x="2424.0" y="1548.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">4 134</text>
 <rect x="1762.0" y="1554.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
-<text x="1769.0" y="1568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Vitt LED-linjeljus, högt uttag (kont. el. </text>
-<text x="2232.0" y="1568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
-<text x="2424.0" y="1568.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">600</text>
+<text x="1769.0" y="1568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">ZLKC TM2004MPC (20 mm, M42, Φ30, 0,05–0,2×</text>
+<text x="2232.0" y="1568.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">ZLKC/AliExpress · </text>
+<text x="2424.0" y="1568.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">1 000</text>
+<text x="1769.0" y="1588.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Cat5e/6 — ytkamera → Jetson (GigE direkt, </text>
+<text x="2232.0" y="1588.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
+<text x="2424.0" y="1588.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">80</text>
+<rect x="1762.0" y="1594.0" width="670.0" height="20.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
+<text x="1769.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">Vitt LED-linjeljus, högt uttag (kont. el. </text>
+<text x="2232.0" y="1608.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="400" fill="#6a6e74" text-anchor="start">att köpa</text>
+<text x="2424.0" y="1608.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">600</text>
 <rect x="1078.0" y="1942.0" width="670.0" height="30.0" rx="5" fill="#eaf5ee" stroke="#2f9e6e" stroke-width="1.2" opacity="1"/>
 <text x="1086.0" y="1962.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="start">SUMMA FAS 1</text>
-<text x="1740.0" y="1962.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#2f9e6e" text-anchor="end">18 320 kr</text>
-<rect x="1762.0" y="1582.0" width="670.0" height="30.0" rx="5" fill="#f1eaf7" stroke="#7a3fb0" stroke-width="1.2" opacity="1"/>
-<text x="1770.0" y="1602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#7a3fb0" text-anchor="start">FAS 2-tillägg</text>
-<text x="2424.0" y="1602.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+8 914 kr</text>
-<rect x="1762.0" y="1620.0" width="670.0" height="32.0" rx="5" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
-<text x="1770.0" y="1642.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">FULL SVIT (Fas 1+2)</text>
-<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">27 234 kr</text>
+<text x="1740.0" y="1962.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#2f9e6e" text-anchor="end">18 210 kr</text>
+<rect x="1762.0" y="1622.0" width="670.0" height="30.0" rx="5" fill="#f1eaf7" stroke="#7a3fb0" stroke-width="1.2" opacity="1"/>
+<text x="1770.0" y="1642.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#7a3fb0" text-anchor="start">FAS 2-tillägg</text>
+<text x="2424.0" y="1642.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="12" font-weight="700" fill="#7a3fb0" text-anchor="end">+9 004 kr</text>
+<rect x="1762.0" y="1660.0" width="670.0" height="32.0" rx="5" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
+<text x="1770.0" y="1682.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">FULL SVIT (Fas 1+2)</text>
+<text x="2424.0" y="1682.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="13" font-weight="700" fill="#fff" text-anchor="end">27 214 kr</text>
 <rect x="2010.0" y="1982.0" width="426.0" height="52.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
 <line x1="2010.0" y1="2008.0" x2="2436.0" y2="2008.0" stroke="#23262b" stroke-width="1" opacity="1"/>
 <line x1="2274.0" y1="1982.0" x2="2274.0" y2="2034.0" stroke="#23262b" stroke-width="1" opacity="1"/>

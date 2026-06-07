@@ -118,7 +118,7 @@ Lc = (JX, JY + JH / 2); Rc = (JX + JW, JY + JH / 2)
 # vänster: profil-röd + matning/position
 left = [
     (wy + 70, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3 (egen)"),
-    (wy + 150, "Linjelaser RÖD 650", "MZLaser, CW", F1, "24 V + GPIO-en"),
+    (wy + 150, "Linjelaser RÖD 650", "MZLaser, CW", F1, "5 V + GPIO/TTL"),
     (wy + 230, "RoboClaw 2x7A", "2 bandmotorer, synk", F1, "USB (1 kort)"),
     (wy + 305, "Encoder band A", "E6B2-CWZ6C (single-end)", F1, "→ EN1"),
     (wy + 370, "Encoder band B (ref)", "E6B2-CWZ1X (RS-422 @5V)", F1, "→ kamera+EN2"),

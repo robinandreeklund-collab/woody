@@ -169,7 +169,7 @@
 <line x1="992.0" y1="405.8" x2="983.1" y2="404.2" stroke="#2f9e6e" stroke-width="1.8" opacity="1"/>
 <line x1="992.0" y1="405.8" x2="988.5" y2="397.5" stroke="#2f9e6e" stroke-width="1.8" opacity="1"/>
 <rect x="881.0" y="345.4" width="92.0" height="16.0" rx="3" fill="#fff" stroke="#2f9e6e" stroke-width="0.8" opacity="1"/>
-<text x="927.0" y="357.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="middle">24 V + GPIO-en</text>
+<text x="927.0" y="357.4" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#2f9e6e" text-anchor="middle">5 V + GPIO/TTL</text>
 <rect x="632.0" y="360.0" width="230.0" height="46.0" rx="8" fill="#fff" stroke="#2f9e6e" stroke-width="1.6" opacity="1"/>
 <rect x="632.0" y="360.0" width="230.0" height="22.0" rx="8" fill="#2f9e6e" stroke="#2f9e6e" stroke-width="0" opacity="1"/>
 <text x="642.0" y="376.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">RoboClaw 2x7A</text>

@@ -180,7 +180,7 @@ def node(x, y, w, t, s, acc):
 def conn(p1, p2, lab, c):
     arrow(p1, p2, c, 1.7); mx, my = (p1[0]+p2[0])/2, (p1[1]+p2[1])/2
     rect(mx - len(lab)*3.2 - 4, my - 8, len(lab)*6.4 + 8, 15, "#fff", c, 0.8, 3); txt(mx, my + 3, lab, 8, "middle", c, 700)
-left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "iadiy 650/520, CW", F1, "24V+GPIO"),
+left = [(880, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"), (960, "Linjelaser röd+grön", "röd 5V·TTL / grön 12-24V", F1, "GPIO-en"),
         (1040, "RoboClaw 2x7A", "2 bandmotorer, synk", F1, "USB (1 kort)"), (1120, "Encoder A/B (band)", "A:CWZ6C · B:CWZ1X", F1, "→ RoboClaw"),
         (1200, "Anhåll-fotocell", "nolla / home", F1, "GPIO")]
 for (ly, t, s, c, lab) in left:
