@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Jetson Orin Nano — komplett 40-pin header med prototyp-tilldelning (SVG).
 Verifierad pinout (JetsonHacks/NVIDIA). Färgkodad per funktion/fas + sammanfattning
-och kopplingsnoter. Aktuellt schema: LR400 på RS-485 (Waveshare 4CH USB), transportör
-Jrk G2 (USB direkt), mäthjuls-encoder (RS-422) FÖRGRENAS → kamera (line-trigg) + Jetson
-(kvadratur, position), anhåll+fotocell = nolla (GPIO), linjelaser/vitljus-enable via MOSFET.
+och kopplingsnoter. Aktuellt schema: LR400 på RS-485 (Waveshare 4CH USB), matning via
+RoboClaw 2x7A (USB) som driver båda banden + läser 2 rull-encodrar (synk) och rapporterar
+position till Jetson; referensbandets encoder → kamerans line-trigg; anhåll+fotocell = nolla
+(GPIO), linjelaser/vitljus-enable via MOSFET. Headern används glest — det mesta går via USB.
 
     python tools/draw_pinout.py   # -> prototype-pinout.svg i projektroten
 """
@@ -41,9 +42,9 @@ PINS = {
  23:("SPI0_SCK","reserv",DIMC),                 24:("SPI0_CS0","reserv",DIMC),
  25:("GND","",GND),                             26:("SPI0_CS1","reserv",DIMC),
  27:("I2C0_SDA","reserv I²C",BUS),              28:("I2C0_SCL","reserv I²C",BUS),
- 29:("GPIO01","ENCODER A in (kvadr.)  (F1)",F1),30:("GND","",GND),
- 31:("GPIO11","ENCODER B in (kvadr.)  (F1)",F1),32:("GPIO07·PWM","reserv",DIMC),
- 33:("GPIO13·PWM","ENCODER Z index  (F1)",F1),  34:("GND","",GND),
+ 29:("GPIO01","reserv",DIMC),                   30:("GND","",GND),
+ 31:("GPIO11","reserv",DIMC),                   32:("GPIO07·PWM","reserv",DIMC),
+ 33:("GPIO13·PWM","reserv",DIMC),               34:("GND","",GND),
  35:("I2S0_FS","KAM-TRIG reserv (HW-enc)",DIMC),36:("UART1_CTS","reserv",DIMC),
  37:("SPI1_MOSI","reserv GPIO",DIMC),           38:("I2S0_SDIN","reserv",DIMC),
  39:("GND","",GND),                             40:("I2S0_SDOUT","reserv",DIMC),
@@ -57,7 +58,7 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(18, 18, W - 36, H - 36, "none", INK, 2); rect(26, 26, W - 52, H - 52, "none", MUTED, 0.8)
 txt(48, 64, "JETSON ORIN NANO — 40-PIN HEADER (J12), prototyp-tilldelning", 22, "start", INK, 700, SANS)
-txt(48, 90, "Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). LR400/Jrk via USB; encoder förgrenas till kamera + Jetson.", 13, "start", MUTED, 400)
+txt(48, 90, "Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). RoboClaw 2x7A + LR400 via USB; band-encodrar → RoboClaw.", 13, "start", MUTED, 400)
 line(48, 104, W - 48, 104, INK, 1.5)
 # färglegend
 leg = [("3.3V", P33), ("5V", P5), ("GND", GND), ("Buss/reserv", BUS), ("Fas 1", F1), ("Fas 2", F2)]
@@ -103,9 +104,9 @@ def block(y, title, acc, rows):
 y = 130
 y = block(y, "FAS 1 — matning + position + röd", F1, [
     ("Anhåll-fotocell (nolla/home) in", "pin 7"),
-    ("Encoder A · B · Z (kvadratur in)", "29 · 31 · 33"),
     ("Linjelaser RÖD enable (→ MOSFET)", "pin 16"),
-    ("Transportör Jrk G2 → USB (ej header)", "USB"),
+    ("RoboClaw 2x7A (2 motorer+2 enc) → USB", "USB"),
+    ("Band-encodrar → RoboClaw (ej header)", "kvadr."),
     ("Profilkamera RÖD → USB3", "USB3"),
 ])
 y = block(y, "FAS 2 — grön + punktlaser + yta + ljus", F2, [
@@ -121,18 +122,19 @@ y = block(y, "STRÖM / GND", P33, [
     ("GND (gemensam)", "6·9·14·20·25·30·34·39"),
 ])
 # noter
-rect(sx, y, 500, 224, "#fff", INK, 1.2, 8)
+rect(sx, y, 500, 240, "#fff", INK, 1.2, 8)
 rect(sx, y, 500, 26, INK, INK, 0, 8); txt(sx + 10, y + 18, "KOPPLINGSNOTER", 12, "start", "#fff", 700, SANS)
 notes = [
-    "Encoder (RS-422 line-driver, E6B2-CWZ1X) FÖRGRENAS:",
-    "  → kameran (RS-422 line-trigg, pixel-exakt) OCH",
-    "  → Jetson (A/B/Z räknas som kvadratur → position).",
-    "  Diff→3,3V via 26C32; el. LS7366R-räknare på SPI.",
-    "LR400 = RS-485 Modbus (Waveshare USB 4CH, ch1–3, ch4",
-    "  ledig). Ingen ADC behövs. Jrk G2 = USB (ej header).",
-    "Anhåll + fotocell = mekanisk nolla/home (pin 7).",
-    "Lasrar/LED via EXTERN 24 V + MOSFET; GPIO styr gate.",
-    "Gemensam GND: Jetson + 24 V-PSU + logik — annars feltrigg.",
+    "RoboClaw 2x7A (USB) DRIVER BÅDA bandmotorerna +",
+    "  läser 2 kvadratur-encodrar (1/band) → closed-loop-",
+    "  synk; rapporterar position/fart till Jetson via USB.",
+    "  → Jetson behöver INTE räkna encoder på GPIO.",
+    "Referensbandets A/B tappas till KAMERANS line-trigg",
+    "  (single-ended; AM26LS31→RS-422 om kameran kräver).",
+    "Encoder single-ended 5 V (E6B2-CWZ6C) → RoboClaw-in.",
+    "LR400 = RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig).",
+    "Anhåll+fotocell = nolla (pin 7); lasrar/LED via MOSFET.",
+    "Gemensam GND: Jetson + 24 V-PSU + logik.",
 ]
 for k, n in enumerate(notes):
     txt(sx + 12, y + 46 + k * 21, n, 10.3, "start", INK if not n.startswith("  ") else MUTED, 400, SANS)

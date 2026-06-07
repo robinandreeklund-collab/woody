@@ -77,7 +77,7 @@
 <rect x="18.0" y="18.0" width="1644.0" height="1144.0" rx="0" fill="none" stroke="#23262b" stroke-width="2"/>
 <rect x="26.0" y="26.0" width="1628.0" height="1128.0" rx="0" fill="none" stroke="#6a6e74" stroke-width="0.8"/>
 <text x="48.0" y="64.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="22" font-weight="700" fill="#23262b" text-anchor="start">JETSON ORIN NANO — 40-PIN HEADER (J12), prototyp-tilldelning</text>
-<text x="48.0" y="90.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="400" fill="#6a6e74" text-anchor="start">Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). LR400/Jrk via USB; encoder förgrenas till kamera + Jetson.</text>
+<text x="48.0" y="90.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="400" fill="#6a6e74" text-anchor="start">Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). RoboClaw 2x7A + LR400 via USB; band-encodrar → RoboClaw.</text>
 <line x1="48.0" y1="104.0" x2="1632.0" y2="104.0" stroke="#23262b" stroke-width="1.5"/>
 <rect x="720.0" y="46.0" width="13.0" height="13.0" rx="3" fill="#e0892b" stroke="#e0892b" stroke-width="0"/>
 <text x="738.0" y="57.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#e0892b" text-anchor="start">3.3V</text>
@@ -200,25 +200,25 @@
 <text x="760.0" y="746.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">28</text>
 <text x="783.0" y="740.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">I2C0_SCL</text>
 <text x="783.0" y="754.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="start">reserv I²C</text>
-<circle cx="690" cy="786" r="11" fill="#2f9e6e" stroke="#23262b" stroke-width="1.1"/>
-<text x="690.0" y="790.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">29</text>
+<circle cx="690" cy="786" r="11" fill="#9a9ea4" stroke="#23262b" stroke-width="1.1"/>
+<text x="690.0" y="790.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">29</text>
 <text x="667.0" y="784.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">GPIO01</text>
-<text x="667.0" y="798.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#2f9e6e" text-anchor="end">ENCODER A in (kvadr.)  (F1)</text>
+<text x="667.0" y="798.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="end">reserv</text>
 <circle cx="760" cy="786" r="11" fill="#3b4046" stroke="#23262b" stroke-width="1.1"/>
 <text x="760.0" y="790.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">30</text>
 <text x="783.0" y="784.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">GND</text>
-<circle cx="690" cy="830" r="11" fill="#2f9e6e" stroke="#23262b" stroke-width="1.1"/>
-<text x="690.0" y="834.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">31</text>
+<circle cx="690" cy="830" r="11" fill="#9a9ea4" stroke="#23262b" stroke-width="1.1"/>
+<text x="690.0" y="834.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">31</text>
 <text x="667.0" y="828.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">GPIO11</text>
-<text x="667.0" y="842.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#2f9e6e" text-anchor="end">ENCODER B in (kvadr.)  (F1)</text>
+<text x="667.0" y="842.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="end">reserv</text>
 <circle cx="760" cy="830" r="11" fill="#9a9ea4" stroke="#23262b" stroke-width="1.1"/>
 <text x="760.0" y="834.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">32</text>
 <text x="783.0" y="828.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">GPIO07·PWM</text>
 <text x="783.0" y="842.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="start">reserv</text>
-<circle cx="690" cy="874" r="11" fill="#2f9e6e" stroke="#23262b" stroke-width="1.1"/>
-<text x="690.0" y="878.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">33</text>
+<circle cx="690" cy="874" r="11" fill="#9a9ea4" stroke="#23262b" stroke-width="1.1"/>
+<text x="690.0" y="878.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">33</text>
 <text x="667.0" y="872.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">GPIO13·PWM</text>
-<text x="667.0" y="886.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#2f9e6e" text-anchor="end">ENCODER Z index  (F1)</text>
+<text x="667.0" y="886.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#6a6e74" text-anchor="end">reserv</text>
 <circle cx="760" cy="874" r="11" fill="#3b4046" stroke="#23262b" stroke-width="1.1"/>
 <text x="760.0" y="878.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#fff" text-anchor="middle">34</text>
 <text x="783.0" y="872.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="start">GND</text>
@@ -251,13 +251,13 @@
 <text x="1142.0" y="175.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Anhåll-fotocell (nolla/home) in</text>
 <text x="1618.0" y="175.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">pin 7</text>
 <rect x="1130.0" y="184.0" width="500.0" height="26.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
-<text x="1142.0" y="201.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Encoder A · B · Z (kvadratur in)</text>
-<text x="1618.0" y="201.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">29 · 31 · 33</text>
-<text x="1142.0" y="227.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Linjelaser RÖD enable (→ MOSFET)</text>
-<text x="1618.0" y="227.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">pin 16</text>
+<text x="1142.0" y="201.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Linjelaser RÖD enable (→ MOSFET)</text>
+<text x="1618.0" y="201.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">pin 16</text>
+<text x="1142.0" y="227.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">RoboClaw 2x7A (2 motorer+2 enc) → USB</text>
+<text x="1618.0" y="227.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">USB</text>
 <rect x="1130.0" y="236.0" width="500.0" height="26.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0"/>
-<text x="1142.0" y="253.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Transportör Jrk G2 → USB (ej header)</text>
-<text x="1618.0" y="253.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">USB</text>
+<text x="1142.0" y="253.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Band-encodrar → RoboClaw (ej header)</text>
+<text x="1618.0" y="253.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">kvadr.</text>
 <text x="1142.0" y="279.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">Profilkamera RÖD → USB3</text>
 <text x="1618.0" y="279.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#2f9e6e" text-anchor="end">USB3</text>
 <rect x="1130.0" y="312.0" width="500.0" height="166.0" rx="8" fill="#fff" stroke="#7a3fb0" stroke-width="1.4"/>
@@ -285,18 +285,19 @@
 <text x="1618.0" y="565.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e0892b" text-anchor="end">pin 2 · 4</text>
 <text x="1142.0" y="591.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#23262b" text-anchor="start">GND (gemensam)</text>
 <text x="1618.0" y="591.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#e0892b" text-anchor="end">6·9·14·20·25·30·34·39</text>
-<rect x="1130.0" y="624.0" width="500.0" height="224.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.2"/>
+<rect x="1130.0" y="624.0" width="500.0" height="240.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.2"/>
 <rect x="1130.0" y="624.0" width="500.0" height="26.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0"/>
 <text x="1140.0" y="642.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">KOPPLINGSNOTER</text>
-<text x="1142.0" y="670.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Encoder (RS-422 line-driver, E6B2-CWZ1X) FÖRGRENAS:</text>
-<text x="1142.0" y="691.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  → kameran (RS-422 line-trigg, pixel-exakt) OCH</text>
-<text x="1142.0" y="712.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  → Jetson (A/B/Z räknas som kvadratur → position).</text>
-<text x="1142.0" y="733.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  Diff→3,3V via 26C32; el. LS7366R-räknare på SPI.</text>
-<text x="1142.0" y="754.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">LR400 = RS-485 Modbus (Waveshare USB 4CH, ch1–3, ch4</text>
-<text x="1142.0" y="775.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  ledig). Ingen ADC behövs. Jrk G2 = USB (ej header).</text>
-<text x="1142.0" y="796.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Anhåll + fotocell = mekanisk nolla/home (pin 7).</text>
-<text x="1142.0" y="817.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Lasrar/LED via EXTERN 24 V + MOSFET; GPIO styr gate.</text>
-<text x="1142.0" y="838.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Gemensam GND: Jetson + 24 V-PSU + logik — annars feltrigg.</text>
+<text x="1142.0" y="670.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">RoboClaw 2x7A (USB) DRIVER BÅDA bandmotorerna +</text>
+<text x="1142.0" y="691.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  läser 2 kvadratur-encodrar (1/band) → closed-loop-</text>
+<text x="1142.0" y="712.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  synk; rapporterar position/fart till Jetson via USB.</text>
+<text x="1142.0" y="733.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  → Jetson behöver INTE räkna encoder på GPIO.</text>
+<text x="1142.0" y="754.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Referensbandets A/B tappas till KAMERANS line-trigg</text>
+<text x="1142.0" y="775.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#6a6e74" text-anchor="start">  (single-ended; AM26LS31→RS-422 om kameran kräver).</text>
+<text x="1142.0" y="796.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Encoder single-ended 5 V (E6B2-CWZ6C) → RoboClaw-in.</text>
+<text x="1142.0" y="817.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">LR400 = RS-485 (Waveshare USB 4CH, ch1–3, ch4 ledig).</text>
+<text x="1142.0" y="838.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Anhåll+fotocell = nolla (pin 7); lasrar/LED via MOSFET.</text>
+<text x="1142.0" y="859.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.3" font-weight="400" fill="#23262b" text-anchor="start">Gemensam GND: Jetson + 24 V-PSU + logik.</text>
 <rect x="1210.0" y="1100.0" width="422.0" height="52.0" rx="0" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
 <line x1="1210.0" y1="1126.0" x2="1632.0" y2="1126.0" stroke="#23262b" stroke-width="1"/>
 <line x1="1472.0" y1="1100.0" x2="1472.0" y2="1152.0" stroke="#23262b" stroke-width="1"/>

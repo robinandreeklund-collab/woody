@@ -374,7 +374,7 @@ def fig_throughput(sim, figsize=(7.4, 3.2)):
 
 # ============================================================ BOM & systemintegration
 # Priser SEK exkl. moms/frakt (Jetson, CS050 verifierade; Huateng 4K + övriga ca).
-# Fas: 1 = full 3D-mätrigg (röd + grön oblik modul) + matning (2 transportband, motorns Hall);
+# Fas: 1 = full 3D-mätrigg (röd + grön oblik modul) + matning (2 transportband, RoboClaw + 2 rull-encodrar);
 #      2 = ytkanal (4K FÄRG-line-scan + vitt ljus) + punktlaser (absolut tjocklek);
 #      3 = valfri NIR-modul (röta/blånad) — separat, senare.
 BOM = [
@@ -390,14 +390,15 @@ BOM = [
     ("Bandpass 525", "FS03-BP525 (525 nm, M30.5×0.5, FWHM 40 nm → 505–545, släpper 520-lasern)", 1, "isolerar grön laser; skruvas på 12 mm-linsens M30.5-gänga (OD 2–3; OD≥4 ideal)", "—", "—", 200, 1, "MDvision · ditt val"),
     ("Linjelaser grön", "MZLaser PWAJHFX520 — 520 nm Powell (beställ 45°/100 mW)", 1, "jämn linje (Powell); 520 nm i gröna filtret (505–545); OBS 12/24 V (ej 5 V)", "24 V + GPIO-en (MOSFET)", "CW", 350, 1, "AliExpress/MZLaser · ditt val"),
     ("Rullband ×2", "rostfri 600 mm, 24 V/30 rpm, 50 mm/s ('with Power Supply')", 2, "matning (cross-feed); 50 mm/s = 40 brädor/min. TÄNKT 60/min kräver ~75 mm/s (~45 rpm) → snabbare motor", "24 V DC", "50 mm/s (→40/min)", 736, 1, "AliExpress · ditt val"),
-    ("Motorstyrning ×2", "Pololu Jrk G2 24v13 #3147 (el. 21v3 #3142) — frekvens-FB", 2, "EN per motor → oberoende closed-loop FART från var sin Hall; I²C till Jetson", "I²C ↔ Jetson", "—", 900, 1, "Electrokit/Pololu · ditt val"),
-    ("Position (motorns Hall)", "Motorns inbyggda 'Signal' (1-kanal/motor) + nivåanpassning ×2", 1, "var sin Signal → var sin Jrk (frekvens-FB); position via pulser + anslag-noll", "Signal → Jrk", "kalibreras mm/puls", 60, 1, "ingår i motorn"),
-    ("Ingångslaser", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "brädetektering + ev. om-nollning", "GPIO", "kant-trig", 80, 1, "att köpa"),
+    ("Motorstyrning RoboClaw 2x7A", "BasicMicro RoboClaw 2x7A (V6) — 2 kanaler, 7,5 A/15 A peak, dubbla kvadratur-encodrar", 1, "DRIVER BÅDA bandmotorerna; closed-loop hastighets-/positions-PID per kanal → synk; rapporterar position/fart till Jetson", "USB (el. UART)", "kvadratur-PID", 1099, 1, "Electrokit · ditt val"),
+    ("Rull-encoder ×2 (kvadratur)", "E6B2-CWZ6C (NPN/push-pull, single-ended 5 V) — Ø40 mm-hjul mot bandets retur", 2, "EN per band (under, utanför FOV) → RoboClaw closed-loop/synk; referensbandets A/B tappas även → kamera line-trigg + Jetson via RoboClaw-USB; anslag-noll", "→ RoboClaw + kamera", "12,6 µm/puls", 250, 1, "Omron · att köpa"),
+    ("Anhåll-fotocell", "E3F-DS30C4 fotocell (NPN, diffus)", 1, "bakkant mot fast anhåll → mekanisk nolla/home + ev. om-nollning", "GPIO", "kant-trig", 80, 1, "att köpa"),
+    ("Line-driver (vid behov)", "AM26LS31 single-ended→RS-422 (om kameran kräver diff. encoder-in)", 1, "referensbandets A/B → kamerans RS-422 line-trigg", "—", "—", 60, 1, "att köpa (ev.)"),
     ("Ramstativ (alu)", "2020 T-spår-profil + vinkelfästen (~4 m)", 1, "vänt stativ + tvärbalk över rullbandet", "—", "—", 600, 1, "att köpa (alu)"),
     ("Anslag / mathåll", "alu-vinkel (bakkant, laddläge)", 1, "lägg brädan mot → känd nollposition", "—", "—", 150, 1, "DIY (alu)"),
     ("Sidoanslag / styrskena", "alu-profil längs ENA sidan", 1, "brädans ena kant rider mot → anti-skev", "—", "—", 150, 1, "DIY (alu)"),
     ("NVMe SSD", "M.2 256 GB (Jetson-lagring)", 1, "OS + dataset + modeller", "M.2", "—", 250, 1, "att köpa"),
-    ("Nätaggregat 24 V", "24 V 5 A (om rullbandets PSU ej räcker)", 1, "matning/Jrk", "—", "—", 150, 1, "ev. ingår i rullband"),
+    ("Nätaggregat 24 V", "24 V 5 A (om rullbandets PSU ej räcker)", 1, "matning/RoboClaw", "—", "—", 150, 1, "ev. ingår i rullband"),
     ("Nätaggregat 5 V", "5 V 2 A (endast röd laser; grön tar 24 V)", 1, "röd linjelaser (CW)", "—", "—", 80, 1, "att köpa"),
     ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → röd 5 V / grön 24 V on/off", "GPIO", "—", 15, 1, "att köpa"),
     ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1, "att köpa"),
@@ -447,12 +448,12 @@ def interface_rows(sim):
          "Datatakt": "<0,1 MB/s", "Buss-tak": "1 buss, 3 adr.", "Marginal": "3 abs-ankare längs 1 m (V/C/H) → skala/drift; DIGITALT, ingen ADC"},
         {"Enhet": "Ytbelysning (vit)", "Buss": "kont./flash-ut", "Takt (proto)": "kont.",
          "Datatakt": "—", "Buss-tak": "1 vit kanal", "Marginal": "färg i 1 pass — ingen R/G/B-strobe"},
-        {"Enhet": "Ingångslaser (brädstart)", "Buss": "GPIO", "Takt (proto)": "kant-trig",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "nollställer position på rullbandet"},
-        {"Enhet": "Motordrivare (fram/back)", "Buss": "I²C → 2× Jrk G2", "Takt (proto)": "—",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "Jetson: load→fram→mät→back→upprepa"},
-        {"Enhet": "Läge (motorns Hall)", "Buss": "Signal→Jrk", "Takt (proto)": "pulser",
-         "Datatakt": "—", "Buss-tak": "—", "Marginal": "var sin Hall→Jrk (frekvens-FB) + anslag-noll"},
+        {"Enhet": "Anhåll-fotocell (nolla)", "Buss": "GPIO", "Takt (proto)": "kant-trig",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "bakkant mot fast anhåll → mekanisk nolla/home"},
+        {"Enhet": "Motorstyrning (fram/back)", "Buss": "USB → RoboClaw 2x7A", "Takt (proto)": "—",
+         "Datatakt": "—", "Buss-tak": "1 kort, 2 kanaler", "Marginal": "Jetson: load→fram→mät→back→upprepa; banden synkade"},
+        {"Enhet": "Läge (rull-encoder ×2)", "Buss": "kvadratur→RoboClaw", "Takt (proto)": "pulser",
+         "Datatakt": "—", "Buss-tak": "—", "Marginal": "1/band → closed-loop/synk; ref → kamera line-trigg; position via RoboClaw-USB"},
     ]
 
 
@@ -480,7 +481,7 @@ def fig_wiring(sim, figsize=(7.4, 4.3)):
          f"RS-485 · {ir['3× Punktlaser (LR400)']['Takt (proto)']}"),
         (0.84, 0.50, "Ytbelysning (vit)", "vitt LED-linjeljus (kont./strobat)", "#e9f5ec", GP,
          "1 vit kanal · färg i 1 pass"),
-        (0.84, 0.17, "Motorns Hall → Jrk", "frekvens-FB + anslag-noll", "#e9f5ec", GP, "Signal · låser fart/läge"),
+        (0.84, 0.17, "RoboClaw 2x7A (USB)", "2 band-encodrar + anslag-noll", "#e9f5ec", GP, "2 kanaler · synk + position"),
     ]
     for (x, y, t, s, fc, col, lbl) in nodes:
         _node(ax, x, y, 0.235, 0.135, t, s, fc)

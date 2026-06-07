@@ -40,12 +40,12 @@ rows = [
  ("Profilkamera GRÖN",     "USB3 #2 (dedik.)", f"{pcam:.0f} MB/s",  pcam < JET['usb3_MBs']),
  ("Ytkamera 4K FÄRG",      "GbE (RJ45)",      f"{ycam:.1f} MB/s",  ycam < JET['gbe_MBs']),
  ("  – ytkamera @ MAX 8kHz","GbE (RJ45)",     f"{ycam_max:.0f} MB/s", ycam_max < JET['gbe_MBs']),
- ("Transportör (Jrk G2)",  "USB #4 (direkt)", "kbit/s",            True),
+ ("Matning RoboClaw 2x7A",  "USB #4 (1 kort)", "2 motorer + 2 enc",  True),
  ("3× LR400 punktlaser",   "RS-485 ch1–3 (Waveshare 4CH USB)","<0,1 MB/s", True),
  ("RS-485 ch4 (Waveshare)","LEDIG — Modbus-reserv","—",            True),
- ("Mäthjuls-encoder A/B/Z","kamera RS-422 + Jetson GPIO","puls (kvadratur)", True),
- ("  – line-trigg → kamera","RS-422 diff (line-driver)","per rad", True),
- ("  – position → Jetson",  "GPIO/LS7366R-räkning","kvadratur",     True),
+ ("2× rull-encoder (band)","→ RoboClaw (kvadratur)","synk + position", True),
+ ("  – ref-band → kamera",  "tap → line-trigg (ev. RS-422)","per rad", True),
+ ("  – position → Jetson",  "via RoboClaw-USB","counts/fart",       True),
  ("Röd/Grön laser enable", "GPIO (MOSFET)",   "—",                 True),
  ("Anhåll-fotocell (nolla)","GPIO (digital)", "home/nolla",        True),
  ("Vitt LED-ljus",         "GPIO/flash-ut",   "—",                 True),
@@ -58,15 +58,16 @@ for name, port, rate, fit in rows:
 print(f"\n{'BUSS / PORT':22}{'ANVÄNDS':10}{'FINNS':8}MARGINAL")
 line()
 budget = [
- ("USB-portar (totalt)*",   4, JET['usb3_ports']),   # 2 kam + Waveshare + Jrk = 4, alla direkt
+ ("USB-portar (totalt)*",   4, JET['usb3_ports']),   # 2 kam + Waveshare + RoboClaw = 4, alla direkt
  ("Gigabit Ethernet",       1, JET['gbe_ports']),
  ("RS-485-kanaler (4CH)",   3, 4),
- ("GPIO-pinnar",            6, JET['gpio']),
+ ("GPIO-pinnar",            5, JET['gpio']),
 ]
 for nm, used, avail in budget:
     print(f"{nm:24}{used:<10}{avail:<8}{ok(used<=avail)}  ({avail-used} kvar)")
-print("  * 2 profilkameror (USB3) + Waveshare 4CH RS-485 (USB) + Jrk G2 (USB) = 4 av 4, ALLA DIREKT.")
-print("    Ingen hubb behövs. (Hubb endast om du vill hålla en port ledig: lägg Jrk+Waveshare på den.)")
+print("  * 2 profilkameror (USB3) + Waveshare 4CH RS-485 (USB) + RoboClaw 2x7A (USB) = 4 av 4, ALLA DIREKT.")
+print("    RoboClaw driver BÅDA banden på ETT kort/EN USB (2× Jrk hade krävt 2 USB). Ingen hubb.")
+print("    Vill du frigöra USB helt: RoboClaw kan gå på Jetson-UART (packet serial) → 3 USB använda.")
 
 # ---- analog in: behövs INTE längre (LR400 = RS-485 digitalt) ----
 print(f"\n{'ANALOG IN (ADC)':22}{'krävs?':10}{'Jetson':8}KOMMENTAR")
@@ -78,22 +79,24 @@ usb_tot = 2*pcam
 print(f"\nUSB3 total (2 profilkameror): {usb_tot:.0f} MB/s  vs  ~{JET['usb3_MBs']} MB/s/kontroller  "
       f"→ {ok(usb_tot < JET['usb3_MBs'])}  ({100*usb_tot/JET['usb3_MBs']:.0f} %)")
 
-# ---- ENCODER: line-driver (RS-422) ≠ RS-485-Modbus; och MÅSTE förgrenas ----
-print(); line(); print("ENCODER — variant, buss och VEM som läser den"); line()
-print("  E6B2-CWZ1X = INKREMENTELL kvadratur-encoder (A/B/Z) med LINE-DRIVER-utgång =")
-print("  RS-422 (differentiell, punkt-till-punkt). Det är INTE RS-485-Modbus (det är LR400).")
-print("  RS-422 line-driver är just standard-encoderingången på en line-scan-KAMERA → brusimmunt.")
-print("    (Har kameran open-collector-ingång i stället → välj E6B2-CWZ6C (NPN).)")
-print("  Kan den ligga på Waveshares 4:e RS-485-kanal? NEJ — kvadraturpulser är inte serie-bytes.")
-print("  → ch4 lämnas LEDIG (Modbus-reserv).")
+# ---- MOTOR + POSITION: RoboClaw 2x7A driver båda banden + läser 2 encodrar ----
+print(); line(); print("MATNING & POSITION — RoboClaw 2x7A (dual-kanal) i stället för 2× Jrk"); line()
+print("  RoboClaw 2x7A: 2 kanaler, 7,5 A kont./15 A peak, DUBBLA kvadratur-encodrar, closed-")
+print("  loop hastighets-/positions-PID, USB el. UART. → 1 kort/1 USB driver BÅDA bandmotorerna")
+print("  (2× Jrk = 2 USB + ingen riktig kvadratur). Billigare (1099 kr vs ~2×900).")
 print()
-print("  FÖRGRENA encodern till BÅDA (annars vet Jetson inte var brädan är):")
-print("   • → KAMERAN  : RS-422 line-trigg → en scanrad per N pulser (pixel-exakt, ingen jitter).")
-print("   • → JETSON   : samma A/B/Z räknas som kvadratur (GPIO-interrupt el. LS7366R på SPI) →")
-print("                  ABSOLUT position från anhålls-nollan → Jetson beslutar stopp/BACK.")
-print("   RS-422 = en sändare kan driva flera mottagare → kamerans ingång + en 26C32 → 3,3 V Jetson.")
-print(f"   Takt: Ø40 mm-hjul, 2500 ppr, {rig.feed_mps*1000:.0f} mm/s → ~4 kHz, ~12,6 µm/puls → trivialt.")
-print("   Backup på slutläge: profildata visar 'ingen bräda' när bakkanten lämnat lasersnittet.")
+print("  SYNK: två kanaler vid SAMMA hastighets-börvärde → integraldelen nollar drift → banden")
+print("  går i synk; brädan brygger dessutom banden mekaniskt (master/följare om hårdare krävs).")
+print()
+print("  ENCODRAR: en rull-encoder per band (Ø40 mm mot retursidan, under, utanför FOV).")
+print("   • → RoboClaw : closed-loop/synk; RoboClaw rapporterar counts/fart till Jetson via USB")
+print("                  → Jetson vet position (från anhålls-nollan) → beslutar stopp/BACK.")
+print("   • ref-band   → tappas till KAMERANS line-trigg (hårdvarupuls, pixel-exakt scan).")
+print("   El-typ: RoboClaw-ingång = single-ended 5 V → E6B2-CWZ6C (NPN/push-pull). Kräver kameran")
+print("           RS-422 → lägg AM26LS31 (single-ended→diff) på referensbandets A/B mot kameran.")
+print(f"   Takt: Ø40 mm-hjul, 2500 ppr, {rig.feed_mps*1000:.0f} mm/s → ~4 kHz, ~12,6 µm/puls.")
+print("  → Jetson behöver INTE räkna kvadratur på GPIO (position kommer via RoboClaw-USB).")
+print("  Kan encodern ligga på Waveshares ch4? NEJ — kvadraturpulser ≠ serie-bytes → ch4 LEDIG.")
 
 # ---- compute + ström ----
 print(f"\nCompute : U-Net + triangulering  →  {JET['tops_int8']} TOPS INT8 / {JET['ram_gb']} GB RAM  "
@@ -158,10 +161,10 @@ print("  TESTA på Jetson:  'arv-tool-0.8' listar kameror + tar en ram (el. vend
 print("  OBS: USB3 → höj usbcore.usbfs_memory_mb;  GigE → samma subnät + jumbo frames (MTU 9000)")
 
 print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano.")
-print("  • 2 profilkameror + Waveshare (4CH RS-485) + Jrk G2 = 4 USB-portar, ALLA DIREKT (ingen hubb).")
+print("  • 2 profilkameror + Waveshare (4CH RS-485) + RoboClaw 2x7A = 4 USB-portar, ALLA DIREKT (ingen hubb).")
 print("  • Ytkamera på GbE; 3 LR400 på RS-485 ch1–3 → ch4 LEDIG (Modbus-reserv).")
-print("  • Mäthjuls-encoder förgrenas: → kamera (RS-422 line-trigg) OCH → Jetson (kvadratur-räkning,")
-print("    position/back-beslut); anhåll-fotocell + lasrar/LED → GPIO (~18 kvar).")
+print("  • RoboClaw 2x7A driver BÅDA banden + 2 rull-encodrar → synk; position → Jetson via USB.")
+print("    Ref-bandets encoder → kamerans line-trigg; anhåll-fotocell + lasrar/LED → GPIO (~21 kvar).")
 print("  • Ingen ADC behövs (LR400 = RS-485 digitalt).")
 print("  Enda att hålla koll på: ytkameran @ MAX 8 kHz färg = {:.0f} % av GbE (proto-takt = {:.0f} %).".format(
       100*ycam_max/JET['gbe_MBs'], 100*ycam/JET['gbe_MBs'])); line("=")
