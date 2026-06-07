@@ -36,15 +36,17 @@ ycam_max = rig.surface_cam.px_across * rig.surface_cam.line_rate_hz * cf / 1e6  
 print(f"\n{'ENHET':30}{'JETSON-PORT':20}{'DATATAKT':14}RYMS")
 line()
 rows = [
- ("Profilkamera RÖD",      "USB3 #1",         f"{pcam:.0f} MB/s",  pcam < JET['usb3_MBs']),
- ("Profilkamera GRÖN",     "USB3 #2",         f"{pcam:.0f} MB/s",  pcam < JET['usb3_MBs']),
+ ("Profilkamera RÖD",      "USB3 #1 (dedik.)", f"{pcam:.0f} MB/s",  pcam < JET['usb3_MBs']),
+ ("Profilkamera GRÖN",     "USB3 #2 (dedik.)", f"{pcam:.0f} MB/s",  pcam < JET['usb3_MBs']),
  ("Ytkamera 4K FÄRG",      "GbE (RJ45)",      f"{ycam:.1f} MB/s",  ycam < JET['gbe_MBs']),
  ("  – ytkamera @ MAX 8kHz","GbE (RJ45)",     f"{ycam_max:.0f} MB/s", ycam_max < JET['gbe_MBs']),
- ("2× Jrk G2 (motorer)",   "I²C (1 buss)",    "kbit/s",            JET['i2c'] >= 1),
- ("3× punktlaser LR400",   "RS-485 (USB/UART)","<0,1 MB/s",        JET['usb3_ports']>=3 or JET['uart']>=1),
- ("Röd laser enable",      "GPIO (MOSFET)",   "—",                 True),
- ("Grön laser enable",     "GPIO (MOSFET)",   "—",                 True),
- ("Ingångslaser (fotocell)","GPIO",           "kant-trig",         True),
+ ("Transportör (Jrk G2)",  "USB (lågfart)",   "kbit/s",            True),
+ ("3× LR400 punktlaser",   "RS-485 ch1–3 (Waveshare 4CH USB)","<0,1 MB/s", True),
+ ("RS-485 ch4 (Waveshare)","LEDIG — Modbus-reserv","—",            True),
+ ("Mäthjuls-encoder A/B/Z","KAMERANS encoder-IN","puls (line-trigg)", True),
+ ("  – ej RS-485 (kvadratur)","→ kamera/counter","se nedan",       True),
+ ("Röd/Grön laser enable", "GPIO (MOSFET)",   "—",                 True),
+ ("Anhåll-fotocell (nolla)","GPIO (digital)", "home/nolla",        True),
  ("Vitt LED-ljus",         "GPIO/flash-ut",   "—",                 True),
  ("NVMe SSD (OS/data)",    "M.2 Key-M",       "—",                 True),
 ]
@@ -55,14 +57,15 @@ for name, port, rate, fit in rows:
 print(f"\n{'BUSS / PORT':22}{'ANVÄNDS':10}{'FINNS':8}MARGINAL")
 line()
 budget = [
- ("USB 3.2 Gen2",  2, JET['usb3_ports']),
- ("Gigabit Ethernet", 1, JET['gbe_ports']),
- ("I²C-buss",      1, JET['i2c']),
- ("RS-485 (UART/USB)", 1, JET['uart']),
- ("GPIO-pinnar",   5, JET['gpio']),
+ ("USB3 (kameror, dedik.)", 2, JET['usb3_ports']),
+ ("USB (Jrk+Waveshare)*",   2, JET['usb3_ports']),
+ ("Gigabit Ethernet",       1, JET['gbe_ports']),
+ ("RS-485-kanaler (4CH)",   3, 4),
+ ("GPIO-pinnar",            6, JET['gpio']),
 ]
 for nm, used, avail in budget:
-    print(f"{nm:22}{used:<10}{avail:<8}{ok(used<=avail)}  ({avail-used} kvar)")
+    print(f"{nm:24}{used:<10}{avail:<8}{ok(used<=avail)}  ({avail-used} kvar)")
+print("  * lågfartsenheter (Jrk, Waveshare) på en USB-hubb → kamerorna behåller egna USB3-portar.")
 
 # ---- analog in: behövs INTE längre (LR400 = RS-485 digitalt) ----
 print(f"\n{'ANALOG IN (ADC)':22}{'krävs?':10}{'Jetson':8}KOMMENTAR")
@@ -73,6 +76,18 @@ print(f"{'Punktlaser':22}{'NEJ':10}{JET['adc']:<8}LR400 ger avstånd via RS-485 
 usb_tot = 2*pcam
 print(f"\nUSB3 total (2 profilkameror): {usb_tot:.0f} MB/s  vs  ~{JET['usb3_MBs']} MB/s/kontroller  "
       f"→ {ok(usb_tot < JET['usb3_MBs'])}  ({100*usb_tot/JET['usb3_MBs']:.0f} %)")
+
+# ---- ENCODER: kvadratur ≠ RS-485-serie (vanlig fälla) ----
+print(); line(); print("ENCODER — kan den ligga på Waveshares 4:e RS-485-kanal?"); line()
+print("  NEJ för ett MÄTHJUL (E6B2-CWZ1X): det är en INKREMENTELL kvadratur-encoder (A/B/Z,")
+print("  line-driver) = pulståg. Waveshare-kanalen är SERIELL (Modbus/UART) → den läser bytes,")
+print("  inte kvadraturpulser. Ett mäthjul kan alltså inte läsas på RS-485-kanalen.")
+print("  RÄTT väg: A/B → KAMERANS encoder-/line-trigg-ingång (ytkameran har encoder-in) →")
+print("  hårdvaru-positionssynk (varje rad = fast vägsteg). Jetson läser position via kamerans")
+print("  radräknare + anhåll-nollan (ev. en liten USB-kvadraturräknare för oberoende avläsning).")
+print("  VILL du ändå nyttja ch4: använd en MODBUS ABSOLUT-encoder (position som serie-data) →")
+print("  läses som en LR400 — men per-rad-TRIGG behöver ändå pulser till kameran.")
+print("  → 4:e RS-485-kanalen lämnas alltså LEDIG (reserv för Modbus-enhet), encodern går till kameran.")
 
 # ---- compute + ström ----
 print(f"\nCompute : U-Net + triangulering  →  {JET['tops_int8']} TOPS INT8 / {JET['ram_gb']} GB RAM  "
@@ -136,7 +151,10 @@ print("    (standarderna = vendor-neutralt → du är aldrig låst till en SDK)"
 print("  TESTA på Jetson:  'arv-tool-0.8' listar kameror + tar en ram (el. vendor-viewer)")
 print("  OBS: USB3 → höj usbcore.usbfs_memory_mb;  GigE → samma subnät + jumbo frames (MTU 9000)")
 
-print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano — 2 USB3 lediga, GbE,")
-print("I²C+SPI, ~23 GPIO kvar. Analog-gapet täcks av MCP3008. Enda att hålla")
-print("koll på: ytkameran @ MAX 8 kHz färg = {:.0f} % av GbE (proto-takt = {:.0f} %).".format(
+print(); line("="); print("SLUTSATS: hela kedjan ryms på EN Orin Nano.")
+print("  • 2 profilkameror på egna USB3-portar; Jrk + Waveshare (4CH RS-485) på en USB-hubb.")
+print("  • Ytkamera på GbE; 3 LR400 på RS-485 ch1–3 → ch4 LEDIG (Modbus-reserv).")
+print("  • Mäthjuls-encoder → KAMERANS encoder-in (ej RS-485); anhåll-fotocell + lasrar/LED → GPIO (~20 kvar).")
+print("  • Ingen ADC behövs (LR400 = RS-485 digitalt).")
+print("  Enda att hålla koll på: ytkameran @ MAX 8 kHz färg = {:.0f} % av GbE (proto-takt = {:.0f} %).".format(
       100*ycam_max/JET['gbe_MBs'], 100*ycam/JET['gbe_MBs'])); line("=")
