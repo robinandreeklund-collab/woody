@@ -401,7 +401,7 @@ BOM = [
     ("NVMe SSD", "M.2 256 GB (Jetson-lagring)", 1, "OS + dataset + modeller", "M.2", "—", 250, 1, "att köpa"),
     ("Nätaggregat 24 V", "24 V 5 A (om rullbandets PSU ej räcker)", 1, "matning/RoboClaw", "—", "—", 150, 1, "ev. ingår i rullband"),
     ("Nätaggregat 5 V", "5 V 2 A (endast röd laser; grön tar 24 V)", 1, "röd linjelaser (CW)", "—", "—", 80, 1, "att köpa"),
-    ("MOSFET-moduler ×2", "IRF520-modul (laser-enable)", 2, "GPIO 3,3 V → röd 5 V / grön 24 V on/off", "GPIO", "—", 15, 1, "att köpa"),
+    ("MOSFET-modul ×4 (enable)", "AOD4184/D4184 OPTO-ISOLERAD logic-level MOSFET-modul (PC817; 3,3V-trigg, PWM, 6–36V/10A)", 4, "Jetson GPIO 3,3V → on/off (+PWM-dimring för LED) av 2× linjelaser + 2× vitt LED-ljus; opto → skyddar Jetson, ingen gemensam GND krävs. (EJ IRF520 — ej logic-level @3,3V)", "GPIO", "on/off + PWM", 30, 1, "AliExpress · att köpa"),
     ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1, "att köpa"),
     ("Diverse", "USB3-kabel, dupont/terminal, fästen", 1, "—", "—", "—", 400, 1, "att köpa"),
     # --- FAS 2: line-scan-ytkamera (FÄRG, 1 pass) + absolut-tjocklek (punktlaser) ---
