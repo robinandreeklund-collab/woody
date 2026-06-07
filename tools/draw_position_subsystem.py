@@ -44,7 +44,7 @@ txt(40, 76, "Y = matning (horisontellt) · Z = höjd · brädans längd X går I
 
 BELT_Y = 720
 BT = 30                         # bräd-tjocklek i px (~20 mm)
-BOARD_L, BOARD_R = 470, 1230    # brädans utbredning (75 mm bredd — schematiskt utdraget)
+BOARD_L, BOARD_R = 470, 1430    # brädans utbredning (75 mm bredd — schematiskt utdraget)
 # transportband
 circ(150, BELT_Y+22, 24, ALU, INK, 1.6); circ(1490, BELT_Y+22, 24, ALU, INK, 1.6)
 line(150, BELT_Y, 1490, BELT_Y, INK, 2.2)
@@ -95,7 +95,7 @@ station_label(lx, 150+128, [("3× LR400 (in i bilden)",700),("absolut tjocklek-a
                             ("ger även kant + skevhet",400)], CY)
 
 # ---- OPTISK MÄTZON (höger) ----
-zoneO = (1010, 150, 470, 760)
+zoneO = (1000, 150, 520, 760)
 rect(zoneO[0], zoneO[1], zoneO[2], zoneO[3]-zoneO[1], "none", PURP, 1.3, rx=10, dash="7 5", op=0.55)
 txt(zoneO[0]+12, zoneO[1]+20, "OPTISK MÄTZON", 12, "start", PURP, 700)
 laser_x = 1150
@@ -109,14 +109,20 @@ circ(laser_x, BELT_Y-BT, 4, AMB, AMB, 1)               # laserlinjen (in i bilde
 txt(rx_, 292, "RÖD 650", 10.5, "middle", RED, 700)
 txt(gx_, 292, "GRÖN 520", 10.5, "middle", GRN, 700)
 txt(laser_x, BELT_Y-BT-12, "laserlinje (in i bilden, 500 mm)", 10, "middle", AMB, 700)
-# ytkamera (linjekamera) + 2 vitljus
-sx = laser_x
+# ytkamera (FÄRG-linjekamera) — EGEN rad, förskjuten ~30 mm nedström, klar av laser-vinkeln
+sx = laser_x + 200
 rect(sx-22, 180, 44, 34, "#16212e", INK, 1.6)
 line(sx, 214, sx, BELT_Y-BT, BLUE, 1.6, dash="2 3")
-rect(sx-150, 250, 40, 22, "#fff7d6", AMB, 1.4); rect(sx+110, 250, 40, 22, "#fff7d6", AMB, 1.4)
-line(sx-118, 272, sx-6, BELT_Y-BT, AMB, 1.2, dash="4 3"); line(sx+128, 272, sx+6, BELT_Y-BT, AMB, 1.2, dash="4 3")
-txt(sx-30, 200, "ytkamera", 11, "end", BLUE, 700); txt(sx-30, 215, "(linjerad + 2× vitljus)", 9.3, "end", BLUE)
-txt(sx, BELT_Y+78, "ser bara sin rad → uppströms-givare syns aldrig i bilden", 10.5, "middle", BLUE)
+circ(sx, BELT_Y-BT, 3.5, BLUE, BLUE, 1)
+rect(sx-72, 250, 40, 22, "#fff7d6", AMB, 1.4); rect(sx+32, 250, 40, 22, "#fff7d6", AMB, 1.4)
+line(sx-50, 272, sx-5, BELT_Y-BT, AMB, 1.2, dash="4 3"); line(sx+52, 272, sx+5, BELT_Y-BT, AMB, 1.2, dash="4 3")
+txt(sx, 168, "YTKAMERA (färg-linjerad) · egen rad + 2× vitljus", 10.5, "middle", BLUE, 700)
+# offset laserlinje → färgrad (ingen laser i färgbilden; syns aldrig krock med laser-vinkeln)
+oy = BELT_Y + 34
+line(laser_x, BELT_Y-BT, laser_x, oy+6, DIM, 0.7); line(sx, BELT_Y-BT, sx, oy+6, DIM, 0.7)
+arrow((laser_x+sx)/2, oy, laser_x, oy, DIM, 1); arrow((laser_x+sx)/2, oy, sx, oy, DIM, 1)
+rect((laser_x+sx)/2-130, oy-9, 260, 18, PAPER, "none", 0, op=0.95)
+txt((laser_x+sx)/2, oy+5, "färgrad ~30 mm från laserlinjen — sys ihop via encoderposition", 9.5, "middle", INK, 700, MONO)
 
 # offset-mått (Y) mellan givare och laserlinjen
 ydim = BELT_Y+120
