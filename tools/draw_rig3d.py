@@ -189,7 +189,7 @@ for (ly, t, s, c, lab) in left:
         L(190, ly, 190, ly - 30, c, 1.7)                 # upp till RoboClaw-noden
         txt(196, ly - 14, "A single-end→EN1", 8, "start", c, 700, SANS)
         L(310, ly + 28, 360, ly + 28, c, 1.7, "4 3")
-        txt(366, ly + 26, "B RS-422 → kamera IN1±/IN2± (pin3-6, 5V diff) + 26C32→EN2", 8, "start", c, 700, SANS)
+        txt(366, ly + 26, "B RS-422 → kamera IN1±/IN2± (pin3-6, 5V diff) + diff→single-modul→EN2", 8, "start", c, 700, SANS)
     else:
         conn((310, ly + 25), (JX, JY + JH/2 + (ly - JY - JH/2) * 0.2), lab, c)
 SCY = 980

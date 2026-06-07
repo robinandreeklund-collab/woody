@@ -133,7 +133,7 @@ for (ly, t, s, c, lab) in left:
         line(wx + 250, ly + 12, wx + 286, ly + 12, c, 1.8, "4 3")
         txt(wx + 290, ly + 9, "→ kamera IN1± (pin3/4) · IN2± (pin5/6) · 5V diff", 7.5, "start", c, 700)
         line(wx + 250, ly + 33, wx + 286, ly + 33, MUTED, 1.6)
-        txt(wx + 290, ly + 30, "26C32 → RoboClaw EN2 (sluter loop)", 7.5, "start", MUTED, 700)
+        txt(wx + 290, ly + 30, "diff→single-modul (26C32-typ, 5V-DC-DC matar enc) → EN2", 7.5, "start", MUTED, 700)
     else:
         conn((wx + 250, ly + 23), (Lc[0], Lc[1] + (ly + 23 - JY - JH / 2) * 0.25), lab, c)
 # höger: grön + punktlaser + yta + ljus
