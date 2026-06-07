@@ -102,7 +102,47 @@ Vår rigg har redan lasrar (röd 650 / grön 520) + profilkameror (oblika, bandp
 4. **Kombinera med densitet** (röntgen) om maskinell hållfasthetssortering ska nå
    högsta prediktion — tracheid (fibervinkel) + densitet är industristandard-paret.
 
-## 8. Industriella system & referenser
+## 8. Kan vi BÖRJA med linjelasern (röd 650)?
+
+**Ja — men det avgörande är kameravyn/exponeringen, inte lasern.** Linjelasern
+fungerar som start, med dessa caveats:
+
+**Hur grain-angle läses ur en LINJE (inte punkter):**
+Längs hela linjen sprids ljuset elliptiskt. Det vi mäter är den **tvärspridning
+(bloom vinkelrätt mot linjen, i matningsled Y)** vid varje X:
+- Fiber **∥ linjen (X)** → ljus leds längs X → linjen förblir **smal i Y**.
+- Fiber **⟂ linjen (längs Y)** → ljus leds i Y → linjen **blöder ut i Y** (breddas).
+- Fiber **i vinkel** → bloomen blir **asymmetrisk/lutad**.
+→ ur tvärprofilens **bredd + asymmetri (skevhet)** per X får man fibervinkel-
+komponenten. Medan brädan matas byggs en (grov) **fibervinkelkarta**.
+
+**Vad som faktiskt krävs (och varför lasern är den enkla biten):**
+- **Röd 650 ✓** (grön 520 olämplig). Bandpassfiltret @650 är till och med en fördel
+  — kameran ser bara laserljuset, inte omgivningen.
+- **Kameran är flaskhalsen:** tracheid-signalen är den **svaga diffusa halon** runt
+  den ljusa kärnan. Våra **profilkameror är oblika + ROI-snäva + kort exponering**
+  för att se stripens *centrum* (höjd) → de ser inte halon bra, och den oblika vyn
+  förkortar tvär-bloomen. Man vill ha en **uppifrån-kamera** (nära normal) med
+  **högre dynamik/HDR** så halon syns utan att kärnan mättar.
+  - Billigast: en **enkel mono-kamera med 650-bandpass rakt ovanför** linjeregionen,
+    eller använd **ytkameran i en röd-laser-exponering** (LED av, laser på) som en
+    egen bildruta.
+- **Kärnan mättar:** den starka trianguleringskärnan kan dränka halon → använd
+  **separat exponering/HDR** eller en egen kamera så höjd och tracheid inte slåss.
+
+**Begränsningar med LINJE jämfört med punkter:**
+- Lägre **vinkelnoggrannhet** (linjen tappar den rena "längs-fibern"-ledningen; man
+  får främst tvär-bloomen → grain-angle med tecken-tvetydighet nära ±parallellt).
+- Överlappande spridning längs linjen → lägre kontrast.
+- **Kvist-virveln syns ändå** även med grov absolut vinkel → kvistdetektion är en
+  stor vinst direkt, även om exakt vinkel är ungefärlig.
+
+**Slutsats:** börja gärna med **röda linjelasern + en uppifrån-kamera (eller
+ytkameran i röd-exponering) med HDR** → grov fibervinkel + kvist-virvel som PoC,
+utan ny laser. Uppgradera sedan till **röd/NIR dot-array** för produktions-noggrann
+fibervinkel.
+
+## 9. Industriella system & referenser
 - Kommersiella skannrar som använder laser/tracheid för fibervinkel + kvist:
   **WoodEye**, **Microtec (Goldeneye/Finscan)**, **Limab** m.fl.
 - Maskinell hållfasthetssortering: fibervinkel (tracheid) + densitet (röntgen) → MOE.
