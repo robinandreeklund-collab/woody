@@ -401,7 +401,7 @@ BOM = [
     ("NVMe SSD", "M.2 256 GB (Jetson-lagring)", 1, "OS + dataset + modeller", "M.2", "—", 250, 1, "att köpa"),
     ("Nätaggregat 24 V", "24 V 5 A (om rullbandets PSU ej räcker)", 1, "matning/RoboClaw", "—", "—", 150, 1, "ev. ingår i rullband"),
     ("Nätaggregat 5 V", "5 V 2 A (endast röd laser; grön tar 24 V)", 1, "röd linjelaser (CW)", "—", "—", 80, 1, "att köpa"),
-    ("Enable röd laser (5V)", "TTL/MOD-ingång direkt från GPIO (om lasern har den) ELLER liten logic-level MOSFET AO3400/IRLML2502", 1, "röd 5V-laser on/off; D4184 funkar EJ <6V. TTL = enklast (0 extra delar)", "GPIO", "on/off", 10, 1, "att köpa (ev.)"),
+    ("Enable röd laser (5V)", "Lasern saknar TTL (DC-barrel) → bryt 5V-matningen: liten logic-level N-MOSFET (AO3400/IRLML2502/2N7002, low-side) + inline barrel-jack-adapter (slipp klippa sladd)", 1, "röd 5V-laser on/off; GPIO→gate (100Ω+100k pulldown), bryter minus. D4184-opto funkar EJ <6V. ACC-drivaren startar om vid tändning (~ms insvängning, ok)", "GPIO", "on/off", 15, 1, "att köpa"),
     ("Enable grön laser (AOD4184)", "Opto-isolerad MOSFET-modul, VÄLJ AOD4184-variant (40V) — EJ LR7843 (30V, i underkant @24V); FR120N (100V) ok. 3,3V-trigg, PWM", 1, "Jetson GPIO → on/off grön linjelaser 12/24V; opto → skyddar Jetson. (EJ IRF520 — ej logic-level @3,3V)", "GPIO", "on/off + PWM", 30, 2, "AliExpress · att köpa"),
     ("Enable LED-ljus", "samma opto-modul, AOD4184-variant (40V) när LED-lampa/spänning bestäms (12/24V; PWM-dimring)", 2, "vitt LED-linjeljus on/off + dimring — modul väljs när lampan är bestämd", "GPIO", "on/off + PWM", 30, 2, "att köpa (TBD)"),
     ("Lasersäkerhet", "skyddsglasögon 650/520 + skylt", 1, "Class 3R/3B-rutiner", "—", "—", 200, 1, "att köpa"),
