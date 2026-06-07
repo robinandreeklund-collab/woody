@@ -16,8 +16,9 @@ Valda produkter:
                 5/10/30/50 mW — OBS grön toppar på 50 mW; 30/60/90/110°). Linjebredd/
                 fokus ej i standarddatablad → beställs som custom (fin, fokuserbar
                 linje, mål <0,3 mm i arbetsavståndet) för bra trianguleringsskärpa.
-  SurfaceCam  – Huateng/华腾威视 4K line-scan (FÄRG, M42, GigE; 4096×4 TDI, 7 µm,
-                ~8 kHz färg / ~28 kHz mono). Färg i 1 pass under vitt LED-ljus.
+  SurfaceCam  – Huateng/华腾威视 HT-GELM44C-T2 4K line-scan (FÄRG, M42, GigE;
+                4096×4 TDI, 7 µm, ~8 kHz färg / ~28 kHz mono; mono-syskon = HT-GELM44M-T2).
+                Färg i 1 pass under vitt LED-ljus.
                 NIR (röta/blånad) = separat mono-NIR-modul senare (som proffsen).
   ProfileCam  – Hikrobot MV-CS050-10UM (USB3, MONO, 5 MP global shutter, IMX264,
                 60 fps @ 2448×2048) + 650 nm bandpassfilter. Mono + filter ser
@@ -49,7 +50,7 @@ class SurfaceCam:
     """Huateng/华腾威视 4K line-scan (FÄRG, M42, GigE) — säljs av MDvision.
     Proto-val: färg (RGB888) i EN pass under vitt LED-linjeljus → ingen R/G/B-strobe
     (så som proffsen gör färgkanalen). NIR/röta = separat mono-NIR-modul SENARE."""
-    name: str = "Huateng 4K line-scan (färg, M42, GigE)"  # [datablad]
+    name: str = "Huateng HT-GELM44C-T2 4K line-scan (färg, M42, GigE)"  # [datablad]
     px_across: int = 4096                 # [datablad] 4K (4096×4 TDI)
     tdi_stages: int = 4                   # [datablad]
     pixel_um: float = 7.0                 # [datablad] 7×7 µm (sensor 28,67 mm)
@@ -61,7 +62,9 @@ class SurfaceCam:
     interface: str = "GigE (1000Base-T, RJ45)"  # [datablad] → rakt in i Jetson GbE
     mount: str = "M42×1.0"                # [datablad]
     power_w: float = 6.0                  # [datablad] <6 W
-    # [datablad] GPIO: 2× in, 2× ut + 1 generell I/O; encoder-/hård-/mjuk-/frame-trigger.
+    # [familje-firmware] GenICam Encoder Module (kvadratur A/B → ratio → radtakt);
+    # opto-isolerad I/O + differentiell RS-422-ingång (Line0) för encoder = bäst.
+    # OBS: exakt Line0-pinout/kontakt för HT-GELM44C-T2 → bekräfta i MDvisions I/O-blad.
 
     @property
     def sensor_w_mm(self) -> float:
