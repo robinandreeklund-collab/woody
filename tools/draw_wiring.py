@@ -50,8 +50,8 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(18, 18, W - 36, H - 36, "none", INK, 2); rect(26, 26, W - 52, H - 52, "none", MUTED, 0.8)
 txt(48, 64, "VIRKESSKANNER — FAS 1-LAYOUT + KOMPLETT KOPPLINGSSCHEMA", 23, "start", INK, 700, SANS)
-txt(48, 90, "Fas 1 = komplett röd-profilerare på rullband (Jetson-styrd matning). Fas 2 = grön modul + punktlaser + line-scan-yta. "
-            "Alla anslutningar + Jetson I/O-budget.", 13, "start", MUTED, 400, SANS)
+txt(48, 90, "Fas 1 = komplett röd-profilerare på rullband (Jrk G2-styrd matning, encoder→kameratrigg, anhåll+fotocell=nolla). "
+            "Fas 2 = grön modul + 3× LR400 (RS-485) + line-scan-färgyta + vitljus. Alla anslutningar + Jetson I/O-budget.", 13, "start", MUTED, 400, SANS)
 line(48, 104, W - 48, 104, INK, 1.5)
 # fas-legend
 rect(W - 360, 44, 14, 14, F1, F1, 0, 3); txt(W - 342, 56, "Fas 1", 11, "start", F1, 700, SANS)
@@ -67,17 +67,17 @@ line(ox, oy, ox + 420, oy, INK, 1.5)
 for cx in (ox + 70, ox + 350):
     circ(cx, oy - 16, 16, "#cfd2d6", "#7a7f86", 1.4); circ(cx, oy - 16, 4, MUTED, MUTED, 0)
 line(ox + 54, oy - 32, ox + 366, oy - 32, BELT, 4)              # bana
-txt(ox + 210, oy + 18, "RULLBAND ×2 (24 V, 50 mm/s)", 9.5, "middle", MUTED, 700)
+txt(ox + 210, oy + 18, "TRANSPORTBAND (svart matt, 24 V, ~50 mm/s)", 9.5, "middle", MUTED, 700)
 rect(ox + 150, oy - 56, 150, 22, "#e9e1cf", GOLD, 1.4)          # bräda
 txt(ox + 225, oy - 41, "bräda 500×75", 8.5, "middle", "#8a7d4e", 700)
-# anslag (bakkant) + sidoanslag
+# FAST ANHÅLL (bakkant) + fotocell = nolla
 rect(ox + 138, oy - 70, 8, 36, "#9aa0a8", "#6e747b", 1)
-txt(ox + 120, oy - 76, "anslag", 8, "end", MUTED, 700)
-# encoder mäthjul
-circ(ox + 300, oy - 64, 9, "#cfd2d6", "#7a7f86", 1.4); txt(ox + 314, oy - 60, "encoder/mäthjul", 8, "start", MUTED, 700)
-# ingångslaser
-rect(ox + 322, oy - 30, 16, 14, "#ffe7d8", RED, 1.3); line(ox + 322, oy - 23, ox + 150, oy - 23, RED, 1.2, "4 3", 0.7)
-txt(ox + 230, oy - 10, "ingångslaser (brädstart)", 8, "middle", RED, 700)
+txt(ox + 120, oy - 76, "FAST ANHÅLL", 8, "end", MUTED, 700)
+rect(ox + 122, oy - 46, 12, 16, "#16212e", "#c98a16", 1.2)
+txt(ox + 120, oy - 30, "fotocell (nolla)", 8, "end", "#c98a16", 700)
+# encoder-mäthjul mot bandets retursida (under bandet)
+circ(ox + 250, oy + 30, 9, "#bfe6c8", GRN, 1.4); txt(ox + 264, oy + 34, "mäthjuls-encoder (mot band)", 8, "start", GRN, 700)
+line(ox + 250, oy + 21, ox + 250, oy, GRN, 1, "2 3", 0.7)
 # RÖD-HUVUD (oblik 30°): laser+kamera
 hx, hy = ox + 120, oy - 230
 rect(hx, hy, 120, 46, "#fde9e3", RED, 1.6, 5); rect(hx, hy, 120, 14, RED, RED, 0, 5)
@@ -89,13 +89,13 @@ txt(hx - 6, hy + 70, "30°", 9, "end", RED, 700)
 line(hx + 10, hy + 46, hx + 10, oy, ALU, 4); line(ox + 360, hy + 70, ox + 360, oy, ALU, 4)
 line(hx + 10, hy, ox + 360, hy + 24, ALU, 5)                    # tvärbalk
 txt(ox + 360, hy + 14, "stativ", 8, "start", MUTED, 700)
-# motor + drivare + Jetson
-rect(ox + 380, oy - 40, 70, 34, "#e9eef5", BLUE, 1.4, 4); txt(ox + 415, oy - 18, "MOTOR-", 8.5, "middle", BLUE, 700); txt(ox + 415, oy - 8, "DRIVARE", 8.5, "middle", BLUE, 700)
+# Jrk G2 motorstyrning + Jetson
+rect(ox + 380, oy - 40, 70, 34, "#e9eef5", BLUE, 1.4, 4); txt(ox + 415, oy - 18, "JRK G2", 8.5, "middle", BLUE, 700); txt(ox + 415, oy - 8, "(USB)", 8.5, "middle", BLUE, 700)
 arrow(ox + 380, oy - 23, ox + 366, oy - 18, BLUE, 1.6)
 rect(ox + 150, oy + 40, 150, 50, "#e6efe6", JET, 1.6, 6)
 txt(ox + 225, oy + 62, "JETSON Orin Nano", 10.5, "middle", JET, 700, SANS)
 txt(ox + 225, oy + 78, "styr matning + U-Net", 8.5, "middle", MUTED)
-for tx, lab in [(hx + 70, "USB3"), (ox + 300, "encoder"), (ox + 415, "motor"), (ox + 330, "in-laser")]:
+for tx, lab in [(hx + 70, "USB3"), (ox + 415, "Jrk USB"), (ox + 128, "fotocell")]:
     line(tx, oy + 40, tx, oy - 4, JET, 0.8, "2 3", 0.6)
 # fram/back
 arrow(ox + 175, oy - 78, ox + 275, oy - 78, "#b06", 2); arrow(ox + 275, oy - 92, ox + 175, oy - 92, BLUE, 1.6)
@@ -110,39 +110,42 @@ JX, JY, JW, JH = wx + 380, wy + 250, 250, 120
 rect(JX, JY, JW, JH, "#e6efe6", JET, 2, 8); rect(JX, JY, JW, 24, JET, JET, 0, 8)
 txt(JX + JW / 2, JY + 17, "JETSON ORIN NANO SUPER", 11.5, "middle", "#fff", 700, SANS)
 txt(JX + JW / 2, JY + 44, "4× USB3 · 1× GbE (RJ45)", 9.5, "middle", INK, 400, SANS)
-txt(JX + JW / 2, JY + 60, "40-pin: GPIO/SPI×2/I2C×2/PWM", 9.5, "middle", INK, 400, SANS)
-txt(JX + JW / 2, JY + 76, "DC-in 7–25 V · INGEN analog-in", 9.5, "middle", "#b00", 700, SANS)
-txt(JX + JW / 2, JY + 100, "→ analog via MCP3008 (SPI)", 9, "middle", MUTED, 400, SANS)
+txt(JX + JW / 2, JY + 60, "40-pin: GPIO · SPI×2 · I²C×2 · PWM", 9.5, "middle", INK, 400, SANS)
+txt(JX + JW / 2, JY + 78, "DC-in 7–25 V · ingen ADC behövs", 9.5, "middle", JET, 700, SANS)
+txt(JX + JW / 2, JY + 100, "(LR400 = RS-485 digitalt)", 9, "middle", MUTED, 400, SANS)
 Lc = (JX, JY + JH / 2); Rc = (JX + JW, JY + JH / 2)
-# vänster: FAS 1-enheter
+# vänster: profil-röd + matning/position
 left = [
-    (wy + 70, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3"),
-    (wy + 150, "Linjelaser RÖD 650", "iadiy, CW", F1, "5 V + GPIO-en"),
-    (wy + 230, "Encoder + mäthjul", "position", F1, "GPIO A/B + trig"),
-    (wy + 310, "Motordrivare → 2× rullband", "H-brygga", F1, "GPIO×2 + PWM"),
-    (wy + 390, "Ingångslaser (fotcell)", "brädstart", F1, "GPIO"),
+    (wy + 70, "Profilkamera RÖD", "MV-CS050-10UM", F1, "USB3 (egen)"),
+    (wy + 150, "Linjelaser RÖD 650", "MZLaser, CW", F1, "24 V + GPIO-en"),
+    (wy + 230, "Transportör (Jrk G2)", "24 V motor", F1, "USB (hubb)"),
+    (wy + 310, "Mäthjuls-encoder A/B/Z", "mot band (retur)", F1, "→ KAMERA-trigg"),
+    (wy + 390, "Anhåll-fotocell", "nolla / home", F1, "GPIO"),
 ]
 for (ly, t, s, c, lab) in left:
     node(wx + 20, ly, 230, 52, t, s, c)
-    conn((wx + 250, ly + 26), (Lc[0], Lc[1] + (ly + 26 - JY - JH / 2) * 0.25), lab, c)
-# höger: FAS 2-enheter
+    if "encoder" in t.lower():               # encodern → KAMERANS encoder-in (EJ Jetson)
+        line(wx + 250, ly + 26, wx + 286, ly + 26, c, 1.8, "4 3")
+        txt(wx + 292, ly + 22, "→ kamera encoder-in", 8, "start", c, 700)
+        txt(wx + 292, ly + 34, "(line-trigg, ej Jetson)", 7.5, "start", MUTED, 400)
+    else:
+        conn((wx + 250, ly + 26), (Lc[0], Lc[1] + (ly + 26 - JY - JH / 2) * 0.25), lab, c)
+# höger: grön + punktlaser + yta + ljus
 right = [
-    (wy + 70, "Profilkamera GRÖN", "MV-CS050-10UM", F2, "USB3"),
-    (wy + 150, "Linjelaser GRÖN 520", "iadiy, CW", F2, "5 V + GPIO-en"),
-    (wy + 230, "3× Punktlaser → MCP3008", "HG-C1400 (analog)", F2, "SPI (ADC)"),
-    (wy + 310, "Ytkamera line-scan", "MindVision (NBASE-T)", F2, "GbE → 1GbE"),
-    (wy + 390, "RGB/NIR-strobe", "← ytkamera 3 strobe-ut", F2, "3 strobe"),
+    (wy + 70, "Profilkamera GRÖN", "MV-CS050-10UM", F2, "USB3 (egen)"),
+    (wy + 150, "Linjelaser GRÖN 520", "MZLaser, CW", F2, "24 V + GPIO-en"),
+    (wy + 230, "3× Punktlaser LR400", "RS-485 Modbus", F2, "Waveshare 4CH ch1–3"),
+    (wy + 310, "Ytkamera 4K FÄRG", "Huateng line-scan", F2, "GbE (RJ45)"),
+    (wy + 390, "2× Vitt LED-linjeljus", "konstantström", F2, "24 V + GPIO"),
 ]
 for (ly, t, s, c, lab) in right:
     node(JX + JW + 130, ly, 268, 52, t, s, c)
-    if "strobe" in t:                       # strobe drivs av ytkameran, ej Jetson
-        line(JX + JW + 130, ly + 26, JX + JW + 130 - 40, wy + 310 + 26, c, 1.6, "4 3")
-        txt(JX + JW + 130 - 60, ly + 20, "från ytkamera", 8, "end", c, 700)
-    else:
-        conn((JX + JW + 130, ly + 26), (Rc[0], Rc[1] + (ly + 26 - JY - JH / 2) * 0.25), lab, c)
+    conn((JX + JW + 130, ly + 26), (Rc[0], Rc[1] + (ly + 26 - JY - JH / 2) * 0.25), lab, c)
+# Waveshare 4CH-nav (ch4 ledig) — antydan vid punktlaser-noden
+txt(JX + JW + 130 + 134, wy + 230 + 64, "ch4 LEDIG (Modbus-reserv)", 8, "middle", MUTED, 700)
 # PSU
 rect(JX - 30, JY + JH + 36, 310, 40, "#fff5e6", "#c89028", 1.4, 6)
-txt(JX + 125, JY + JH + 54, "NÄTAGGREGAT — 24 V (rullband) · 12–24 V (HG-C1400) · 5 V (laser)", 9, "middle", "#8a6510", 700)
+txt(JX + 125, JY + JH + 54, "NÄTAGGREGAT — 24 V (band/laser/LED) · 5 V logik · Jetson egen DC", 9, "middle", "#8a6510", 700)
 arrow(JX + 125, JY + JH + 36, JX + JW / 2, JY + JH, "#c89028", 1.6)
 
 # ===================== JETSON I/O-BUDGET (botten) =====================
@@ -154,14 +157,14 @@ for (cx, head, cw) in cols:
     txt(cx, ty + 52, head, 10.5, "start", MUTED, 700, MONO)
 line(60, ty + 60, W - 60, ty + 60, DIMC, 1)
 rows = [
-    ("USB 3.2 Gen2 (Type-A)", "4 st", "2 — RÖD + GRÖN profilkamera", "OK · 2 lediga", F1),
-    ("Gigabit Ethernet (RJ45)", "1 st", "1 — ytkamera (NBASE-T → 1GbE)", "OK", F2),
-    ("40-pin SPI", "2 bussar", "1 — MCP3008 (3 punktlaser)", "OK", F2),
-    ("40-pin PWM", "flera", "1 — motorfart (rullband)", "OK", F1),
-    ("40-pin GPIO (3,3 V)", "~28", "~9 — motor dir×2, encoder A/B, in-laser, kam-trig, 2 laser-en", "OK · gott om", F1),
-    ("40-pin I2C", "2 bussar", "0 — reserv (ev. extra givare)", "ledig", DIMC),
-    ("Analog in (ADC)", "0 — saknas", "3 punktlaser (analog)", "→ via MCP3008 (SPI)", "#b00"),
-    ("DC-in (barrel)", "1", "Jetson 7–25 V; separat 24 V + 5 V för band/laser", "OK", INK),
+    ("USB 3.2 Gen2 (Type-A)", "4 st", "3 — RÖD + GRÖN profilkamera + Jrk G2 (via hubb)", "OK · 1 ledig", F1),
+    ("USB → RS-485 4CH", "Waveshare 4CH", "3× LR400 Modbus (ch1–3) · ch4 LEDIG", "OK · reserv kvar", F2),
+    ("Gigabit Ethernet (RJ45)", "1 st", "1 — ytkamera FÄRG (Huateng line-scan)", "OK", F2),
+    ("Kamerans encoder-IN", "på kameran", "mäthjuls-encoder A/B/Z (line-trigg) — EJ Jetson", "OK · avlastar CPU", F1),
+    ("40-pin GPIO (3,3 V)", "~28", "~5 — anhåll-fotocell, 2× laser-en, 2× LED-en", "OK · gott om kvar", F1),
+    ("40-pin I2C / SPI", "2 + 2 bussar", "0 — reserv (ev. extra givare)", "ledig", DIMC),
+    ("Analog in (ADC)", "0 — saknas", "0 — behövs ej (allt digitalt)", "ingen ADC krävs", F1),
+    ("DC-in (barrel)", "1", "Jetson 7–25 V; separat 24 V (band/laser/LED) + 5 V logik", "OK", INK),
 ]
 rh = 34
 for i, (a, b, c, d, col) in enumerate(rows):

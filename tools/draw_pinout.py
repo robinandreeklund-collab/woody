@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Jetson Orin Nano — komplett 40-pin header med prototyp-tilldelning (SVG).
 Verifierad pinout (JetsonHacks/NVIDIA). Färgkodad per funktion/fas + sammanfattning
-och kopplingsnoter (MCP3008, spänningsdelare, gemensam GND).
+och kopplingsnoter. Aktuellt schema: LR400 på RS-485 (Waveshare 4CH USB), transportör
+Jrk G2 (USB), mäthjuls-encoder → kamerans encoder-in, anhåll+fotocell = nolla (GPIO),
+linjelaser/vitljus-enable via MOSFET. Headern används glest — det mesta går via USB.
 
     python tools/draw_pinout.py   # -> prototype-pinout.svg i projektroten
 """
@@ -25,24 +27,24 @@ def line(x1, y1, x2, y2, stroke=INK, w=1):
 
 # pin: (default-namn, prototyp-användning, färg)
 PINS = {
- 1:("3.3V","→ MCP3008 VDD/VREF",P33),         2:("5V","ext. 5V (laser via MOSFET)",P5),
+ 1:("3.3V","logik 3.3V",P33),                   2:("5V","ext. 5V (logik)",P5),
  3:("I2C1_SDA","reserv I²C",BUS),               4:("5V","",P5),
  5:("I2C1_SCL","reserv I²C",BUS),               6:("GND","gemensam GND",GND),
- 7:("GPIO09","ENCODER B  (F1)",F1),             8:("UART1_TX","reserv/debug",BUS),
+ 7:("GPIO09","ANHÅLL-FOTOCELL in  (F1)",F1),    8:("UART1_TX","reserv/debug",BUS),
  9:("GND","",GND),                              10:("UART1_RX","reserv/debug",BUS),
  11:("UART1_RTS","reserv",BUS),                 12:("I2S0_SCLK","reserv",DIMC),
- 13:("SPI1_SCK","KAM-TRIG GRÖN  (F2)",F2),      14:("GND","",GND),
- 15:("GPIO12·PWM","reserv PWM",DIMC),           16:("SPI1_CS1","LASER RÖD enable  (F1)",F1),
- 17:("3.3V","logik 3.3V",P33),                  18:("SPI1_CS0","LASER GRÖN enable  (F2)",F2),
- 19:("SPI0_MOSI","MCP3008 DIN  (F2)",F2),       20:("GND","",GND),
- 21:("SPI0_MISO","MCP3008 DOUT  (F2)",F2),      22:("SPI1_MISO","INGÅNGSLASER in  (F1)",F1),
- 23:("SPI0_SCK","MCP3008 CLK  (F2)",F2),        24:("SPI0_CS0","MCP3008 CS  (F2)",F2),
- 25:("GND","MCP3008 AGND/DGND",GND),            26:("SPI0_CS1","reserv CS",DIMC),
+ 13:("SPI1_SCK","KAM-TRIG reserv (HW-enc)",DIMC),14:("GND","",GND),
+ 15:("GPIO12·PWM","reserv",DIMC),               16:("SPI1_CS1","LINJELASER RÖD en  (F1)",F1),
+ 17:("3.3V","logik 3.3V",P33),                  18:("SPI1_CS0","LINJELASER GRÖN en  (F2)",F2),
+ 19:("SPI0_MOSI","reserv",DIMC),                20:("GND","",GND),
+ 21:("SPI0_MISO","reserv",DIMC),                22:("SPI1_MISO","reserv",DIMC),
+ 23:("SPI0_SCK","reserv",DIMC),                 24:("SPI0_CS0","reserv",DIMC),
+ 25:("GND","",GND),                             26:("SPI0_CS1","reserv",DIMC),
  27:("I2C0_SDA","reserv I²C",BUS),              28:("I2C0_SCL","reserv I²C",BUS),
- 29:("GPIO01","ENCODER A  (F1)",F1),            30:("GND","",GND),
- 31:("GPIO11","MOTOR EN (R+L_EN)  (F1)",F1),    32:("GPIO07·PWM","MOTOR RPWM fram  (F1)",F1),
- 33:("GPIO13·PWM","MOTOR LPWM back  (F1)",F1),  34:("GND","",GND),
- 35:("I2S0_FS","KAM-TRIG RÖD  (F1)",F1),        36:("UART1_CTS","reserv",DIMC),
+ 29:("GPIO01","VITT LED A enable  (F2)",F2),    30:("GND","",GND),
+ 31:("GPIO11","VITT LED B enable  (F2)",F2),    32:("GPIO07·PWM","reserv",DIMC),
+ 33:("GPIO13·PWM","reserv",DIMC),               34:("GND","",GND),
+ 35:("I2S0_FS","KAM-TRIG reserv (HW-enc)",DIMC),36:("UART1_CTS","reserv",DIMC),
  37:("SPI1_MOSI","reserv GPIO",DIMC),           38:("I2S0_SDIN","reserv",DIMC),
  39:("GND","",GND),                             40:("I2S0_SDOUT","reserv",DIMC),
 }
@@ -55,7 +57,7 @@ for gy in range(0, H, 40): line(0, gy, W, gy, GRID, 0.5)
 add('</g>')
 rect(18, 18, W - 36, H - 36, "none", INK, 2); rect(26, 26, W - 52, H - 52, "none", MUTED, 0.8)
 txt(48, 64, "JETSON ORIN NANO — 40-PIN HEADER (J12), prototyp-tilldelning", 22, "start", INK, 700, SANS)
-txt(48, 90, "Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant).", 13, "start", MUTED, 400)
+txt(48, 90, "Verifierad pinout (JetsonHacks/NVIDIA). Färg = funktion/fas. Pin 1 = övre vänster (fyrkant). Headern används glest — LR400/Jrk/encoder går via USB.", 13, "start", MUTED, 400)
 line(48, 104, W - 48, 104, INK, 1.5)
 # färglegend
 leg = [("3.3V", P33), ("5V", P5), ("GND", GND), ("Buss/reserv", BUS), ("Fas 1", F1), ("Fas 2", F2)]
@@ -100,35 +102,36 @@ def block(y, title, acc, rows):
 
 y = 130
 y = block(y, "FAS 1 — matning + röd profilerare", F1, [
-    ("Encoder A / B", "pin 29 / 7"),
-    ("Motor EN  ·  RPWM(fram)  ·  LPWM(back)", "31 · 32 · 33"),
-    ("Ingångslaser (fotcell) in", "pin 22"),
-    ("Kameratrigger RÖD → CS050 Line0", "pin 35"),
+    ("Anhåll-fotocell (nolla/home) in", "pin 7"),
     ("Linjelaser RÖD enable (→ MOSFET)", "pin 16"),
+    ("Transportör Jrk G2 → USB (ej header)", "USB"),
+    ("Mäthjuls-encoder → kamerans enc-in", "ej header"),
+    ("Profilkamera RÖD → USB3", "USB3"),
 ])
-y = block(y, "FAS 2 — grön modul + punktlaser", F2, [
-    ("MCP3008  CLK · DOUT · DIN · CS  (SPI0)", "23·21·19·24"),
-    ("MCP3008  VDD/VREF · GND", "pin 1 · 25"),
-    ("Punktlaser ×3 → MCP3008 CH0–CH2", "(analog)"),
-    ("Kameratrigger GRÖN → CS050 Line0", "pin 13"),
+y = block(y, "FAS 2 — grön + punktlaser + yta + ljus", F2, [
     ("Linjelaser GRÖN enable (→ MOSFET)", "pin 18"),
+    ("2× Vitt LED-linjeljus enable", "pin 29 · 31"),
+    ("3× LR400 → RS-485 (Waveshare 4CH)", "USB ch1–3"),
+    ("Ytkamera FÄRG (Huateng) → GbE", "RJ45"),
+    ("Profilkamera GRÖN → USB3", "USB3"),
 ])
 y = block(y, "STRÖM / GND", P33, [
-    ("3.3V (logik, MCP3008)", "pin 1 · 17"),
+    ("3.3V (logik)", "pin 1 · 17"),
     ("5V (header)", "pin 2 · 4"),
     ("GND (gemensam)", "6·9·14·20·25·30·34·39"),
 ])
 # noter
-rect(sx, y, 500, 188, "#fff", INK, 1.2, 8)
+rect(sx, y, 500, 210, "#fff", INK, 1.2, 8)
 rect(sx, y, 500, 26, INK, INK, 0, 8); txt(sx + 10, y + 18, "KOPPLINGSNOTER", 12, "start", "#fff", 700, SANS)
 notes = [
-    "HG-C1400 analog 1–5 V → spänningsdelare till ≤3,3 V",
-    "  (MCP3008 VREF = 3,3 V). Alt: 4–20 mA + 150 Ω-resistor.",
-    "Gemensam GND mellan Jetson, motordrivare (24 V) och",
-    "  laser-PSU (5 V) — annars feltriggning.",
-    "Lasrar drivs av EXTERN 5 V via MOSFET; GPIO styr bara gate.",
-    "Motordrivare: BTS7960 (dual-PWM). DIR+PWM-typ → PWM=33, DIR=31.",
-    "Kameratrigger kan tas DIREKT från encodern (HW) i stället för GPIO.",
+    "LR400 = RS-485 Modbus via Waveshare USB 4CH (ch1–3,",
+    "  ch4 ledig). Ingen ADC/MCP3008 behövs — allt digitalt.",
+    "Transportör = Jrk G2 över USB (ingen PWM/DIR på headern).",
+    "Mäthjuls-encoder A/B/Z → KAMERANS encoder-in (HW line-",
+    "  trigg) — avlastar Jetson. GPIO-trigg (13/35) = reserv.",
+    "Anhåll + fotocell = mekanisk nolla/home (GPIO-in, pin 7).",
+    "Lasrar/LED via EXTERN 24 V + MOSFET; GPIO styr bara gate.",
+    "Gemensam GND: Jetson + 24 V-PSU + logik — annars feltrigg.",
 ]
 for k, n in enumerate(notes):
     txt(sx + 12, y + 46 + k * 21, n, 10.3, "start", INK if not n.startswith("  ") else MUTED, 400, SANS)
