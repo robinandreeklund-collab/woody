@@ -1,162 +1,141 @@
 #!/usr/bin/env python3
-"""SCHEMA — brädposition: hur mäthjuls-encoder, fotocell och LR400 ger position,
-sett FRÅN SIDAN längs matningen (Y horisontellt, Z vertikalt; brädans längd X går
-in i bilden). Visar att positions-/ankargivarna sitter UPPSTRÖMS, utanför den
-optiska FOV:n, så de inte stör linjekamerans rad eller de oblika laserstrålarna.
+"""SCHEMA — brädposition & nolla, OVANIFRÅN (X–Y). Komplement till head-mech.svg
+(tvärsnittet, Y–Z). Visar: FAST ANHÅLL + fotocell i bakkant = stabil, repeterbar
+NOLLA (lägg brädan an → encodern nollas; backa till anhållet → auto-omnollning),
+encoder-mäthjul mot bandet = inkrement → ABSOLUT position, samt de tre raderna
+LR400 / laserlinje / färgkamera. Huvudens vinklar/höjder (WD 710, kam 20°/Z667/Y243,
+laser 40°/Z544/Y456, θ20°) finns i head-mech.svg.
 
   python tools/draw_position_subsystem.py   # -> position-subsystem.svg (+ .png)
 """
 from __future__ import annotations
 import os, math
 
+WD, CAM_A, LAS_A = 710.0, 20.0, 40.0
+camZ, camY = round(WD*math.cos(math.radians(CAM_A))), round(WD*math.sin(math.radians(CAM_A)))  # 667,243
+lasZ, lasY = round(WD*math.cos(math.radians(LAS_A))), round(WD*math.sin(math.radians(LAS_A)))  # 544,456
+BL, BWF = 500, 75
+LR_LEAD, COL_OFF = 45, 30
+LRX = (60, 250, 440)
+
 INK, MUTED, DIM = "#23262b", "#6a6e74", "#9aa0a6"
 PAPER, GRID = "#f7f6f1", "#e6e4dc"
-RED, GRN, BLUE, CY, AMB, PURP = "#e8542c", "#2f9e6e", "#2f6fb0", "#1597a6", "#c98a16", "#a23ad6"
-WOOD, BELT, ALU = "#e9d8b0", "#2b2f35", "#cfd3d8"
+RED, GRN, BLUE, CY, AMB, PURP, STEEL = "#e8542c", "#2f9e6e", "#2f6fb0", "#1597a6", "#c98a16", "#a23ad6", "#8a9099"
+WOOD = "#e9d8b0"
 SANS = "'IBM Plex Sans','DejaVu Sans',sans-serif"; MONO = "'IBM Plex Mono','DejaVu Sans Mono',monospace"
-W, H = 1640, 1020
+W, H = 1660, 1060
 out = [f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
 def add(s): out.append(s)
 def esc(t): return t.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
-def txt(x,y,s,sz=12,a="start",f=INK,w=400,fam=SANS,rot=None):
-    tr=f' transform="rotate({rot} {x:.1f} {y:.1f})"' if rot is not None else ""
-    add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{fam}" font-size="{sz}" font-weight="{w}" fill="{f}" text-anchor="{a}"{tr}>{esc(s)}</text>')
+def txt(x,y,s,sz=12,a="start",f=INK,w=400,fam=SANS):
+    add(f'<text x="{x:.1f}" y="{y:.1f}" font-family="{fam}" font-size="{sz}" font-weight="{w}" fill="{f}" text-anchor="{a}">{esc(s)}</text>')
 def line(x1,y1,x2,y2,st=INK,w=1.4,dash=None,op=1):
     d=f' stroke-dasharray="{dash}"' if dash else ""
     add(f'<line x1="{x1:.1f}" y1="{y1:.1f}" x2="{x2:.1f}" y2="{y2:.1f}" stroke="{st}" stroke-width="{w}"{d} opacity="{op}"/>')
 def rect(x,y,w,h,fill="none",st=INK,sw=1.4,rx=0,dash=None,op=1):
     d=f' stroke-dasharray="{dash}"' if dash else ""
     add(f'<rect x="{x:.1f}" y="{y:.1f}" width="{w:.1f}" height="{h:.1f}" rx="{rx}" fill="{fill}" stroke="{st}" stroke-width="{sw}"{d} opacity="{op}"/>')
-def circ(x,y,r,fill="none",st=INK,sw=1.4,op=1):
-    add(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{fill}" stroke="{st}" stroke-width="{sw}" opacity="{op}"/>')
-def poly(pts,fill="none",st=INK,sw=1.4,op=1):
-    p=" ".join(f"{x:.1f},{y:.1f}" for x,y in pts)
-    add(f'<polygon points="{p}" fill="{fill}" stroke="{st}" stroke-width="{sw}" opacity="{op}"/>')
+def circ(x,y,r,fill="none",st=INK,sw=1.4):
+    add(f'<circle cx="{x:.1f}" cy="{y:.1f}" r="{r:.1f}" fill="{fill}" stroke="{st}" stroke-width="{sw}"/>')
 def arrow(x1,y1,x2,y2,st=INK,w=1.6,head=9):
     line(x1,y1,x2,y2,st,w); a=math.atan2(y2-y1,x2-x1)
     for s in (0.45,-0.45): line(x2,y2,x2-head*math.cos(a-s),y2-head*math.sin(a-s),st,w)
-def beam(x1,y1,x2,y2,col): line(x1,y1,x2,y2,col,1.3,dash="5 4",op=0.85)
 
 add(f'<rect width="{W}" height="{H}" fill="{PAPER}"/>')
-# rubrik
-txt(40, 52, "BRÄDPOSITION — SIDOVY LÄNGS MATNINGEN", 22, "start", INK, 700)
-txt(40, 76, "Y = matning (horisontellt) · Z = höjd · brädans längd X går IN i bilden (laserlinjen + kamerorad löper in i bilden, 500 mm)", 12.5, "start", MUTED)
+txt(40,52,"BRÄDPOSITION & NOLLA — OVANIFRÅN (X–Y)",22,"start",INK,700)
+txt(40,76,"Fast anhåll + fotocell i bakkant = stabil repeterbar nolla · encoder mot bandet = inkrement → ABSOLUT position. Tvärsnitt/optik: head-mech.svg.",12,"start",MUTED)
 
-BELT_Y = 720
-BT = 30                         # bräd-tjocklek i px (~20 mm)
-BOARD_L, BOARD_R = 470, 1430    # brädans utbredning (75 mm bredd — schematiskt utdraget)
-# transportband
-circ(150, BELT_Y+22, 24, ALU, INK, 1.6); circ(1490, BELT_Y+22, 24, ALU, INK, 1.6)
-line(150, BELT_Y, 1490, BELT_Y, INK, 2.2)
-line(150, BELT_Y+44, 1490, BELT_Y+44, INK, 2.2)
-txt(1480, BELT_Y+92, "transportband (24 V) — drivrullar i ändarna · övre bana = bräda, nedre = retur", 11, "end", MUTED)
-# bräda
-rect(BOARD_L, BELT_Y-BT, BOARD_R-BOARD_L, BT, WOOD, "#7a5230", 1.6)
-txt(770, BELT_Y-BT-9, "BRÄDA — matas →", 12, "middle", "#7a5230", 700)
-arrow(720, 120, 900, 120, INK, 2, 11); txt(810, 108, "matning", 13, "middle", INK, 700)
-# ledande kant
-line(BOARD_R, BELT_Y-BT-30, BOARD_R, BELT_Y+10, DIM, 1, dash="3 3")
-txt(BOARD_R+6, BELT_Y-BT-18, "ledande kant", 10.5, "start", DIM)
+X0, SX = 400, 1.96
+def PX(x): return X0 + x*SX                        # längd X (0..500)
+YC = 600                                           # laserlinjen (machine Y=0)
+SY = 1.25
+def PY(ymm): return YC + ymm*SY                    # +Y nedström (matning ↓)
+bx0, bx1 = PX(0), PX(BL)
 
-def station_label(x, top, lines, col=INK):
-    for i,(t,w) in enumerate(lines):
-        txt(x, top+i*16, t, 10.5, "middle", col, w)
+# ---- FAST ANHÅLL + fotocell (bakkant, uppströms) = ladd-/nolläge ----
+yan = 150
+rect(bx0-10, yan-14, (bx1-bx0)+20, 16, STEEL, INK, 1.8, 2)        # anhåll-balk längs X
+txt(PX(BL/2), yan-22, "FAST ANHÅLL — lägg brädans bakkant emot (kvadrar + nollar)", 12, "middle", INK, 700)
+# brädan i ladd-/nolläge (ligger an mot anhållet)
+rect(bx0, yan+2, bx1-bx0, 64, WOOD, "#7a5230", 1.4, 0, dash="4 3", op=0.85)
+txt(PX(BL/2), yan+40, "ladd-/nolläge (encoder = 0)", 11, "middle", "#7a5230", 700)
+# fotocell vid anhållet
+rect(bx0-46, yan-12, 20, 24, "#16212e", AMB, 1.4)
+txt(bx0-52, yan+4, "FOTOCELL", 10, "end", AMB, 700)
+txt(bx0-52, yan+18, "nollar vid anslag", 9, "end", AMB)
 
-# ---- UPPSTRÖMS POSITIONS-/ANKARGIVARE (vänster, utanför FOV) ----
-zoneU = (430, 150, 560, 760)
-rect(zoneU[0], zoneU[1], zoneU[2], zoneU[3]-zoneU[1], "none", CY, 1.3, rx=10, dash="7 5", op=0.7)
-txt(zoneU[0]+12, zoneU[1]+20, "UPPSTRÖMS — TJOCKLEK-ANKARE + KANT-NOLLA (utanför optisk FOV)", 12, "start", CY, 700)
+# feed
+arrow(bx0-90, yan+90, bx0-90, YC-30, INK, 2, 11)
+txt(bx0-104, (yan+90+YC)/2, "matning", 12, "end", INK, 700)
+# nolloffset-mått anhåll → laserlinje
+line(bx1+60, yan, bx1+60, YC, DIM, 0.8)
+line(bx1+52, yan, bx1+68, yan, DIM, 0.8); line(bx1+52, YC, bx1+68, YC, DIM, 0.8)
+txt(bx1+74, (yan+YC)/2, "inkrement från", 10, "start", MUTED, 700)
+txt(bx1+74, (yan+YC)/2+15, "anhålls-nollan", 10, "start", MUTED, 700)
 
-# 1) Mäthjuls-encoder MOT BANDETS RETURSIDA (bar yta, utanför FOV, dubbelriktad)
-ex = 330
-ret = BELT_Y + 44                                  # nedre (retur) bandbana
-circ(ex, ret+30, 30, "#bfe6c8", GRN, 2)            # mäthjul under returbandet
-circ(ex, ret+30, 5, GRN, GRN, 2)
-circ(ex, ret-10, 11, ALU, INK, 1.4)                # backidler som håller bandet mot hjulet
-rect(ex+34, ret+16, 52, 28, "#16212e", INK, 1.5)   # encoderkropp
-line(ex+30, ret+30, ex+12, ret+30, INK, 2)         # nav → kropp
-txt(60, 300, "MÄTHJUL-ENCODER", 12, "start", GRN, 700)
-txt(60, 318, "mot bandets RETURSIDA (alltid bar yta)", 10.5, "start", GRN)
-txt(60, 334, "kvadratur → DUBBELRIKTAD (upp/ned)", 10.5, "start", GRN)
-txt(60, 350, "rör aldrig brädan · ingen dödzon · ingen skevkraft", 10, "start", GRN)
-txt(60, 366, "E6B2-CWZ1X · Ø40+1000P → 0,126 mm/puls", 9.5, "start", MUTED)
-line(150, 372, ex, ret-22, GRN, 1, dash="4 4")     # ledare till hjulet
-# 2) Fotocell (valfri)
-px = 700
-rect(px-8, BELT_Y-BT-86, 22, 30, "#16212e", INK, 1.4)
-beam(px+3, BELT_Y-BT-70, px+3, BELT_Y-BT, AMB)
-station_label(px+3, 250+74, [("FOTOCELL (valfri)",700),("ledande-kant-nolla",400)], AMB)
-# 3) LR400 ankare
-lx = 880
-rect(lx-30, 150+150, 60, 34, "#16212e", INK, 1.6)
-beam(lx, 150+184, lx, BELT_Y-BT, CY)
-circ(lx, BELT_Y-BT, 3.2, CY, CY, 1)
-station_label(lx, 150+128, [("3× LR400 (in i bilden)",700),("absolut tjocklek-ankare",400),
-                            ("ger även kant + skevhet",400)], CY)
+# ---- mätstationen: bräda mid-scan på laserlinjen ----
+by0, by1 = PY(-BWF/2), PY(BWF/2)
+rect(bx0, by0, bx1-bx0, by1-by0, WOOD, "#7a5230", 1.6)
+txt(bx0+8, by0-8, "BRÄDA (500 × 75 mm) — under mätning", 11, "start", "#7a5230", 700)
 
-# ---- OPTISK MÄTZON (höger) ----
-zoneO = (1000, 150, 520, 760)
-rect(zoneO[0], zoneO[1], zoneO[2], zoneO[3]-zoneO[1], "none", PURP, 1.3, rx=10, dash="7 5", op=0.55)
-txt(zoneO[0]+12, zoneO[1]+20, "OPTISK MÄTZON", 12, "start", PURP, 700)
-laser_x = 1150
-# dubbel-oblik laser: RÖD uppströms-sida, GRÖN nedströms-sida, samma linje
-rx_, gx_ = laser_x-70, laser_x+70
-rrect = (rx_-26, 300, 52, 26); grect = (gx_-26, 300, 52, 26)
-rect(*rrect, "#16212e", RED, 1.6); rect(*grect, "#16212e", GRN, 1.6)
-line(rx_, 326, laser_x, BELT_Y-BT, RED, 2)
-line(gx_, 326, laser_x, BELT_Y-BT, GRN, 2)
-circ(laser_x, BELT_Y-BT, 4, AMB, AMB, 1)               # laserlinjen (in i bilden)
-txt(rx_, 292, "RÖD 650", 10.5, "middle", RED, 700)
-txt(gx_, 292, "GRÖN 520", 10.5, "middle", GRN, 700)
-txt(laser_x, BELT_Y-BT-12, "laserlinje (in i bilden, 500 mm)", 10, "middle", AMB, 700)
-# ytkamera (FÄRG-linjekamera) — EGEN rad, förskjuten ~30 mm nedström, klar av laser-vinkeln
-sx = laser_x + 200
-rect(sx-22, 180, 44, 34, "#16212e", INK, 1.6)
-line(sx, 214, sx, BELT_Y-BT, BLUE, 1.6, dash="2 3")
-circ(sx, BELT_Y-BT, 3.5, BLUE, BLUE, 1)
-rect(sx-72, 250, 40, 22, "#fff7d6", AMB, 1.4); rect(sx+32, 250, 40, 22, "#fff7d6", AMB, 1.4)
-line(sx-50, 272, sx-5, BELT_Y-BT, AMB, 1.2, dash="4 3"); line(sx+52, 272, sx+5, BELT_Y-BT, AMB, 1.2, dash="4 3")
-txt(sx, 168, "YTKAMERA (färg-linjerad) · egen rad + 2× vitljus", 10.5, "middle", BLUE, 700)
-# offset laserlinje → färgrad (ingen laser i färgbilden; syns aldrig krock med laser-vinkeln)
-oy = BELT_Y + 34
-line(laser_x, BELT_Y-BT, laser_x, oy+6, DIM, 0.7); line(sx, BELT_Y-BT, sx, oy+6, DIM, 0.7)
-arrow((laser_x+sx)/2, oy, laser_x, oy, DIM, 1); arrow((laser_x+sx)/2, oy, sx, oy, DIM, 1)
-rect((laser_x+sx)/2-130, oy-9, 260, 18, PAPER, "none", 0, op=0.95)
-txt((laser_x+sx)/2, oy+5, "färgrad ~30 mm från laserlinjen — sys ihop via encoderposition", 9.5, "middle", INK, 700, MONO)
+# laserlinje (röd+grön) längs X — huvuden konvergerar hit (offset i head-mech)
+line(bx0, YC-1.5, bx1, YC-1.5, RED, 3); line(bx0, YC+1.5, bx1, YC+1.5, GRN, 3)
+for x in (0, BL): circ(PX(x), YC, 3, PURP, "#7a2fb0", 1)
+rect(PX(BL/2)-235, YC-22, 470, 16, PAPER, "none", 0, op=0.95)
+txt(PX(BL/2), YC-10, "laserlinje 500 mm — RÖD+GRÖN konvergerar hit (huvuden Y±456 / Z544 — se head-mech)", 9.5, "middle", PURP, 700)
 
-# offset-mått (Y) mellan givare och laserlinjen
-ydim = BELT_Y+120
-def hd(x1,x2,lbl):
-    line(x1,ydim-6,x1,ydim+6,DIM,0.9); line(x2,ydim-6,x2,ydim+6,DIM,0.9)
-    arrow((x1+x2)/2,ydim,x1,ydim,DIM,1); arrow((x1+x2)/2,ydim,x2,ydim,DIM,1)
-    rect((x1+x2)/2-len(lbl)*4, ydim-9, len(lbl)*8, 18, PAPER, "none", 0, op=0.95)
-    txt((x1+x2)/2, ydim+5, lbl, 11, "middle", INK, 700, MONO)
-line(lx, BELT_Y+30, lx, ydim, DIM, 0.7); line(laser_x, BELT_Y+30, laser_x, ydim, DIM, 0.7)
-hd(lx, laser_x, "LR-lead ~45 mm")
-txt(lx-120, ydim+4, "(encoderns läge kräver ingen offset — mäter bandet)", 9.5, "end", MUTED)
+# LR400-rad (−45 mm)
+ylr = PY(-LR_LEAD)
+line(bx0, ylr, bx1, ylr, CY, 1.4, dash="6 4")
+for x in LRX: circ(PX(x), ylr, 4, CY, CY, 1); circ(PX(x), ylr, 7, "none", CY, 1)
+rect(PX(BL/2)-175, ylr-21, 350, 15, PAPER, "none", 0, op=0.95)
+txt(PX(BL/2), ylr-10, "3× LR400 · −45 mm — tjocklek-ankare (+ kant/skevhet)", 9.5, "middle", CY, 700)
+
+# färg-linjekamera (+30 mm)
+ycol = PY(COL_OFF)
+line(bx0, ycol, bx1, ycol, BLUE, 1.6, dash="3 3")
+rect(PX(BL/2)-165, ycol+8, 330, 15, PAPER, "none", 0, op=0.95)
+txt(PX(BL/2), ycol+20, "FÄRG-LINJEKAMERA · +30 mm — ren färg (+ 2× vitljus)", 9.5, "middle", BLUE, 700)
+
+# encoder-mäthjul mot bandet (inkrement)
+ex = bx0-175
+circ(ex, YC, 22, "#bfe6c8", GRN, 2); circ(ex, YC, 4, GRN, GRN, 1)
+rect(ex-44, YC+26, 58, 22, "#16212e", INK, 1.4)
+txt(ex, YC-30, "MÄTHJUL-ENCODER", 9.5, "middle", GRN, 700)
+txt(ex, YC+64, "mot bandet → inkrement", 9.5, "middle", GRN)
+txt(ex, YC+78, "(dubbelriktad, utanför FOV)", 9, "middle", GRN)
+
+# offset-mått i feed (LR-lead 45 / färg 30)
+xd = bx0-66
+line(xd, ylr, bx0, ylr, DIM, 0.6); line(xd, YC, bx0, YC, DIM, 0.6); line(xd, ycol, bx0, ycol, DIM, 0.6)
+def vd(y1,y2,lbl):
+    arrow(xd,(y1+y2)/2,xd,y1,DIM,1); arrow(xd,(y1+y2)/2,xd,y2,DIM,1)
+    line(xd-5,y1,xd+5,y1,DIM,0.8); line(xd-5,y2,xd+5,y2,DIM,0.8)
+    rect(xd-52,(y1+y2)/2-9,46,18,PAPER,"none",0,op=0.95); txt(xd-29,(y1+y2)/2+5,lbl,9.5,"middle",INK,700,MONO)
+vd(ylr, YC, "45"); vd(YC, ycol, "30")
+txt(PX(10), by1+18, "0", 9, "start", MUTED); txt(PX(BL-10), by1+18, "500 mm (X)", 9, "end", MUTED)
 
 # noter
-nx, ny = 40, 880
-rect(nx, ny, W-80, 110, "#fff", GRID, 1.4, rx=8)
+nx, ny = 40, 905
+rect(nx, ny, W-80, 124, "#fff", GRID, 1.4, rx=8)
 notes = [
- "POSITION = encoder-inkrement (mäthjul mot bandet)  +  KANT-NOLLA (LR400/fotocell vid linjen).   Absolut åt BÅDA hållen — kvadratur räknar upp/ned vid backning.",
- "Encodern rullar mot bandets RETURSIDA → alltid kontakt, rör aldrig brädan, ingen dödzon vid vändning, ingen skevkraft. Dess fysiska läge behöver INGEN offset (mäter bandet).",
- "Pris: band↔bräda-slir. Mildras med gripande/mönstrat band (+ ev. hålldon) och, vid sub-mm-krav, mjukvarukorrektion via brädans kanter (hela brädan avbildas ändå).",
- "Alternativ: encoder kopplad direkt till en rullaxel → eliminerar även hjul-mot-band-slir.",
- "LR400-planet ger kant-nolla + skevhet (3 punkter) → kan ERSÄTTA fotocellen. Uppströms-givare + linjekamera ligger utanför FOV; kameran exponerar bara sin rad.",
+ "NOLLA = FAST ANHÅLL + FOTOCELL i bakkant. Lägg brädans bakkant mot anhållet → fotocellen ser anslag → encodern NOLLAS. Anhållet kvadrar dessutom brädan (ingen skevhet vid iladdning).",
+ "ABSOLUT POSITION = encoder-inkrement (mäthjul mot bandet, dubbelriktad) räknat FRÅN anhålls-nollan. Stabil eftersom nollan är ett mekaniskt anslag du alltid kan återgå till.",
+ "DUBBELRIKTAT: kör fram (encoder räknar upp), backa tillbaka (räknar ned). Når du anhållet igen → fotocell → AUTO-OMNOLLNING. Driftfri, repeterbar nolla varje cykel.",
+ "Tre RADER nedström: LR400 −45 mm (tjocklek-ankare/kant/skevhet) · laserlinje 0 (profil, röd+grön) · färgkamera +30 mm (ren färg, ingen laser). Sys ihop via encoderpositionen.",
+ "Huvudens exakta geometri (WD 710, kam 20°/Z667/Y243, laser 40°/Z544/Y456, θ20°, vankant, ytkamera) finns i head-mech.svg (tvärsnittet). Mäthjul mäter bandet → slir mildras med griff + mjukvarukant-korr.",
 ]
 for i,l in enumerate(notes):
-    txt(nx+14, ny+24+i*18, l, 10.6, "start", INK, 700 if i==0 else 400)
+    txt(nx+14, ny+22+i*19, l, 10.2, "start", INK, 700 if i<3 else 400)
 
 add('</svg>')
 svg = "\n".join(out)
 root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-dst = os.path.join(root, "position-subsystem.svg")
-open(dst, "w", encoding="utf-8").write(svg)
-print("skrev", dst)
+open(os.path.join(root,"position-subsystem.svg"),"w",encoding="utf-8").write(svg)
+print("skrev position-subsystem.svg")
 try:
     import cairosvg
-    cairosvg.svg2png(bytestring=svg.encode(), write_to=os.path.join(root, "position-subsystem.png"), output_width=W, output_height=H)
+    cairosvg.svg2png(bytestring=svg.encode(), write_to=os.path.join(root,"position-subsystem.png"), output_width=W, output_height=H)
     print("skrev position-subsystem.png")
 except Exception as e:
     print("PNG-render hoppover:", e)
