@@ -92,7 +92,7 @@ add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
 txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
-            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) i centrum rakt ned. Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +30 mm (EJ på laserlinjen → ingen laser i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -164,22 +164,26 @@ txt(rlas[0]-8, rlas[1]+4, "RÖD: laser", 8.5, "end", RED, 700)
 txt(gcam[0]+8, gcam[1]-12, "GRÖN: kamera", 8.5, "start", GRN, 700)
 txt(glas[0]+8, glas[1]+4, "GRÖN: laser", 8.5, "start", GRN, 700)
 
-# ---- LINJEKAMERA (ytkamera) i CENTRUM, rakt ovanifrån ----
+# ---- LINJEKAMERA (ytkamera) — EGEN rad, FÖRSKJUTEN +30 mm (EJ på laserlinjen) ----
 SURF_WD = 400
-lc = WS(0, SURF_WD)                                   # rakt över brädmitten, höjd 400
+COL_OFF = 30                                          # mm: färgraden förskjuten i feed (Y)
+lc = WS(COL_OFF, SURF_WD)                             # över färgraden, inte över laserlinjen
+cp = WS(COL_OFF, 0)                                   # färgkamerans EGNA mätpunkt på brädytan
 lcw, lcl, lld, lll = 36, 40, 44, 50                   # kamera-hus + M42-objektiv (mm)
-line(Ox, pby+8, lc[0], lc[1]-(lcl+lll)*S, ALU2, 5)   # bär-stag från topp-tvärbalk ned till ytkameran
+line(lc[0], pby+8, lc[0], lc[1]-(lcl+lll)*S, ALU2, 5)            # bär-stag från topp-tvärbalk
 add(f'<g transform="translate({lc[0]:.1f},{lc[1]:.1f})">')
-rect(-lcw*S/2, -(lcl+lll)*S, lcw*S, lcl*S, "#efe6f7", PURP, 1.6, 2)        # kamera-hus
-rect(-lld*S/2, -lll*S, lld*S, lll*S, "#e6dcf0", "#9a7fc0", 1.4, 2)         # M42-objektiv
+rect(-lcw*S/2, -(lcl+lll)*S, lcw*S, lcl*S, "#e2ecf6", BLUE, 1.6, 2)        # kamera-hus
+rect(-lld*S/2, -lll*S, lld*S, lll*S, "#d8e6f4", "#5f8fc0", 1.4, 2)         # M42-objektiv
 add('</g>')
-line(lc[0], lc[1], Ox, Oy, PURP, 1.3, "6 4")                              # siktlinje rakt ned till mätlinjen
+line(lc[0], lc[1], cp[0], cp[1], BLUE, 1.3, "6 4")                        # siktlinje till EGEN rad (ej laserlinjen)
+circ(cp[0], cp[1], 4, BLUE, "#1d5fa0", 1.4); txt(cp[0]+9, cp[1]+15, "färgrad (+30 mm)", 8.5, "start", BLUE, 700)
+hdim(Ox, cp[0], Oy+22, f"{COL_OFF}", DIMC, 9)                              # offset laserlinje → färgrad
 rect(lc[0]+lld*S/2+10, lc[1]-lll*S-2, 28, 9, "#fff8e0", "#c9a13a", 1.3, 2) # vit LED-list
 txt(lc[0]+lld*S/2+24, lc[1]-lll*S-8, "vitt LED", 7.5, "middle", "#8a6510", 700)
-txt(lc[0]-lcw*S/2-10, lc[1]-(lcl+lll)*S+10, "YTKAMERA (line-scan)", 9, "end", PURP, 700)
-txt(lc[0]-lcw*S/2-10, lc[1]-(lcl+lll)*S+23, "4K färg · M42 20 mm", 8, "end", MUTED, 700)
-txt(lc[0]-lcw*S/2-10, lc[1]-(lcl+lll)*S+36, "avbildar LÄNGDEN (in i bilden)", 8, "end", MUTED, 700)
-vdim(Oy, lc[1], Ox+62, f"{SURF_WD}", PURP, 11); txt(Ox+78, (Oy+lc[1])/2, "yt-WD", 8.5, "start", PURP, 700, rot=-90)
+txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+10, "YTKAMERA (line-scan)", 9, "start", BLUE, 700)
+txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+23, "4K färg · M42 · EGEN rad +30 mm", 8, "start", MUTED, 700)
+txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+36, "EJ på laserlinjen → ingen laser i färgbilden", 8, "start", MUTED, 700)
+vdim(Oy, lc[1], Ox+62, f"{SURF_WD}", BLUE, 11); txt(Ox+78, (Oy+lc[1])/2, "yt-WD", 8.5, "start", BLUE, 700, rot=-90)
 
 # ---- LOD-referens + vinklar vid O ----
 line(Ox, Oy, Ox, Oy-int(camZ*S)-40, DIMC, 0.7, "4 4"); txt(Ox+8, Oy-int(camZ*S)-30, "lod", 8.5, "start", DIMC, 700)
