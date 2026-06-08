@@ -162,8 +162,9 @@ for i,n in enumerate([
  "Aperturer: kamera-fönster + laser-slits (öppna; bandpass sitter på objektivet).",
  "  I dammig miljö ev. skyddsglas — då LUTAT för att undvika reflex.",
  "Montering: plattans M6-yta mot portal/tiltbracket (slits för aim, lås sen).",
- "Storleksbyte = bara mjukvara. Spegla huvudet för grön kanal.",
-]): txt(LX+14,640+i*20,("• "+n if not n.startswith("  ") else n),9.0,"start",INK,400)
+ "JUSTERING: bara (1) HELA huvudet tiltas (aim → lås) + (2) lasern ROTERAS om egen axel",
+ "  (linje längs X, parallellt kamerans rader → lås). Kameran HELT FAST. Finkalib.= MJUKVARA. Spegla för grön.",
+]): txt(LX+14,640+i*19,("• "+n if not n.startswith("  ") else n),8.8,"start",INK,400)
 
 tb_x,tb_y=LX,910; rect(tb_x,tb_y,660,150,"#fff",INK,1.5,7)
 ln(tb_x,tb_y+96,tb_x+660,tb_y+96,INK,1); ln(tb_x+400,tb_y,tb_x+400,tb_y+96,INK,1); ln(tb_x+400,tb_y+30,tb_x+660,tb_y+30,INK,1); ln(tb_x+400,tb_y+63,tb_x+660,tb_y+63,INK,1)
