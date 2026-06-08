@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1700" height="1180" viewBox="0 0 1700 1180">
+<rect width="1700" height="1180" fill="#f7f6f1"/>
+<text x="40.0" y="50.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="21" font-weight="700" fill="#23262b" text-anchor="start">FAST MÄTHUVUD — designförslag (en oblik kanal: kamera + laser i fasta vinklar)</text>
+<text x="40.0" y="74.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11.5" font-weight="400" fill="#6a6e74" text-anchor="start">Aluminiumplatta 50 mm bred · kamera &amp; laser FASTA (kalibreras en gång) · centrum-tiltaxel riktar HELA huvudet, lås sen. Geometri: WD 710, kam 20°, laser 40°, θ 20°, baslinje 247.</text>
+<line x1="40.0" y1="86.0" x2="1660.0" y2="86.0" stroke="#23262b" stroke-width="1.2" opacity="1" stroke-linecap="round"/>
+<text x="60.0" y="128.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#23262b" text-anchor="start">VY A — sidvy (arbetsplanet): optik + platta + tiltaxel</text>
+<rect x="410.0" y="860.0" width="300.0" height="16.0" rx="0" fill="#e9d8b0" stroke="#7a5230" stroke-width="1.4" opacity="1"/>
+<text x="560.0" y="894.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#7a5230" text-anchor="middle">BRÄDA (yta)  ·  laserlinje = konvergenspunkt</text>
+<line x1="410.0" y1="882.0" x2="710.0" y2="882.0" stroke="#444a52" stroke-width="4" opacity="1" stroke-linecap="round"/>
+<line x1="560.0" y1="860.0" x2="560.0" y2="390.0" stroke="#9aa0a6" stroke-width="0.8" stroke-dasharray="4 4" opacity="1" stroke-linecap="round"/>
+<text x="566.0" y="405.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#9aa0a6" text-anchor="start">lod</text>
+<line x1="710.6" y1="446.3" x2="560.0" y2="860.0" stroke="#2f6fb0" stroke-width="1.6" stroke-dasharray="6 4" opacity="1" stroke-linecap="round"/>
+<line x1="843.0" y1="522.8" x2="560.0" y2="860.0" stroke="#e8542c" stroke-width="2.6" opacity="1" stroke-linecap="round"/>
+<circle cx="560.0" cy="860.0" r="4.0" fill="#a23ad6" stroke="#7a2fb0" stroke-width="1"/>
+<text x="590.0" y="790.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#2f6fb0" text-anchor="middle">20°</text>
+<text x="630.0" y="810.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#e8542c" text-anchor="middle">40°</text>
+<text x="710.0" y="710.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#e8542c" text-anchor="middle" transform="rotate(-50 710.0 710.0)">WD 710</text>
+<text x="620.0" y="710.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#2f6fb0" text-anchor="middle" transform="rotate(-70 620.0 710.0)">WD 710</text>
+<polygon points="649.9,411.3 903.6,557.8 906.7,552.4 653.0,406.0" fill="#cfd2d6" stroke="#9aa0a6" stroke-width="1.6" opacity="1"/>
+<text x="913.6" y="540.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#6a6e74" text-anchor="start" transform="rotate(30 913.6 540.5)">ALU-PLATTA 10 mm</text>
+<text x="763.8" y="507.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(30 763.8 507.1)">baslinje 247</text>
+<polygon points="694.6,434.3 726.6,434.3 726.6,460.3 694.6,460.3" fill="#e2ecf6" stroke="#2f6fb0" stroke-width="1.6" opacity="1"/>
+<rect x="701.6" y="458.3" width="18.0" height="16.0" rx="0" fill="#d8e6f4" stroke="#5f8fc0" stroke-width="1.4" opacity="1"/>
+<text x="688.6" y="442.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#2f6fb0" text-anchor="end">KAMERA</text>
+<text x="688.6" y="454.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="end">(20°)</text>
+<polygon points="829.0,512.8 873.0,512.8 873.0,532.8 829.0,532.8" fill="#fde9e3" stroke="#e8542c" stroke-width="1.6" opacity="1"/>
+<text x="877.0" y="520.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#e8542c" text-anchor="start">LASER (40°)</text>
+<text x="670.6" y="406.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">FASTA vinklar (±10° mot plattnormal)</text>
+<circle cx="778.3" cy="481.9" r="10.0" fill="#fff" stroke="#23262b" stroke-width="2"/>
+<circle cx="778.3" cy="481.9" r="3.0" fill="#23262b" stroke="#23262b" stroke-width="0"/>
+<rect x="772.3" y="454.0" width="28.0" height="28.0" rx="0" fill="#ecebe4" stroke="#9aa0a6" stroke-width="1.4" opacity="1"/>
+<text x="804.3" y="436.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(30 804.3 436.9)">CENTRUM-TILTAXEL</text>
+<text x="804.3" y="450.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="400" fill="#6a6e74" text-anchor="middle" transform="rotate(30 804.3 450.9)">(monteras mellan 2 profiler)</text>
+<path d="M 740.2 459.9 A 44 44 0 0 1 774.5 438.1" fill="none" stroke="#c98a16" stroke-width="2.2"/>
+<line x1="771.5" y1="435.1" x2="774.5" y2="438.1" stroke="#c98a16" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<line x1="774.5" y1="438.1" x2="766.9" y2="435.4" stroke="#c98a16" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<line x1="774.5" y1="438.1" x2="771.8" y2="430.5" stroke="#c98a16" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<text x="738.3" y="403.9" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#c98a16" text-anchor="middle">TILT hela huvudet → rikta, LÅS sen</text>
+<text x="1080.0" y="128.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="13" font-weight="700" fill="#23262b" text-anchor="start">VY B — platta sett längs axeln (50 mm bred)</text>
+<rect x="1180.0" y="300.0" width="260.0" height="18.0" rx="0" fill="#cfd2d6" stroke="#9aa0a6" stroke-width="1.6" opacity="1"/>
+<text x="1310.0" y="290.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#6a6e74" text-anchor="middle">ALU-PLATTA  50 mm bred × 10 mm</text>
+<circle cx="1310.0" cy="309.0" r="7.0" fill="#fff" stroke="#23262b" stroke-width="1.6"/>
+<text x="1310.0" y="340.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#23262b" text-anchor="middle">CENTRUMHÅL = tiltaxel (genom båda profiler)</text>
+<rect x="1146.0" y="286.0" width="34.0" height="46.0" rx="0" fill="#ecebe4" stroke="#9aa0a6" stroke-width="1.6" opacity="1"/>
+<text x="1163.0" y="278.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="middle">2020-profil</text>
+<rect x="1440.0" y="286.0" width="34.0" height="46.0" rx="0" fill="#ecebe4" stroke="#9aa0a6" stroke-width="1.6" opacity="1"/>
+<text x="1457.0" y="278.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="middle">2020-profil</text>
+<line x1="1146.0" y1="309.0" x2="1474.0" y2="309.0" stroke="#23262b" stroke-width="2.4" opacity="1" stroke-linecap="round"/>
+<text x="1310.0" y="358.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="middle">bult/axel genom centrumhål → tiltlager + LÅS (bricka/klamma)</text>
+<text x="1310.0" y="420.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#23262b" text-anchor="middle">PLATTANS LÄNGD (längs baslinjen):</text>
+<text x="1310.0" y="438.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="400" fill="#6a6e74" text-anchor="middle">baslinje 247 + monteringsklackar ≈ 320 mm</text>
+<rect x="1180.0" y="460.0" width="70.0" height="40.0" rx="4" fill="#e2ecf6" stroke="#2f6fb0" stroke-width="1.5" opacity="1"/>
+<text x="1215.0" y="484.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f6fb0" text-anchor="middle">KAMERA</text>
+<rect x="1370.0" y="460.0" width="70.0" height="40.0" rx="4" fill="#fde9e3" stroke="#e8542c" stroke-width="1.5" opacity="1"/>
+<text x="1405.0" y="484.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="middle">LASER</text>
+<circle cx="1310.0" cy="480.0" r="7.0" fill="#fff" stroke="#23262b" stroke-width="1.4"/>
+<text x="1310.0" y="516.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="400" fill="#6a6e74" text-anchor="middle">← centrumhål (tiltaxel) mellan kamera &amp; laser →</text>
+<rect x="1080.0" y="560.0" width="560.0" height="250.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
+<rect x="1080.0" y="560.0" width="560.0" height="26.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
+<text x="1092.0" y="578.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">MÅTT (fasta)</text>
+<text x="1092.0" y="600.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Arbetsavstånd WD (var optik)</text>
+<text x="1628.0" y="600.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">710 mm</text>
+<rect x="1080.0" y="608.0" width="560.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
+<text x="1092.0" y="623.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Kameravinkel (från lod)</text>
+<text x="1628.0" y="623.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">20°</text>
+<text x="1092.0" y="646.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Laservinkel (från lod)</text>
+<text x="1628.0" y="646.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">40°</text>
+<rect x="1080.0" y="654.0" width="560.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
+<text x="1092.0" y="669.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Triangulering θ (kam↔laser)</text>
+<text x="1628.0" y="669.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">20°</text>
+<text x="1092.0" y="692.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Baslinje (kam↔laser)</text>
+<text x="1628.0" y="692.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">247 mm</text>
+<rect x="1080.0" y="700.0" width="560.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
+<text x="1092.0" y="715.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Obliktet (plattnormal/lod)</text>
+<text x="1628.0" y="715.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">30°</text>
+<text x="1092.0" y="738.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Plattbredd</text>
+<text x="1628.0" y="738.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">50 mm</text>
+<rect x="1080.0" y="746.0" width="560.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
+<text x="1092.0" y="761.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Plattlängd ca</text>
+<text x="1628.0" y="761.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">320 mm</text>
+<text x="1092.0" y="784.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#6a6e74" text-anchor="start">Vinkel optik↔plattnormal</text>
+<text x="1628.0" y="784.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10.5" font-weight="700" fill="#23262b" text-anchor="end">±10°</text>
+<rect x="40.0" y="920.0" width="1600.0" height="230.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
+<rect x="40.0" y="920.0" width="1600.0" height="26.0" rx="8" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
+<text x="52.0" y="938.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">NOTER — bygg &amp; montering</text>
+<text x="52.0" y="962.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• FASTA vinklar: kamera och laser sitter permanent ±10° mot plattans normal (→ θ=20°). Kalibrera EN gång, lås. De ändras aldrig.</text>
+<text x="52.0" y="987.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• TILT: hela huvudet vrids om CENTRUM-tiltaxeln (genom centrumhålet, mellan två profiler) för att rikta laserlinjen rätt på brädan + sätta obliktet ~30°. LÅS efter inriktning.</text>
+<text x="52.0" y="1012.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• Eftersom kamera+laser sitter på SAMMA styva platta rör sig deras geometri aldrig relativt varandra → stabil kalibrering (som en kommersiell sensor).</text>
+<text x="52.0" y="1037.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• TERMIK: laser i metallklämma med god kontakt mot plattan (+ ev. värmepasta) → plattan = kylfläns. INGEN fläkt (vibration!). 100 mW klarar plattkontakt med marginal.</text>
+<text x="52.0" y="1062.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• Montera kameran på samma platta (hjälper även dess värmeavledning). Plattjocklek ≥10 mm för styvhet; gärna förstyvningsklack vid laserklämman.</text>
+<text x="52.0" y="1087.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• Tiltaxeln bör ligga nära plattans tyngdpunkt/optiklinje → tilt = mest omriktning, lite translation. Lås med bult + tandbricka eller klämkloss.</text>
+<text x="52.0" y="1112.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="400" fill="#23262b" text-anchor="start">• Spegla samma huvud för andra kanalen (grön) → båda konvergerar på samma laserlinje.</text>
+</svg>
