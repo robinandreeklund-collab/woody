@@ -1,25 +1,22 @@
 #!/usr/bin/env python3
-"""KONSTRUKTIONSRITNING — FAST MÄTHUVUD (en oblik kanal).
-Verkliga komponenter (Hikrobot MV-CS050 + 12mm/bandpass, MZLaser Ø18×99 Powell),
-alu-bottenplatta 50 mm bred, fasta vinklar (kam 20° / laser 40°, θ 20°), centrum-
-tiltaxel mellan två 2020-profiler. Vyer: arbetsplan, plan (hålbild), snitt A–A,
-dellista, måttabell, ritningshuvud.
+"""KONSTRUKTIONSRITNING — INTEGRERAT MÄTHUVUD (line-laser 3D-kamera-stil).
+Kamera + laser inbyggda i ETT vinklat hölje med plan monteringsyta + M6-bultmönster
+(à la Hikrobot). Fasta vinklar (kam 20° / laser 40°, θ 20°, baslinje 247), WD 710.
+Vyer: arbetsplan (hölje + optik), monteringsyta (baksida, hålbild), gavel/bredd,
+dellista, måttabell, ritningshuvud.  Mått i mm.
 
     python tools/draw_measure_head.py   # -> measure-head.svg (+ .png)
 """
 from __future__ import annotations
 import os, math
 
-WD, CAM_A, LAS_A, BASE, TH = 710.0, 20.0, 40.0, 247.0, 10.0
-PLATE_L, PLATE_W = 330.0, 50.0
-CAM_OFF = (PLATE_L-BASE)/2            # 41.5 mm från vänster datum till kamera-c
-LAS_OFF = CAM_OFF+BASE               # 288.5
-PIV_OFF = PLATE_L/2                  # 165 (=baslinjens mitt)
+WD,CAM_A,LAS_A,BASE=710.0,20.0,40.0,247.0
+ENV_L,ENV_W,ENV_D=330.0,60.0,80.0       # hölje: längd, bredd, djup
 INK,MUTED,DIM="#23262b","#6a6e74","#9aa0a6"
 PAPER,GRID,PANEL="#f7f6f1","#e6e4dc","#ecebe4"
-RED,GRN,BLUE,AMB,ALU,ALU2,STEEL,WOOD="#e8542c","#2f9e6e","#2f6fb0","#c98a16","#d7dadd","#9aa0a6","#7f868d","#e9d8b0"
+RED,GRN,BLUE,AMB,SHELL,SHELL2,STEEL,WOOD="#e8542c","#2f9e6e","#2f6fb0","#c98a16","#3a3f45","#5b626a","#7f868d","#e9d8b0"
 SANS="'IBM Plex Sans','DejaVu Sans',sans-serif"; MONO="'IBM Plex Mono','DejaVu Sans Mono',monospace"
-W,H=1880,1300
+W,H=1880,1320
 out=[f'<svg xmlns="http://www.w3.org/2000/svg" width="{W}" height="{H}" viewBox="0 0 {W} {H}">']
 def add(s): out.append(s)
 def esc(t): return t.replace("&","&amp;").replace("<","&lt;").replace(">","&gt;")
@@ -36,193 +33,149 @@ def circ(x,y,r,fill="none",st=INK,sw=1.3):
 def poly(pts,fill,st=INK,sw=1.3,op=1):
     d=" ".join(f"{x:.1f},{y:.1f}" for x,y in pts)
     add(f'<polygon points="{d}" fill="{fill}" stroke="{st}" stroke-width="{sw}" opacity="{op}"/>')
+def path(d,fill,st=INK,sw=1.3):
+    add(f'<path d="{d}" fill="{fill}" stroke="{st}" stroke-width="{sw}" stroke-linejoin="round"/>')
 def ahead(x,y,ang,c=INK,L=7):
-    p=[(x,y),(x-L*math.cos(ang-0.4),y-L*math.sin(ang-0.4)),(x-L*math.cos(ang+0.4),y-L*math.sin(ang+0.4))]
-    poly(p,c,c,0)
-def hdim(x1,x2,y,label,c=INK,ext=0,below=False):
-    if ext: ln(x1,y-ext if not below else y,x1,y,DIM,0.7); ln(x2,y-ext if not below else y,x2,y,DIM,0.7)
-    ln(x1,y,x2,y,c,0.9); ahead(x1,y,0,c); ahead(x2,y,math.pi,c)
-    txt((x1+x2)/2,y-4,label,9,"middle",c,700,MONO)
+    poly([(x,y),(x-L*math.cos(ang-0.4),y-L*math.sin(ang-0.4)),(x-L*math.cos(ang+0.4),y-L*math.sin(ang+0.4))],c,c,0)
+def hdim(x1,x2,y,label,c=INK):
+    ln(x1,y,x2,y,c,0.9); ahead(x1,y,0,c); ahead(x2,y,math.pi,c); txt((x1+x2)/2,y-4,label,9,"middle",c,700,MONO)
 def vdim(y1,y2,x,label,c=INK):
-    ln(x,y1,x,y2,c,0.9); ahead(x,y1,-math.pi/2,c); ahead(x,y2,math.pi/2,c)
-    txt(x-4,(y1+y2)/2,label,9,"middle",c,700,MONO,rot=-90)
-def hatch(x,y,w,h,c=ALU2,step=7):
-    add(f'<defs><clipPath id="cp{len(out)}"><rect x="{x}" y="{y}" width="{w}" height="{h}"/></clipPath></defs>')
-    cid=f"cp{len(out)-1}"; add(f'<g clip-path="url(#{cid})">')
-    i=-h
-    while i<w+h:
-        ln(x+i,y+h,x+i+h,y,c,0.6); i+=step
-    add('</g>'); rect(x,y,w,h,"none",INK,1.2)
-def rbox(cx,cy,ux,uy,L,Wd,fill,st=INK,sw=1.3):
-    px,py=-uy,ux
-    p=[(cx-ux*L/2-px*Wd/2,cy-uy*L/2-py*Wd/2),(cx+ux*L/2-px*Wd/2,cy+uy*L/2-py*Wd/2),
-       (cx+ux*L/2+px*Wd/2,cy+uy*L/2+py*Wd/2),(cx-ux*L/2+px*Wd/2,cy-uy*L/2+py*Wd/2)]
-    poly(p,fill,st,sw)
+    ln(x,y1,x,y2,c,0.9); ahead(x,y1,-math.pi/2,c); ahead(x,y2,math.pi/2,c); txt(x-4,(y1+y2)/2,label,9,"middle",c,700,MONO,rot=-90)
 
 add(f'<rect width="{W}" height="{H}" fill="{PAPER}"/>')
 rect(14,14,W-28,H-28,"none",INK,2); rect(22,22,W-44,H-44,"none",MUTED,0.7)
-txt(44,52,"MÄTHUVUD — FAST OBLIK KANAL (kamera + laser)  ·  KONSTRUKTIONSRITNING",19,"start",INK,700)
-txt(44,72,"Alu-bottenplatta 50 mm bred · fasta vinklar (kam 20° / laser 40°, θ 20°, baslinje 247) · centrum-tiltaxel mellan två 2020-profiler · WD 710. Mått i mm. Ej skalenlig mellan vyer.",10.5,"start",MUTED)
+txt(44,52,"INTEGRERAT MÄTHUVUD — line-laser 3D-kamera-stil  ·  KONSTRUKTIONSRITNING",19,"start",INK,700)
+txt(44,72,"Kamera + laser i ETT vinklat hölje · fasta vinklar (kam 20° / laser 40°, θ 20°, baslinje 247) · plan monteringsyta + M6-mönster · WD 710. Mått i mm. Ej skalenlig mellan vyer.",10.5,"start",MUTED)
 ln(44,82,W-44,82,INK,1)
 
-# =================================================== VY 1: ARBETSPLAN
-txt(60,112,"VY 1 — ARBETSPLAN (optik + huvud i läge, obliktet 30°)",12,"start",INK,700)
-s=0.52; Px,Py=320,770
+# =================================================== VY 1: ARBETSPLAN (hölje + optik)
+txt(60,112,"VY 1 — ARBETSPLAN: integrerat hölje i läge (obliktet 30°)",12,"start",INK,700)
+s=0.5; Px,Py=300,790
 def ray(a): r=math.radians(a); return (Px+WD*s*math.sin(r),Py-WD*s*math.cos(r))
 C=ray(CAM_A); L=ray(LAS_A)
-# bräda + band
-rect(Px-150,Py,300,16,WOOD,"#7a5230",1.3); ln(Px-150,Py+24,Px+150,Py+24,"#444a52",4)
-txt(Px,Py+44,"BRÄDA (yta) · laserlinje",9,"middle","#7a5230",700)
-# lod + strålar
-ln(Px,Py,Px,Py-430,DIM,0.7,"5 5")
-ln(C[0],C[1],Px,Py,BLUE,1.4,"6 4"); ln(L[0],L[1],Px,Py,RED,2.4); circ(Px,Py,4,"#a23ad6","#7a2fb0",1)
-txt(Px+26,Py-66,"20°",9,"middle",BLUE,700); txt(Px+66,Py-46,"40°",9,"middle",RED,700)
-# WD-mått längs strålarna
-mc=((C[0]+Px)/2,(C[1]+Py)/2); ml=((L[0]+Px)/2,(L[1]+Py)/2)
-txt(mc[0]-12,mc[1],"WD 710",8.5,"middle",BLUE,700,MONO,rot=-70)
-txt(ml[0]+14,ml[1],"WD 710",8.5,"middle",RED,700,MONO,rot=-50)
-# platta längs C-L
-ux,uy=(L[0]-C[0]),(L[1]-C[1]); bl=math.hypot(ux,uy); ux,uy=ux/bl,uy/bl
-nx,ny=0.5,-0.866; thpx=TH*s+5; extpx=42*s
-A0=(C[0]-ux*extpx,C[1]-uy*extpx); A1=(L[0]+ux*extpx,L[1]+uy*extpx)
-poly([A0,A1,(A1[0]+nx*thpx,A1[1]+ny*thpx),(A0[0]+nx*thpx,A0[1]+ny*thpx)],ALU,INK,1.4)
-txt((A1[0]+nx*16),(A1[1]+ny*16),"ALU-PLATTA",8.5,"start",MUTED,700,rot=34)
-# kamera vid C (kub + objektiv + filter) längs kameraxeln
+# bräda
+rect(Px-150,Py,300,16,WOOD,"#7a5230",1.3); ln(Px-150,Py+24,Px+150,Py+24,"#444a52",4); txt(Px,Py+44,"BRÄDA (yta) · laserlinje",9,"middle","#7a5230",700)
+ln(Px,Py,Px,Py-440,DIM,0.7,"5 5")
+# axlar
+ux,uy=(L[0]-C[0]),(L[1]-C[1]); bl=math.hypot(ux,uy); ux,uy=ux/bl,uy/bl       # längs baslinjen
+nx,ny=0.5,-0.866                                                            # ut från brädan (mot baksida)
+# HÖLJE: svept kropp längs C–L, djup ENV_D åt +n, kamera-pod vid C, laser-nos vid L
+dpx=ENV_D*s; ecx=46*s; elx=30*s
+Cf=(C[0]-ux*ecx, C[1]-uy*ecx); Lf=(L[0]+ux*elx, L[1]+uy*elx)               # front-hörn (mot bräda)
+Cb=(Cf[0]+nx*dpx, Cf[1]+ny*dpx); Lb=(Lf[0]+nx*dpx, Lf[1]+ny*dpx)          # bak-hörn (monteringssida)
+# kamera-pod höjer baksidan vid C
+podx=(C[0]+nx*(dpx+14), C[1]+ny*(dpx+14))
+shell_pts=[Cf,Lf,Lb,(L[0]+nx*dpx,L[1]+ny*dpx),
+           ( (C[0]+L[0])/2+nx*dpx, (C[1]+L[1])/2+ny*dpx ),
+           (Cb[0]+nx*14,Cb[1]+ny*14),(Cf[0]+nx*14,Cf[1]+ny*14)]
+# enklare snyggt hölje: front (Cf->Lf), gavel (Lf->Lb), baksida (Lb->Cb m. pod-bula), gavel (Cb->Cf)
+path(f"M {Cf[0]:.1f} {Cf[1]:.1f} L {Lf[0]:.1f} {Lf[1]:.1f} L {Lb[0]:.1f} {Lb[1]:.1f} "
+     f"L {(C[0]+nx*dpx):.1f} {(C[1]+ny*dpx):.1f} L {(Cb[0]+nx*12):.1f} {(Cb[1]+ny*12):.1f} "
+     f"L {(Cf[0]+nx*12):.1f} {(Cf[1]+ny*12):.1f} Z", SHELL, SHELL2, 1.6)
+# kamera-fönster (front vid C) + sikt
 cdx,cdy=(Px-C[0])/(WD*s),(Py-C[1])/(WD*s)
-ccx,ccy=C[0]-cdx*16,C[1]-cdy*16
-rbox(ccx,ccy,cdx,cdy,26,18,"#e2ecf6",BLUE,1.4)            # kamerakropp
-rbox(C[0]+cdx*9,C[1]+cdy*9,cdx,cdy,16,12,"#d8e6f4","#5f8fc0",1.3)  # objektiv
-circ(C[0]+cdx*17,C[1]+cdy*17,5,"#cfe0f2","#5f8fc0",1.1)   # bandpass
-txt(ccx-40,ccy-40,"KAMERA",9,"middle",BLUE,700); txt(ccx-40,ccy-28,"MV-CS050",7.5,"middle",MUTED,700)
-ln(ccx-40,ccy-24,ccx-6,ccy-6,DIM,0.6)
-# laser vid L (cylinder Ø18×99) längs laseraxeln
-ldx,ldy=(Px-L[0])/(WD*s),(Py-L[1])/(WD*s)
-rbox(L[0]-ldx*22,L[1]-ldy*22,ldx,ldy,52,11,"#fde9e3",RED,1.4)      # lasertub
-rbox(L[0]+ldx*5,L[1]+ldy*5,ldx,ldy,8,9,"#f6c9bd",RED,1.2)         # Powell-nos
-txt(L[0]-ldx*30+18,L[1]-ldy*30,"LASER Ø18×99",8.5,"start",RED,700,rot=34)
-# tiltaxel + två profiler + lås
-M=((A0[0]+A1[0])/2+nx*thpx/2,(A0[1]+A1[1])/2+ny*thpx/2)
-for off in (-1,1):
-    bp=(M[0]+nx*thpx*0.5+px if False else M[0]+ (nx*0)+ ( -uy)*off*16, M[1]+ux*off*16)  # profiler längs axeln(X) – visas symmetriskt
-for o in (-16,16):
-    rect(M[0]-uy*o-9+nx*10,M[1]+ux*o-9+ny*10,18,18,PANEL,ALU2,1.2)
-circ(M[0]+nx*10,M[1]+ny*10,9,"#fff",INK,1.6); circ(M[0]+nx*10,M[1]+ny*10,3,INK,INK,0)
-txt(M[0]+nx*40,M[1]+ny*40,"TILTAXEL (M8)",8.5,"middle",INK,700,rot=34)
-# tilt-arc
-mc2=(M[0]+nx*10,M[1]+ny*10)
-a0,a1=math.radians(-160),math.radians(-110)
-ax0,ay0=mc2[0]+40*math.cos(a0),mc2[1]+40*math.sin(a0); ax1,ay1=mc2[0]+40*math.cos(a1),mc2[1]+40*math.sin(a1)
-add(f'<path d="M {ax0:.1f} {ay0:.1f} A 40 40 0 0 1 {ax1:.1f} {ay1:.1f}" fill="none" stroke="{AMB}" stroke-width="2"/>')
-ahead(ax1,ay1,math.radians(-110+90),AMB,7); txt(mc2[0]-44,mc2[1]-30,"tilt→lås",8.5,"end",AMB,700)
-# baslinje-mått
-hpx=(C[0]+L[0])/2; vpy=(C[1]+L[1])/2
-txt(hpx-nx*42,vpy-ny*42-2,"baslinje 247",8.5,"middle",INK,700,MONO,rot=34)
+rect(C[0]-7,C[1]-7,14,14,"#cfe0f2",BLUE,1.4,2)
+ln(C[0],C[1],Px,Py,BLUE,1.3,"6 4"); txt(C[0]-nx*18,C[1]-18,"KAMERA-fönster",8.5,"end",BLUE,700)
+# laser-fönster (front vid L) + stråle
+rect(L[0]-6,L[1]-6,12,12,"#f6c9bd",RED,1.4,2); ln(L[0],L[1],Px,Py,RED,2.3)
+txt(L[0]+ux*16+8,L[1]+uy*16,"LASER-apertur",8.5,"start",RED,700)
+# status-LED + kontakt på baksidan
+midb=((Cb[0]+Lb[0])/2,(Cb[1]+Lb[1])/2)
+for k in range(3): circ(midb[0]+nx*-2+ux*(k-1)*8, midb[1]+ny*-2+uy*(k-1)*8,2.2,"#bfe6c8",GRN,0.8)
+txt(midb[0]+nx*14,midb[1]+ny*14,"status-LED",7.5,"middle",MUTED,700,rot=34)
+# vinklar/WD
+txt(Px+26,Py-66,"20°",9,"middle",BLUE,700); txt(Px+66,Py-46,"40°",9,"middle",RED,700)
+txt(((C[0]+Px)/2)-12,(C[1]+Py)/2,"WD 710",8.5,"middle",BLUE,700,MONO,rot=-70)
+txt(((L[0]+Px)/2)+14,(L[1]+Py)/2,"WD 710",8.5,"middle",RED,700,MONO,rot=-50)
 txt(Px-6,Py-300,"obliktet 30°",8.5,"end",MUTED,700)
+# monteringsyta-pil
+ln(Lb[0]+nx*6,Lb[1]+ny*6, Lb[0]+nx*30,Lb[1]+ny*30, AMB,1.2)
+txt(Lb[0]+nx*36,Lb[1]+ny*36,"MONTERINGSYTA (baksida)",8.5,"start",AMB,700,rot=34)
+# baslinje
+txt((C[0]+L[0])/2-nx*40,(C[1]+L[1])/2-ny*40,"baslinje 247",8.5,"middle",INK,700,MONO,rot=34)
 
-# =================================================== VY 2: SNITT A-A (tiltinfästning)
-SX,SY=720,150
-txt(SX,SY-16,"SNITT A–A — tiltinfästning (sett längs baslinjen, 50 mm bred)",12,"start",INK,700)
-sc=2.3
-# två 2020-profiler
-pw=20*sc; gap=50*sc
-plate_x=SX+pw+18
-# vänster profil
-hatch(SX,SY,pw,pw,ALU2); txt(SX+pw/2,SY+pw+14,"2020",8,"middle",MUTED,700)
-# höger profil
-rx2=plate_x+50*sc+18
-hatch(rx2,SY,pw,pw,ALU2); txt(rx2+pw/2,SY+pw+14,"2020",8,"middle",MUTED,700)
-# platta (50 bred x 10 tjock) i snitt
-hatch(plate_x,SY+pw/2-TH*sc/2,50*sc,TH*sc,ALU2); txt(plate_x+25*sc,SY+pw+14,"PLATTA 50×10",8.5,"middle",INK,700)
-# M8 bult genom allt
-boy=SY+pw/2
-ln(SX-10,boy,rx2+pw+10,boy,STEEL,3)
-circ(SX-10,boy,6,"#fff",INK,1.4)                       # bulthuvud (vänster)
-poly([(rx2+pw+4,boy-7),(rx2+pw+16,boy-7),(rx2+pw+16,boy+7),(rx2+pw+4,boy+7)],STEEL,INK,1.2) # mutter
-txt((SX+rx2)/2,boy-14,"M8 tiltbult + TANDBRICKA (lås)",8.5,"middle",STEEL,700)
-txt(SX-14,boy+22,"profilerna är del av portalen — huvudet tiltar om bulten, dras åt = lås",8,"start",MUTED,400)
+# =================================================== VY 2: MONTERINGSYTA (baksida)
+MX,MY=820,150; sm=1.45
+mlw=ENV_L*sm; mlh=ENV_W*sm
+txt(MX,MY-16,"VY 2 — MONTERINGSYTA (baksida) · 8×M6 bultmönster",12,"start",INK,700)
+rect(MX,MY,mlw,mlh,SHELL,SHELL2,1.6,6)
+# 8-M6 i 2 kolumner × 4 rader, 30 mm-rutnät, centrerat
+cxs=[MX+mlw/2-15*sm, MX+mlw/2+15*sm]; rys=[MY+mlh/2+(i-1.5)*30*sm for i in range(4)]
+for cx in cxs:
+    for ry in rys: circ(cx,ry,4,"#fff",INK,1.4)
+txt(MX+mlw/2,MY+mlh+20,"8× M6 ▼8 (30 mm rutnät) — mot portal / tiltbracket",8.5,"middle",INK,700)
+hdim(cxs[0],cxs[1],MY+mlh+40,"30",MUTED)
+vdim(rys[0],rys[1],MX-18,"30",MUTED)
+hdim(MX,MX+mlw,MY-8,f"{ENV_L:.0f}",INK)
+vdim(MY,MY+mlh,MX+mlw+18,f"{ENV_W:.0f}",INK)
+# kontakt-/kabeluttag
+rect(MX+mlw-46,MY+mlh/2-10,30,20,"#16212e",STEEL,1.2,3); txt(MX+mlw-31,MY+mlh+20-40,"kabel",7.5,"middle",MUTED,700)
 
-# =================================================== VY 3: PLAN (hålbild)
-PXp,PYp=80,940; sp=1.5
-plw=PLATE_L*sp; plh=PLATE_W*sp
-txt(PXp,PYp-18,"VY 3 — PLAN av bottenplatta (hålbild för borrning, datum = vänster kant)",12,"start",INK,700)
-rect(PXp,PYp,plw,plh,ALU,INK,1.5,3)
-def holx(off): return PXp+off*sp
-cy=PYp+plh/2
-# kamerafäste 4-hål (M4) runt CAM_OFF
-for dx in (-16,16):
-    for dy in (-14,14):
-        circ(holx(CAM_OFF)+dx*sp,cy+dy*sp,3.4,"#fff",BLUE,1.3)
-txt(holx(CAM_OFF),PYp-4,"kamerafäste 4×M4",8,"middle",BLUE,700)
-# pivot Ø8.5
-circ(holx(PIV_OFF),cy,5,"#fff",INK,1.6); circ(holx(PIV_OFF),cy,7.5,"none",INK,0.8)
-txt(holx(PIV_OFF),PYp-4,"Ø8,5 tiltaxel",8,"middle",INK,700)
-# laserklämma 2×M4
-for dx in (-18,18):
-    circ(holx(LAS_OFF)+dx*sp,cy,3.4,"#fff",RED,1.3)
-txt(holx(LAS_OFF),PYp-4,"laserklämma 2×M4",8,"middle",RED,700)
-# måttsättning
-hdim(PXp,PXp+plw,PYp+plh+26,f"{PLATE_L:.0f}",INK,plh+26-(PYp+plh)+0)
-ln(PXp,PYp+plh,PXp,PYp+plh+30,DIM,0.7); ln(PXp+plw,PYp+plh,PXp+plw,PYp+plh+30,DIM,0.7)
-hdim(holx(CAM_OFF),holx(LAS_OFF),PYp+plh+50,f"baslinje {BASE:.0f}",INK)
-ln(holx(CAM_OFF),cy,holx(CAM_OFF),PYp+plh+54,DIM,0.6); ln(holx(LAS_OFF),cy,holx(LAS_OFF),PYp+plh+54,DIM,0.6)
-hdim(PXp,holx(CAM_OFF),PYp+plh+72,f"{CAM_OFF:.1f}",MUTED)
-hdim(PXp,holx(PIV_OFF),PYp+plh+92,f"{PIV_OFF:.0f}",MUTED)
-vdim(PYp,PYp+plh,PXp-22,f"{PLATE_W:.0f}",INK)
+# =================================================== VY 3: GAVEL (bredd/djup)
+GX,GY=820,420; sg=1.45
+gw=ENV_W*sg; gd=ENV_D*sg
+txt(GX,GY-16,"VY 3 — GAVEL (bredd × djup)",12,"start",INK,700)
+poly([(GX,GY),(GX+gw,GY),(GX+gw,GY+gd-18),(GX+gw-14,GY+gd),(GX+14,GY+gd),(GX,GY+gd-18)],SHELL,SHELL2,1.6)
+txt(GX+gw/2,GY+gd/2,"hölje",9,"middle","#fff",700)
+hdim(GX,GX+gw,GY-8,f"{ENV_W:.0f}  (bredd)",INK)
+vdim(GY,GY+gd,GX-18,f"{ENV_D:.0f}  (djup)",INK)
+txt(GX+gw+16,GY+10,"front = kamera/laser-apertur",8,"start",MUTED,700)
+txt(GX+gw+16,GY+gd-6,"baksida = monteringsyta (M6)",8,"start",MUTED,700)
 
 # =================================================== DELLISTA
 LX=1180
-rect(LX,150,660,300,"#fff",INK,1.3,7); rect(LX,150,660,26,INK,INK,0,7)
+rect(LX,150,660,250,"#fff",INK,1.3,7); rect(LX,150,660,26,INK,INK,0,7)
 txt(LX+10,168,"DELLISTA",12,"start","#fff",700)
-items=[("1","Bottenplatta, alu 6082/6063","330 × 50 × 10 mm"),
-       ("2","Kamera Hikrobot MV-CS050-10UM","29×29×42, C-mount"),
+items=[("1","Hölje, integrerat (se NOTER för tillv.)","alu · ~330×60×80"),
+       ("2","Kamera Hikrobot MV-CS050-10UM","inbyggd, 20°"),
        ("3","Objektiv 12 mm + bandpass 650/525","M30,5-filter"),
-       ("4","Kamerafäste, 10°-vinkel (alu)","4× M4"),
-       ("5","Linjelaser MZLaser Powell","Ø18 × 99 mm"),
-       ("6","Laserklämma / V-block, 10° (alu)","2× M4 + spänn"),
-       ("7","Tiltbult M8 + tandbricka (lås)","genom centrumhål"),
-       ("8","2× 2020-profil (tiltstöd)","del av portalen"),
-       ("9","Skruvar M4 + brickor","fästen")]
+       ("4","Linjelaser MZLaser Powell","Ø18×99, inbyggd, 40°"),
+       ("5","Inre vinkelfäste/dog-leg (fasta vinklar)","alu, CNC el. 2 plattor"),
+       ("6","Monteringsyta 8×M6 (baksida)","30 mm rutnät"),
+       ("7","Kabeluttag (kamera USB3 / laser DC)","baksida/gavel")]
 txt(LX+14,196,"POS",8.5,"start",MUTED,700,MONO); txt(LX+70,196,"BENÄMNING",8.5,"start",MUTED,700,MONO); txt(LX+470,196,"SPEC",8.5,"start",MUTED,700,MONO)
 ln(LX+10,202,LX+650,202,DIM,0.8)
 for i,(p,n,sp_) in enumerate(items):
     yy=222+i*24
     if i%2: rect(LX+8,yy-15,644,24,PANEL,"none",0)
     circ(LX+24,yy-4,8,"#fff",INK,1.2); txt(LX+24,yy,p,8.5,"middle",INK,700,MONO)
-    txt(LX+70,yy,n,9.5,"start",INK,700); txt(LX+470,yy,sp_,9,"start",MUTED,400)
+    txt(LX+70,yy,n,9.3,"start",INK,700); txt(LX+470,yy,sp_,8.8,"start",MUTED,400)
 
 # =================================================== MÅTTABELL
-rect(LX,470,660,250,"#fff",INK,1.3,7); rect(LX,470,660,26,INK,INK,0,7)
-txt(LX+10,488,"FASTA MÅTT & VINKLAR",12,"start","#fff",700)
-dims=[("Arbetsavstånd WD (var optik)","710 mm"),("Kameravinkel / laservinkel (lod)","20° / 40°"),
-      ("Triangulering θ (kam↔laser)","20°"),("Optik ↔ plattnormal","±10°"),
-      ("Baslinje (kam↔laser-c)","247 mm"),("Obliktet (plattnormal↔lod)","30°"),
-      ("Platta L×B×T","330 × 50 × 10 mm"),("Kamera-c / laser-c från datum","41,5 / 288,5 mm"),
-      ("Tiltaxel (centrumhål) från datum","165 mm · Ø8,5")]
+rect(LX,420,660,220,"#fff",INK,1.3,7); rect(LX,420,660,26,INK,INK,0,7)
+txt(LX+10,438,"FASTA MÅTT & VINKLAR",12,"start","#fff",700)
+dims=[("Arbetsavstånd WD","710 mm"),("Kameravinkel / laservinkel (lod)","20° / 40°"),
+      ("Triangulering θ","20°"),("Baslinje (kam↔laser)","247 mm"),("Obliktet (front↔lod)","30°"),
+      ("Hölje L×B×D (ca)","330 × 60 × 80 mm"),("Monteringsmönster","8× M6, 30 mm rutnät")]
 for i,(k,v) in enumerate(dims):
-    yy=510+i*22
-    if i%2: rect(LX+8,yy-15,644,22,PANEL,"none",0)
+    yy=460+i*23
+    if i%2: rect(LX+8,yy-15,644,23,PANEL,"none",0)
     txt(LX+14,yy,k,9.6,"start",MUTED,700); txt(LX+646,yy,v,9.8,"end",INK,700,MONO)
 
-# =================================================== NOTER + RITNINGSHUVUD
-rect(LX,740,660,150,"#fff",INK,1.3,7); rect(LX,740,660,24,INK,INK,0,7)
-txt(LX+10,757,"NOTER",12,"start","#fff",700)
+# =================================================== NOTER
+rect(LX,660,660,230,"#fff",INK,1.3,7); rect(LX,660,660,24,INK,INK,0,7)
+txt(LX+10,677,"NOTER — tillverkning & funktion",12,"start","#fff",700)
 for i,n in enumerate([
- "Vinklar kam/laser FASTA (kalibreras en gång, lås). Tilt = hela huvudet om M8-axeln för inriktning, dras åt = lås.",
- "Kamera + laser på SAMMA styva platta → geometrin rör sig aldrig relativt varandra (stabil kalibrering).",
- "Termik: laser i metallklämma mot plattan (+ värmepasta) = kylfläns. INGEN fläkt. Kamera på samma platta.",
- "Storleksbyte (bredd/längd/tjocklek) = bara mjukvara inom mätområdet — ingen tilt. Spegla huvudet för grön kanal.",
- "Plattjocklek ≥10 mm; ev. förstyvningsklack vid laserklämman. Tiltaxel nära optiklinjen.",
-]): txt(LX+14,778+i*22,"• "+n,9.2,"start",INK,400)
+ "TILLVERKNING — två vägar:",
+ "  A) Produktlik: CNC-fräst aluminiumhölje (dyrt, snyggast).",
+ "  B) Prototyp (rek.): inre VINKELFÄSTE (dog-leg) i alu som låser kam 20° /",
+ "     laser 40°, + lätt 3D-printad/plåt-KÅPA för utseendet. Samma funktion.",
+ "Vinklar kam/laser FASTA (kalibreras en gång). Kamera+laser på samma styva",
+ "  inre fäste → geometrin rör sig aldrig relativt varandra (stabil kalibrering).",
+ "Monteras via baksidans 8×M6 mot portal/tiltbracket (slits för fin-aim, lås sen).",
+ "Termik: laser i metallkontakt mot inre fästet/höljet = kylfläns. INGEN fläkt.",
+ "Storleksbyte (bredd/längd/tjocklek) = bara mjukvara inom mätområdet. Spegla för grön.",
+]): txt(LX+14,700+i*20,("• "+n if not n.startswith("  ") else n),9.0,"start",INK,400)
 
 tb_x,tb_y=LX,910; rect(tb_x,tb_y,660,150,"#fff",INK,1.5,7)
 ln(tb_x,tb_y+96,tb_x+660,tb_y+96,INK,1); ln(tb_x+400,tb_y,tb_x+400,tb_y+96,INK,1); ln(tb_x+400,tb_y+30,tb_x+660,tb_y+30,INK,1); ln(tb_x+400,tb_y+63,tb_x+660,tb_y+63,INK,1)
-txt(tb_x+16,tb_y+34,"VIRKESSKANNER",14,"start",INK,700); txt(tb_x+16,tb_y+58,"FAST MÄTHUVUD — oblik kanal",12,"start",INK,700)
-txt(tb_x+16,tb_y+82,"Material: alu 6082/6063 · skruv M4/M8",9.5,"start",MUTED)
-txt(tb_x+410,tb_y+20,"RITN-NR",8,"start",MUTED,700); txt(tb_x+648,tb_y+22,"MH-001",11,"end",INK,700,MONO)
+txt(tb_x+16,tb_y+34,"VIRKESSKANNER",14,"start",INK,700); txt(tb_x+16,tb_y+58,"INTEGRERAT MÄTHUVUD",12,"start",INK,700)
+txt(tb_x+16,tb_y+82,"alu-hölje · M6-montering",9.5,"start",MUTED)
+txt(tb_x+410,tb_y+20,"RITN-NR",8,"start",MUTED,700); txt(tb_x+648,tb_y+22,"MH-002",11,"end",INK,700,MONO)
 txt(tb_x+410,tb_y+52,"MÅTT",8,"start",MUTED,700); txt(tb_x+648,tb_y+54,"mm",11,"end",INK,700,MONO)
 txt(tb_x+410,tb_y+85,"VINKLAR",8,"start",MUTED,700); txt(tb_x+648,tb_y+87,"20°/40° fasta",10,"end",INK,700,MONO)
-txt(tb_x+16,tb_y+118,"Ej skalenlig mellan vyer · vinklar/baslinje per head-mech-geometri",9,"start",MUTED,400)
-txt(tb_x+16,tb_y+138,"Tilt = enda frihetsgrad (låses). Allt övrigt fast.",9,"start",MUTED,400)
+txt(tb_x+16,tb_y+118,"Optik-geometri per head-mech. Tilt/aim via monteringsyta, lås sen.",9,"start",MUTED,400)
+txt(tb_x+16,tb_y+138,"Allt övrigt fast — integrerat hus som en kommersiell sensor.",9,"start",MUTED,400)
 
 add('</svg>')
 svg="\n".join(out)
