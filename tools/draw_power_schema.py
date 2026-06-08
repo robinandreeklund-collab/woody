@@ -102,7 +102,7 @@ line(rx+250,440,rx+290,440,DATA,2,"5 4"); txt(rx+294,443,"USB → Jetson",7.8,"s
 
 consumer(620,150,"Grön laser","12/24 V (barrel)",V24,switch=("AOD4184 opto","#a23ad6","bryter 24V low-side"),sig=None)
 consumer(830,150,"Vitt LED-ljus","(TBD, 12/24 V)",V24,switch=("AOD4184 opto","#a23ad6","PWM-dimring"),sig=None)
-consumer(1040,150,"Röd laser","5 V (barrel)",V24 and "5",vin="5",switch=("AO3400 MOSFET","#c98a16","bryter 5V low-side"))
+consumer(1040,150,"Röd laser","5 V (barrel)",V24 and "5",vin="5",switch=("D4184-modul (5–36V)","#c98a16","icke-iso, 3,3V-trigg"))
 consumer(1250,160,"Ytkamera HT-GELM44C","12–24 V (pin2/1)",RED if False else "#e8542c",vin="24",sig="GbE → Jetson",extra="enc A/B ← encoder B (RS-422 diff)")
 consumer(1470,170,"3× LR400 + Waveshare","RS-485 4CH",V24,vin="24",sig="USB → Jetson",extra="ch1–3 (ch4 ledig)")
 consumer(1700,150,"Anhåll-fotocell","NPN, 24 V",V24,vin="24",sig="→ GPIO (pull-up 3,3V)")

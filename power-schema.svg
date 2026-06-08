@@ -97,8 +97,8 @@
 <circle cx="1085.0" cy="392.0" r="4" fill="#e0892b"/>
 <text x="1088.0" y="388.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#e0892b" text-anchor="start">+5</text>
 <rect x="1090.0" y="586.0" width="110.0" height="42.0" rx="6" fill="#fff" stroke="#c98a16" stroke-width="1.6" opacity="1"/>
-<text x="1145.0" y="602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.2" font-weight="700" fill="#c98a16" text-anchor="middle">AO3400 MOSFET</text>
-<text x="1145.0" y="619.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.4" font-weight="400" fill="#6a6e74" text-anchor="middle">bryter 5V low-side</text>
+<text x="1145.0" y="602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.2" font-weight="700" fill="#c98a16" text-anchor="middle">D4184-modul (5–36V)</text>
+<text x="1145.0" y="619.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.4" font-weight="400" fill="#6a6e74" text-anchor="middle">icke-iso, 3,3V-trigg</text>
 <line x1="1145.0" y1="516.0" x2="1145.0" y2="586.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
 <line x1="1145.0" y1="628.0" x2="1145.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
 <circle cx="1145.0" cy="1180.0" r="4" fill="#23262b"/>
