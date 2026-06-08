@@ -136,6 +136,7 @@ notes=[
  "Montera kameran på samma platta (hjälper även dess värmeavledning). Plattjocklek ≥10 mm för styvhet; gärna förstyvningsklack vid laserklämman.",
  "Tiltaxeln bör ligga nära plattans tyngdpunkt/optiklinje → tilt = mest omriktning, lite translation. Lås med bult + tandbricka eller klämkloss.",
  "Spegla samma huvud för andra kanalen (grön) → båda konvergerar på samma laserlinje.",
+ "BRÄDSTORLEK: bredd/längd = bara mjukvara (antal rader). Tjocklek mäts direkt inom mätområdet → INGEN tilt vid storleksbyte (bara om WD/bandhöjd ändras). Dimensionera djupfönstret för tjockleksspannet.",
 ]
 for i,n in enumerate(notes):
     txt(52,962+i*25,"• "+n,10,"start",INK,400)
