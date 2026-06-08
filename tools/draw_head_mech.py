@@ -92,7 +92,7 @@ add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
 txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
-            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +30 mm (EJ på laserlinjen → laserlinjen utanför FOV + baffel → ingen laser/glimt i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +40 mm (CAD 39,75) (EJ på laserlinjen → laserlinjen utanför FOV + baffel → ingen laser/glimt i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -166,7 +166,7 @@ txt(glas[0]+8, glas[1]+4, "GRÖN: laser", 8.5, "start", GRN, 700)
 
 # ---- LINJEKAMERA (ytkamera) — EGEN rad, FÖRSKJUTEN +30 mm (EJ på laserlinjen) ----
 SURF_WD = 400
-COL_OFF = 30                                          # mm: färgraden förskjuten i feed (Y)
+COL_OFF = 40                                          # mm: färgraden förskjuten i feed (Y); CAD som-byggt 39,75
 lc = WS(COL_OFF, SURF_WD)                             # över färgraden, inte över laserlinjen
 cp = WS(COL_OFF, 0)                                   # färgkamerans EGNA mätpunkt på brädytan
 lcw, lcl, lld, lll = 36, 40, 44, 50                   # kamera-hus + M42-objektiv (mm)
@@ -176,12 +176,12 @@ rect(-lcw*S/2, -(lcl+lll)*S, lcw*S, lcl*S, "#e2ecf6", BLUE, 1.6, 2)        # kam
 rect(-lld*S/2, -lll*S, lld*S, lll*S, "#d8e6f4", "#5f8fc0", 1.4, 2)         # M42-objektiv
 add('</g>')
 line(lc[0], lc[1], cp[0], cp[1], BLUE, 1.3, "6 4")                        # siktlinje till EGEN rad (ej laserlinjen)
-circ(cp[0], cp[1], 4, BLUE, "#1d5fa0", 1.4); txt(cp[0]+9, cp[1]+15, "färgrad (+30 mm)", 8.5, "start", BLUE, 700)
+circ(cp[0], cp[1], 4, BLUE, "#1d5fa0", 1.4); txt(cp[0]+9, cp[1]+15, "färgrad (+40 mm)", 8.5, "start", BLUE, 700)
 hdim(Ox, cp[0], Oy+22, f"{COL_OFF}", DIMC, 9)                              # offset laserlinje → färgrad
 rect(lc[0]+lld*S/2+10, lc[1]-lll*S-2, 28, 9, "#fff8e0", "#c9a13a", 1.3, 2) # vit LED-list
 txt(lc[0]+lld*S/2+24, lc[1]-lll*S-8, "vitt LED", 7.5, "middle", "#8a6510", 700)
 txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+10, "YTKAMERA (line-scan)", 9, "start", BLUE, 700)
-txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+23, "4K färg · M42 · EGEN rad +30 mm", 8, "start", MUTED, 700)
+txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+23, "4K färg · M42 · EGEN rad +40 mm (CAD 39,75)", 8, "start", MUTED, 700)
 txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+36, "EJ på laserlinjen → ingen laser i färgbilden", 8, "start", MUTED, 700)
 vdim(Oy, lc[1], Ox+62, f"{SURF_WD}", BLUE, 11); txt(Ox+78, (Oy+lc[1])/2, "yt-WD", 8.5, "start", BLUE, 700, rot=-90)
 # ---- BAFFEL (matt svart fena) mellan laserplanet och färgkamerans lins ----

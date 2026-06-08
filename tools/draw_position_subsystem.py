@@ -15,7 +15,7 @@ WD, CAM_A, LAS_A = 710.0, 20.0, 40.0
 camZ, camY = round(WD*math.cos(math.radians(CAM_A))), round(WD*math.sin(math.radians(CAM_A)))  # 667,243
 lasZ, lasY = round(WD*math.cos(math.radians(LAS_A))), round(WD*math.sin(math.radians(LAS_A)))  # 544,456
 BL, BWF = 500, 75
-LR_LEAD, COL_OFF = 45, 30
+LR_LEAD, COL_OFF = 45, 40        # COL_OFF: färgkamera-offset (CAD som-byggt 39,75)
 LRX = (60, 250, 440)
 
 INK, MUTED, DIM = "#23262b", "#6a6e74", "#9aa0a6"
@@ -91,11 +91,11 @@ for x in LRX: circ(PX(x), ylr, 4, CY, CY, 1); circ(PX(x), ylr, 7, "none", CY, 1)
 rect(PX(BL/2)-175, ylr-21, 350, 15, PAPER, "none", 0, op=0.95)
 txt(PX(BL/2), ylr-10, "3× LR400 · −45 mm — tjocklek-ankare (+ kant/skevhet)", 9.5, "middle", CY, 700)
 
-# färg-linjekamera (+30 mm)
+# färg-linjekamera (+40 mm)
 ycol = PY(COL_OFF)
 line(bx0, ycol, bx1, ycol, BLUE, 1.6, dash="3 3")
 rect(PX(BL/2)-165, ycol+8, 330, 15, PAPER, "none", 0, op=0.95)
-txt(PX(BL/2), ycol+20, "FÄRG-LINJEKAMERA · +30 mm — ren färg (+ 2× vitljus)", 9.5, "middle", BLUE, 700)
+txt(PX(BL/2), ycol+20, "FÄRG-LINJEKAMERA · +40 mm — ren färg (+ 2× vitljus)", 9.5, "middle", BLUE, 700)
 
 # encoder-mäthjul mot bandet (inkrement)
 ex = bx0-175
@@ -112,7 +112,7 @@ def vd(y1,y2,lbl):
     arrow(xd,(y1+y2)/2,xd,y1,DIM,1); arrow(xd,(y1+y2)/2,xd,y2,DIM,1)
     line(xd-5,y1,xd+5,y1,DIM,0.8); line(xd-5,y2,xd+5,y2,DIM,0.8)
     rect(xd-52,(y1+y2)/2-9,46,18,PAPER,"none",0,op=0.95); txt(xd-29,(y1+y2)/2+5,lbl,9.5,"middle",INK,700,MONO)
-vd(ylr, YC, "45"); vd(YC, ycol, "30")
+vd(ylr, YC, "45"); vd(YC, ycol, "40")
 txt(PX(10), by1+18, "0", 9, "start", MUTED); txt(PX(BL-10), by1+18, "500 mm (X)", 9, "end", MUTED)
 
 # noter
@@ -122,7 +122,7 @@ notes = [
  "NOLLA = FAST ANHÅLL + FOTOCELL i bakkant. Lägg brädans bakkant mot anhållet → fotocellen ser anslag → encodern NOLLAS. Anhållet kvadrar dessutom brädan (ingen skevhet vid iladdning).",
  "ABSOLUT POSITION = encoder-inkrement (mäthjul mot bandet, dubbelriktad) räknat FRÅN anhålls-nollan. Stabil eftersom nollan är ett mekaniskt anslag du alltid kan återgå till.",
  "DUBBELRIKTAT: kör fram (encoder räknar upp), backa tillbaka (räknar ned). Når du anhållet igen → fotocell → AUTO-OMNOLLNING. Driftfri, repeterbar nolla varje cykel.",
- "Tre RADER nedström: LR400 −45 mm (tjocklek-ankare/kant/skevhet) · laserlinje 0 (profil, röd+grön) · färgkamera +30 mm (ren färg, ingen laser). Sys ihop via encoderpositionen.",
+ "Tre RADER nedström: LR400 −45 mm (tjocklek-ankare/kant/skevhet) · laserlinje 0 (profil, röd+grön) · färgkamera +40 mm (ren färg, ingen laser). Sys ihop via encoderpositionen.",
  "Huvudens exakta geometri (WD 710, kam 20°/Z667/Y243, laser 40°/Z544/Y456, θ20°, vankant, ytkamera) finns i head-mech.svg (tvärsnittet). Mäthjul mäter bandet → slir mildras med griff + mjukvarukant-korr.",
 ]
 for i,l in enumerate(notes):
