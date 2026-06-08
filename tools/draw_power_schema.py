@@ -135,7 +135,7 @@ txt(54,cy+60,"Jetson har egen matning men GND MÅSTE bondas hit — annars är G
 rect(1170,cy,830,70,"#fff",INK,1.4,8)
 txt(1184,cy+24,"STRÖMKÄLLOR:",12,"start",INK,700)
 txt(1184,cy+44,"1× SMPS 24 V/15 A → +24V-rail (RoboClaw/motorer, grön laser, LED, kamera, LR400, fotocell, omvandlare).",9.4,"start",INK,400)
-txt(1184,cy+60,"1× 24→5 V buck → röd laser.  Encodrar ← RoboClaw 5V-BEC.  Jetson ← egen brick.  Inget 12V behövs.",9.4,"start",INK,400)
+txt(1184,cy+60,"1× 24→5 V buck → röd laser.  Encodrar ← RoboClaw 5V-BEC.  Jetson ← egen brick.  Rails = 2-buss fjäderplint (HL-PBB-2-16): A=+24V, B=GND.",9.4,"start",INK,400)
 
 add('</svg>')
 svg="\n".join(out)
