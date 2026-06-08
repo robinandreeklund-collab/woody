@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2040" height="1480" viewBox="0 0 2040 1480" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif">
+<rect width="2040" height="1480" fill="#f7f6f1"/>
+<text x="40.0" y="48.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="22" font-weight="700" fill="#23262b" text-anchor="start">KOMPLETT ELSCHEMA — VIRKESSKANNER (ström · jord · styr)</text>
+<text x="40.0" y="72.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="400" fill="#6a6e74" text-anchor="start">EN 24V SMPS-huvudrail matar ALLT · 24→5V buck till röd laser · Jetson egen matning (GND bondad till gemensam jord). Tänd/släck via MOSFET (low-side) / buck.</text>
+<line x1="40.0" y1="90.0" x2="66.0" y2="90.0" stroke="#d23b3b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<text x="72.0" y="94.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#d23b3b" text-anchor="start">+24 V</text>
+<line x1="145.0" y1="90.0" x2="171.0" y2="90.0" stroke="#e0892b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<text x="177.0" y="94.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#e0892b" text-anchor="start">+5 V</text>
+<line x1="243.0" y1="90.0" x2="269.0" y2="90.0" stroke="#23262b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<text x="275.0" y="94.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#23262b" text-anchor="start">GND (gemensam jord)</text>
+<line x1="446.0" y1="90.0" x2="472.0" y2="90.0" stroke="#2f6fb0" stroke-width="3" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="478.0" y="94.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#2f6fb0" text-anchor="start">styr (GPIO)</text>
+<line x1="593.0" y1="90.0" x2="619.0" y2="90.0" stroke="#2f9e6e" stroke-width="3" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="625.0" y="94.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10" font-weight="700" fill="#2f9e6e" text-anchor="start">data (USB/GbE/RS)</text>
+<line x1="40.0" y1="108.0" x2="2000.0" y2="108.0" stroke="#23262b" stroke-width="1.2" opacity="1" stroke-linecap="round"/>
+<line x1="300.0" y1="260.0" x2="2000.0" y2="260.0" stroke="#d23b3b" stroke-width="4" opacity="1" stroke-linecap="round"/>
+<text x="2000.0" y="252.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#d23b3b" text-anchor="end">+24 V RAIL</text>
+<line x1="40.0" y1="1180.0" x2="2000.0" y2="1180.0" stroke="#23262b" stroke-width="5" opacity="1" stroke-linecap="round"/>
+<text x="2000.0" y="1200.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#23262b" text-anchor="end">GEMENSAM JORD (stjärnjord) — ALLA GND möts här</text>
+<rect x="40.0" y="150.0" width="210.0" height="90.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="40.0" y="150.0" width="210.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="49.0" y="166.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">NÄT 230 V AC → SMPS</text>
+<text x="49.0" y="187.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">24 V / 15 A (360 W)</text>
+<line x1="250.0" y1="180.0" x2="300.0" y2="180.0" stroke="#23262b" stroke-width="2" opacity="1" stroke-linecap="round"/>
+<line x1="300.0" y1="180.0" x2="300.0" y2="260.0" stroke="#d23b3b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<circle cx="300.0" cy="260.0" r="4" fill="#d23b3b"/>
+<line x1="150.0" y1="240.0" x2="150.0" y2="1180.0" stroke="#23262b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<circle cx="150.0" cy="1180.0" r="4" fill="#23262b"/>
+<text x="154.0" y="300.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#d23b3b" text-anchor="start">V+ → rail</text>
+<text x="120.0" y="300.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="end">V− → jord</text>
+<rect x="360.0" y="300.0" width="170.0" height="74.0" rx="9" fill="#fff" stroke="#e0892b" stroke-width="1.8" opacity="1"/>
+<rect x="360.0" y="300.0" width="170.0" height="22.0" rx="9" fill="#e0892b" stroke="#e0892b" stroke-width="0" opacity="1"/>
+<text x="369.0" y="316.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">24→5 V BUCK</text>
+<text x="369.0" y="337.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">≥2–3 A</text>
+<line x1="390.0" y1="300.0" x2="390.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="390.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="394.0" y="296.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#d23b3b" text-anchor="start">in +24</text>
+<line x1="445.0" y1="374.0" x2="445.0" y2="1180.0" stroke="#23262b" stroke-width="2" opacity="1" stroke-linecap="round"/>
+<circle cx="445.0" cy="1180.0" r="4" fill="#23262b"/>
+<line x1="500.0" y1="338.0" x2="545.0" y2="338.0" stroke="#e0892b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<line x1="545.0" y1="338.0" x2="545.0" y2="392.0" stroke="#e0892b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<line x1="545.0" y1="392.0" x2="1090.0" y2="392.0" stroke="#e0892b" stroke-width="3" opacity="1" stroke-linecap="round"/>
+<text x="1094.0" y="389.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e0892b" text-anchor="start">+5 V (endast röd laser)</text>
+<rect x="300.0" y="420.0" width="250.0" height="150.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="300.0" y="420.0" width="250.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="309.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">RoboClaw 2x7A</text>
+<text x="309.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">motorer + encodrar</text>
+<line x1="340.0" y1="420.0" x2="340.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="340.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="344.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">B+ +24</text>
+<line x1="340.0" y1="570.0" x2="340.0" y2="1180.0" stroke="#23262b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="340.0" cy="1180.0" r="4" fill="#23262b"/>
+<text x="344.0" y="1174.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#23262b" text-anchor="start">B− GND</text>
+<text x="309.0" y="482.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="400" fill="#23262b" text-anchor="start">M1A/B → bandmotor A</text>
+<text x="309.0" y="498.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="400" fill="#23262b" text-anchor="start">M2A/B → bandmotor B</text>
+<text x="309.0" y="514.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#e0892b" text-anchor="start">5V-BEC → encoder A &amp; B</text>
+<text x="309.0" y="530.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="400" fill="#23262b" text-anchor="start">EN1←enc A · EN2←omvandlare</text>
+<line x1="550.0" y1="440.0" x2="590.0" y2="440.0" stroke="#2f9e6e" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="594.0" y="443.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="700" fill="#2f9e6e" text-anchor="start">USB → Jetson</text>
+<rect x="620.0" y="420.0" width="150.0" height="96.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="620.0" y="420.0" width="150.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="629.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Grön laser</text>
+<text x="629.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">12/24 V (barrel)</text>
+<line x1="665.0" y1="420.0" x2="665.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="665.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="668.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">+24</text>
+<rect x="670.0" y="586.0" width="110.0" height="42.0" rx="6" fill="#fff" stroke="#a23ad6" stroke-width="1.6" opacity="1"/>
+<text x="725.0" y="602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.2" font-weight="700" fill="#a23ad6" text-anchor="middle">AOD4184 opto</text>
+<text x="725.0" y="619.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.4" font-weight="400" fill="#6a6e74" text-anchor="middle">bryter 24V low-side</text>
+<line x1="725.0" y1="516.0" x2="725.0" y2="586.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<line x1="725.0" y1="628.0" x2="725.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="725.0" cy="1180.0" r="4" fill="#23262b"/>
+<line x1="780.0" y1="607.0" x2="820.0" y2="607.0" stroke="#2f6fb0" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="824.0" y="604.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#2f6fb0" text-anchor="start">GPIO</text>
+<text x="824.0" y="616.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7" fill="#6a6e74">(tänd/släck)</text>
+<rect x="830.0" y="420.0" width="150.0" height="96.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="830.0" y="420.0" width="150.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="839.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Vitt LED-ljus</text>
+<text x="839.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">(TBD, 12/24 V)</text>
+<line x1="875.0" y1="420.0" x2="875.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="875.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="878.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">+24</text>
+<rect x="880.0" y="586.0" width="110.0" height="42.0" rx="6" fill="#fff" stroke="#a23ad6" stroke-width="1.6" opacity="1"/>
+<text x="935.0" y="602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.2" font-weight="700" fill="#a23ad6" text-anchor="middle">AOD4184 opto</text>
+<text x="935.0" y="619.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.4" font-weight="400" fill="#6a6e74" text-anchor="middle">PWM-dimring</text>
+<line x1="935.0" y1="516.0" x2="935.0" y2="586.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<line x1="935.0" y1="628.0" x2="935.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="935.0" cy="1180.0" r="4" fill="#23262b"/>
+<line x1="990.0" y1="607.0" x2="1030.0" y2="607.0" stroke="#2f6fb0" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="1034.0" y="604.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#2f6fb0" text-anchor="start">GPIO</text>
+<text x="1034.0" y="616.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7" fill="#6a6e74">(tänd/släck)</text>
+<rect x="1040.0" y="420.0" width="150.0" height="96.0" rx="9" fill="#fff" stroke="5" stroke-width="1.8" opacity="1"/>
+<rect x="1040.0" y="420.0" width="150.0" height="22.0" rx="9" fill="5" stroke="5" stroke-width="0" opacity="1"/>
+<text x="1049.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Röd laser</text>
+<text x="1049.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">5 V (barrel)</text>
+<line x1="1085.0" y1="420.0" x2="1085.0" y2="392.0" stroke="#e0892b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="1085.0" cy="392.0" r="4" fill="#e0892b"/>
+<text x="1088.0" y="388.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#e0892b" text-anchor="start">+5</text>
+<rect x="1090.0" y="586.0" width="110.0" height="42.0" rx="6" fill="#fff" stroke="#c98a16" stroke-width="1.6" opacity="1"/>
+<text x="1145.0" y="602.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.2" font-weight="700" fill="#c98a16" text-anchor="middle">AO3400 MOSFET</text>
+<text x="1145.0" y="619.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.4" font-weight="400" fill="#6a6e74" text-anchor="middle">bryter 5V low-side</text>
+<line x1="1145.0" y1="516.0" x2="1145.0" y2="586.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<line x1="1145.0" y1="628.0" x2="1145.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="1145.0" cy="1180.0" r="4" fill="#23262b"/>
+<line x1="1200.0" y1="607.0" x2="1240.0" y2="607.0" stroke="#2f6fb0" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="1244.0" y="604.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#2f6fb0" text-anchor="start">GPIO</text>
+<text x="1244.0" y="616.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7" fill="#6a6e74">(tänd/släck)</text>
+<rect x="1250.0" y="420.0" width="160.0" height="96.0" rx="9" fill="#fff" stroke="#e8542c" stroke-width="1.8" opacity="1"/>
+<rect x="1250.0" y="420.0" width="160.0" height="22.0" rx="9" fill="#e8542c" stroke="#e8542c" stroke-width="0" opacity="1"/>
+<text x="1259.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Ytkamera HT-GELM44C</text>
+<text x="1259.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">12–24 V (pin2/1)</text>
+<line x1="1298.0" y1="420.0" x2="1298.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="1298.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="1301.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">+24</text>
+<line x1="1362.0" y1="516.0" x2="1362.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="1362.0" cy="1180.0" r="4" fill="#23262b"/>
+<text x="1365.0" y="1174.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#23262b" text-anchor="start">GND</text>
+<line x1="1410.0" y1="450.0" x2="1444.0" y2="450.0" stroke="#2f9e6e" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="1448.0" y="453.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="700" fill="#2f9e6e" text-anchor="start">GbE → Jetson</text>
+<text x="1259.0" y="478.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="400" fill="#23262b" text-anchor="start">enc A/B ← encoder B (RS-422 diff)</text>
+<rect x="1470.0" y="420.0" width="170.0" height="96.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="1470.0" y="420.0" width="170.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="1479.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">3× LR400 + Waveshare</text>
+<text x="1479.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">RS-485 4CH</text>
+<line x1="1521.0" y1="420.0" x2="1521.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="1521.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="1524.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">+24</text>
+<line x1="1589.0" y1="516.0" x2="1589.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="1589.0" cy="1180.0" r="4" fill="#23262b"/>
+<text x="1592.0" y="1174.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#23262b" text-anchor="start">GND</text>
+<line x1="1640.0" y1="450.0" x2="1674.0" y2="450.0" stroke="#2f9e6e" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="1678.0" y="453.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="700" fill="#2f9e6e" text-anchor="start">USB → Jetson</text>
+<text x="1479.0" y="478.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="400" fill="#23262b" text-anchor="start">ch1–3 (ch4 ledig)</text>
+<rect x="1700.0" y="420.0" width="150.0" height="96.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="1700.0" y="420.0" width="150.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="1709.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Anhåll-fotocell</text>
+<text x="1709.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">NPN, 24 V</text>
+<line x1="1745.0" y1="420.0" x2="1745.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="1745.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="1748.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">+24</text>
+<line x1="1805.0" y1="516.0" x2="1805.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="1805.0" cy="1180.0" r="4" fill="#23262b"/>
+<text x="1808.0" y="1174.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#23262b" text-anchor="start">GND</text>
+<line x1="1850.0" y1="450.0" x2="1884.0" y2="450.0" stroke="#2f9e6e" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<text x="1888.0" y="453.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="700" fill="#2f9e6e" text-anchor="start">→ GPIO (pull-up 3,3V)</text>
+<rect x="40.0" y="420.0" width="150.0" height="96.0" rx="9" fill="#fff" stroke="#d23b3b" stroke-width="1.8" opacity="1"/>
+<rect x="40.0" y="420.0" width="150.0" height="22.0" rx="9" fill="#d23b3b" stroke="#d23b3b" stroke-width="0" opacity="1"/>
+<text x="49.0" y="436.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Diff→single omv.</text>
+<text x="49.0" y="457.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">VIN 24 V</text>
+<line x1="85.0" y1="420.0" x2="85.0" y2="260.0" stroke="#d23b3b" stroke-width="2.5" opacity="1" stroke-linecap="round"/>
+<circle cx="85.0" cy="260.0" r="4" fill="#d23b3b"/>
+<text x="88.0" y="276.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#d23b3b" text-anchor="start">+24</text>
+<line x1="145.0" y1="516.0" x2="145.0" y2="1180.0" stroke="#23262b" stroke-width="2.2" opacity="1" stroke-linecap="round"/>
+<circle cx="145.0" cy="1180.0" r="4" fill="#23262b"/>
+<text x="148.0" y="1174.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.5" font-weight="700" fill="#23262b" text-anchor="start">GND</text>
+<text x="49.0" y="478.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="400" fill="#23262b" text-anchor="start">enc B diff → CHA/CHB → EN2</text>
+<text x="309.0" y="592.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.8" font-weight="700" fill="#2f9e6e" text-anchor="start">ENCODER A &amp; B → matas av RoboClaw 5V-BEC (ej 24V-railen):</text>
+<text x="309.0" y="605.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.6" font-weight="400" fill="#6a6e74" text-anchor="start">A→EN1 · B (RS-422)→kamera IN1/IN2 + omvandlare→EN2.</text>
+<rect x="980.0" y="1240.0" width="260.0" height="120.0" rx="9" fill="#fff" stroke="#3b7d3b" stroke-width="1.8" opacity="1"/>
+<rect x="980.0" y="1240.0" width="260.0" height="22.0" rx="9" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0" opacity="1"/>
+<text x="989.0" y="1256.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">JETSON ORIN NANO</text>
+<text x="989.0" y="1277.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">EGEN matning (orig. brick)</text>
+<rect x="680.0" y="1250.0" width="230.0" height="70.0" rx="9" fill="#fff" stroke="#3b7d3b" stroke-width="1.8" opacity="1"/>
+<rect x="680.0" y="1250.0" width="230.0" height="22.0" rx="9" fill="#3b7d3b" stroke="#3b7d3b" stroke-width="0" opacity="1"/>
+<text x="689.0" y="1266.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">Jetson-nät (egen)</text>
+<text x="689.0" y="1287.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">9–19 V / USB-C-PD</text>
+<line x1="910.0" y1="1285.0" x2="980.0" y2="1285.0" stroke="#d23b3b" stroke-width="2" stroke-dasharray="2 4" opacity="1" stroke-linecap="round"/>
+<text x="914.0" y="1280.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="7.6" font-weight="700" fill="#6a6e74" text-anchor="start">egen DC (ej 24V-railen)</text>
+<line x1="1110.0" y1="1240.0" x2="1110.0" y2="1180.0" stroke="#23262b" stroke-width="4" opacity="1" stroke-linecap="round"/>
+<circle cx="1110.0" cy="1180.0" r="5" fill="#23262b"/>
+<text x="1116.0" y="1215.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#23262b" text-anchor="start">JORD-BRYGGA → gemensam jord (MÅSTE)</text>
+<text x="989.0" y="1340.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="400" fill="#23262b" text-anchor="start">GPIO → 3× MOSFET (laser/LED) · GPIO ← fotocell · USB-hub · GbE</text>
+<rect x="1280.0" y="1250.0" width="250.0" height="60.0" rx="9" fill="#fff" stroke="#2f6fb0" stroke-width="1.8" opacity="1"/>
+<rect x="1280.0" y="1250.0" width="250.0" height="22.0" rx="9" fill="#2f6fb0" stroke="#2f6fb0" stroke-width="0" opacity="1"/>
+<text x="1289.0" y="1266.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="11" font-weight="700" fill="#fff" text-anchor="start">2× Profilkamera RÖD/GRÖN</text>
+<text x="1289.0" y="1287.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.6" font-weight="400" fill="#23262b" text-anchor="start">USB3 → Jetson (5V via USB)</text>
+<line x1="1280.0" y1="1280.0" x2="1240.0" y2="1280.0" stroke="#2f9e6e" stroke-width="2" stroke-dasharray="5 4" opacity="1" stroke-linecap="round"/>
+<rect x="40.0" y="1390.0" width="1100.0" height="70.0" rx="8" fill="#fff5e6" stroke="#c89028" stroke-width="1.6" opacity="1"/>
+<text x="54.0" y="1414.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#8a6510" text-anchor="start">GEMENSAM JORD (stjärnpunkt):</text>
+<text x="54.0" y="1434.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.4" font-weight="400" fill="#23262b" text-anchor="start">Alla V−/GND möts i EN punkt: SMPS V− · buck GND · RoboClaw B− · alla givare/laser/kamera-GND · OCH Jetsons GND (jord-bryggan).</text>
+<text x="54.0" y="1450.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.4" font-weight="400" fill="#23262b" text-anchor="start">Jetson har egen matning men GND MÅSTE bondas hit — annars är GPIO-signalerna referenslösa. USB-enheter jordas via USB-kabeln.</text>
+<rect x="1170.0" y="1390.0" width="830.0" height="70.0" rx="8" fill="#fff" stroke="#23262b" stroke-width="1.4" opacity="1"/>
+<text x="1184.0" y="1414.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">STRÖMKÄLLOR:</text>
+<text x="1184.0" y="1434.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.4" font-weight="400" fill="#23262b" text-anchor="start">1× SMPS 24 V/15 A → +24V-rail (RoboClaw/motorer, grön laser, LED, kamera, LR400, fotocell, omvandlare).</text>
+<text x="1184.0" y="1450.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.4" font-weight="400" fill="#23262b" text-anchor="start">1× 24→5 V buck → röd laser.  Encodrar ← RoboClaw 5V-BEC.  Jetson ← egen brick.  Inget 12V behövs.</text>
+</svg>
