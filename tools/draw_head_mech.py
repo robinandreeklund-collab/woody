@@ -92,7 +92,7 @@ add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
 txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
-            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +40 mm (CAD 39,75) (EJ på laserlinjen → laserlinjen utanför FOV + baffel → ingen laser/glimt i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +40 mm (CAD 39,75) (EJ på laserlinjen → laserlinjen utanför FOV → ingen laser i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -184,12 +184,9 @@ txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+10, "YTKAMERA (line-scan)", 9, "start", 
 txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+23, "4K färg · M42 · EGEN rad +40 mm (CAD 39,75)", 8, "start", MUTED, 700)
 txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+36, "EJ på laserlinjen → ingen laser i färgbilden", 8, "start", MUTED, 700)
 vdim(Oy, lc[1], Ox+62, f"{SURF_WD}", BLUE, 11); txt(Ox+78, (Oy+lc[1])/2, "yt-WD", 8.5, "start", BLUE, 700, rot=-90)
-# ---- BAFFEL (matt svart fena) mellan laserplanet och färgkamerans lins ----
-bfx = (Ox + cp[0]) / 2                                                     # mellan laserlinje (0) och färgrad (+30)
-line(bfx, Oy-8, bfx, Oy-int(camZ*S)+30, "#15171a", 9)                      # matt svart fena
-txt(bfx-6, Oy-int(camZ*S)+24, "BAFFEL (matt svart)", 8, "end", "#15171a", 700)
-txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+49, "laserlinjen utanför FOV + baffel → ingen laser/glimt in", 7.5, "start", "#8a6510", 700)
-txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+60, "(laserplan osynligt i ren luft; baffel fångar damm/spegling)", 7, "start", MUTED, 400)
+# ---- färgkamerans laser-frihet (ingen baffel — offset + osynligt laserplan räcker) ----
+txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+49, "laserlinjen utanför FOV → ingen laser i färgbilden", 7.5, "start", "#8a6510", 700)
+txt(lc[0]+lcw*S/2+10, lc[1]-(lcl+lll)*S+60, "(laserplan osynligt i ren luft; baffel ej nödv. — add vid damm/glimt)", 7, "start", MUTED, 400)
 
 # ---- LOD-referens + vinklar vid O ----
 line(Ox, Oy, Ox, Oy-int(camZ*S)-40, DIMC, 0.7, "4 4"); txt(Ox+8, Oy-int(camZ*S)-30, "lod", 8.5, "start", DIMC, 700)
