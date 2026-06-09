@@ -158,6 +158,38 @@ print("   • kör profilkamerorna på SKILDA USB3-portar (undvik delad hubb-fla
 print("  Gör man det → Jetson har stor marginal @ 60/min; INGEN hängning (compute).")
 print("  Gör man stripe-extraktionen på CPU i Python → DÅ hänger det (mjukvarufel).")
 
+# ============================================================ GENOMSTRÖMNING (throughput)
+print(); line("="); print("GENOMSTRÖMNING — brädor/min (kamera/laser-tak vs band)"); line("=")
+cam = rig.profile_cam
+fps_full = cam.frame_rate_full_hz                    # 60 (UM/USB3); GigE-variant ~35,6 fps
+pixrate = fps_full * cam.width_px * cam.height_px / 1e6   # Mpix/s ~konstant (sensor-readout)
+GAP = 25.0; pitch = W + GAP                          # mm: bräda + lucka mellan brädor
+print(f"\n  Profilkamera {cam.name}: {fps_full:.0f} fps @ {cam.width_px}×{cam.height_px} (Mono8, USB3).")
+print(f"  Sensorn läser ~konstant {pixrate:.0f} Mpix/s → ROI-remsa runt laserlinjen höjer profiltakten:")
+print(f"\n  {'ROI-höjd':12}{'PROFILTAKT':14}{'DATATAKT/kam':14}KOMMENTAR"); line()
+roi_rates = {}
+for roi in (cam.height_px, 250, 128):
+    prate = fps_full * cam.height_px / roi
+    mbs = cam.width_px * roi * prate / 1e6
+    tag = "full bild" if roi == cam.height_px else ("täcker hela 15–50 mm" if roi == 250 else "smal / per-bräda-spårad")
+    roi_rates[roi] = prate
+    print(f"  {roi:<12}{prate:.0f} prof/s     {mbs:.0f} MB/s        {tag}")
+P_LO, P_HI = round(roi_rates[250]), round(roi_rates[128])     # ~490 och ~960
+print(f"\n  Brädor/min = Y-uppl × profiltakt × 60 / pitch   (pitch = {W:.0f} bräda + {GAP:.0f} lucka = {pitch:.0f} mm)")
+print(f"\n  {'Y-UPPL':12}{f'@{P_LO} prof/s':18}{f'@{P_HI} prof/s':18}MATNINGSFART"); line()
+for yres in (0.5, 0.3, 0.2):
+    print(f"  {f'{yres} mm':<12}{f'{yres*P_LO*60/pitch:.0f}/min':<18}{f'{yres*P_HI*60/pitch:.0f}/min':<18}"
+          f"{yres*P_LO:.0f}–{yres*P_HI:.0f} mm/s")
+belt_bpm = CONVEYOR_MMS * 60 / pitch
+print(f"\n  BANDET @ {CONVEYOR_MMS:.0f} mm/s  →  {belt_bpm:.0f} brädor/min   ← FLASKHALSEN (ej kamera/optik/dator)")
+print(f"     (vid {CONVEYOR_MMS:.0f} mm/s blir Y-uppl {CONVEYOR_MMS/P_LO:.2f} mm @{P_LO} prof/s — kraftig översampling)")
+print(f"  KAMERA/LASER-TAK: ~{0.2*P_LO*60/pitch:.0f}–{0.5*P_HI*60/pitch:.0f} brädor/min  →  {0.5*P_HI/CONVEYOR_MMS*1:.0f}× snabbare än bandet.")
+print(f"  Datatakt 2 kam à ~{cam.width_px*250*roi_rates[250]/1e6:.0f} MB/s på var sin USB3 → ✓ (compute/U-Net ryms, se ovan).")
+print(f"  OBS: hög fart kräver KORT laser-exponering (ljusstark laser) så rörelseoskärpan < Y-uppl.")
+print("  SLUTSATS: optik + dator har stort tak — MATNINGSFARTEN (bandet) sätter brädtakten.")
+print("  [Rättat: MV-CS050-10UM = 60 fps (USB3); 35,6 fps gäller GigE-varianten -10GC.]")
+
+
 # ============================================================ DRIVRUTINER / SDK
 print(); line("="); print("DRIVRUTINER / SDK — funkar kamerorna på Jetson (ARM64)?"); line("=")
 print("  Profilkameror Hikrobot MV-CS050-10UM  (USB3 Vision + GenICam-standard):")
