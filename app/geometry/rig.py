@@ -7,8 +7,8 @@ Dubbel-oblik mäthuvud:
   • Två profilhuvuden (RÖD 650 vänster, GRÖN 520 höger), vart och ett med kamera
     + linjelaser på SAMMA sida, monterade på var sin sida om brädan och blickande
     oblikt in mot samma laserlinje.
-  • Kamera-arm 20° från lod, laser-arm 40° från lod → trianguleringsvinkel θ=30°,
-    huvudets obliquity (siktbisektris) = 30°.
+  • Kamera-arm 25° från lod, laser-arm 50° från lod → trianguleringsvinkel θ=25°,
+    huvudets obliquity (siktbisektris) = 37,5°.
   • Ytkameran (4K färg-radkamera) hänger i CENTRUM, rakt ned, på 400 mm.
   • Punktlasrarna (LR400) sitter uppströms och ankrar absolut tjocklek.
 
@@ -29,9 +29,9 @@ class RigGeometry:
     board_thick_mm: float = 20.0         # Z — nominell tjocklek
 
     # --- optik / armar (= head-mech.svg) ---
-    work_distance_mm: float = 710.0      # WD längs den oblika siktlinjen
-    cam_arm_deg: float = 20.0            # kamera-arm, vinkel från lod
-    laser_arm_deg: float = 40.0          # laser-arm, vinkel från lod
+    work_distance_mm: float = 760.0      # WD längs den oblika siktlinjen
+    cam_arm_deg: float = 25.0            # kamera-arm, vinkel från lod
+    laser_arm_deg: float = 50.0          # laser-arm, vinkel från lod
     surface_cam_wd_mm: float = 400.0     # ytkamera rakt ned i centrum
 
     # --- sensorer ---
@@ -74,11 +74,11 @@ class RigGeometry:
 
     @property
     def laser_height_mm(self) -> float:
-        return self.work_distance_mm * math.cos(math.radians(self.laser_arm_deg)) # ~544
+        return self.work_distance_mm * math.cos(math.radians(self.laser_arm_deg)) # ~489
 
     @property
     def laser_offset_mm(self) -> float:
-        return self.work_distance_mm * math.sin(math.radians(self.laser_arm_deg)) # ~456
+        return self.work_distance_mm * math.sin(math.radians(self.laser_arm_deg)) # ~582
 
     @property
     def baseline_mm(self) -> float:

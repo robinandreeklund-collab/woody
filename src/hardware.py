@@ -114,7 +114,7 @@ class Rig:
     # --- profil/triangulering: optik som hänger ihop ---
     profile_lens_mm: float = 12.0         # [designval] HIKROBOT MVL-MF1228M-8MP (12 mm; har frontfiltergänga, mot 8 mm som saknar)
     profile_wd_mm: float = 1040.0         # [designval] arbetsavstånd profilkamera
-    tri_angle_deg: float = 20.0           # [designval] trianguleringsvinkel (kompakt huvud: baslinje ~247 mm @ WD 710)
+    tri_angle_deg: float = 25.0           # [designval] trianguleringsvinkel (proto: baslinje ~329 mm @ WD 760)
     depth_range_mm: float = 50.0          # [designval] mätrange i höjd (±25 mm)
     overlap_mm: float = 150.0             # [designval] överlapp mellan segment
 
@@ -123,7 +123,7 @@ class Rig:
     # via matningen -> topp + 2 sidor (höjd/vankant) i 3D, och fyller varandras
     # skuggor. Olika våglängd + matchande bandpass -> ingen förväxling, full takt.
     dual_oblique: bool = True             # [designval]
-    oblique_angle_deg: float = 30.0       # [designval] varje moduls lutning från lod (optimerad: kompakt rigg + djuprange för 45 mm bräda, Z-uppl. ~0,35 mm)
+    oblique_angle_deg: float = 37.5       # [designval] huvudets obliquity (siktbisektris); kam 25°/laser 50° → θ=25°, baslinje 329 @ WD 760
     laser2_nm: float = 520.0              # [designval] grön (höger); röd (vänster) = laser.wavelength_nm
 
     # --- drift ---

@@ -15,8 +15,8 @@ from proto_sim import BOM, bom_total
 BENCH_L, BW = 500, 75
 CY = BW / 2
 r = Rig(board_length_mm=BENCH_L, board_width_mm=BW, board_thickness_mm=45)
-OBL = r.oblique_angle_deg
-WD = round(BENCH_L * r.profile_lens_mm / r.profile_cam.sensor_w_mm)
+OBL = r.oblique_angle_deg                       # 37,5° (kam 25°/laser 50°)
+WD = 760                                         # WD 760 (FOV 535 mm täcker 500 mm-brädan)
 SOFF = round(WD * math.sin(math.radians(OBL))); MH = round(WD * math.cos(math.radians(OBL)))
 SEP = 2 * SOFF
 RED_NM, GRN_NM = round(r.laser.wavelength_nm), round(r.laser_green.wavelength_nm)

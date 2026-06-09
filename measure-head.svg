@@ -3,31 +3,31 @@
 <rect x="14.0" y="14.0" width="1852.0" height="1292.0" rx="0" fill="none" stroke="#23262b" stroke-width="2" opacity="1"/>
 <rect x="22.0" y="22.0" width="1836.0" height="1276.0" rx="0" fill="none" stroke="#6a6e74" stroke-width="0.7" opacity="1"/>
 <text x="44.0" y="52.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="19" font-weight="700" fill="#23262b" text-anchor="start">MÄTHUVUD — ALU-BOTTENPLATTA + PLASTKÅPA  ·  KONSTRUKTIONSRITNING</text>
-<text x="44.0" y="72.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">Alu-platta = struktur/kylfläns/kalibreringsbänk (bär kamera+laser i fasta vinklar). Plastkåpa (3D-print) = skydd/utseende/ljusskydd, EJ bärande. Fasta vinklar 20°/40°, θ 20°, baslinje 247, WD 710. Mått i mm.</text>
+<text x="44.0" y="72.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.5" font-weight="400" fill="#6a6e74" text-anchor="start">Alu-platta = struktur/kylfläns/kalibreringsbänk (bär kamera+laser i fasta vinklar). Plastkåpa (3D-print) = skydd/utseende/ljusskydd, EJ bärande. Fasta vinklar 25°/50°, θ 25°, baslinje 329, WD 760. Mått i mm.</text>
 <line x1="44.0" y1="82.0" x2="1836.0" y2="82.0" stroke="#23262b" stroke-width="1" opacity="1" stroke-linecap="round"/>
-<text x="60.0" y="112.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">VY 1 — MONTERAT (arbetsplan, obliktet 30°): plastkåpa över alu-platta</text>
+<text x="60.0" y="112.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">VY 1 — MONTERAT (arbetsplan, obliktet 37,5°): plastkåpa över alu-platta</text>
 <rect x="150.0" y="800.0" width="300.0" height="16.0" rx="0" fill="#e9d8b0" stroke="#7a5230" stroke-width="1.3" opacity="1"/>
 <line x1="150.0" y1="824.0" x2="450.0" y2="824.0" stroke="#444a52" stroke-width="4" opacity="1" stroke-linecap="round"/>
 <text x="300.0" y="844.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#7a5230" text-anchor="middle">BRÄDA (yta) · laserlinje</text>
 <line x1="300.0" y1="800.0" x2="300.0" y2="350.0" stroke="#9aa0a6" stroke-width="0.7" stroke-dasharray="5 5" opacity="1" stroke-linecap="round"/>
-<polygon points="398.0,461.0 537.7,541.6 560.7,501.8 421.0,421.1" fill="#3a3f45" stroke="#23262b" stroke-width="1.6" opacity="0.3"/>
-<text x="427.0" y="423.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start" transform="rotate(34 427.0 423.1)">PLASTKÅPA (3D-print, translucent visad)</text>
-<polygon points="406.5,446.2 546.2,526.9 548.7,522.6 409.0,441.9" fill="#d7dadd" stroke="#23262b" stroke-width="1.5" opacity="1"/>
-<text x="487.3" y="467.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(34 487.3 467.5)">ALU-BOTTENPLATTA</text>
-<polygon points="441.8,437.8 433.6,460.3 418.6,454.9 426.8,432.3" fill="#e2ecf6" stroke="#2f6fb0" stroke-width="1.3" opacity="1"/>
-<rect x="415.4" y="460.4" width="12.0" height="12.0" rx="2" fill="#cfe0f2" stroke="#2f6fb0" stroke-width="1.2" opacity="1"/>
-<line x1="421.4" y1="466.4" x2="300.0" y2="800.0" stroke="#2f6fb0" stroke-width="1.3" stroke-dasharray="6 4" opacity="1" stroke-linecap="round"/>
-<polygon points="562.7,493.1 533.1,528.4 525.4,521.9 555.0,486.7" fill="#fde9e3" stroke="#e8542c" stroke-width="1.3" opacity="1"/>
-<line x1="528.2" y1="528.1" x2="300.0" y2="800.0" stroke="#e8542c" stroke-width="2.3" opacity="1" stroke-linecap="round"/>
-<text x="397.4" y="444.4" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f6fb0" text-anchor="end">KAMERA</text>
-<text x="548.3" y="535.1" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="start">LASER</text>
+<polygon points="438.8,447.7 599.5,570.9 622.5,531.1 461.8,407.8" fill="#3a3f45" stroke="#23262b" stroke-width="1.6" opacity="0.3"/>
+<text x="467.8" y="409.8" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="start" transform="rotate(34 467.8 409.8)">PLASTKÅPA (3D-print, translucent visad)</text>
+<polygon points="447.3,432.9 608.0,556.2 610.5,551.9 449.8,428.6" fill="#d7dadd" stroke="#23262b" stroke-width="1.5" opacity="1"/>
+<text x="538.7" y="475.5" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="middle" transform="rotate(34 538.7 475.5)">ALU-BOTTENPLATTA</text>
+<polygon points="482.8,428.5 472.7,450.2 458.2,443.5 468.3,421.7" fill="#e2ecf6" stroke="#2f6fb0" stroke-width="1.3" opacity="1"/>
+<rect x="454.6" y="449.6" width="12.0" height="12.0" rx="2" fill="#cfe0f2" stroke="#2f6fb0" stroke-width="1.2" opacity="1"/>
+<line x1="460.6" y1="455.6" x2="300.0" y2="800.0" stroke="#2f6fb0" stroke-width="1.3" stroke-dasharray="6 4" opacity="1" stroke-linecap="round"/>
+<polygon points="630.3,526.7 595.0,556.3 588.6,548.6 623.8,519.1" fill="#fde9e3" stroke="#e8542c" stroke-width="1.3" opacity="1"/>
+<line x1="591.1" y1="555.7" x2="300.0" y2="800.0" stroke="#e8542c" stroke-width="2.3" opacity="1" stroke-linecap="round"/>
+<text x="436.6" y="433.6" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#2f6fb0" text-anchor="end">KAMERA</text>
+<text x="610.2" y="564.3" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="start">LASER</text>
 <text x="340.0" y="440.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#23262b" text-anchor="start">aperturer i kåpan</text>
-<text x="326.0" y="734.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#2f6fb0" text-anchor="middle">20°</text>
-<text x="366.0" y="754.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#e8542c" text-anchor="middle">40°</text>
-<text x="348.7" y="633.2" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#2f6fb0" text-anchor="middle" transform="rotate(-70 348.7 633.2)">WD 710</text>
-<text x="428.1" y="664.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="middle" transform="rotate(-50 428.1 664.0)">WD 710</text>
-<text x="294.0" y="500.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="end">obliktet 30°</text>
-<text x="472.8" y="494.7" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(34 472.8 494.7)">baslinje 247</text>
+<text x="326.0" y="734.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#2f6fb0" text-anchor="middle">25°</text>
+<text x="366.0" y="754.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="700" fill="#e8542c" text-anchor="middle">50°</text>
+<text x="368.3" y="627.8" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#2f6fb0" text-anchor="middle" transform="rotate(-70 368.3 627.8)">WD 760</text>
+<text x="459.5" y="677.9" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#e8542c" text-anchor="middle" transform="rotate(-50 459.5 677.9)">WD 760</text>
+<text x="294.0" y="500.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8.5" font-weight="700" fill="#6a6e74" text-anchor="end">obliktet 37,5°</text>
+<text x="523.8" y="503.1" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="8.5" font-weight="700" fill="#23262b" text-anchor="middle" transform="rotate(34 523.8 503.1)">baslinje 329</text>
 <text x="780.0" y="134.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#23262b" text-anchor="start">VY 2 — SPRÄNGSKISS (utfälld för tydlighet): kåpa träs över plattan</text>
 <rect x="810.0" y="300.0" width="300.0" height="18.0" rx="3" fill="#d7dadd" stroke="#23262b" stroke-width="1.6" opacity="1"/>
 <text x="960.0" y="344.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#6a6e74" text-anchor="middle">ALU-BOTTENPLATTA — struktur · kylfläns · kalibreringsbänk (styv)</text>
@@ -110,17 +110,17 @@
 <rect x="1180.0" y="400.0" width="660.0" height="26.0" rx="7" fill="#23262b" stroke="#23262b" stroke-width="0" opacity="1"/>
 <text x="1190.0" y="418.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="12" font-weight="700" fill="#fff" text-anchor="start">FASTA MÅTT &amp; VINKLAR</text>
 <text x="1194.0" y="440.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="700" fill="#6a6e74" text-anchor="start">Arbetsavstånd WD</text>
-<text x="1826.0" y="440.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">710 mm</text>
+<text x="1826.0" y="440.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">760 mm</text>
 <rect x="1188.0" y="448.0" width="644.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <text x="1194.0" y="463.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="700" fill="#6a6e74" text-anchor="start">Kamera / laser (lod)</text>
-<text x="1826.0" y="463.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">20° / 40°</text>
+<text x="1826.0" y="463.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">25° / 50°</text>
 <text x="1194.0" y="486.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="700" fill="#6a6e74" text-anchor="start">Triangulering θ</text>
-<text x="1826.0" y="486.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">20°</text>
+<text x="1826.0" y="486.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">25°</text>
 <rect x="1188.0" y="494.0" width="644.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <text x="1194.0" y="509.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="700" fill="#6a6e74" text-anchor="start">Baslinje</text>
-<text x="1826.0" y="509.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">247 mm</text>
+<text x="1826.0" y="509.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">329 mm</text>
 <text x="1194.0" y="532.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="700" fill="#6a6e74" text-anchor="start">Obliktet</text>
-<text x="1826.0" y="532.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">30°</text>
+<text x="1826.0" y="532.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">37,5°</text>
 <rect x="1188.0" y="540.0" width="644.0" height="23.0" rx="0" fill="#ecebe4" stroke="none" stroke-width="0" opacity="1"/>
 <text x="1194.0" y="555.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.6" font-weight="700" fill="#6a6e74" text-anchor="start">Plattjocklek</text>
 <text x="1826.0" y="555.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="9.8" font-weight="700" fill="#23262b" text-anchor="end">≥8–10 mm</text>
@@ -152,7 +152,7 @@
 <text x="1590.0" y="962.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="start">MÅTT</text>
 <text x="1828.0" y="964.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="11" font-weight="700" fill="#23262b" text-anchor="end">mm</text>
 <text x="1590.0" y="995.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="8" font-weight="700" fill="#6a6e74" text-anchor="start">VINKLAR</text>
-<text x="1828.0" y="997.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="end">20°/40° fasta</text>
+<text x="1828.0" y="997.0" font-family="'IBM Plex Mono','DejaVu Sans Mono',monospace" font-size="10" font-weight="700" fill="#23262b" text-anchor="end">25°/50° fasta</text>
 <text x="1196.0" y="1028.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">Struktur = alu (styv). Kåpa = plast (ej bärande, fri från optiken).</text>
 <text x="1196.0" y="1048.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9" font-weight="400" fill="#6a6e74" text-anchor="start">Optik-geometri per head-mech. Tilt/aim via monteringsyta, lås sen.</text>
 </svg>

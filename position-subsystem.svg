@@ -25,7 +25,7 @@
 <circle cx="400.0" cy="600.0" r="3.0" fill="#a23ad6" stroke="#7a2fb0" stroke-width="1"/>
 <circle cx="1380.0" cy="600.0" r="3.0" fill="#a23ad6" stroke="#7a2fb0" stroke-width="1"/>
 <rect x="655.0" y="578.0" width="470.0" height="16.0" rx="0" fill="#f7f6f1" stroke="none" stroke-width="0" opacity="0.95"/>
-<text x="890.0" y="590.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#a23ad6" text-anchor="middle">laserlinje 500 mm — RÖD+GRÖN konvergerar hit (huvuden Y±456 / Z544 — se head-mech)</text>
+<text x="890.0" y="590.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="9.5" font-weight="700" fill="#a23ad6" text-anchor="middle">laserlinje 500 mm — RÖD+GRÖN konvergerar hit (huvuden Y±582 / Z489 — se head-mech)</text>
 <line x1="400.0" y1="543.8" x2="1380.0" y2="543.8" stroke="#1597a6" stroke-width="1.4" stroke-dasharray="6 4" opacity="1"/>
 <circle cx="517.6" cy="543.8" r="4.0" fill="#1597a6" stroke="#1597a6" stroke-width="1"/>
 <circle cx="517.6" cy="543.8" r="7.0" fill="none" stroke="#1597a6" stroke-width="1"/>
@@ -74,5 +74,5 @@
 <text x="54.0" y="946.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.2" font-weight="700" fill="#23262b" text-anchor="start">ABSOLUT POSITION = encoder-inkrement (mäthjul mot bandet, dubbelriktad) räknat FRÅN anhålls-nollan. Stabil eftersom nollan är ett mekaniskt anslag du alltid kan återgå till.</text>
 <text x="54.0" y="965.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.2" font-weight="700" fill="#23262b" text-anchor="start">DUBBELRIKTAT: kör fram (encoder räknar upp), backa tillbaka (räknar ned). Når du anhållet igen → fotocell → AUTO-OMNOLLNING. Driftfri, repeterbar nolla varje cykel.</text>
 <text x="54.0" y="984.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.2" font-weight="400" fill="#23262b" text-anchor="start">Tre RADER nedström: LR400 −45 mm (tjocklek-ankare/kant/skevhet) · laserlinje 0 (profil, röd+grön) · färgkamera +40 mm (ren färg, ingen laser). Sys ihop via encoderpositionen.</text>
-<text x="54.0" y="1003.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.2" font-weight="400" fill="#23262b" text-anchor="start">Huvudens exakta geometri (WD 710, kam 20°/Z667/Y243, laser 40°/Z544/Y456, θ20°, vankant, ytkamera) finns i head-mech.svg (tvärsnittet). Mäthjul mäter bandet → slir mildras med griff + mjukvarukant-korr.</text>
+<text x="54.0" y="1003.0" font-family="'IBM Plex Sans','DejaVu Sans',sans-serif" font-size="10.2" font-weight="400" fill="#23262b" text-anchor="start">Huvudens exakta geometri (WD 760, kam 25°/Z689/Y321, laser 50°/Z489/Y582, θ25°, vankant, ytkamera) finns i head-mech.svg (tvärsnittet). Mäthjul mäter bandet → slir mildras med griff + mjukvarukant-korr.</text>
 </svg>

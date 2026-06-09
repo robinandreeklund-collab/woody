@@ -10,20 +10,20 @@ from __future__ import annotations
 import os, sys, math
 
 # ===================== EXAKT GEOMETRI (mm / grader) =====================
-WD   = 710.0                      # arbetsavstånd (slant), kamera & laser → laserlinjen
-CAM_A = 20.0                      # kamera-arm, vinkel från lod  (kompakt: θ=20°)
-LAS_A = 40.0                      # laser-arm (mer oblik), vinkel från lod
-THETA = LAS_A - CAM_A             # trianguleringsvinkel = 30°
-OBL   = (CAM_A + LAS_A) / 2       # huvudets obliquity (siktbisektris) = 30°
-camZ = round(WD * math.cos(math.radians(CAM_A)))    # 667  kamerahöjd ö. brädyta
-camY = round(WD * math.sin(math.radians(CAM_A)))    # 243  kamera-offset fr. mitt
-lasZ = round(WD * math.cos(math.radians(LAS_A)))    # 544  laserhöjd
-lasY = round(WD * math.sin(math.radians(LAS_A)))    # 456  laser-offset
-BASE = round(2 * WD * math.sin(math.radians(THETA / 2)))   # 368  baslinje kamera↔laser
-CAMCAM = 2 * camY                  # 368  kamera↔kamera (de två huvudena)
-LASLAS = 2 * lasY                  # 1004 laser↔laser
-PORTZ  = 760                       # ram-topp ö. brädyta (precis ovan kamerorna ~733)
-UPX    = 540                        # sidostativens offset (utanför lasrarna ±456)
+WD   = 760.0                      # arbetsavstånd (slant), kamera & laser → laserlinjen
+CAM_A = 25.0                      # kamera-arm, vinkel från lod  (θ=25°)
+LAS_A = 50.0                      # laser-arm (mer oblik), vinkel från lod
+THETA = LAS_A - CAM_A             # trianguleringsvinkel = 25°
+OBL   = (CAM_A + LAS_A) / 2       # huvudets obliquity (siktbisektris) = 37,5°
+camZ = round(WD * math.cos(math.radians(CAM_A)))    # 689  kamerahöjd ö. brädyta
+camY = round(WD * math.sin(math.radians(CAM_A)))    # 321  kamera-offset fr. mitt
+lasZ = round(WD * math.cos(math.radians(LAS_A)))    # 489  laserhöjd
+lasY = round(WD * math.sin(math.radians(LAS_A)))    # 582  laser-offset
+BASE = round(2 * WD * math.sin(math.radians(THETA / 2)))   # 329  baslinje kamera↔laser
+CAMCAM = 2 * camY                  # 642  kamera↔kamera (de två huvudena)
+LASLAS = 2 * lasY                  # 1164 laser↔laser
+PORTZ  = 780                       # ram-topp ö. brädyta (precis ovan kamerorna ~689)
+UPX    = 650                        # sidostativens offset (utanför lasrarna ±582)
 BW, BT = 75, 45                    # bräda bredd × tjocklek
 CAM_L, CAM_W = 29, 29; LENS_L, LENS_D = 40, 32; FILT_L, FILT_D = 6, 32; LAS_L, LAS_D = 99, 18
 
@@ -92,7 +92,7 @@ add('</g>')
 rect(16, 16, W-32, H-32, "none", INK, 2); rect(24, 24, W-48, H-48, "none", MUTED, 0.8)
 txt(46, 60, "MÄTSTATION — DUBBELT PROFILHUVUD  (tvärsnitt, skalenlig)", 25, "start", INK, 700, SANS)
 txt(46, 86, "Två profilhuvuden (var sitt kamera+laser PÅ SAMMA SIDA) på var sin sida om brädan, lutade inåt mot samma laserlinje "
-            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +40 mm (CAD 39,75) (EJ på laserlinjen → laserlinjen utanför FOV → ingen laser i färgbilden). Kompakt huvud θ=20°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
+            "(RÖD=V-kant, GRÖN=H-kant) + YTKAMERA (line-scan) på EGEN rad +40 mm (CAD 39,75) (EJ på laserlinjen → laserlinjen utanför FOV → ingen laser i färgbilden). Kompakt huvud θ=25°. Huvuden HÄNGER från portalens tvärbalk via VINKELADAPTER (åt var sin sida).", 13, "start", MUTED, 400, SANS)
 line(46, 100, W-46, 100, INK, 1.4)
 
 # =================================================================== HUVUD-GA (skalenlig)
@@ -224,7 +224,7 @@ vdim(bR[1], bBR[1], bR[0]+44, f"{BT}", INK, 11, ext=10)
 line(bR[0], bR[1], bR[0]+50, bR[1], DIMC, 0.5, "3 3"); line(bBR[0], bBR[1], bR[0]+50, bBR[1], DIMC, 0.5, "3 3")
 # portalhöjd
 vdim(Oy, pby, gcam[0]+int(camY*S)+90, f"{PORTZ}", DIMC, 10); txt(gcam[0]+int(camY*S)+74, (Oy+pby)/2, "ramhöjd", 8.5, "middle", MUTED, 700, rot=-90)
-txt(Ox, PY+PH-16, f"Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 710 + armvinklar {CAM_A:.0f}°/{LAS_A:.0f}° (θ {THETA:.0f}°).", 9.5, "middle", MUTED, 400)
+txt(Ox, PY+PH-16, f"Allt skalenligt 1:2,5 · mått i mm · vinklar i grader · geometri exakt ur WD 760 + armvinklar {CAM_A:.0f}°/{LAS_A:.0f}° (θ {THETA:.0f}°).", 9.5, "middle", MUTED, 400)
 
 # =================================================================== HÖGER: MÅTT-TABELL
 CXr = 1496; CWr = 720
@@ -236,10 +236,10 @@ tab = [
     ("Laser-arm fr. lod", f"{LAS_A:.0f}°", "mer oblika armen (grazar kanten)"),
     ("Obliquity (siktbisektris)", f"{OBL:.0f}°", "huvudets lutning fr. lod"),
     ("Baslinje kamera↔laser", f"{BASE} mm", "= 2·WD·sin(θ/2)"),
-    ("Kamerahöjd ö. brädyta", f"{camZ} mm", "= WD·cos 15°"),
-    ("Kamera-offset fr. mitt", f"{camY} mm", "= WD·sin 15°"),
-    ("Laserhöjd ö. brädyta", f"{lasZ} mm", "= WD·cos 45°"),
-    ("Laser-offset fr. mitt", f"{lasY} mm", "= WD·sin 45°"),
+    ("Kamerahöjd ö. brädyta", f"{camZ} mm", "= WD·cos 25°"),
+    ("Kamera-offset fr. mitt", f"{camY} mm", "= WD·sin 25°"),
+    ("Laserhöjd ö. brädyta", f"{lasZ} mm", "= WD·cos 50°"),
+    ("Laser-offset fr. mitt", f"{lasY} mm", "= WD·sin 50°"),
     ("Kamera ↔ kamera", f"{CAMCAM} mm", "de två huvudena"),
     ("Laser ↔ laser", f"{LASLAS} mm", "de två huvudena"),
     ("Ramhöjd (topp-tvärbalk)", f"{PORTZ} mm", "precis ovan kamerorna ~733"),
@@ -272,7 +272,7 @@ def d_las(x, y):
     rect(lx-26, ly-46, 52, 10, ALU2, STEEL, 1.2, 2); hole(lx-16, ly-41, 3, STEEL); hole(lx+16, ly-41, 3, STEEL)
     txt(lx+54, ly-18, "split-klämma:", 8.5, "start", INK, 700)
     txt(lx+54, ly-4, "rotera → räta linjen", 8.5, "start", MUTED, 700)
-    txt(lx+54, ly+10, "glid → fokus @ 710", 8.5, "start", MUTED, 700)
+    txt(lx+54, ly+10, "glid → fokus @ 760", 8.5, "start", MUTED, 700)
     poly([(lx-30,ly+58),(lx+30,ly+58),(lx+38,ly+74),(lx-22,ly+74)], ALU, ALU2, 1.4); hole(lx-14,ly+66,4); hole(lx+14,ly+66,4)
     txt(lx, ly+92, f"M4 → bänk · tilt {THETA/2:.0f}° fr normal", 8.5, "middle", INK, 700)
 detbracket(CXr+366, 492, 354, 222, "DETALJ C — laserklämma Ø18", INK, d_las)
@@ -301,7 +301,7 @@ for nm, sp, q in parts:
 panel(CXr+366, 968, 354, 196, "NOTER", INK)
 notes = ["1.  Mått mm · vinklar grader · skala 1:2,5.",
          "2.  Vinklar nominella → finjustera optiskt:",
-         "     kamera+laser ska KONVERGERA på linjen @ 710.",
+         "     kamera+laser ska KONVERGERA på linjen @ 760.",
          "3.  Filter på objektivfronten (M30.5).",
          "4.  Laser Klass 3B → kåpa + skylt + glasögon.",
          "5.  RÖD=V-kant, GRÖN=H-kant (spegel)."]

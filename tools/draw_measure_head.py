@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """KONSTRUKTIONSRITNING — MÄTHUVUD: ALU-BOTTENPLATTA (struktur) + PLASTKÅPA (skydd/look).
-Alu-plattan bär kamera + laser i fasta vinklar (kam 20°/laser 40°, θ 20°, baslinje 247,
-WD 710) och är kylfläns/kalibreringsbänk. Plastkåpan (3D-print) träs över, EJ bärande,
+Alu-plattan bär kamera + laser i fasta vinklar (kam 25°/laser 50°, θ 25°, baslinje 329,
+WD 760) och är kylfläns/kalibreringsbänk. Plastkåpan (3D-print) träs över, EJ bärande,
 med aperturer för kamera/laser. Vyer: arbetsplan (monterat), sprängskiss, dellista, mått, ritningshuvud.
 
     python tools/draw_measure_head.py   # -> measure-head.svg (+ .png)
@@ -9,7 +9,7 @@ med aperturer för kamera/laser. Vyer: arbetsplan (monterat), sprängskiss, dell
 from __future__ import annotations
 import os, math
 
-WD,CAM_A,LAS_A,BASE=710.0,20.0,40.0,247.0
+WD,CAM_A,LAS_A,BASE=760.0,25.0,50.0,329.0
 INK,MUTED,DIM="#23262b","#6a6e74","#9aa0a6"
 PAPER,GRID,PANEL="#f7f6f1","#e6e4dc","#ecebe4"
 RED,GRN,BLUE,AMB,ALU,ALU2,PLAS,PLASE,STEEL,WOOD="#e8542c","#2f9e6e","#2f6fb0","#c98a16","#d7dadd","#9aa0a6","#3a3f45","#23262b","#7f868d","#e9d8b0"
@@ -45,11 +45,11 @@ def rbox(cx,cy,ux,uy,Ln,Wd,fill,st=INK,sw=1.3,op=1):
 add(f'<rect width="{W}" height="{H}" fill="{PAPER}"/>')
 rect(14,14,W-28,H-28,"none",INK,2); rect(22,22,W-44,H-44,"none",MUTED,0.7)
 txt(44,52,"MÄTHUVUD — ALU-BOTTENPLATTA + PLASTKÅPA  ·  KONSTRUKTIONSRITNING",19,"start",INK,700)
-txt(44,72,"Alu-platta = struktur/kylfläns/kalibreringsbänk (bär kamera+laser i fasta vinklar). Plastkåpa (3D-print) = skydd/utseende/ljusskydd, EJ bärande. Fasta vinklar 20°/40°, θ 20°, baslinje 247, WD 710. Mått i mm.",10.5,"start",MUTED)
+txt(44,72,"Alu-platta = struktur/kylfläns/kalibreringsbänk (bär kamera+laser i fasta vinklar). Plastkåpa (3D-print) = skydd/utseende/ljusskydd, EJ bärande. Fasta vinklar 25°/50°, θ 25°, baslinje 329, WD 760. Mått i mm.",10.5,"start",MUTED)
 ln(44,82,W-44,82,INK,1)
 
 # =================================================== VY 1: MONTERAT (arbetsplan)
-txt(60,112,"VY 1 — MONTERAT (arbetsplan, obliktet 30°): plastkåpa över alu-platta",12,"start",INK,700)
+txt(60,112,"VY 1 — MONTERAT (arbetsplan, obliktet 37,5°): plastkåpa över alu-platta",12,"start",INK,700)
 s=0.5; Px,Py=300,800
 def ray(a): r=math.radians(a); return (Px+WD*s*math.sin(r),Py-WD*s*math.cos(r))
 C=ray(CAM_A); L=ray(LAS_A)
@@ -75,11 +75,11 @@ txt(C[0]-nx*8-20,C[1]-22,"KAMERA",8.5,"end",BLUE,700); txt(L[0]+ux*14+8,L[1]+uy*
 # aperturer i kåpan (gap mot bräda)
 txt(Px+40,Py-360,"aperturer i kåpan",8,"start",PLASE,700)
 # vinklar/WD/baslinje
-txt(Px+26,Py-66,"20°",9,"middle",BLUE,700); txt(Px+66,Py-46,"40°",9,"middle",RED,700)
-txt(((C[0]+Px)/2)-12,(C[1]+Py)/2,"WD 710",8.5,"middle",BLUE,700,MONO,rot=-70)
-txt(((L[0]+Px)/2)+14,(L[1]+Py)/2,"WD 710",8.5,"middle",RED,700,MONO,rot=-50)
-txt(Px-6,Py-300,"obliktet 30°",8.5,"end",MUTED,700)
-txt((C[0]+L[0])/2-nx*4,(C[1]+L[1])/2-ny*4-6,"baslinje 247",8.5,"middle",INK,700,MONO,rot=34)
+txt(Px+26,Py-66,"25°",9,"middle",BLUE,700); txt(Px+66,Py-46,"50°",9,"middle",RED,700)
+txt(((C[0]+Px)/2)-12,(C[1]+Py)/2,"WD 760",8.5,"middle",BLUE,700,MONO,rot=-70)
+txt(((L[0]+Px)/2)+14,(L[1]+Py)/2,"WD 760",8.5,"middle",RED,700,MONO,rot=-50)
+txt(Px-6,Py-300,"obliktet 37,5°",8.5,"end",MUTED,700)
+txt((C[0]+L[0])/2-nx*4,(C[1]+L[1])/2-ny*4-6,"baslinje 329",8.5,"middle",INK,700,MONO,rot=34)
 
 # =================================================== VY 2: SPRÄNGSKISS (utfälld)
 EX,EY=780,150
@@ -141,8 +141,8 @@ for i,(p,n,sp_) in enumerate(items):
 # =================================================== MÅTTABELL
 rect(LX,400,660,180,"#fff",INK,1.3,7); rect(LX,400,660,26,INK,INK,0,7)
 txt(LX+10,418,"FASTA MÅTT & VINKLAR",12,"start","#fff",700)
-dims=[("Arbetsavstånd WD","710 mm"),("Kamera / laser (lod)","20° / 40°"),("Triangulering θ","20°"),
-      ("Baslinje","247 mm"),("Obliktet","30°"),("Plattjocklek","≥8–10 mm")]
+dims=[("Arbetsavstånd WD","760 mm"),("Kamera / laser (lod)","25° / 50°"),("Triangulering θ","25°"),
+      ("Baslinje","329 mm"),("Obliktet","37,5°"),("Plattjocklek","≥8–10 mm")]
 for i,(k,v) in enumerate(dims):
     yy=440+i*23
     if i%2: rect(LX+8,yy-15,644,23,PANEL,"none",0)
@@ -172,7 +172,7 @@ txt(tb_x+16,tb_y+34,"VIRKESSKANNER",14,"start",INK,700); txt(tb_x+16,tb_y+58,"M�
 txt(tb_x+16,tb_y+82,"Alu 6082/6063 + 3D-print PETG/ASA",9.5,"start",MUTED)
 txt(tb_x+410,tb_y+20,"RITN-NR",8,"start",MUTED,700); txt(tb_x+648,tb_y+22,"MH-003",11,"end",INK,700,MONO)
 txt(tb_x+410,tb_y+52,"MÅTT",8,"start",MUTED,700); txt(tb_x+648,tb_y+54,"mm",11,"end",INK,700,MONO)
-txt(tb_x+410,tb_y+85,"VINKLAR",8,"start",MUTED,700); txt(tb_x+648,tb_y+87,"20°/40° fasta",10,"end",INK,700,MONO)
+txt(tb_x+410,tb_y+85,"VINKLAR",8,"start",MUTED,700); txt(tb_x+648,tb_y+87,"25°/50° fasta",10,"end",INK,700,MONO)
 txt(tb_x+16,tb_y+118,"Struktur = alu (styv). Kåpa = plast (ej bärande, fri från optiken).",9,"start",MUTED,400)
 txt(tb_x+16,tb_y+138,"Optik-geometri per head-mech. Tilt/aim via monteringsyta, lås sen.",9,"start",MUTED,400)
 

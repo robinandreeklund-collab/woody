@@ -3,17 +3,17 @@
 (tvärsnittet, Y–Z). Visar: FAST ANHÅLL + fotocell i bakkant = stabil, repeterbar
 NOLLA (lägg brädan an → encodern nollas; backa till anhållet → auto-omnollning),
 encoder-mäthjul mot bandet = inkrement → ABSOLUT position, samt de tre raderna
-LR400 / laserlinje / färgkamera. Huvudens vinklar/höjder (WD 710, kam 20°/Z667/Y243,
-laser 40°/Z544/Y456, θ20°) finns i head-mech.svg.
+LR400 / laserlinje / färgkamera. Huvudens vinklar/höjder (WD 760, kam 25°/Z689/Y321,
+laser 50°/Z489/Y582, θ25°) finns i head-mech.svg.
 
   python tools/draw_position_subsystem.py   # -> position-subsystem.svg (+ .png)
 """
 from __future__ import annotations
 import os, math
 
-WD, CAM_A, LAS_A = 710.0, 20.0, 40.0
-camZ, camY = round(WD*math.cos(math.radians(CAM_A))), round(WD*math.sin(math.radians(CAM_A)))  # 667,243
-lasZ, lasY = round(WD*math.cos(math.radians(LAS_A))), round(WD*math.sin(math.radians(LAS_A)))  # 544,456
+WD, CAM_A, LAS_A = 760.0, 25.0, 50.0
+camZ, camY = round(WD*math.cos(math.radians(CAM_A))), round(WD*math.sin(math.radians(CAM_A)))  # 689,321
+lasZ, lasY = round(WD*math.cos(math.radians(LAS_A))), round(WD*math.sin(math.radians(LAS_A)))  # 489,582
 BL, BWF = 500, 75
 LR_LEAD, COL_OFF = 45, 40        # COL_OFF: färgkamera-offset (CAD som-byggt 39,75)
 LRX = (60, 250, 440)
@@ -82,7 +82,7 @@ txt(bx0+8, by0-8, "BRÄDA (500 × 75 mm) — under mätning", 11, "start", "#7a5
 line(bx0, YC-1.5, bx1, YC-1.5, RED, 3); line(bx0, YC+1.5, bx1, YC+1.5, GRN, 3)
 for x in (0, BL): circ(PX(x), YC, 3, PURP, "#7a2fb0", 1)
 rect(PX(BL/2)-235, YC-22, 470, 16, PAPER, "none", 0, op=0.95)
-txt(PX(BL/2), YC-10, "laserlinje 500 mm — RÖD+GRÖN konvergerar hit (huvuden Y±456 / Z544 — se head-mech)", 9.5, "middle", PURP, 700)
+txt(PX(BL/2), YC-10, "laserlinje 500 mm — RÖD+GRÖN konvergerar hit (huvuden Y±582 / Z489 — se head-mech)", 9.5, "middle", PURP, 700)
 
 # LR400-rad (−45 mm)
 ylr = PY(-LR_LEAD)
@@ -123,7 +123,7 @@ notes = [
  "ABSOLUT POSITION = encoder-inkrement (mäthjul mot bandet, dubbelriktad) räknat FRÅN anhålls-nollan. Stabil eftersom nollan är ett mekaniskt anslag du alltid kan återgå till.",
  "DUBBELRIKTAT: kör fram (encoder räknar upp), backa tillbaka (räknar ned). Når du anhållet igen → fotocell → AUTO-OMNOLLNING. Driftfri, repeterbar nolla varje cykel.",
  "Tre RADER nedström: LR400 −45 mm (tjocklek-ankare/kant/skevhet) · laserlinje 0 (profil, röd+grön) · färgkamera +40 mm (ren färg, ingen laser). Sys ihop via encoderpositionen.",
- "Huvudens exakta geometri (WD 710, kam 20°/Z667/Y243, laser 40°/Z544/Y456, θ20°, vankant, ytkamera) finns i head-mech.svg (tvärsnittet). Mäthjul mäter bandet → slir mildras med griff + mjukvarukant-korr.",
+ "Huvudens exakta geometri (WD 760, kam 25°/Z689/Y321, laser 50°/Z489/Y582, θ25°, vankant, ytkamera) finns i head-mech.svg (tvärsnittet). Mäthjul mäter bandet → slir mildras med griff + mjukvarukant-korr.",
 ]
 for i,l in enumerate(notes):
     txt(nx+14, ny+22+i*19, l, 10.2, "start", INK, 700 if i<3 else 400)
