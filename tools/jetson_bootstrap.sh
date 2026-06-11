@@ -60,6 +60,11 @@ python -m pip install "${PY_PKGS[@]}" || warn "några python-paket föll bort �
 # Jetson.GPIO endast på riktig Jetson (annars no-op)
 if [ "$(uname -m)" = "aarch64" ]; then
   python -m pip install Jetson.GPIO || warn "Jetson.GPIO kunde inte installeras"
+  # CuPy för GPU-stripe-extraktion (keep-up @ 60 fps). Måste matcha JetPacks CUDA.
+  log "Försöker installera CuPy (GPU-stripe). Matcha JetPacks CUDA-version vid behov."
+  python -c "import cupy" 2>/dev/null && log "CuPy redan installerat" || \
+    python -m pip install cupy-cuda12x || \
+    warn "CuPy ej installerat — bygg mot JetPacks CUDA (se NVIDIA-forum) eller kör VPI; CPU-fallback funkar men når ej full-frame 60 fps"
 fi
 
 # Repo-beroenden om requirements finns
@@ -114,6 +119,8 @@ EOF
 # ---------------------------------------------------------------- 7. verifiering
 log "Kör appens egna verifierare ..."
 ( cd "$REPO" && python tools/verify_jetson_io.py ) || warn "verify_jetson_io flaggade (ok utan hw)"
+log "Profilerar stripe-extraktion (keep-up @ 60 fps) ..."
+( cd "$REPO" && python tools/profile_stripe.py ) || warn "profile_stripe flaggade"
 
 log "KLART. Nästa steg:"
 echo "    source $VENV/bin/activate"

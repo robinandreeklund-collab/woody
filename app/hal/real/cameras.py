@@ -40,6 +40,7 @@ class GenICamProfileCamera(ProfileCameraIF):
         self._exposure_us = exposure_us
         self._ia = None
         self._connected = False
+        self._extractor = None        # GPU/CPU stripe-extraktor (lazy)
 
     def info(self) -> DeviceInfo:
         nm = "RÖD 650" if self._color == "red" else "GRÖN 520"
@@ -72,9 +73,14 @@ class GenICamProfileCamera(ProfileCameraIF):
         return roi[:, cols]
 
     def read_profile(self, y_mm: float = 0.0) -> np.ndarray:
-        from ...processing.stripe import subpixel_centroid
+        # GPU-accelererad stripe-extraktion (CuPy på Jetson, numpy fallback) — keep-up
+        # @ 60 fps kräver GPU vid full upplösning (se docs/jetson-prep-plan.md §Fas B).
         from ...processing.triangulate import centroid_to_z
-        return centroid_to_z(subpixel_centroid(self.read_stripe(y_mm)))
+        if self._extractor is None:
+            from ...processing.stripe_gpu import StripeExtractor
+            self._extractor = StripeExtractor()
+            self._extractor.warmup(self._roi_rows, 2448)
+        return centroid_to_z(self._extractor.process(self.read_stripe(y_mm)))
 
     def close(self) -> None:
         if self._ia:

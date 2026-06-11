@@ -47,6 +47,20 @@ def test_triangulation_recovers_thickness():
     assert err.mean() < 0.4, f"medel-fel {err.mean()*1000:.0f} µm för stort"
 
 
+def test_stripe_gpu_matches_cpu():
+    # GPU-extraktorn (CuPy) och CPU-referensen ska ge samma centroid (här: numpy-fallback)
+    from ..processing.stripe import subpixel_centroid
+    from ..processing.stripe_gpu import centroid_batch
+    rng = np.random.default_rng(3)
+    roi = np.clip(20 + rng.normal(0, 4, (80, 200)), 0, 255)
+    roi[38:43, :] += 180                      # laserstripe-band
+    ref = subpixel_centroid(roi)
+    gpu = np.asarray(centroid_batch(roi))
+    both = np.isfinite(ref) & np.isfinite(gpu)
+    assert both.sum() > 190                   # nästan alla kolumner hittar stripen
+    assert np.nanmax(np.abs(ref[both] - gpu[both])) < 1e-3
+
+
 def test_persistence_roundtrip():
     with tempfile.TemporaryDirectory() as d:
         st = BoardStore(Path(d) / "t.db")

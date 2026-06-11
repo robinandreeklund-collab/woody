@@ -133,9 +133,21 @@ M.2 (SSD). Inget annat.
 4. `python -m app` → kör appen i **sim-läge** end-to-end (verifierar GUI + pipeline + gradering).
 5. `python tools/verify_jetson_io.py` + `verify_optics.py` → sanity på portar/optik/keep-up.
 
-### Fas B — CUDA-pipeline (NU)
-- Verifiera/aktivera GPU-stripe-extraktion (VPI/CuPy). Profila mot syntetiska ramar så
-  keep-up @ 60 fps är klar **innan** kameror finns.
+### Fas B — CUDA-pipeline (NU) — KLAR att köra
+- **GPU-stripe-extraktion** finns: `app/processing/stripe_gpu.py` kör EXAKT samma
+  subpixel-centroid-algoritm på GPU (CuPy/CUDA) eller CPU (numpy) — väljs automatiskt,
+  tvinga med `WOODY_STRIPE_BACKEND=cpu|gpu`. Real-profilkameran (`cameras.py`) använder
+  den redan. Verifierad bit-för-bit mot CPU-referensen (`test_stripe_gpu_matches_cpu`).
+- **Profilera keep-up mot syntetiska ramar** (utan kameror):
+  ```bash
+  python tools/profile_stripe.py                 # auto-backend, flera ROI-höjder
+  WOODY_STRIPE_BACKEND=cpu python tools/profile_stripe.py
+  ```
+  Rapporterar fps/ram + ms-latens + keep-up-marginal mot 60 fps (×2 kameror).
+  Tolkning: med tight ROI-band (128–250 rader runt stripen) räcker även CPU nära
+  60 fps; full sensor (2048 rader) kräver **GPU (CuPy/VPI)** — installera CuPy
+  matchande JetPacks CUDA på Jetson, kör om profilern och bekräfta GPU-marginalen
+  **innan** kamerorna kopplas in.
 
 ### Fas C — Plug-in en enhet i taget (NÄR den kommer)
 För varje enhet: koppla in → `python tools/jetson_selftest.py` → ska visa "ansluten".
