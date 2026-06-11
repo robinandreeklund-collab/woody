@@ -75,6 +75,24 @@ def test_acquisition_pipeline_assembles_board():
     assert g.cls in ("A", "B", "C", "D", "V")
 
 
+def test_real_hal_complete():
+    # Fas 1 + Fas 2 enligt prototype-wiring.svg: 2 profilkameror + linjekamera +
+    # 3× LR400 + RoboClaw + 2 laser-enable + LED + fotocell = 11 enheter
+    from ..hal.real.real_backends import RealScanner
+    rs = RealScanner()
+    assert len(rs.devices()) == 11
+    assert len(rs.point_lasers) == 3
+    ifaces = [d.info().interface for d in rs.devices()]
+    assert any("RS-485" in i for i in ifaces)           # LR400 över Waveshare 4CH
+    assert any("pin 7" in i for i in ifaces)            # fotocell på GPIO pin 7
+    assert any("pin 16" in i for i in ifaces)           # röd laser-enable
+    assert hasattr(rs, "arm_photocell")                 # brädladdnings-event
+    # GPIO-pinkartan matchar prototype-pinout.svg
+    from ..hal.real import gpio_io
+    assert (gpio_io.PIN_PHOTOCELL, gpio_io.PIN_LASER_RED,
+            gpio_io.PIN_LASER_GREEN, gpio_io.PIN_LED_A, gpio_io.PIN_LED_B) == (7, 16, 18, 13, 15)
+
+
 def test_persistence_roundtrip():
     with tempfile.TemporaryDirectory() as d:
         st = BoardStore(Path(d) / "t.db")

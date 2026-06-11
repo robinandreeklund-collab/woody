@@ -1,8 +1,8 @@
 # Jetson-förberedelse — komplett analys & plan ("allt klart innan resten kommer")
 
-**Mål:** Jetsonen är på plats. Resten av hårdvaran (kameror, RoboClaw, encodrar, lasrar)
-kommer senare. Det här dokumentet beskriver hur vi gör Jetsonen **100 % mjukvaruklar
-nu**, så att idrifttagningen sen bara är *koppla in → kör självtest → kalibrera*.
+**Status:** Jetsonen är på plats och **all fälthårdvara finns** (Fas 1 + Fas 2 byggs
+samtidigt). Mjukvaran är komplett för hela kedjan — idrifttagningen är
+*koppla in → kör självtest → kalibrera* per enhet (Fas C nedan), sen Fas D.
 
 > Snabbstart på Jetsonen:
 > ```bash
@@ -44,10 +44,10 @@ Resultat av NU-kolumnen: när en enhet pluggas in säger `jetson_selftest.py` di
 | Bandstyrning (2 motorer) | **RoboClaw 2x7A** (dubbelkanal, sluten slinga, quadrature) | **1× USB** (`/dev/ttyACM*`, packet serial) | **pyserial** + RoboClaw-protokoll (vår `roboclaw_conveyor.py`) |
 | Encoder band A | Omron **E6B2-CWZ6C** (single-ended) → RoboClaw EN1 | (ej till Jetson) | — |
 | Encoder band B | Omron **E6B2-CWZ1X** (RS-422) → linjekamera Line0 + 26C32→EN2 | (ej till Jetson) | hårdvarutrigg |
-| Röd laserlinje | 650 nm, **5 V** (DC-barrel) — enable via D4184/AO3400 | GPIO (MOSFET) | Jetson.GPIO |
-| Grön laserlinje | 520 nm, **24 V** (DC-barrel) — enable via AOD4184 opto-MOSFET | GPIO (MOSFET) | Jetson.GPIO |
-| Vitt LED (ytbelysning) | 24 V LED-list | GPIO (MOSFET) | Jetson.GPIO |
-| Anslagsfotocell (brädstart) | GTRIC **LSZ-S30N1** (NPN, diffus) | GPIO in | Jetson.GPIO |
+| Röd laserlinje | 650 nm, **5 V** (DC-barrel) — enable via D4184/AO3400 | GPIO ut **pin 16** | Jetson.GPIO (`gpio_io.py`) |
+| Grön laserlinje | 520 nm, **24 V** (DC-barrel) — enable via AOD4184 opto-MOSFET | GPIO ut **pin 18** | Jetson.GPIO (`gpio_io.py`) |
+| Vitt LED (ytbelysning) | 24 V LED-list ×2 | GPIO ut **pin 13 + 15** | Jetson.GPIO (`gpio_io.py`) |
+| Anslagsfotocell (brädladdning) | GTRIC **LSZ-S30N1** (NPN, diffus) | GPIO in **pin 7** (aktiv låg, flank-event) | Jetson.GPIO (`gpio_io.py`) |
 | Lagring | NVMe SSD | M.2 Key-M | — |
 
 **Viktigt om encodrar:** Jetsonen läser **ingen encoder direkt**. Encoder A → RoboClaw

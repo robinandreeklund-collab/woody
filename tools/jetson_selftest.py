@@ -130,20 +130,72 @@ def probe_roboclaw():
             no("RoboClaw", f"{port} svarade inte — {exc}")
 
 
-# ----------------------------------------------------------------- 4. GPIO
+# ----------------------------------------------------------------- 4. LR400 / RS-485
+def probe_lr400():
+    head("4. 3× Punktlaser LR400 (RS-485 Modbus via Waveshare USB→4CH)")
+    ports = sorted(glob.glob("/dev/ttyUSB*"))
+    if not ports:
+        no("Port", "ingen /dev/ttyUSB* (koppla in Waveshare 4CH-adaptern)")
+        return
+    info("Portar", ", ".join(ports))
+    try:
+        from pymodbus.client import ModbusSerialClient
+    except Exception as exc:
+        no("pymodbus", f"ej installerat — {exc} (kör jetson_bootstrap.sh)")
+        return
+    found = 0
+    for port in ports:
+        try:
+            client = ModbusSerialClient(port=port, baudrate=9600, parity="N",
+                                        stopbits=1, bytesize=8, timeout=0.3)
+            if not client.connect():
+                no("RS-485", f"{port} gick inte att öppna")
+                continue
+            for unit in (1, 2, 3):                  # ch1–3 = LR-V / LR-C / LR-H
+                rr = client.read_holding_registers(address=0, count=1, slave=unit)
+                if rr.isError():
+                    no(f"LR400 unit {unit}", f"{port}: inget Modbus-svar")
+                else:
+                    dist = rr.registers[0] / 100.0
+                    ok(f"LR400 unit {unit}", f"{port}: avstånd {dist:.2f} mm")
+                    found += 1
+            client.close()
+        except Exception as exc:
+            no("RS-485", f"{port}: {exc}")
+    info("Status", f"{found}/3 LR400 svarar (ch4 = reserv)")
+
+
+# ----------------------------------------------------------------- 5. GPIO
 def probe_gpio():
-    head("4. GPIO (laser-enable röd/grön, LED, fotocell-in)")
+    head("5. GPIO 40-pin (pinout enligt prototype-pinout.svg)")
+    try:
+        from app.hal.real.gpio_io import (PIN_LASER_RED, PIN_LASER_GREEN,
+                                          PIN_LED_A, PIN_LED_B, PIN_PHOTOCELL)
+        pins = (f"fotocell in: pin {PIN_PHOTOCELL} · laser RÖD en: pin {PIN_LASER_RED} · "
+                f"laser GRÖN en: pin {PIN_LASER_GREEN} · LED A/B en: pin {PIN_LED_A}/{PIN_LED_B}")
+    except Exception:
+        pins = "fotocell: 7 · RÖD: 16 · GRÖN: 18 · LED: 13/15"
     try:
         import Jetson.GPIO as GPIO  # noqa: F401
         ok("Jetson.GPIO", "bibliotek tillgängligt (40-pin header)")
-        info("planerade pinnar", "RÖD-enable, GRÖN-enable, LED-enable (ut) · fotocell (in)")
+        info("pin-karta", pins)
+        # fotocellens momentanstatus (säker att läsa; utgångar rörs INTE — lasersäkerhet)
+        try:
+            from app.hal.real.gpio_io import PhotocellInput
+            pc = PhotocellInput()
+            pc.open()
+            ok("Fotocell", "bräda DETEKTERAD" if pc.read() else "ingen bräda vid anhållet")
+            pc.close()
+        except Exception as exc:
+            no("Fotocell", f"kunde inte läsa pin — {exc}")
+        info("laser/LED-enable", "testas via GUI:t (Kalibrering → Enable & effekt) — interlock först!")
     except Exception as exc:
         no("Jetson.GPIO", f"ej tillgängligt — {exc}")
 
 
-# ----------------------------------------------------------------- 5. Real-HAL
+# ----------------------------------------------------------------- 6. Real-HAL
 def probe_hal():
-    head("5. Real-HAL connect_report() (appens enhetsbild)")
+    head("6. Real-HAL connect_report() (appens enhetsbild)")
     try:
         from app.hal.real.real_backends import RealScanner
         rep = RealScanner().connect_report()
@@ -155,7 +207,8 @@ def probe_hal():
 
 def main():
     print(f"{B}woody — Jetson självtest{X}  (snäll utan hårdvara; grönt = inkopplat)")
-    for fn in (probe_platform, probe_cameras, probe_roboclaw, probe_gpio, probe_hal):
+    for fn in (probe_platform, probe_cameras, probe_roboclaw, probe_lr400,
+               probe_gpio, probe_hal):
         try:
             fn()
         except Exception as exc:

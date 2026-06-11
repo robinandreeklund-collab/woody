@@ -87,28 +87,28 @@ Flickable {
         // --- lasrar + LED + fotocell ---
         SCard {
             devId: "laser_red"
-            sName: "Linjelaser RÖD"; sModel: "650 nm · 100 mW · 60°"; sIface: "5 V · GPIO-enable"
+            sName: "Linjelaser RÖD"; sModel: "650 nm · 100 mW · 60°"; sIface: "5 V · GPIO pin 16"
             tag: "DC-barrel · enable via D4184/AO3400 MOSFET · klass 3B — interlock!"
             spec: [["Våglängd","650 nm"],["Effekt","100 mW"],["Linje","60° solfjäder"],["Mål linjebredd","< 0,3 mm @ WD"]]
             live: [["Status",ctrl.running ? "PÅ (skanning)" : "AV"]]
         }
         SCard {
             devId: "laser_green"
-            sName: "Linjelaser GRÖN"; sModel: "520 nm · 50 mW · 60°"; sIface: "24 V · GPIO-enable"
+            sName: "Linjelaser GRÖN"; sModel: "520 nm · 50 mW · 60°"; sIface: "24 V · GPIO pin 18"
             tag: "DC-barrel · enable via AOD4184 opto-MOSFET · klass 3B — interlock!"
             spec: [["Våglängd","520 nm"],["Effekt","50 mW"],["Linje","60° solfjäder"],["Mål linjebredd","< 0,3 mm @ WD"]]
             live: [["Status",ctrl.running ? "PÅ (skanning)" : "AV"]]
         }
         SCard {
             devId: "led_white"
-            sName: "LED-belysning"; sModel: "24 V vit linjelist"; sIface: "GPIO-enable"
+            sName: "LED-belysning"; sModel: "24 V vit linjelist ×2"; sIface: "GPIO pin 13+15"
             tag: "jämnt vitt ljus för färgytan — 1 pass, ingen R/G/B-strobe"
             spec: [["Spänning","24 V"],["Roll","ytkamerans ljus"],["Korrektion","flat-field"]]
             live: [["Status",ctrl.running ? "PÅ" : "AV"]]
         }
         SCard {
             devId: "photocell"
-            sName: "Fotocell · anslag"; sModel: "GTRIC LSZ-S30N1"; sIface: "GPIO in"
+            sName: "Fotocell · anslag"; sModel: "GTRIC LSZ-S30N1"; sIface: "GPIO in · pin 7"
             tag: "NPN · diffus laser · brädstart + positionsnollning"
             spec: [["Typ","diffus reflektion"],["Utgång","NPN NO"],["Roll","brädstart-trigger"]]
             live: [["Senaste trigg",ctrl.boardCount > 0 ? "bräda #"+ctrl.boardCount : "—"]]

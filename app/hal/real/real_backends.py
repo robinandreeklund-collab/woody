@@ -1,22 +1,24 @@
-"""RealScanner — verklig hårdvara via HAL-gränssnitten (LÅST hårdvara).
+"""RealScanner — verklig hårdvara via HAL-gränssnitten (enligt prototype-wiring.svg).
 
-Knyter ihop profilkamerorna (Hikrobot MV-CS050-10UM, GenICam/USB3), linjekameran
-(HT-GELM44C-T2, GenICam/GigE), **3× punktlaser LR400** (RS-485 Modbus via Waveshare
-USB→4CH, ch1–3) och transportören (**RoboClaw 2x7A**, USB packet serial). Enligt
-prototype-wiring.svg: punktlasrarna ger ABSOLUT tjocklek och ankrar trianguleringens
-globala offset/tilt (se fusion.anchor) — de kompletterar profilkamerorna, ersätts inte.
-open() ansluter varje enhet och rapporterar status utan att krascha om en SDK/enhet
-saknas (bring-up i Fas C).
+Fas 1 + Fas 2 KOMPLETT:
+  * 2× profilkamera Hikrobot MV-CS050-10UM (GenICam/USB3, RÖD+GRÖN huvud)
+  * Linjekamera HT-GELM44C-T2 (GenICam/GigE, encoder-triggad via band B)
+  * 3× punktlaser LR400 (RS-485 Modbus, Waveshare USB→4CH ch1–3) — absolut
+    tjocklek, ankrar trianguleringens offset/tilt (fusion.anchor)
+  * RoboClaw 2x7A (USB packet serial) — båda banden, sluten slinga
+  * GPIO fält-IO: laser-enable RÖD/GRÖN, vitt LED, anhåll-fotocell (gpio_io)
 
-Behandlingspipelinen är densamma som i sim — den läser via dessa gränssnitt.
-Det som återstår för full drift är encoder-triggad radackumulering → bräd-bild
-(geometri/kalibrering), markerat nedan.
+Bräd-livscykel i verkligt läge: fotocellen detekterar att en bräda laddats mot
+anhållet (``arm_photocell``) → ``new_board()`` tänder lasrar+LED, kör den trådade
+förvärvspipelinen (capture ∥ GPU-process) till en färdig, graderbar Board, och
+släcker lasrarna. open() ansluter varje enhet utan att krascha om något saknas.
 """
 from __future__ import annotations
 
 from ..base import Scanner
 from ...geometry import RIG
 from .cameras import GenICamProfileCamera, GenICamSurfaceCamera
+from .gpio_io import make_field_io
 from .lr400_modbus import LR400ModbusLaser
 from .roboclaw_conveyor import RoboClawConveyor
 
@@ -30,7 +32,9 @@ class RealScanner(Scanner):
         self.point_lasers = [LR400ModbusLaser(i, x, unit=i + 1)
                              for i, x in enumerate(RIG.point_lasers_x_mm)]
         self.conveyor = RoboClawConveyor()
+        self.laser_red, self.laser_green, self.led_white, self.photocell = make_field_io()
         self._board = None
+        self._pipeline = None         # AcquisitionPipeline (lazy — värmer GPU)
 
     def open(self) -> None:
         for d in self.devices():
@@ -49,14 +53,43 @@ class RealScanner(Scanner):
             rep.append((d.info().name, ok, msg))
         return rep
 
-    # I verkligt läge styrs bräd-livscykeln av brädnärvaro/encoder. Radackumulering
-    # → bräd-bild byggs i Fas 4 (kräver encoder-trigger + kalibrering).
+    # ------------------------------------------------------------ bräd-livscykel
+    def arm_photocell(self, callback) -> None:
+        """Anropa ``callback`` när en bräda laddas mot anhållet (fotocell-flank)."""
+        self.photocell.on_board_loaded(callback)
+
     def new_board(self) -> None:
+        """Skanna en VERKLIG bräda: lasrar+LED på → förvärvspipeline → Board.
+
+        Misslyckas hårdvara saknas → board() förblir None (bring-up-vänligt).
+        """
         self._board = None
+        try:
+            if self._pipeline is None:
+                from ...processing.acquisition import AcquisitionPipeline
+                self._pipeline = AcquisitionPipeline(
+                    self, lr_positions=list(RIG.point_lasers_x_mm))
+            self.laser_red.set(True)
+            self.laser_green.set(True)
+            self.led_white.set(True)
+            try:
+                lr = (lambda y: [pl.read_mm(y) for pl in self.point_lasers]) \
+                    if any(getattr(pl, "_connected", False) for pl in self.point_lasers) else None
+                board, stats = self._pipeline.scan_board(lr_provider=lr)
+                self._board = board
+                print(f"[HAL] bräda skannad: {stats.rows} rader @ "
+                      f"{stats.rows_per_s:.0f} rader/s, överlapp {stats.overlap:.2f}×")
+            finally:
+                self.laser_red.set(False)
+                self.laser_green.set(False)
+                self.led_white.set(False)
+        except Exception as exc:
+            print(f"[HAL] skanning misslyckades — {exc}")
 
     def board(self):
         return self._board
 
     def devices(self) -> list:
         return [self.profile_red, self.profile_green, self.surface,
-                *self.point_lasers, self.conveyor]
+                *self.point_lasers, self.conveyor,
+                self.laser_red, self.laser_green, self.led_white, self.photocell]

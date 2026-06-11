@@ -90,14 +90,24 @@ class DeviceManager(QObject):
                                      "status": "VIA ROBOCLAW" if conv_ok else "VÄNTAR PÅ ROBOCLAW"}
             self._status["enc_b"] = {"connected": conv_ok or surf_ok,
                                      "status": "VIA KAMERA/EN2" if (conv_ok or surf_ok) else "VÄNTAR"}
-            try:
-                import Jetson.GPIO  # noqa: F401
-                gpio = True
-            except Exception:
-                gpio = False
-            for d in ("laser_red", "laser_green", "led_white", "photocell"):
-                self._status[d] = {"connected": gpio,
-                                   "status": "GPIO REDO" if gpio else "GPIO EJ REDO"}
+            # fält-IO via gpio_io (riktiga pin-setup:er, släcker alltid vid close)
+            gpio_map = {"laser_red": getattr(self._scanner, "laser_red", None),
+                        "laser_green": getattr(self._scanner, "laser_green", None),
+                        "led_white": getattr(self._scanner, "led_white", None),
+                        "photocell": getattr(self._scanner, "photocell", None)}
+            for d, dev in gpio_map.items():
+                if dev is None:
+                    self._status[d] = {"connected": False, "status": "SAKNAS I HAL"}
+                    continue
+                try:
+                    dev.open()
+                    st = dev.info().interface
+                    if d == "photocell":
+                        st += " · " + ("BRÄDA VID ANHÅLL" if dev.read() else "ingen bräda")
+                    self._status[d] = {"connected": True, "status": st}
+                except Exception as exc:
+                    self._status[d] = {"connected": False,
+                                       "status": f"GPIO EJ REDO · {str(exc)[:40]}"}
             self._status["jetson"] = {"connected": True, "status": "DENNA NOD"}
             self._status["rig"] = {"connected": all(s["connected"] for k, s in self._status.items()
                                                     if k in hal_map),
