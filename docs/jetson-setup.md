@@ -17,7 +17,7 @@ låsta till en enda SDK.
 | Kamera | Standard | Drivs på Jetson via |
 |---|---|---|
 | **Profilkameror** Hikrobot MV-CS050-10UM (×2, USB3) | USB3 Vision + GenICam | **Hikrobot MVS SDK — aarch64 `.deb`** (libs i `/opt/MVS/lib/aarch64`) |
-| **Ytkamera** Huateng 4K färg (GigE) | GigE Vision V1.2 + GenICam | vendor-SDK (Linux) **eller Aravis** |
+| **Linjekamera** HT-GELM44C-T2 4K färg (GigE) | GigE Vision V1.2 + GenICam | vendor-SDK (Linux) **eller Aravis**; encoder-triggad |
 
 - **Universal reserv:** [Aravis](https://github.com/AravisProject/aravis) (open source)
   driver **både** GigE Vision och USB3 Vision på aarch64 — bekräftat på Orin Nano
@@ -58,19 +58,25 @@ sudo ip link set eth0 mtu 9000
 
 ## 3. Enhetskarta — vad kopplas var
 
+> **Enhetskartan nedan är uppdaterad till LÅST hårdvara.** Punktlasrar (LR400) och
+> Jrk G2 är utgångna. Tjocklek/kant kommer ur profilkamerornas lasertriangulering;
+> banden styrs av en RoboClaw 2x7A. Se `docs/jetson-prep-plan.md` för full plan.
+
 | Enhet | Jetson-port | Not |
 |---|---|---|
-| Profilkamera RÖD | USB3 #1 | ~307 MB/s (ROI) |
-| Profilkamera GRÖN | USB3 #2 | egen kontroller om möjligt |
-| Ytkamera 4K färg | GbE (RJ45) | GigE direkt, ingen switch |
-| 3× punktlaser LR400 | USB (Waveshare USB→4CH RS-485) | **1 LR400/kanal** → samtidig avläsning, ingen Modbus-adressering |
-| 2× Jrk G2 (motorer) | I²C (el. USB/UART) | motorns Hall → Jrk frekvens-FB |
-| Röd/grön laser-enable | GPIO (MOSFET) | röd 5 V, grön 24 V |
-| Ingångslaser (fotocell) | GPIO | brädstart + nollning |
-| Vitt LED-ljus (yta) | GPIO/flash-ut | färg i 1 pass |
+| Profilkamera RÖD (MV-CS050-10UM + FS03-BP650) | USB3 #1 | ~307 MB/s (ROI), egen kontroller |
+| Profilkamera GRÖN (MV-CS050-10UM + FS03-BP525) | USB3 #2 | egen kontroller om möjligt |
+| Linjekamera HT-GELM44C-T2 (4K färg) | GbE (RJ45) | GigE direkt, **encoder-triggad** (band B) |
+| **RoboClaw 2x7A** (2 motorer) | **1× USB** (`/dev/ttyACM*`) | dubbelkanal, sluten slinga, quadrature; läser position |
+| Encoder A (E6B2-CWZ6C) | → RoboClaw EN1 | **ej till Jetson** |
+| Encoder B (E6B2-CWZ1X, RS-422) | → linjekamera Line0 + 26C32→EN2 | **ej till Jetson** (hårdvarutrigg) |
+| Röd/grön laser-enable | GPIO (MOSFET) | röd 5 V (D4184/AO3400), grön 24 V (AOD4184 opto) |
+| Anslagsfotocell (LSZ-S30N1) | GPIO in | brädstart + nollning |
+| Vitt LED-ljus (yta) | GPIO (MOSFET) | färg i 1 pass |
 | NVMe SSD | M.2 Key-M | OS + dataset + modeller |
 
-**Ingen analog in behövs** — LR400 ger avstånd digitalt via RS-485 (ingen ADC/MCP3008).
+**Jetsonen läser ingen encoder direkt** — encodrarna går till RoboClaw + linjekamerans
+hårdvarutrigg; matningsposition hämtas från RoboClaw över USB.
 
 ---
 

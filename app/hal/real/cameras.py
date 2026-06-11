@@ -90,7 +90,8 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         self._rows: list = []        # ackumulerade rad-skanningar (en bräda)
 
     def info(self) -> DeviceInfo:
-        return DeviceInfo("Ytkamera 4K färg", "Huateng 4096×4 TDI", "GigE Vision", self._connected)
+        return DeviceInfo("Ytkamera 4K färg (linjekamera)", "HT-GELM44C-T2 (4096 px, encoder-trig)",
+                          "GigE Vision", self._connected)
 
     def open(self) -> None:
         h = _harvester()

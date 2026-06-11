@@ -1,5 +1,10 @@
-"""Transportör via Pololu Jrk G2 (USB seriell kommando-gränssnitt).
+"""DEPRECATED — ersatt av RoboClaw 2x7A (se roboclaw_conveyor.py).
 
+Behålls endast som referens. Designen är låst till **RoboClaw 2x7A** (dubbelkanal,
+sluten slinga, ett USB) — RealScanner bygger inte längre denna. Se
+docs/jetson-prep-plan.md §4.
+
+Transportör via Pololu Jrk G2 (USB seriell kommando-gränssnitt).
 Jrk G2 styrs med dess binära kommandon (Set Target 0xC0..). Hastighet (mm/s) →
 mål via en kalibrerad skala. Feedback/position läses ur 'Scaled Feedback'.
 pyserial importeras lazy.

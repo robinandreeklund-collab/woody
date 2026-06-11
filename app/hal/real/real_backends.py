@@ -1,8 +1,11 @@
-"""RealScanner — verklig hårdvara via HAL-gränssnitten.
+"""RealScanner — verklig hårdvara via HAL-gränssnitten (LÅST hårdvara).
 
-Knyter ihop profilkamerorna (GenICam), ytkameran (GenICam/GigE), punktlasrarna
-(LR400/Modbus) och transportören (Jrk G2). open() ansluter varje enhet och
-rapporterar status utan att krascha om en SDK/enhet saknas (bring-up i Fas 4).
+Knyter ihop profilkamerorna (Hikrobot MV-CS050-10UM, GenICam/USB3), linjekameran
+(HT-GELM44C-T2, GenICam/GigE) och transportören (**RoboClaw 2x7A**, USB packet
+serial). Tjocklek/kant kommer ur profilkamerornas LASERTRIANGULERING — de tidigare
+LR400-punktlasrarna är UTGÅNGNA ur designen (``point_lasers`` lämnas tom; se
+docs/jetson-prep-plan.md §4). open() ansluter varje enhet och rapporterar status
+utan att krascha om en SDK/enhet saknas (bring-up i Fas C).
 
 Behandlingspipelinen är densamma som i sim — den läser via dessa gränssnitt.
 Det som återstår för full drift är encoder-triggad radackumulering → bräd-bild
@@ -11,10 +14,8 @@ Det som återstår för full drift är encoder-triggad radackumulering → bräd
 from __future__ import annotations
 
 from ..base import Scanner
-from ...geometry import RIG
 from .cameras import GenICamProfileCamera, GenICamSurfaceCamera
-from .lr400_modbus import LR400ModbusLaser
-from .jrk_conveyor import JrkConveyor
+from .roboclaw_conveyor import RoboClawConveyor
 
 
 class RealScanner(Scanner):
@@ -22,9 +23,9 @@ class RealScanner(Scanner):
         self.profile_red = GenICamProfileCamera("red")
         self.profile_green = GenICamProfileCamera("green")
         self.surface = GenICamSurfaceCamera()
-        self.point_lasers = [LR400ModbusLaser(i, x, unit=i + 1)
-                             for i, x in enumerate(RIG.point_lasers_x_mm)]
-        self.conveyor = JrkConveyor()
+        # tjocklek/kant fås ur profilkamerornas triangulering — inga punktlasrar
+        self.point_lasers = []
+        self.conveyor = RoboClawConveyor()
         self._board = None
 
     def open(self) -> None:
