@@ -18,9 +18,10 @@ from ..persistence.store import BoardStore
 
 
 def test_geometry():
-    assert RIG.tri_angle_deg == 20.0
-    assert RIG.oblique_deg == 30.0
-    assert abs(RIG.baseline_mm - 247) < 2
+    assert RIG.tri_angle_deg == 25.0
+    assert RIG.oblique_deg == 37.5
+    assert abs(RIG.baseline_mm - 329) < 2
+    assert RIG.work_distance_mm == 760.0
     assert abs(RIG.board_aspect - 500 / 75) < 1e-6
     assert RIG.board_thick_mm == 20.0
 
@@ -28,8 +29,9 @@ def test_geometry():
 def test_grade_clean_vs_reject():
     a = grade_board([], (0.5, 0.3, 0.2))
     assert a.cls == "A" and a.score >= 85
-    bad = [{"type": "rot", "r": 30}, {"type": "rot", "r": 30},
-           {"type": "wane", "r": 100, "depth": 10}, {"type": "crack", "len": 120, "r": 60}]
+    # grov röta (area ≫ D-gränsen) + djup vankant + lång spricka → vrak
+    bad = [{"type": "rot", "r": 60}, {"type": "rot", "r": 60},
+           {"type": "wane", "r": 100, "depth": 18}, {"type": "crack", "len": 450, "r": 225}]
     v = grade_board(bad, (3, 3, 3))
     assert v.cls == "V" and v.score < a.score
 

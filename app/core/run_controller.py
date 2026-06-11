@@ -166,7 +166,7 @@ class AppController(QObject):
         s.gap_t = 0.0
         s.board_count += 1
         b = self._scanner.board()
-        self._grade = grade_board(s.detected, b.warp if b else (0, 0, 0))
+        self._grade = grade_board(s.detected, b.warp_metrics() if b else {})
         s.load_target = 22 + 10 * random.random()
         # ytdetektion ur färgbilden (äkta CV) — för logg/jämförelse mot facit
         try:
@@ -329,6 +329,12 @@ class AppController(QObject):
 
     @Property(str, notify=stateChanged)
     def gradeReason(self): return " · ".join(self._grade.reasons) if self._grade else "—"
+
+    @Property(str, notify=stateChanged)
+    def gradeGoverning(self): return self._grade.governing if self._grade else ""
+
+    @Property("QVariantMap", notify=stateChanged)
+    def gradeBreakdown(self): return self._grade.breakdown if self._grade else {}
 
     @Property(str, constant=True)
     def modeText(self): return self._cfg.mode.upper()
