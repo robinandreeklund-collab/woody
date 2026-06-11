@@ -93,9 +93,9 @@ ApplicationWindow {
             currentIndex: navIndex
             DashboardView {}
             AnalysisView {}
-            SensorsView {}
+            SensorsView { onCalibrate: function(devId) { navIndex = 4; calibView.select(devId) } }
             LogView {}
-            CalibrationView {}
+            CalibrationView { id: calibView }
         }
 
         // ---------------------------------------------------------- FOOTER

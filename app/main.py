@@ -86,6 +86,9 @@ def main(argv=None) -> int:
         except Exception as exc:
             print("persistens av:", exc)
     engine.rootContext().setContextProperty("ctrl", controller)
+    from .core.devices import DeviceManager
+    devmgr = DeviceManager(cfg, scanner=controller._scanner)
+    engine.rootContext().setContextProperty("devmgr", devmgr)
     engine.rootContext().setContextProperty("startFullscreen", cfg.fullscreen)
 
     qml = Path(__file__).parent / "ui" / "qml" / "Main.qml"
