@@ -1,13 +1,10 @@
-"""DEPRECATED — punktlasrar utgångna ur designen.
+"""3× punktlaser LR400 över RS-485 (Modbus RTU) via Waveshare USB→4CH.
 
-Tjocklek/kant fås nu ur PROFILKAMERORNAS lasertriangulering (Hikrobot + linjelaser),
-inte LR400-punktlasrar. RealScanner bygger inte längre denna. Behålls som referens.
-Se docs/jetson-prep-plan.md §4.
-
-LR400 punktlaser över RS-485 (Modbus RTU) via Waveshare USB→4CH.
-Varje LR400 läses som ett holding-register (avstånd i 0,01 mm). Tjocklek =
-referensavstånd − uppmätt avstånd (sätts vid nollning, se kalibrering). SDK:t
-(pymodbus) importeras lazy så att appen startar utan biblioteket installerat.
+Enligt prototype-wiring.svg (Fas 2): ch1–3 = 3× LR400, ch4 = reserv. Varje LR400
+läses som ett holding-register (avstånd i 0,01 mm). Tjocklek = referensavstånd −
+uppmätt avstånd (sätts vid nollning mot tomt band, se kalibrering). Punktlasrarna
+ger ABSOLUT tjocklek och ankrar trianguleringens globala offset/tilt
+(fusion.anchor). SDK:t (pymodbus) importeras lazy så appen startar utan biblioteket.
 """
 from __future__ import annotations
 

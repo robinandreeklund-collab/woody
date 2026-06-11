@@ -72,6 +72,17 @@ class DeviceManager(QObject):
                 except Exception as exc:
                     self._status[dev_id] = {"connected": False,
                                             "status": f"EJ ANSLUTEN · {str(exc)[:60]}"}
+            # 3× LR400 över RS-485 (Waveshare 4CH) — ansluten om någon kanal svarar
+            pls = getattr(self._scanner, "point_lasers", []) or []
+            n_ok = 0
+            for pl in pls:
+                try:
+                    pl.open(); n_ok += 1
+                except Exception:
+                    pass
+            self._status["lr400"] = {"connected": n_ok > 0,
+                                     "status": f"{n_ok}/{len(pls)} kanaler · RS-485" if pls
+                                               else "EJ ANSLUTEN"}
             # enheter utan egen buss: status via sina värdar
             conv_ok = self._status["conveyor"]["connected"]
             surf_ok = self._status["surface"]["connected"]

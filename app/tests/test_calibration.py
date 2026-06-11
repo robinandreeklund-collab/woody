@@ -24,9 +24,13 @@ def test_catalog_and_registry_consistent():
             for label, dur in m["steps"]:
                 assert isinstance(label, str) and dur > 0
     # nyckelEnheter har metoder förberedda
-    for must in ("prof_red", "prof_green", "surface", "conveyor", "rig",
+    for must in ("prof_red", "prof_green", "surface", "lr400", "conveyor", "rig",
                  "laser_red", "laser_green", "photocell"):
         assert methods_for(must), f"{must} saknar kalibreringsmetoder"
+    # 3× LR400 finns i katalogen och har nollning + ankrings-verifiering
+    assert "lr400" in {d[0] for d in DEVICE_CATALOG}
+    lr_ids = {m["id"] for m in methods_for("lr400")}
+    assert {"zero_d0", "anchor"}.issubset(lr_ids)
 
 
 def test_store_roundtrip():

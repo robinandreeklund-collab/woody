@@ -24,6 +24,7 @@ DEVICE_CATALOG = [
     ("prof_red",   "Profilkamera RÖD 650",  "Hikrobot MV-CS050-10UM · BP650",  "USB3 Vision",          "camera"),
     ("prof_green", "Profilkamera GRÖN 520", "Hikrobot MV-CS050-10UM · BP525",  "USB3 Vision",          "camera"),
     ("surface",    "Ytkamera 4K linjekamera", "HT-GELM44C-T2 · färg 4096 px",  "GigE Vision",          "camera"),
+    ("lr400",      "3× Punktlaser LR400",   "LR400 · CMOS-triangulering",      "RS-485 Modbus · Waveshare 4CH", "pointlaser"),
     ("conveyor",   "Transportör · 2 band",  "RoboClaw 2x7A · sluten slinga",   "USB packet serial",    "motion"),
     ("enc_a",      "Encoder band A",        "Omron E6B2-CWZ6C · 1000 ppr",     "→ RoboClaw EN1",       "encoder"),
     ("enc_b",      "Encoder band B",        "Omron E6B2-CWZ1X · RS-422",       "→ Linjekamera Line0 + EN2", "encoder"),
@@ -97,6 +98,27 @@ CALIB_METHODS: dict[str, list] = {
          "steps": [("Slanted-edge-mönster", 1.0), ("Mät MTF i 9 zoner", 1.5), ("Justera + mät om", 2.0)],
          "sim": {"MTF50 centrum": "0,31 cy/px", "kant": "0,27 cy/px"}},
     ],
+    "lr400": [
+        {"id": "zero_d0", "title": "Nollning mot tomt band (D0)",
+         "desc": "Skanna tomt band → sätt referensavstånd per kanal (ch1–3) så att "
+                 "tom-band = 0. Tjocklek = D0 − uppmätt avstånd. Absolut-ankarets bas.",
+         "steps": [("Töm bandet", 0.5), ("Medla 100 mätningar/kanal", 2.0),
+                   ("Spara D0 per kanal", 0.5)],
+         "sim": {"D0 ch1/2/3": "100,2 / 99,8 / 100,1 mm", "brus": "8 µm RMS"}},
+        {"id": "linearity", "title": "Linjäritet & skala",
+         "desc": "Mät referenstrappa (5/10/15/20 mm) på varje kanal → verifiera "
+                 "linjäritet och skala över mätområdet 60–400 mm.",
+         "steps": [("Placera referenstrappa", 1.0), ("Mät alla steg × 3 kanaler", 2.5),
+                   ("Anpassa linje, residual", 1.0)],
+         "sim": {"linjäritet": "0,06 % FS", "skalfel": "0,03 %"}},
+        {"id": "anchor", "title": "Ankrings-verifiering mot triangulering",
+         "desc": "Jämför LR400:s absoluta tjocklek mot profilkamerornas fusion → "
+                 "global offset/tilt-korrektion (fusion.anchor). Detta är punktlasrarnas "
+                 "syfte: pinna trianguleringens absolutnivå.",
+         "steps": [("Skanna referensbräda", 2.0), ("Jämför LR vs triangulering", 1.0),
+                   ("Beräkna offset/tilt", 0.5), ("Skriv korrektion", 0.5)],
+         "sim": {"offset": "0,07 mm", "tilt": "0,03°", "residual": "22 µm"}},
+    ],
     "conveyor": [
         {"id": "countsmm", "title": "Counts/mm (encoder-skala)",
          "desc": "Kör band känd sträcka (anslag→anslag, fotocell) → encoder-counts "
@@ -154,9 +176,11 @@ CALIB_METHODS: dict[str, list] = {
     ],
     "photocell": [
         {"id": "trigger", "title": "Trigg-test & latens",
-         "desc": "Bryt strålen med referensbräda → verifiera flank, latens och "
-                 "repeterbarhet för brädstart-nollning.",
-         "steps": [("Bryt stråle 10×", 2.0), ("Mät flanklatens", 1.0), ("Verifiera repeterbarhet", 0.5)],
+         "desc": "Detekterar att en bräda laddats vid anhållet → startar skanning + "
+                 "nollar position (home). Bryt strålen → verifiera flank, latens och "
+                 "repeterbarhet.",
+         "steps": [("Ladda bräda mot anhåll 10×", 2.0), ("Mät flanklatens", 1.0),
+                   ("Verifiera repeterbarhet", 0.5)],
          "sim": {"latens": "0,9 ms", "repeterbarhet": "±0,15 mm @ 60 mm/s"}},
     ],
     "led_white": [

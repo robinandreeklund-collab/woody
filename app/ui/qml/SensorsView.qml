@@ -72,6 +72,18 @@ Flickable {
             spec: [["Typ","inkrementell 1000 ppr"],["Utgång","RS-422 differentiell"],["Roll","kameratrigg + EN2"]]
             live: [["Triggade rader",ctrl.telemetry.surfRows]]
         }
+        // --- punktlasrar (RS-485 Modbus, Waveshare 4CH) ---
+        SCard {
+            devId: "lr400"
+            sName: "3× Punktlaser LR400"; sModel: "LR400 · CMOS-triangulering"; sIface: "RS-485 · 4CH ch1-3"
+            tag: "Fas 2 · absolut tjocklek → ankrar trianguleringen (fusion.anchor) · ch4 reserv"
+            spec: [["Mätområde","60–400 mm"],["Upplösning","8 µm"],["Protokoll","Modbus RTU"],
+                   ["Positioner","x = "+ctrl.lrPositions.join(" / ")+" mm"]]
+            live: [["Tjocklek V",(ctrl.lrThickness[0]!==undefined?ctrl.lrThickness[0].toFixed(2):"--")+" mm"],
+                   ["Tjocklek C",(ctrl.lrThickness[1]!==undefined?ctrl.lrThickness[1].toFixed(2):"--")+" mm"],
+                   ["Tjocklek H",(ctrl.lrThickness[2]!==undefined?ctrl.lrThickness[2].toFixed(2):"--")+" mm"],
+                   ["Sampeltakt",ctrl.running?"~640 Hz":"0 Hz"]]
+        }
         // --- lasrar + LED + fotocell ---
         SCard {
             devId: "laser_red"

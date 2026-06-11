@@ -58,25 +58,28 @@ sudo ip link set eth0 mtu 9000
 
 ## 3. Enhetskarta — vad kopplas var
 
-> **Enhetskartan nedan är uppdaterad till LÅST hårdvara.** Punktlasrar (LR400) och
-> Jrk G2 är utgångna. Tjocklek/kant kommer ur profilkamerornas lasertriangulering;
-> banden styrs av en RoboClaw 2x7A. Se `docs/jetson-prep-plan.md` för full plan.
+> **Enhetskartan nedan följer prototype-wiring.svg.** Jrk G2 är ersatt av RoboClaw 2x7A.
+> Punktlasrarna LR400 (Fas 2) FINNS kvar: de ger absolut tjocklek och ankrar
+> trianguleringen (fusion.anchor). Se `docs/jetson-prep-plan.md` för full plan.
 
 | Enhet | Jetson-port | Not |
 |---|---|---|
 | Profilkamera RÖD (MV-CS050-10UM + FS03-BP650) | USB3 #1 | ~307 MB/s (ROI), egen kontroller |
 | Profilkamera GRÖN (MV-CS050-10UM + FS03-BP525) | USB3 #2 | egen kontroller om möjligt |
 | Linjekamera HT-GELM44C-T2 (4K färg) | GbE (RJ45) | GigE direkt, **encoder-triggad** (band B) |
+| **3× punktlaser LR400** | **USB → RS-485 4CH** (Waveshare) | Modbus RTU, **ch1–3** (ch4 reserv); absolut tjocklek-ankare |
 | **RoboClaw 2x7A** (2 motorer) | **1× USB** (`/dev/ttyACM*`) | dubbelkanal, sluten slinga, quadrature; läser position |
 | Encoder A (E6B2-CWZ6C) | → RoboClaw EN1 | **ej till Jetson** |
 | Encoder B (E6B2-CWZ1X, RS-422) | → linjekamera Line0 + 26C32→EN2 | **ej till Jetson** (hårdvarutrigg) |
 | Röd/grön laser-enable | GPIO (MOSFET) | röd 5 V (D4184/AO3400), grön 24 V (AOD4184 opto) |
-| Anslagsfotocell (LSZ-S30N1) | GPIO in | brädstart + nollning |
+| Anslagsfotocell (LSZ-S30N1) | GPIO in | detektion vid brädladdning + nollning/home |
 | Vitt LED-ljus (yta) | GPIO (MOSFET) | färg i 1 pass |
 | NVMe SSD | M.2 Key-M | OS + dataset + modeller |
 
-**Jetsonen läser ingen encoder direkt** — encodrarna går till RoboClaw + linjekamerans
-hårdvarutrigg; matningsposition hämtas från RoboClaw över USB.
+**USB-budget (4× USB3):** RÖD-kam + GRÖN-kam + RS-485 4CH (LR400) + RoboClaw — full,
+ingen hubb. **Jetsonen läser ingen encoder direkt** — encodrarna går till RoboClaw +
+linjekamerans hårdvarutrigg; matningsposition hämtas från RoboClaw över USB.
+**Ingen ADC behövs** — LR400 ger avstånd digitalt över RS-485.
 
 ---
 

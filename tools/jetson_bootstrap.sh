@@ -54,6 +54,7 @@ PY_PKGS=(
   PySide6
   harvesters            # GenICam-API (appens cameras.py)
   pyserial              # RoboClaw packet serial
+  pymodbus              # 3× LR400 över RS-485 (Waveshare 4CH)
 )
 python -m pip install "${PY_PKGS[@]}" || warn "några python-paket föll bort — se ovan"
 

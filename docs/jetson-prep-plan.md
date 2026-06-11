@@ -40,6 +40,7 @@ Resultat av NU-kolumnen: när en enhet pluggas in säger `jetson_selftest.py` di
 | Profillins ×2 | **MVL-MF1228M-8MP** (12 mm, C-mount) | — | — |
 | Ytkamera (färg, 4K) | **HT-GELM44C-T2** linjekamera (GigE, 4096 px, färg) | GbE (RJ45, direkt) | **Aravis / vendor-SDK (GenICam)**, **encoder-triggad** |
 | Ytlins | **ZLKC TM2004MPC** (f=20, M42) | — | — |
+| 3× punktlaser LR400 (Fas 2, absolut tjocklek-ankare) | **LR400** CMOS-triangulering | **USB → RS-485 4CH** (Waveshare), ch1–3 | **pymodbus** (Modbus RTU), vår `lr400_modbus.py` |
 | Bandstyrning (2 motorer) | **RoboClaw 2x7A** (dubbelkanal, sluten slinga, quadrature) | **1× USB** (`/dev/ttyACM*`, packet serial) | **pyserial** + RoboClaw-protokoll (vår `roboclaw_conveyor.py`) |
 | Encoder band A | Omron **E6B2-CWZ6C** (single-ended) → RoboClaw EN1 | (ej till Jetson) | — |
 | Encoder band B | Omron **E6B2-CWZ1X** (RS-422) → linjekamera Line0 + 26C32→EN2 | (ej till Jetson) | hårdvarutrigg |
@@ -54,9 +55,9 @@ Resultat av NU-kolumnen: när en enhet pluggas in säger `jetson_selftest.py` di
 matningsposition från **RoboClaw över USB**. Profilkamerorna är USB3 och triggas/
 fri-körs av appen med positionsstämpel — ingen encoderkabel till Jetson.
 
-**Jetsonens enda fysiska länkar:** 2× USB3 (profilkameror, skilda kontroller),
-1× GbE (linjekamera), 1× USB (RoboClaw), GPIO 40-pin (2 laser-enable + LED + fotocell),
-M.2 (SSD). Inget annat.
+**Jetsonens fysiska länkar (4× USB3 fulla):** profilkamera RÖD + GRÖN (USB3, skilda
+kontroller), RS-485 4CH (LR400 ch1–3), RoboClaw (USB packet serial); 1× GbE
+(linjekamera); GPIO 40-pin (2 laser-enable + LED + fotocell); M.2 (SSD).
 
 ---
 
@@ -77,8 +78,9 @@ M.2 (SSD). Inget annat.
 
 ### 2.3 Styr-/IO-bibliotek
 - **pyserial** → RoboClaw packet serial (`/dev/ttyACM*`).
+- **pymodbus** → 3× LR400 över RS-485 (Waveshare USB→4CH, ch1–3).
 - **Jetson.GPIO** → laser-enable, LED, fotocell-in (40-pin header).
-- (LR400/Modbus och Jrk G2 är **utgångna** ur designen — se §4.)
+- (Endast Jrk G2 är utgången — ersatt av RoboClaw. LR400 finns kvar, Fas 2.)
 
 ### 2.4 Beräkning
 - **numpy/scipy/opencv** (CPU-referens), **PySide6/Qt** (GUI).
@@ -97,28 +99,29 @@ M.2 (SSD). Inget annat.
 - GenICam-kameror via Harvester (`app/hal/real/cameras.py`) — profilkamera + linjekamera.
 - Verktyg: `verify_jetson_io.py`, `verify_optics.py`, `verify_geometry.py`.
 
-**Stale / behöver uppdateras till låst hårdvara (åtgärdas i denna runda, §4):**
-- `app/hal/real/lr400_modbus.py` — punktlasrar (utgångna).
-- `app/hal/real/jrk_conveyor.py` — Jrk G2 (ersatt av RoboClaw).
-- `app/hal/real/real_backends.py` — bygger fortfarande LR400 + Jrk.
-- `docs/jetson-setup.md §3` enhetskarta — listar LR400/Jrk.
+**Anpassat till prototype-wiring.svg (denna runda, §4):**
+- `app/hal/real/jrk_conveyor.py` — Jrk G2 (ersatt av RoboClaw, DEPRECATED).
+- `app/hal/real/roboclaw_conveyor.py` — RoboClaw 2x7A (ny).
+- `app/hal/real/lr400_modbus.py` — 3× LR400 RS-485 Modbus (Fas 2, kvar).
+- `app/hal/real/real_backends.py` — RoboClaw + 3× LR400 + kameror.
 
 ---
 
-## 4. Real-HAL anpassad till låst hårdvara (görs nu)
+## 4. Real-HAL enligt prototype-wiring.svg (görs nu)
 
 1. **`roboclaw_conveyor.py` (ny):** RoboClaw 2x7A över packet serial (adress 0x80).
    - `set_speed(mm/s)` → DutyM1/M1M2 eller SpeedM1M2 (closed-loop).
    - `position_mm()` ← `ReadEncM1` × counts/mm (kalibreras).
    - Två kanaler (synkade band) via M1M2-kommandon.
-2. **`real_backends.py`:** byter `JrkConveyor` → `RoboClawConveyor`; `point_lasers = []`
-   (tjocklek kommer nu ur profilkamerornas triangulering, inte LR400).
+2. **`real_backends.py`:** RoboClaw + **3× LR400** (RS-485 Modbus, Waveshare 4CH ch1–3).
+   Punktlasrarna ger absolut tjocklek och ankrar trianguleringen (`fusion.anchor`) —
+   de kompletterar profilkamerorna, ersätts inte.
 3. **`cameras.py` linjekamera:** behåll GenICam, lägg encoder-/linjetrigg-noter +
    rätt modellnamn (HT-GELM44C-T2).
-4. **Behåll interface i `base.py`** (sim använder `point_lasers` för att sampla
-   tjocklek; real lämnar listan tom). Inget i sim-vägen ändras → inga regressioner.
-5. `lr400_modbus.py`/`jrk_conveyor.py` markeras **DEPRECATED** (lämnas kvar för ev.
-   referens men byggs inte längre av RealScanner).
+4. **`base.py`/sim oförändrat** — sim och real exponerar båda `point_lasers`
+   (3 st). Inga regressioner i sim-vägen.
+5. Endast `jrk_conveyor.py` markeras **DEPRECATED** (ersatt av RoboClaw).
+   `lr400_modbus.py` är aktiv (Fas 2).
 
 ---
 
@@ -168,9 +171,11 @@ För varje enhet: koppla in → `python tools/jetson_selftest.py` → ska visa "
 2. **Profilkameror** (USB3, var för sig): MVS/Aravis hittar serienr, live-bild, sätt
    exponering, kontrollera bandpass (bara laserlinjen syns).
 3. **Linjekamera** (GbE): jumbo frames + subnät, live, sen **encoder-triggad** radskanning.
-4. **Lasrar + LED** (GPIO): enable on/off, **laser-säkerhet** (rum låst, dörrinterlock,
+4. **3× LR400** (RS-485): `pymodbus` ser ch1–3 på Waveshare 4CH; nolla mot tomt band
+   (D0) → absolut tjocklek-ankare (kalibrering `lr400.zero_d0`).
+5. **Lasrar + LED** (GPIO): enable on/off, **laser-säkerhet** (rum låst, dörrinterlock,
    glasögon HM326-C) innan ström på.
-5. **Fotocell** (GPIO in): bräda bryter stråle → brädstart-event.
+6. **Fotocell** (GPIO in): bräda laddas vid anhåll → brädstart-event + nollning.
 
 ### Fas D — Kalibrering & skarp drift (NÄR allt är inkopplat)
 - Geometri-/nollkalibrering mot referensbräda (`docs/zero-reference.md`,
@@ -191,7 +196,7 @@ För varje enhet: koppla in → `python tools/jetson_selftest.py` → ska visa "
 - [ ] `verify_jetson_io.py` + `verify_optics.py` gröna
 - [ ] CUDA-stripe-extraktion profilerad @ ≥60 fps på syntetiska ramar
 - [ ] udev-regler + usbfs_memory_mb=1000 permanent
-- [ ] Real-HAL bygger RoboClaw + profilkameror + linjekamera (inga LR400/Jrk)
+- [ ] Real-HAL bygger RoboClaw + profilkameror + linjekamera + 3× LR400 (RS-485)
 - [ ] `jetson_selftest.py` kör (rapporterar "ej ansluten" snyggt utan hårdvara)
 
 När alla rutor är i: **inkoppling = plug-in + självtest + kalibrera.**
