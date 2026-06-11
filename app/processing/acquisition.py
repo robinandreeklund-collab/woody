@@ -1,0 +1,154 @@
+"""Trådad förvärvspipeline — encoder-triggad radackumulering → färdig bräda.
+
+Detta är REAL-LÄGETS körtidsmotor (regel 2 i docs/jetson-setup.md §4 / Fas C i
+jetson-prep-plan): medan brädan matas läser en CAPTURE-tråd råa laserstripe-rader
+(röd + grön profilkamera) + en färgrad (linjekameran) per matningsposition och
+lägger i en buffrad kö. En PROCESS-konsument kör GPU-stripe-extraktion →
+triangulering → fusion per rad och bygger upp höjdkartan. Stegen ÖVERLAPPAR
+(kamera ∥ GPU), vilket är det som ger keep-up.
+
+Samma kod kör mot sim- och real-HAL (läser bara via HAL-gränssnitten). Resultatet
+är en ``Board`` (board_gen) → ``warp_metrics()``, ``detect_defects`` och
+``grade_board`` fungerar oförändrat. Drivs av en positionskälla (sim: stegad
+matning; real: RoboClaw-position / fotocell).
+"""
+from __future__ import annotations
+
+import queue
+import threading
+import time
+from dataclasses import dataclass, field
+
+import numpy as np
+
+from ..geometry import RIG
+from ..hal.sim.board_gen import Board
+from .fusion import fuse, anchor
+from .stripe_gpu import StripeExtractor
+from .surface import detect_defects
+from .triangulate import centroid_to_z
+
+
+@dataclass
+class ScanStats:
+    rows: int = 0
+    wall_s: float = 0.0
+    capture_s: float = 0.0
+    process_s: float = 0.0
+    max_queue: int = 0
+    dropped: int = 0
+
+    @property
+    def rows_per_s(self) -> float:
+        return self.rows / self.wall_s if self.wall_s else 0.0
+
+    @property
+    def overlap(self) -> float:
+        """1.0 = perfekt överlapp (wall ≈ max(capture,process)); >1 = seriellt."""
+        denom = max(self.capture_s, self.process_s)
+        return (self.wall_s / denom) if denom else 0.0
+
+
+def _surface_line(scanner, y_mm: float, width_mm: float, cols: int) -> np.ndarray:
+    """En färgrad (RGB, cols) från linjekameran (real) eller ur ytbilden (sim)."""
+    cam = scanner.surface
+    grab = getattr(cam, "grab_line", None)
+    if grab is not None:
+        try:
+            line = np.asarray(grab())
+            if line.ndim == 2 and line.shape[1] == 3:
+                idx = np.linspace(0, line.shape[0] - 1, cols).astype(int)
+                return line[idx].astype(np.uint8)
+        except Exception:
+            pass
+    img = cam.surface_image()
+    if img is None or img.size == 0:
+        return np.full((cols, 3), 160, np.uint8)
+    h, w = img.shape[:2]
+    ry = int(np.clip(y_mm / max(1e-6, width_mm) * (h - 1), 0, h - 1))
+    xs = np.linspace(0, w - 1, cols).astype(int)
+    return img[ry, xs].astype(np.uint8)
+
+
+class AcquisitionPipeline:
+    """Producent (capture) ∥ konsument (GPU-process) → assemblerad Board."""
+
+    def __init__(self, scanner, cols: int = 200, queue_size: int = 8,
+                 lr_positions=None):
+        self.scanner = scanner
+        self.cols = cols
+        self._q: queue.Queue = queue.Queue(maxsize=queue_size)
+        self._extractor = StripeExtractor()
+        self._extractor.warmup(cols=cols)
+        self._lr_pos = list(lr_positions or [])
+
+    # ---------------------------------------------------------------- capture
+    def _capture(self, n_rows: int, width_mm: float, stats: ScanStats, stop: threading.Event):
+        t0 = time.perf_counter()
+        for i in range(n_rows):
+            if stop.is_set():
+                break
+            y = (i / max(1, n_rows - 1)) * width_mm
+            red = self.scanner.profile_red.read_stripe(y, self.cols)
+            green = self.scanner.profile_green.read_stripe(y, self.cols)
+            line = _surface_line(self.scanner, y, width_mm, self.cols)
+            try:
+                self._q.put((i, y, red, green, line), timeout=1.0)
+            except queue.Full:
+                stats.dropped += 1
+            stats.max_queue = max(stats.max_queue, self._q.qsize())
+        stats.capture_s = time.perf_counter() - t0
+        self._q.put(None)            # sentinel: klar
+
+    # ---------------------------------------------------------------- process
+    def scan_board(self, n_rows: int = 150, width_mm: float | None = None,
+                   lr_provider=None):
+        """Kör en hel brädskanning. Returnerar (Board, ScanStats).
+
+        ``lr_provider(y)`` → lista abs.tjocklek för ankring (valfritt; utan
+        punktlasrar i låst hw lämnas den tom och trianguleringen är absolut).
+        """
+        width_mm = RIG.board_width_mm if width_mm is None else width_mm
+        stats = ScanStats(rows=n_rows)
+        stop = threading.Event()
+        zrows = [None] * n_rows
+        crows = [None] * n_rows
+
+        cap = threading.Thread(target=self._capture, args=(n_rows, width_mm, stats, stop),
+                               daemon=True)
+        wall0 = time.perf_counter()
+        cap.start()
+        proc_t = 0.0
+        try:
+            while True:
+                item = self._q.get()
+                if item is None:
+                    break
+                i, y, red, green, line = item
+                t0 = time.perf_counter()
+                cr = self._extractor.process(red)
+                cg = self._extractor.process(green)
+                z = fuse(centroid_to_z(cr), centroid_to_z(cg))
+                if lr_provider is not None and self._lr_pos:
+                    z = anchor(z, lr_provider(y), self._lr_pos)
+                zrows[i] = z
+                crows[i] = line
+                proc_t += time.perf_counter() - t0
+        finally:
+            stop.set()
+            cap.join(timeout=2.0)
+        stats.process_s = proc_t
+        stats.wall_s = time.perf_counter() - wall0
+
+        # assemblera höjdkarta (avvikelse från nominell tjocklek) + färgyta
+        nominal = RIG.board_thick_mm
+        zmap = np.array([(r if r is not None else np.full(self.cols, nominal))
+                         for r in zrows], dtype=np.float32) - nominal
+        surface = np.array([(c if c is not None else np.full((self.cols, 3), 160, np.uint8))
+                            for c in crows], dtype=np.uint8)
+        h, w = zmap.shape
+        board = Board(seed=-1, w=w, h=h, surface=np.ascontiguousarray(surface),
+                      zmap=zmap, defects=detect_defects(surface))
+        wm = board.warp_metrics()
+        board.warp = (wm["bow"], wm["cup"], wm["twist"])
+        return board, stats

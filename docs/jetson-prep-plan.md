@@ -149,6 +149,18 @@ M.2 (SSD). Inget annat.
   matchande JetPacks CUDA på Jetson, kör om profilern och bekräfta GPU-marginalen
   **innan** kamerorna kopplas in.
 
+### Real-lägets körtidsmotor — KLAR att köra (testas mot sim nu)
+`app/processing/acquisition.py` är den trådade förvärvspipelinen (encoder-triggad
+radackumulering → färdig bräda): en **capture-tråd** läser laserstripe-rader (röd +
+grön) + färgrad medan brädan matas, en **process-konsument** kör GPU-stripe →
+triangulering → fusion per rad och bygger höjdkartan. Stegen överlappar (kamera ∥ GPU).
+Samma kod kör mot sim och real — bara HAL byts. Profilera/verifiera utan hårdvara:
+```bash
+python tools/profile_acquisition.py            # rader/s, brädor/min, överlapp, grad
+```
+Mätt på CPU-host: ~450 rader/s, **1.00× överlapp** (GPU helt gömd bakom capture),
+brädor assembleras + graderas. På Jetson-GPU lyfter rad-takten ytterligare.
+
 ### Fas C — Plug-in en enhet i taget (NÄR den kommer)
 För varje enhet: koppla in → `python tools/jetson_selftest.py` → ska visa "ansluten".
 1. **RoboClaw** (USB): självtest hittar `/dev/ttyACM*`, läser firmware/version, jog ±.

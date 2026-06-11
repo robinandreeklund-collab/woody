@@ -61,6 +61,20 @@ def test_stripe_gpu_matches_cpu():
     assert np.nanmax(np.abs(ref[both] - gpu[both])) < 1e-3
 
 
+def test_acquisition_pipeline_assembles_board():
+    # trådad capture∥process → en hel bräda som går att gradera, med rimlig skevhet
+    from ..processing.acquisition import AcquisitionPipeline
+    s = SimScanner(); s.new_board()
+    board, st = AcquisitionPipeline(s, cols=200).scan_board(n_rows=60)
+    assert board.zmap.shape == (60, 200)
+    assert board.surface.shape == (60, 200, 3)
+    assert st.rows == 60 and st.dropped == 0
+    wm = board.warp_metrics()
+    assert all(k in wm for k in ("bow", "cup", "twist"))
+    g = grade_board(board.defects, wm)
+    assert g.cls in ("A", "B", "C", "D", "V")
+
+
 def test_persistence_roundtrip():
     with tempfile.TemporaryDirectory() as d:
         st = BoardStore(Path(d) / "t.db")
