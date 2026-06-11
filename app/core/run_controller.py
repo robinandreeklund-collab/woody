@@ -28,6 +28,7 @@ class AppController(QObject):
     defectsChanged = Signal()         # defektlistan ändrad (ej per frame)
     historyChanged = Signal()         # ny bräda klar → logg uppdaterad
     meshChanged = Signal()            # ny 3D-rekonstruktion klar (bräda färdigskannad)
+    boardDetected = Signal()          # fotocell: bräda laddad (från GPIO-tråd → queued)
 
     def __init__(self, cfg: AppConfig, surface_provider, parent=None):
         super().__init__(parent)
@@ -46,12 +47,28 @@ class AppController(QObject):
         self._right_facet: list = []  # mätt tjocklekfasett höger (grön)
         self._mesh: dict = {}         # senaste 3D-data (live under skanning, full vid klar)
         self._mesh_t: float = 0.0     # senaste mesh-uppdatering (throttling)
+        self._pass_grades: list = []  # grad per pass (multi-pass → kombineras)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
         self._timer.setInterval(16)   # ~60 Hz
         self._timer.timeout.connect(self._tick)
         self._last_ns = None
+
+        # verkligt läge: anhåll-fotocellen laddar ny bräda (queued från GPIO-tråd)
+        self.boardDetected.connect(self._on_board_detected)
+        arm = getattr(self._scanner, "arm_photocell", None)
+        if arm is not None:
+            try:
+                arm(self.boardDetected.emit)
+            except Exception as exc:
+                print("fotocell-arm:", exc)
+
+    @Slot()
+    def _on_board_detected(self):
+        """Bräda detekterad vid anhållet → starta ny cykel (om vi väntar)."""
+        if self._cfg.auto_advance and (not self._s.running or self._s.phase == "reload"):
+            self.nextBoard()
 
     # ---------------------------------------------------------------- livscykel
     def _tick(self):
@@ -66,7 +83,7 @@ class AppController(QObject):
         if s.running:
             s.up_ms += dt * 1000
             if s.phase == "scanning":
-                s.feed_pos_mm += cfg.feed_mm_s * dt
+                s.feed_pos_mm += cfg.feed_mm_s * dt              # framåt-pass
                 self._scanner.conveyor.advance(dt)
                 b = self._scanner.board()
                 if b:
@@ -80,12 +97,15 @@ class AppController(QObject):
                         self.defectsChanged.emit()
                 if s.feed_pos_mm >= BW:
                     s.feed_pos_mm = BW
-                    self._finish_board()
-            elif s.phase == "gap":
-                s.gap_t += dt
-                if s.gap_t > 0.7:
-                    self._new_board() if cfg.auto_advance else self._set_phase("done")
-            cycle = (BW + cfg.gap_mm) / max(1.0, cfg.feed_mm_s) + 0.7
+                    self._finish_pass()
+            elif s.phase == "returning":
+                s.feed_pos_mm -= cfg.feed_mm_s * dt              # backa mot anhåll/fotocell
+                self._scanner.conveyor.advance(dt)
+                if s.feed_pos_mm <= 0:
+                    s.feed_pos_mm = 0.0
+                    self._home_reached()
+            # "reload" = väntar på ny bräda (notis visas); inget rör sig
+            cycle = (2 * BW) / max(1.0, cfg.feed_mm_s) + 0.7     # fram + tillbaka per pass
             s.throughput += (60.0 / cycle - s.throughput) * min(1.0, dt * 2)
 
         s.jetson_load += (s.load_target - s.jetson_load) * min(1.0, dt * 1.5)
@@ -151,24 +171,77 @@ class AppController(QObject):
         self._surface_rev += 1
         self._s.phase = "scanning" if b is not None else "idle"
         self._s.feed_pos_mm = 0.0
+        self._s.pass_count = 0
+        self._s.notify = ""
+        self._pass_grades = []
         self._s.detected = []
         self._grade = None
         self._mesh = {}; self._mesh_t = 0.0
         self.meshChanged.emit()
         self._s.load_target = 58 + 22 * random.random()
+        self._scanner.conveyor.set_speed(self._cfg.feed_mm_s)   # framåt
         self.surfaceChanged.emit()
         self.defectsChanged.emit()
         self.stateChanged.emit()
 
-    def _finish_board(self):
+    # -- en framåt-pass klar: gradera passet, börja backa mot fotocellen --
+    def _finish_pass(self):
         s = self._s
-        s.phase = "gap" if self._cfg.auto_advance else "done"
-        s.gap_t = 0.0
+        s.pass_count += 1
+        b = self._scanner.board()
+        self._pass_grades.append(grade_board(s.detected, b.warp_metrics() if b else {}))
+        self._grade = self._combine_grades()
+        # backa till anhåll/home (fotocellen nollar där)
+        self._scanner.conveyor.set_speed(-self._cfg.feed_mm_s)
+        s.phase = "returning"
+        self.stateChanged.emit()
+
+    # -- åter vid fotocellen: nolla; multi → ny pass på samma bräda, annars klar --
+    def _home_reached(self):
+        s, cfg = self._s, self._cfg
+        self._scanner.conveyor.set_speed(0.0)
+        conv = self._scanner.conveyor
+        if hasattr(conv, "zero"):              # fotocell-home → nollställ encoder/position
+            try:
+                conv.zero()
+            except Exception:
+                pass
+        more = cfg.pass_mode == "multi" and s.pass_count < cfg.passes_target
+        if more:
+            # skanna SAMMA bräda igen (multi-pass medel) — nollställ pass-detektion
+            b = self._scanner.board()
+            if b is not None:
+                for d in b.defects:
+                    d.pop("_seen", None)
+            s.detected = []
+            s.feed_pos_mm = 0.0
+            s.phase = "scanning"
+            self._scanner.conveyor.set_speed(cfg.feed_mm_s)
+            self.defectsChanged.emit()
+            self.stateChanged.emit()
+        else:
+            self._finalize_board()
+
+    def _combine_grades(self):
+        """Brädans grad ur alla pass: sämsta klassen styr, medelpoäng."""
+        gs = self._pass_grades
+        if not gs:
+            return None
+        order = ["A", "B", "C", "D", "V"]
+        worst = max(gs, key=lambda g: order.index(g.cls))
+        if len(gs) > 1:
+            worst.score = round(sum(g.score for g in gs) / len(gs))
+            worst.reasons = worst.reasons + [f"{len(gs)} pass (medel)"]
+        return worst
+
+    # -- bräda färdig (efter sista passet): logga, mesh, notis "ladda ny" --
+    def _finalize_board(self):
+        s = self._s
         s.board_count += 1
         b = self._scanner.board()
-        self._grade = grade_board(s.detected, b.warp_metrics() if b else {})
+        self._grade = self._combine_grades() or grade_board(s.detected,
+                                                            b.warp_metrics() if b else {})
         s.load_target = 22 + 10 * random.random()
-        # ytdetektion ur färgbilden (äkta CV) — för logg/jämförelse mot facit
         try:
             n_vision = len(detect_defects(b.surface)) if b else 0
         except Exception:
@@ -177,11 +250,10 @@ class AppController(QObject):
             "n": s.board_count,
             "cls": self._grade.cls, "title": self._grade.title, "color": self._grade.color,
             "score": self._grade.score, "ndef": len(s.detected), "nvision": n_vision,
-            "time": time.strftime("%H:%M:%S"),
+            "passes": s.pass_count, "time": time.strftime("%H:%M:%S"),
         }
         self._history.insert(0, entry)
         del self._history[200:]
-        # full 3D-rekonstruktion + skevhet av den färdigskannade brädan
         if b is not None:
             self._mesh = self._build_mesh(b, 1.0, full=True)
             self.meshChanged.emit()
@@ -190,16 +262,25 @@ class AppController(QObject):
                 self._store.log_board(entry, s.detected, b)
             except Exception as exc:           # persistens får aldrig stoppa drift
                 print("persistens-fel:", exc)
+        # analys klar → notis om att ladda ny bräda; vänta (eller auto vid fotocell)
+        s.phase = "reload"
+        s.notify = (f"Analys klar — klass {self._grade.cls} ({s.pass_count} pass). "
+                    f"Ladda ny bräda mot anhållet.")
+        self._scanner.conveyor.set_speed(0.0)
         self.historyChanged.emit()
+        self.stateChanged.emit()
 
     # ----------------------------------------------------------------- slots
     @Slot()
     def toggleRun(self):
         self._s.running = not self._s.running
         if self._s.running:
-            if self._scanner.board() is None or self._s.phase in ("idle", "done"):
+            if self._scanner.board() is None or self._s.phase in ("idle", "done", "reload"):
                 self._new_board()
-            self._scanner.conveyor.set_speed(self._cfg.feed_mm_s)
+            else:
+                # återuppta i rätt riktning för aktuell fas
+                d = -1.0 if self._s.phase == "returning" else 1.0
+                self._scanner.conveyor.set_speed(d * self._cfg.feed_mm_s)
             self._timer.start()
         else:
             self._scanner.conveyor.set_speed(0.0)
@@ -212,6 +293,7 @@ class AppController(QObject):
 
     @Slot()
     def nextBoard(self):
+        """Ladda ny bräda (fotocellen i verkligt läge, knappen i sim) → ny cykel."""
         self._new_board()
         if not self._s.running:
             self.toggleRun()
@@ -221,8 +303,9 @@ class AppController(QObject):
     @Slot(float)
     def setFeed(self, v):
         self._cfg.feed_mm_s = float(v)
-        if self._s.running:
-            self._scanner.conveyor.set_speed(v)
+        if self._s.running and self._s.phase in ("scanning", "returning"):
+            d = -1.0 if self._s.phase == "returning" else 1.0
+            self._scanner.conveyor.set_speed(d * v)
         self.stateChanged.emit()
 
     @Slot(float)
@@ -235,16 +318,54 @@ class AppController(QObject):
         self._cfg.auto_advance = bool(v)
         self.stateChanged.emit()
 
+    @Slot(str)
+    def setPassMode(self, m):
+        if m in ("single", "multi"):
+            self._cfg.pass_mode = m
+            self.stateChanged.emit()
+
+    @Slot(int)
+    def setPasses(self, n):
+        self._cfg.passes_target = max(1, int(n))
+        self.stateChanged.emit()
+
+    @Slot()
+    def dismissNotify(self):
+        self._s.notify = ""
+        self.stateChanged.emit()
+
     # -------------------------------------------------------------- properties
     @Property(bool, notify=stateChanged)
     def running(self): return self._s.running
 
     @Property(str, notify=stateChanged)
     def statusText(self):
-        return "I DRIFT" if self._s.running else ("PAUSAD" if self._s.board_count else "VÄNTAR")
+        if not self._s.running:
+            return "PAUSAD" if self._s.board_count else "VÄNTAR"
+        ph = self._s.phase
+        if ph == "scanning":
+            return f"SKANNAR · PASS {self._s.pass_count + 1}" \
+                if self._cfg.pass_mode == "multi" else "SKANNAR"
+        if ph == "returning":
+            return "ÅTERGÅNG → ANHÅLL"
+        if ph == "reload":
+            return "LADDA NY BRÄDA"
+        return "I DRIFT"
 
     @Property(int, notify=stateChanged)
     def boardCount(self): return self._s.board_count
+
+    @Property(str, notify=stateChanged)
+    def passMode(self): return self._cfg.pass_mode
+
+    @Property(int, notify=stateChanged)
+    def passesTarget(self): return self._cfg.passes_target
+
+    @Property(int, notify=stateChanged)
+    def passCount(self): return self._s.pass_count
+
+    @Property(str, notify=stateChanged)
+    def notifyText(self): return self._s.notify
 
     @Property(float, notify=stateChanged)
     def throughput(self): return round(self._s.throughput, 1)

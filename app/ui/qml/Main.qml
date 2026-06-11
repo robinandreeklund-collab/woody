@@ -105,9 +105,44 @@ ApplicationWindow {
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 16; anchors.rightMargin: 16; spacing: 14
                 Btn { primary: true; danger: ctrl.running; text: ctrl.running ? "Pausa" : "Starta"; onClicked: ctrl.toggleRun() }
-                Btn { text: "Nästa bräda"; onClicked: ctrl.nextBoard() }
+                Btn { text: ctrl.passMode === "single" ? "Ladda ny" : "Nästa bräda"; onClicked: ctrl.nextBoard() }
                 CtrlSlider { label: "Matning"; from: 10; to: 120; step: 5; value: ctrl.feedSpeed; suffix: " mm/s"; onMoved: ctrl.setFeed(v) }
-                CtrlSlider { label: "Profiltakt"; from: 200; to: 800; step: 50; value: ctrl.profileRate; suffix: " Hz"; onMoved: ctrl.setRate(v) }
+
+                // ---- pass-läge: single | multi ----
+                Rectangle {
+                    radius: 9; implicitHeight: 34; implicitWidth: pmRow.width + 16
+                    color: Theme.panel2; border.color: Theme.line
+                    RowLayout {
+                        id: pmRow; anchors.centerIn: parent; spacing: 3
+                        Text { text: "Pass"; color: Theme.ink3; font.pixelSize: 10; Layout.rightMargin: 3 }
+                        Repeater {
+                            model: [["single","Single"],["multi","Multi"]]
+                            delegate: Rectangle {
+                                radius: 7; implicitHeight: 26; implicitWidth: pmt.width + 18
+                                color: ctrl.passMode === modelData[0] ? Theme.cyan : "transparent"
+                                Text { id: pmt; anchors.centerIn: parent; text: modelData[1]
+                                       color: ctrl.passMode === modelData[0] ? "#04222a" : Theme.ink2
+                                       font.pixelSize: 11; font.weight: Font.DemiBold }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: ctrl.setPassMode(modelData[0]) }
+                            }
+                        }
+                    }
+                }
+                // ---- antal pass (endast multi) ----
+                Rectangle {
+                    visible: ctrl.passMode === "multi"
+                    radius: 9; implicitHeight: 34; implicitWidth: psRow.width + 16
+                    color: Theme.panel2; border.color: Theme.line
+                    RowLayout {
+                        id: psRow; anchors.centerIn: parent; spacing: 6
+                        Text { text: "Antal"; color: Theme.ink3; font.pixelSize: 10 }
+                        Btn { text: "−"; onClicked: ctrl.setPasses(ctrl.passesTarget - 1) }
+                        Text { text: ctrl.passesTarget; color: Theme.cyan; font.family: Theme.mono
+                               font.pixelSize: 13; font.weight: Font.DemiBold }
+                        Btn { text: "+"; onClicked: ctrl.setPasses(ctrl.passesTarget + 1) }
+                    }
+                }
                 Item { Layout.fillWidth: true }
                 Rectangle {
                     radius: 9; implicitHeight: 34; implicitWidth: autoRow.width + 22
@@ -122,6 +157,30 @@ ApplicationWindow {
                     MouseArea { anchors.fill: parent; onClicked: ctrl.setAuto(!ctrl.autoAdvance) }
                 }
             }
+        }
+    }
+
+    // ---------------------------------------------------------- NOTIS-BANNER
+    // Visas i single-pass när analysen är klar: "Ladda ny bräda".
+    Rectangle {
+        id: banner
+        visible: ctrl.notifyText !== ""
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.top: parent.top; anchors.topMargin: 76
+        radius: 12; color: Theme.panel; border.color: Theme.teal; border.width: 1.5
+        implicitWidth: bRow.width + 32; implicitHeight: 52
+        z: 100
+        layer.enabled: true
+        RowLayout {
+            id: bRow; anchors.centerIn: parent; spacing: 14
+            Rectangle { width: 10; height: 10; radius: 5; color: Theme.teal
+                SequentialAnimation on opacity { running: banner.visible; loops: Animation.Infinite
+                    NumberAnimation { from: 1; to: 0.3; duration: 600 }
+                    NumberAnimation { from: 0.3; to: 1; duration: 600 } } }
+            Text { text: ctrl.notifyText; color: Theme.ink; font.pixelSize: 13; font.weight: Font.DemiBold }
+            Btn { primary: true; text: ctrl.passMode === "single" ? "Ladda ny" : "Nästa"
+                  onClicked: ctrl.nextBoard() }
+            Btn { text: "✕"; onClicked: ctrl.dismissNotify() }
         }
     }
 }
