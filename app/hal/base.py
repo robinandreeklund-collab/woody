@@ -72,3 +72,19 @@ class Scanner(ABC):
     def board(self): ...
     @abstractmethod
     def devices(self) -> list: ...
+
+    # -- löpande flöde (encoder-radtrigg + närvarogrind) -------------------
+    # Standardimplementationer räcker för sim/profilering. Real-HAL bör
+    # överrida ``board_present`` med fotocellen (GPIO pin 7, snabb flank).
+    def feed_position_mm(self) -> float:
+        """Monoton bandposition (encoder/RoboClaw) — radklockan för linjekameran."""
+        return self.conveyor.position_mm()
+
+    def board_present(self) -> bool:
+        """Närvaro vid givaren (fotocell). Real-HAL: överrid med GPIO pin 7."""
+        return self.board() is not None
+
+    def lr400_heights(self, y_mm: float | None = None) -> list:
+        """3× LR400 absolut tjocklek (+ lateral utbredning) vid matningsposition."""
+        y = self.feed_position_mm() if y_mm is None else y_mm
+        return [pl.read_mm(y) for pl in self.point_lasers]

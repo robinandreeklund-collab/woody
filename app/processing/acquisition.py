@@ -24,6 +24,7 @@ import numpy as np
 from ..geometry import RIG
 from ..hal.sim.board_gen import Board
 from .fusion import fuse, anchor
+from .segmentation import BoardGate
 from .stripe_gpu import StripeExtractor
 from .surface import detect_defects
 from .triangulate import centroid_to_z
@@ -139,8 +140,11 @@ class AcquisitionPipeline:
             cap.join(timeout=2.0)
         stats.process_s = proc_t
         stats.wall_s = time.perf_counter() - wall0
+        return self._assemble_board(zrows, crows), stats
 
-        # assemblera höjdkarta (avvikelse från nominell tjocklek) + färgyta
+    # ---------------------------------------------------------------- assemblering
+    def _assemble_board(self, zrows, crows) -> Board:
+        """Bygg en Board ur ackumulerade höjd-/färgrader (delas av single + ström)."""
         nominal = RIG.board_thick_mm
         zmap = np.array([(r if r is not None else np.full(self.cols, nominal))
                          for r in zrows], dtype=np.float32) - nominal
@@ -151,4 +155,66 @@ class AcquisitionPipeline:
                       zmap=zmap, defects=detect_defects(surface))
         wm = board.warp_metrics()
         board.warp = (wm["bow"], wm["cup"], wm["twist"])
-        return board, stats
+        return board
+
+    # ---------------------------------------------------------------- löpande flöde
+    def _put_stream(self, item, stop: threading.Event) -> bool:
+        """Lägg i kön men ge upp om stop sätts (undviker hängning vid full kö)."""
+        while not stop.is_set():
+            try:
+                self._q.put(item, timeout=0.2)
+                return True
+            except queue.Full:
+                continue
+        return False
+
+    def _capture_stream(self, gate: BoardGate, stop: threading.Event):
+        """Pollar bandposition + närvaro → grind klockar rader → råa rader i kön."""
+        cols, width = self.cols, RIG.board_width_mm
+        while not stop.is_set():
+            pos = self.scanner.feed_position_mm()
+            present = self.scanner.board_present()
+            for e in gate.update(pos, present):
+                if e.kind == "rad":
+                    red = self.scanner.profile_red.read_stripe(e.position_mm, cols)
+                    green = self.scanner.profile_green.read_stripe(e.position_mm, cols)
+                    line = _surface_line(self.scanner, e.position_mm, width, cols)
+                    if not self._put_stream(("rad", e.position_mm, red, green, line), stop):
+                        return
+                elif e.kind == "slut":
+                    if not self._put_stream(("slut", e.position_mm, None, None, None), stop):
+                        return
+        self._q.put(None)            # sentinel: stoppad
+
+    def scan_stream(self, gate: BoardGate, stop: threading.Event, lr_provider=None):
+        """Löpande flöde: encoder-klockad capture ∥ GPU-process, yieldar Board/bräda.
+
+        Capture-tråden klockar rader via ``gate`` (encoder + närvarogrind); denna
+        konsument kör GPU-stripe per rad och färdigställer en Board vid varje
+        'slut'-händelse. Avslutas genom att sätta ``stop`` (eller stänga generatorn).
+        """
+        cap = threading.Thread(target=self._capture_stream, args=(gate, stop), daemon=True)
+        cap.start()
+        zrows: list = []
+        crows: list = []
+        try:
+            while True:
+                item = self._q.get()
+                if item is None:                 # sentinel: stoppad
+                    break
+                kind, y, red, green, line = item
+                if kind == "rad":
+                    cr = self._extractor.process(red)
+                    cg = self._extractor.process(green)
+                    z = fuse(centroid_to_z(cr), centroid_to_z(cg))
+                    if lr_provider is not None and self._lr_pos:
+                        z = anchor(z, lr_provider(y), self._lr_pos)
+                    zrows.append(z)
+                    crows.append(line)
+                elif kind == "slut":
+                    if zrows:
+                        yield self._assemble_board(zrows, crows)
+                    zrows, crows = [], []
+        finally:
+            stop.set()
+            cap.join(timeout=2.0)
