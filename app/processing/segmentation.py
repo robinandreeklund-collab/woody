@@ -42,8 +42,9 @@ class GateConfig:
 @dataclass
 class GateEvent:
     kind: str            # "rad" | "slut"
-    position_mm: float   # bandposition (imaging-linjen) för händelsen
+    position_mm: float   # absolut bandposition (imaging-linjen) för händelsen
     board_id: int
+    local_mm: float = 0.0  # avstånd från brädans framkant (rad-y i bräd-koordinat)
 
 
 class BoardGate:
@@ -98,7 +99,8 @@ class BoardGate:
             limit = pos_mm if self._pending_close is None else min(pos_mm, self._pending_close)
             while self._last_row + cfg.row_pitch_mm <= limit:
                 self._last_row += cfg.row_pitch_mm
-                ev.append(GateEvent("rad", self._last_row, self._board_id))
+                ev.append(GateEvent("rad", self._last_row, self._board_id,
+                                    self._last_row - self._board_start))
             # stäng först när gapet bekräftats (debounce) och bakkanten passerat linjen
             if (self._pending_close is not None
                     and self._low_since is not None
@@ -106,7 +108,7 @@ class BoardGate:
                     and pos_mm >= self._pending_close):
                 length = self._last_row - self._board_start
                 if length >= cfg.min_board_mm:
-                    ev.append(GateEvent("slut", self._last_row, self._board_id))
+                    ev.append(GateEvent("slut", self._last_row, self._board_id, length))
                 else:
                     self._board_id -= 1          # för kort → kassera id:t
                 self.state = GateState.TOM

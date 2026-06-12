@@ -89,6 +89,43 @@ class RealScanner(Scanner):
     def board(self):
         return self._board
 
+    # ------------------------------------------------------------ löpande flöde
+    def feed_position_mm(self) -> float:
+        """RoboClaw-encoder (counts → mm) — radklockan för linjekameran."""
+        try:
+            return self.conveyor.position_mm()
+        except Exception:
+            return 0.0
+
+    def board_present(self) -> bool:
+        """Anhåll-fotocell (GPIO pin 7, aktiv låg). Utan GPIO/ej ansluten → False."""
+        try:
+            return bool(self.photocell.read())
+        except Exception:
+            return False
+
+    def begin_stream(self, gap_mm: float = 25.0) -> None:
+        """Löpande flöde: tänd lasrar + LED (släcks i end_stream).
+
+        SÄKERHET: tänder klass 3B-lasrar — sker när operatören startar drift i
+        real-läge (samma som new_board i pass-läge). Kräver att riggen är säkrad.
+        """
+        try:
+            self.laser_red.set(True)
+            self.laser_green.set(True)
+            self.led_white.set(True)
+        except Exception as exc:
+            print(f"[HAL] kunde inte tända ljus för flöde — {exc}")
+
+    def end_stream(self) -> None:
+        for d in (getattr(self, "laser_red", None), getattr(self, "laser_green", None),
+                  getattr(self, "led_white", None)):
+            try:
+                if d is not None:
+                    d.set(False)
+            except Exception:
+                pass
+
     def devices(self) -> list:
         return [self.profile_red, self.profile_green, self.surface,
                 *self.point_lasers, self.conveyor,

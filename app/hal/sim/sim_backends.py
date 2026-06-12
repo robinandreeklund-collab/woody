@@ -4,6 +4,9 @@ Implementerar HAL-gränssnitten så GUI/behandling är identiska i sim och real.
 """
 from __future__ import annotations
 
+import threading
+import time
+
 import numpy as np
 
 from ..base import (ConveyorIF, DeviceInfo, PointLaserIF, ProfileCameraIF,
@@ -88,10 +91,79 @@ class SimConveyor(ConveyorIF):
         return self._pos
 
 
+class _BeltSim:
+    """Virtuellt transportband för löpande flöde i sim.
+
+    Brädor (``board_width_mm`` i matningsled) läggs med ``gap_mm`` mellanrum;
+    bandet rör sig i wall-clock-takt efter conveyor-hastigheten. Tjänar grinden:
+      * ``advance()``  → monoton bandposition (radklockan) + uppdaterar aktiv Board,
+      * ``present()``  → närvaro vid linjen (snapshot från senaste advance),
+      * ``local_mm()`` → brädans lokala position (GUI-display, avancerar ej).
+    Endast capture-tråden anropar ``advance``; GUI:t läser ``local_mm``/``present``.
+    """
+
+    def __init__(self, scanner: "SimScanner", gap_mm: float = 25.0, seed0: int = 1000):
+        self._sc = scanner
+        self._board_len = float(RIG.board_width_mm)      # matningsled (Y)
+        self._gap = max(2.0, float(gap_mm))
+        # kapa per-anrop-steget så vi aldrig aliasar förbi en lucka/bräda
+        self._step_max = max(0.25, min(2.0, self._gap * 0.4, self._board_len * 0.1))
+        self._pos = 0.0
+        self._last: float | None = None
+        self._seed0 = seed0
+        self._cache: dict[int, Board] = {}
+        self._present = False
+        self._local = 0.0
+        self._lock = threading.Lock()
+
+    def _pitch(self) -> float:
+        return self._board_len + self._gap
+
+    def _board(self, idx: int) -> Board:
+        b = self._cache.get(idx)
+        if b is None:
+            b = make_board(self._seed0 + idx)
+            self._cache[idx] = b
+            for k in list(self._cache):                  # behåll bara grannar
+                if k < idx - 1:
+                    self._cache.pop(k, None)
+        return b
+
+    def advance(self) -> float:
+        """Avancera bandet (wall-clock × hastighet), uppdatera aktiv bräda + snapshot.
+
+        Steget KAPAS till ``_step_max`` (< halva luckan) så bandet aldrig hoppar
+        över en bräda/lucka mellan pollningar — emulerar encoderns rad-tick och
+        gör att flödet självreglerar mot processhastigheten (backpressure).
+        """
+        with self._lock:
+            now = time.perf_counter()
+            if self._last is None:
+                self._last = now
+            spd = max(0.0, float(getattr(self._sc.conveyor, "_speed", 0.0)))
+            inc = min(spd * (now - self._last), self._step_max)   # anti-aliasing
+            self._last = now
+            self._pos += inc
+            idx = int(self._pos // self._pitch())
+            local = self._pos - idx * self._pitch()
+            self._present = local < self._board_len
+            self._local = min(self._board_len, local)
+            if self._present:                            # bräda vid linjen → gör aktiv
+                self._sc._board = self._board(idx)
+            return self._pos
+
+    def present(self) -> bool:
+        return self._present
+
+    def local_mm(self) -> float:
+        return self._local
+
+
 class SimScanner(Scanner):
     def __init__(self):
         self._board: Board | None = None
         self._seed = 0
+        self._belt: _BeltSim | None = None
         self.profile_red = SimProfileCamera("red", self)
         self.profile_green = SimProfileCamera("green", self)
         self.surface = SimSurfaceCamera(self)
@@ -109,3 +181,20 @@ class SimScanner(Scanner):
     def devices(self) -> list:
         return [self.profile_red, self.profile_green, self.surface,
                 *self.point_lasers, self.conveyor]
+
+    # -- löpande flöde (virtuellt band; samma scan_stream-väg som real) --------
+    def begin_stream(self, gap_mm: float = 25.0) -> None:
+        self._belt = _BeltSim(self, gap_mm)
+        self._board = None
+
+    def end_stream(self) -> None:
+        self._belt = None
+
+    def feed_position_mm(self) -> float:
+        return self._belt.advance() if self._belt else self.conveyor.position_mm()
+
+    def board_present(self) -> bool:
+        return self._belt.present() if self._belt else (self._board is not None)
+
+    def stream_local_mm(self) -> float:
+        return self._belt.local_mm() if self._belt else 0.0

@@ -88,3 +88,16 @@ class Scanner(ABC):
         """3× LR400 absolut tjocklek (+ lateral utbredning) vid matningsposition."""
         y = self.feed_position_mm() if y_mm is None else y_mm
         return [pl.read_mm(y) for pl in self.point_lasers]
+
+    # -- löpande flöde: livscykel ----------------------------------------
+    # Sim överrider med ett virtuellt band; real tänder/släcker ljus. Default
+    # är no-op så profilering/fejk-scanner funkar utan vidare.
+    def begin_stream(self, gap_mm: float = 25.0) -> None:
+        """Förbered löpande flöde (anropas när drift startar i flödesläge)."""
+
+    def end_stream(self) -> None:
+        """Avsluta löpande flöde (städa)."""
+
+    def stream_local_mm(self) -> float:
+        """Aktuell bräds lokala position vid linjen (GUI-display, avancerar EJ bandet)."""
+        return 0.0

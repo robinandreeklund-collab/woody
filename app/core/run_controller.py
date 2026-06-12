@@ -7,7 +7,9 @@ tråd (simulering är lätt); i Fas 4 flyttas förvärv/behandling till egna tr�
 from __future__ import annotations
 
 import math
+import queue
 import random
+import threading
 import time
 
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
@@ -29,6 +31,7 @@ class AppController(QObject):
     historyChanged = Signal()         # ny bräda klar → logg uppdaterad
     meshChanged = Signal()            # ny 3D-rekonstruktion klar (bräda färdigskannad)
     boardDetected = Signal()          # fotocell: bräda laddad (från GPIO-tråd → queued)
+    flowBoardReady = Signal()         # löpande flöde: ny bräda klar (från flödestråd → queued)
 
     def __init__(self, cfg: AppConfig, surface_provider, parent=None):
         super().__init__(parent)
@@ -48,6 +51,11 @@ class AppController(QObject):
         self._mesh: dict = {}         # senaste 3D-data (live under skanning, full vid klar)
         self._mesh_t: float = 0.0     # senaste mesh-uppdatering (throttling)
         self._pass_grades: list = []  # grad per pass (multi-pass → kombineras)
+        # löpande flöde (scan_stream i egen tråd → brädor via kö till GUI-tråden)
+        self._flow_thread: threading.Thread | None = None
+        self._flow_stop: threading.Event | None = None
+        self._flow_pipe = None
+        self._flow_q: queue.Queue = queue.Queue()
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -55,6 +63,8 @@ class AppController(QObject):
         self._timer.timeout.connect(self._tick)
         self._last_ns = None
 
+        # löpande flöde: bräda klar i flödestråden → konsumera på GUI-tråden (queued)
+        self.flowBoardReady.connect(self._drain_flow)
         # verkligt läge: anhåll-fotocellen laddar ny bräda (queued från GPIO-tråd)
         self.boardDetected.connect(self._on_board_detected)
         arm = getattr(self._scanner, "arm_photocell", None)
@@ -67,6 +77,8 @@ class AppController(QObject):
     @Slot()
     def _on_board_detected(self):
         """Bräda detekterad vid anhållet → starta ny cykel (om vi väntar)."""
+        if self._cfg.run_mode == "flow":
+            return                                # flödesläget hanterar brädor själv
         if self._cfg.auto_advance and (not self._s.running or self._s.phase == "reload"):
             self.nextBoard()
 
@@ -79,6 +91,13 @@ class AppController(QObject):
         self._last_ns = now
         s, cfg = self._s, self._cfg
         BW = RIG.board_width_mm
+
+        if s.running and cfg.run_mode == "flow":
+            s.up_ms += dt * 1000
+            self._tick_flow(dt)
+            s.jetson_load += (s.load_target - s.jetson_load) * min(1.0, dt * 1.5)
+            self.stateChanged.emit()
+            return
 
         if s.running:
             s.up_ms += dt * 1000
@@ -270,12 +289,115 @@ class AppController(QObject):
         self.historyChanged.emit()
         self.stateChanged.emit()
 
+    # ============================================================ LÖPANDE FLÖDE
+    # Encoder-klockad scan_stream i egen tråd: brädor segmenteras av BoardGate
+    # (närvarogrind) och graderas löpande. Samma kod kör mot sim (virtuellt band)
+    # och real (RoboClaw-encoder + fotocell). Brädor med godtyckligt mellanrum.
+    def _start_flow(self):
+        from ..processing.acquisition import AcquisitionPipeline
+        from ..processing.segmentation import BoardGate, GateConfig
+        s, cfg = self._s, self._cfg
+        self._scanner.begin_stream(cfg.gap_mm)                 # sim: virtuellt band
+        self._scanner.conveyor.set_speed(cfg.feed_mm_s)        # driver bandet (sim+real)
+        self._flow_pipe = AcquisitionPipeline(
+            self._scanner, lr_positions=list(RIG.point_lasers_x_mm))
+        self._flow_stop = threading.Event()
+        gate = BoardGate(GateConfig(
+            sensor_offset_mm=cfg.sensor_offset_mm,
+            min_board_mm=min(40.0, RIG.board_width_mm * 0.5)))
+        s.phase = "flow"; s.notify = ""; s.pass_count = 0
+        s.detected = []; self._grade = None
+        s.load_target = 64 + 18 * random.random()
+        self._flow_thread = threading.Thread(
+            target=self._flow_worker, args=(gate,), daemon=True)
+        self._flow_thread.start()
+        self.defectsChanged.emit()
+
+    def _flow_worker(self, gate):
+        """Flödestråd: scan_stream yieldar en Board per bräda → kö + signal till GUI."""
+        try:
+            for board in self._flow_pipe.scan_stream(gate, self._flow_stop):
+                self._flow_q.put(board)
+                self.flowBoardReady.emit()                     # queued → _drain_flow
+        except Exception as exc:                               # tråden får aldrig krascha appen
+            print("flöde-fel:", exc)
+
+    def _stop_flow(self):
+        if self._flow_stop is not None:
+            self._flow_stop.set()
+        if self._flow_thread is not None:
+            self._flow_thread.join(timeout=2.0)
+        self._flow_thread = None
+        try:
+            self._scanner.end_stream()                         # släcker ljus i real
+        except Exception:
+            pass
+        self._drain_flow()                                     # ta hand om sista brädan
+
+    def _tick_flow(self, dt):
+        """Live-uppdatering i flödesläge: bandposition + genomströmning."""
+        s, cfg = self._s, self._cfg
+        get_local = getattr(self._scanner, "stream_local_mm", None)
+        s.feed_pos_mm = float(get_local()) if get_local else 0.0
+        cycle = (RIG.board_width_mm + cfg.gap_mm) / max(1.0, cfg.feed_mm_s)
+        s.throughput += (60.0 / max(0.1, cycle) - s.throughput) * min(1.0, dt * 2)
+        self._drain_flow()
+
+    @Slot()
+    def _drain_flow(self):
+        """Konsumera färdiga brädor från flödestråden (körs på GUI-tråden)."""
+        while True:
+            try:
+                board = self._flow_q.get_nowait()
+            except queue.Empty:
+                break
+            self._consume_flow_board(board)
+
+    def _consume_flow_board(self, b):
+        """En bräda klar i flödet → gradera, logga, uppdatera yta/3D/historik."""
+        s = self._s
+        detected = list(getattr(b, "defects", []) or [])
+        s.detected = detected
+        self._grade = grade_board(detected, b.warp_metrics())
+        s.board_count += 1
+        s.pass_count = 1
+        self._surface_provider.set_array(b.surface, "surface")
+        self._surface_provider.set_array(b.height_rgb(), "height")
+        self._surface_rev += 1
+        self._mesh = self._build_mesh(b, 1.0, full=True)
+        entry = {
+            "n": s.board_count,
+            "cls": self._grade.cls, "title": self._grade.title, "color": self._grade.color,
+            "score": self._grade.score, "ndef": len(detected), "nvision": len(detected),
+            "passes": 1, "time": time.strftime("%H:%M:%S"),
+        }
+        self._history.insert(0, entry)
+        del self._history[200:]
+        if self._store is not None:
+            try:
+                self._store.log_board(entry, detected, b)
+            except Exception as exc:
+                print("persistens-fel:", exc)
+        self.surfaceChanged.emit()
+        self.meshChanged.emit()
+        self.defectsChanged.emit()
+        self.historyChanged.emit()
+        self.stateChanged.emit()
+
+    def _stop_run(self):
+        """Stoppa pågående drift (pass eller flöde) snyggt."""
+        if self._cfg.run_mode == "flow":
+            self._stop_flow()
+        self._scanner.conveyor.set_speed(0.0)
+
     # ----------------------------------------------------------------- slots
     @Slot()
     def toggleRun(self):
         self._s.running = not self._s.running
         if self._s.running:
-            if self._scanner.board() is None or self._s.phase in ("idle", "done", "reload"):
+            if self._cfg.run_mode == "flow":
+                self._start_flow()
+            elif self._scanner.board() is None or self._s.phase in ("idle", "done", "reload"):
                 self._new_board()
             else:
                 # återuppta i rätt riktning för aktuell fas
@@ -283,7 +405,7 @@ class AppController(QObject):
                 self._scanner.conveyor.set_speed(d * self._cfg.feed_mm_s)
             self._timer.start()
         else:
-            self._scanner.conveyor.set_speed(0.0)
+            self._stop_run()
         self.stateChanged.emit()
 
     @Slot()
@@ -294,6 +416,8 @@ class AppController(QObject):
     @Slot()
     def nextBoard(self):
         """Ladda ny bräda (fotocellen i verkligt läge, knappen i sim) → ny cykel."""
+        if self._cfg.run_mode == "flow":
+            return                                # flödet matar brädor löpande
         self._new_board()
         if not self._s.running:
             self.toggleRun()
@@ -324,6 +448,20 @@ class AppController(QObject):
             self._cfg.pass_mode = m
             self.stateChanged.emit()
 
+    @Slot(str)
+    def setRunMode(self, m):
+        """Byt driftläge pass↔flöde. Stoppar pågående drift först (rena trådar)."""
+        if m not in ("pass", "flow") or m == self._cfg.run_mode:
+            return
+        if self._s.running:
+            self._s.running = False
+            self._stop_run()
+        self._cfg.run_mode = m
+        self._s.phase = "idle"
+        self._s.notify = ""
+        self._s.feed_pos_mm = 0.0
+        self.stateChanged.emit()
+
     @Slot(int)
     def setPasses(self, n):
         self._cfg.passes_target = max(1, int(n))
@@ -343,6 +481,8 @@ class AppController(QObject):
         if not self._s.running:
             return "PAUSAD" if self._s.board_count else "VÄNTAR"
         ph = self._s.phase
+        if ph == "flow":
+            return "LÖPANDE FLÖDE"
         if ph == "scanning":
             return f"SKANNAR · PASS {self._s.pass_count + 1}" \
                 if self._cfg.pass_mode == "multi" else "SKANNAR"
@@ -357,6 +497,9 @@ class AppController(QObject):
 
     @Property(str, notify=stateChanged)
     def passMode(self): return self._cfg.pass_mode
+
+    @Property(str, notify=stateChanged)
+    def runMode(self): return self._cfg.run_mode
 
     @Property(int, notify=stateChanged)
     def passesTarget(self): return self._cfg.passes_target

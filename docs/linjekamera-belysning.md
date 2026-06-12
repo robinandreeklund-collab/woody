@@ -151,10 +151,14 @@ stängd grind. Beräknad timing skulle däremot havera vid manuell, varierande l
 krävs lateral segmentering per LR400-kanal/kolumn), inom FOV i sidled, hastighet inom keep-up
 (`tools/profile_acquisition.py`).
 
-> **Mjukvara:** dagens `acquisition.py` är byggd för *en bräda i taget* (skanna → backa till
-> anhåll → ev. igen, se CLAUDE.md pass-lägen). Löpande flöde kräver en grind-/segmenteringssteg
-> (tillståndsmaskin TOM → BRÄDA → färdigställ, klockad av encoder-counts, gated av
-> fotocell+LR400). Hårdvaran stödjer det redan.
+> **Mjukvara:** löpande flöde är **implementerat** och valbart i GUI:t (driftläge
+> *Pass* | *Löpande*). `processing/segmentation.py` (`BoardGate`) är grind-/segmenterings­
+> tillståndsmaskinen (TOM → ARMERAD → BRÄDA, klockad av encoder-counts, gated av
+> fotocell+LR400); `acquisition.scan_stream` kör den encoder-klockat och yieldar en
+> graderad bräda per bräda. Samma väg kör mot sim (virtuellt band) och real (RoboClaw-
+> encoder + fotocell via `feed_position_mm`/`board_present` i `real_backends.py`).
+> Avgränsning kvar: grinden är 1D (en bräda i bredd) — två brädor sida vid sida kräver
+> lateral segmentering per LR400-kanal/kolumn.
 
 ---
 

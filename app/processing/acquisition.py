@@ -176,13 +176,15 @@ class AcquisitionPipeline:
             present = self.scanner.board_present()
             for e in gate.update(pos, present):
                 if e.kind == "rad":
-                    red = self.scanner.profile_red.read_stripe(e.position_mm, cols)
-                    green = self.scanner.profile_green.read_stripe(e.position_mm, cols)
-                    line = _surface_line(self.scanner, e.position_mm, width, cols)
-                    if not self._put_stream(("rad", e.position_mm, red, green, line), stop):
+                    # lokal bräd-y (från framkant) — sim läser rätt bräda; real
+                    # griper live så y är bara etikett.
+                    red = self.scanner.profile_red.read_stripe(e.local_mm, cols)
+                    green = self.scanner.profile_green.read_stripe(e.local_mm, cols)
+                    line = _surface_line(self.scanner, e.local_mm, width, cols)
+                    if not self._put_stream(("rad", e.local_mm, red, green, line), stop):
                         return
                 elif e.kind == "slut":
-                    if not self._put_stream(("slut", e.position_mm, None, None, None), stop):
+                    if not self._put_stream(("slut", e.local_mm, None, None, None), stop):
                         return
         self._q.put(None)            # sentinel: stoppad
 

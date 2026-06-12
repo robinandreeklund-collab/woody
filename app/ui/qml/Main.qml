@@ -105,11 +105,35 @@ ApplicationWindow {
             RowLayout {
                 anchors.fill: parent; anchors.leftMargin: 16; anchors.rightMargin: 16; spacing: 14
                 Btn { primary: true; danger: ctrl.running; text: ctrl.running ? "Pausa" : "Starta"; onClicked: ctrl.toggleRun() }
-                Btn { text: ctrl.passMode === "single" ? "Ladda ny" : "Nästa bräda"; onClicked: ctrl.nextBoard() }
+                Btn { visible: ctrl.runMode === "pass"
+                      text: ctrl.passMode === "single" ? "Ladda ny" : "Nästa bräda"; onClicked: ctrl.nextBoard() }
                 CtrlSlider { label: "Matning"; from: 10; to: 120; step: 5; value: ctrl.feedSpeed; suffix: " mm/s"; onMoved: ctrl.setFeed(v) }
 
-                // ---- pass-läge: single | multi ----
+                // ---- driftläge: pass | löpande flöde ----
                 Rectangle {
+                    radius: 9; implicitHeight: 34; implicitWidth: rmRow.width + 16
+                    color: Theme.panel2; border.color: Theme.line
+                    RowLayout {
+                        id: rmRow; anchors.centerIn: parent; spacing: 3
+                        Text { text: "Drift"; color: Theme.ink3; font.pixelSize: 10; Layout.rightMargin: 3 }
+                        Repeater {
+                            model: [["pass","Pass"],["flow","Löpande"]]
+                            delegate: Rectangle {
+                                radius: 7; implicitHeight: 26; implicitWidth: rmt.width + 18
+                                color: ctrl.runMode === modelData[0] ? Theme.teal : "transparent"
+                                Text { id: rmt; anchors.centerIn: parent; text: modelData[1]
+                                       color: ctrl.runMode === modelData[0] ? "#04222a" : Theme.ink2
+                                       font.pixelSize: 11; font.weight: Font.DemiBold }
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                            onClicked: ctrl.setRunMode(modelData[0]) }
+                            }
+                        }
+                    }
+                }
+
+                // ---- pass-läge: single | multi (endast pass-drift) ----
+                Rectangle {
+                    visible: ctrl.runMode === "pass"
                     radius: 9; implicitHeight: 34; implicitWidth: pmRow.width + 16
                     color: Theme.panel2; border.color: Theme.line
                     RowLayout {
@@ -129,9 +153,9 @@ ApplicationWindow {
                         }
                     }
                 }
-                // ---- antal pass (endast multi) ----
+                // ---- antal pass (endast multi + pass-drift) ----
                 Rectangle {
-                    visible: ctrl.passMode === "multi"
+                    visible: ctrl.runMode === "pass" && ctrl.passMode === "multi"
                     radius: 9; implicitHeight: 34; implicitWidth: psRow.width + 16
                     color: Theme.panel2; border.color: Theme.line
                     RowLayout {
