@@ -202,6 +202,52 @@ def test_encoder_line_trigger_resolves_node_names():
     assert name is None and ok is False
 
 
+def test_camera_config_and_profile_roi():
+    # Profilkamerorna: serienr binder RÖD≠GRÖN (cameras.json) + hårdvaru-ROI-band.
+    from ..hal.real import camera_config
+    from ..hal.real.cameras import GenICamProfileCamera
+
+    # Defaults när filen saknas — appen ska funka ändå
+    cfg = camera_config.load("/finns/inte/cameras.json")
+    assert cfg["profile_red"]["serial"] is None and cfg["profile_red"]["roi_rows"] == 80
+    assert cfg["surface"]["direction"] == "forward"
+
+    # Roundtrip; okända fält ignoreras, saknade roller får default
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "cameras.json"
+        camera_config.save({"profile_red": {"serial": "SN-RED", "roi_rows": 128, "skräp": 9}}, p)
+        got = camera_config.load(p)
+        assert got["profile_red"]["serial"] == "SN-RED"
+        assert got["profile_red"]["roi_rows"] == 128
+        assert "skräp" not in got["profile_red"]
+        assert got["profile_green"]["serial"] is None
+
+    # skeleton föreslår serienr i ordning (människan bekräftar färg)
+    sk = camera_config.skeleton(["A", "B", "C"])
+    assert (sk["profile_red"]["serial"], sk["profile_green"]["serial"],
+            sk["surface"]["serial"]) == ("A", "B", "C")
+
+    # Hårdvaru-ROI: bandet centreras via HeightMax, offset nollas före höjd
+    class _Node:
+        def __init__(self, v=None): self._v = v
+        @property
+        def value(self): return self._v
+        @value.setter
+        def value(self, x): self._v = x
+
+    class _NM: pass
+    nm = _NM(); nm.Height = _Node(2048); nm.OffsetY = _Node(99); nm.HeightMax = _Node(2048)
+    cam = GenICamProfileCamera("red", roi_rows=128)
+    cam._apply_roi(nm)
+    assert nm.Height.value == 128
+    assert nm.OffsetY.value == (2048 - 128) // 2          # centrerat band
+
+    # Kalibrerat offset (alignment) vinner över centrering
+    cam.configure_roi(rows=200, offset_y=500)
+    cam._apply_roi(nm)
+    assert nm.Height.value == 200 and nm.OffsetY.value == 500
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0

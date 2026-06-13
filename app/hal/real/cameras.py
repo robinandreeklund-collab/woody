@@ -152,11 +152,14 @@ _TRIG_DIR_VALUES = {"forward": 1, "reverse": 2, "both": 0}
 class GenICamProfileCamera(ProfileCameraIF):
     def __init__(self, color: str, serial: str | None = None,
                  roi_rows: int = 80, exposure_us: float = 800.0,
+                 roi_offset_y: int | None = None, frame_rate_hz: float | None = 60.0,
                  features: dict | None = None):
         self._color = color
-        self._serial = serial
+        self._serial = serial          # BIND varje huvud till sitt serienr (RÖD≠GRÖN!)
         self._roi_rows = roi_rows
         self._exposure_us = exposure_us
+        self._roi_offset_y = roi_offset_y   # None = centrera bandet; annars kalibrerat
+        self._frame_rate_hz = frame_rate_hz
         self._ia = None
         self._connected = False
         self._extractor = None        # GPU/CPU stripe-extraktor (lazy)
@@ -171,12 +174,37 @@ class GenICamProfileCamera(ProfileCameraIF):
         h = _harvester()
         kw = {"serial_number": self._serial} if self._serial else {}
         self._ia = h.create(search_key=kw or None)
-        # ExposureTime drivs av self._exposure_us men kan överstyras via features
+        nm = self._ia.remote_device.node_map
+        # 1) hårdvaru-ROI: bara ett band runt stripen → mindre USB-bandbredd, 60 fps
+        self._apply_roi(nm)
+        # 2) ExposureTime drivs av self._exposure_us men kan överstyras via features
         feats = {"ExposureTime": self._exposure_us, **self._features}
-        apply_genicam_features(self._ia.remote_device.node_map, feats,
-                               log_prefix=f" {self._color}")
+        apply_genicam_features(nm, feats, log_prefix=f" {self._color}")
+        # 3) bildtakt (free-run): 60 fps per kamera (designkrav)
+        if self._frame_rate_hz:
+            set_first_available(nm, ["AcquisitionFrameRateEnable"], True, f" {self._color}")
+            set_first_available(nm, ["AcquisitionFrameRate", "AcquisitionFrameRateAbs"],
+                                float(self._frame_rate_hz), f" {self._color}")
         self._ia.start()
         self._connected = True
+
+    def _apply_roi(self, nm) -> dict:
+        """Sätt ett ROI-band (full bredd × roi_rows) centrerat på stripen. Ordning:
+        nollställ offset → sätt höjd → sätt offset (offset-range beror på höjden)."""
+        res: dict = {}
+        set_first_available(nm, ["OffsetY"], 0, f" {self._color}")
+        res["height"] = set_first_available(nm, ["Height"], int(self._roi_rows), f" {self._color}")
+        # offset_y: kalibrerat värde, annars centrera bandet vertikalt på sensorn
+        off = self._roi_offset_y
+        if off is None:
+            try:
+                hmax = int(getattr(nm, "HeightMax").value)
+                off = max(0, (hmax - int(self._roi_rows)) // 2)
+            except Exception:
+                off = None
+        if off is not None:
+            res["offset_y"] = set_first_available(nm, ["OffsetY"], int(off), f" {self._color}")
+        return res
 
     def configure(self, **features) -> dict:
         """Uppdatera kamerainställningar (defaults + nu) — appliceras direkt om ansluten."""
@@ -184,6 +212,16 @@ class GenICamProfileCamera(ProfileCameraIF):
         if self._connected and self._ia is not None:
             return apply_genicam_features(self._ia.remote_device.node_map, features,
                                           log_prefix=f" {self._color}")
+        return {}
+
+    def configure_roi(self, rows: int | None = None, offset_y: int | None = None) -> dict:
+        """Ställ ROI-bandet (höjd + vertikal position) — från alignment-kalibreringen.
+        Appliceras vid nästa open() (ROI kräver stoppat förvärv på de flesta kameror)."""
+        if rows is not None:
+            self._roi_rows = int(rows)
+        self._roi_offset_y = offset_y
+        if self._connected and self._ia is not None:
+            return self._apply_roi(self._ia.remote_device.node_map)
         return {}
 
     def read_stripe(self, y_mm: float = 0.0, n: int = 200) -> np.ndarray:

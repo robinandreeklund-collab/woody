@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from ..base import Scanner
 from ...geometry import RIG
+from . import camera_config
 from .cameras import GenICamProfileCamera, GenICamSurfaceCamera
 from .gpio_io import make_field_io
 from .lr400_modbus import LR400ModbusLaser
@@ -25,13 +26,24 @@ from .roboclaw_conveyor import RoboClawConveyor
 
 class RealScanner(Scanner):
     def __init__(self, cfg=None):
-        # Kamerainställningar (GenICam-features) kan överstyras från config/kod:
-        # cfg.profile_features / cfg.surface_features (dict). Annars SFNC-defaults.
+        # Kamera-identitet + inställningar från data/cameras.json (serienr binder
+        # RÖD≠GRÖN; ROI/exponering/divider per kamera). Saknad fil → säkra defaults.
+        cams = camera_config.load()
+        cr, cg, cs = cams["profile_red"], cams["profile_green"], cams["surface"]
         prof_f = getattr(cfg, "profile_features", None) if cfg else None
         surf_f = getattr(cfg, "surface_features", None) if cfg else None
-        self.profile_red = GenICamProfileCamera("red", features=prof_f)
-        self.profile_green = GenICamProfileCamera("green", features=prof_f)
-        self.surface = GenICamSurfaceCamera(features=surf_f)
+        self.profile_red = GenICamProfileCamera(
+            "red", serial=cr["serial"], roi_rows=cr["roi_rows"],
+            exposure_us=cr["exposure_us"], roi_offset_y=cr["roi_offset_y"],
+            frame_rate_hz=cr["frame_rate_hz"], features=prof_f)
+        self.profile_green = GenICamProfileCamera(
+            "green", serial=cg["serial"], roi_rows=cg["roi_rows"],
+            exposure_us=cg["exposure_us"], roi_offset_y=cg["roi_offset_y"],
+            frame_rate_hz=cg["frame_rate_hz"], features=prof_f)
+        self.surface = GenICamSurfaceCamera(serial=cs["serial"], features=surf_f)
+        self.surface.configure_encoder_line_trigger(
+            divider=cs["divider"], multiplier=cs["multiplier"],
+            direction=cs["direction"], line_rate_hz=cs["line_rate_hz"])
         # 3× LR400 över RS-485 Modbus (Waveshare 4CH ch1–3) — absolut tjocklek-ankare
         self.point_lasers = [LR400ModbusLaser(i, x, unit=i + 1)
                              for i, x in enumerate(RIG.point_lasers_x_mm)]

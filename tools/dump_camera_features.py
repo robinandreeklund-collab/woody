@@ -33,6 +33,8 @@ def main() -> int:
     ap.add_argument("--enum", action="store_true",
                     help="visa tillåtna enum-värden per nod (för att mappa trigger/encoder)")
     ap.add_argument("--list", action="store_true", help="lista bara hittade kameror")
+    ap.add_argument("--json", action="store_true",
+                    help="skriv ut data/cameras.json-skelett (roll→serienr) från hittade kameror")
     args = ap.parse_args()
 
     h = _harvester()
@@ -41,6 +43,13 @@ def main() -> int:
         print("Ingen kamera hittad. Koppla in + sätt GENICAM_GENTL64_PATH "
               "(MVS) eller installera Aravis. För GigE: kontrollera IP/subnät.")
         return 1
+
+    if args.json:                       # skelett att spara som data/cameras.json
+        import json
+        from app.hal.real import camera_config
+        serials = [str(getattr(d, "serial_number", "")) for d in devs]
+        print(json.dumps(camera_config.skeleton(serials), indent=2, ensure_ascii=False))
+        return 0
 
     print(f"Hittade {len(devs)} kamera(or):")
     for d in devs:
