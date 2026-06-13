@@ -20,12 +20,22 @@ def _harvester():
     global _HARVESTER
     if _HARVESTER is None:
         from harvesters.core import Harvester      # lazy
-        import os
+        import os, glob
         h = Harvester()
-        # CTI-fil pekas ut av env GENICAM_GENTL64_PATH (MVS/Aravis levererar en)
-        cti = os.environ.get("GENICAM_CTI")
-        if cti:
-            h.add_file(cti)
+        # GenTL-producenter (.cti): MVS delar upp dem per buss — MvProducerU3V.cti
+        # (USB3-profilkameror) och MvProducerGEV.cti (GigE-linjekamera). Ladda BÅDA
+        # så hela kamerakedjan hittas. GENICAM_CTI = enskild fil; GENICAM_GENTL64_PATH
+        # = katalog vi scannar efter alla *.cti (MVS/Aravis levererar dem).
+        ctis: list[str] = []
+        single = os.environ.get("GENICAM_CTI")
+        if single:
+            ctis.append(single)
+        gentl_dir = os.environ.get("GENICAM_GENTL64_PATH")
+        if gentl_dir and os.path.isdir(gentl_dir):
+            ctis += sorted(glob.glob(os.path.join(gentl_dir, "*.cti")))
+        for cti in dict.fromkeys(ctis):            # dedupe, behåll ordning
+            if os.path.exists(cti):
+                h.add_file(cti)
         h.update()
         _HARVESTER = h
     return _HARVESTER
