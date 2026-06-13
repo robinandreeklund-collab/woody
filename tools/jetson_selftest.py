@@ -135,37 +135,39 @@ def probe_roboclaw():
 
 # ----------------------------------------------------------------- 4. LR400 / RS-485
 def probe_lr400():
-    head("4. 3× Punktlaser LR400 (RS-485 Modbus via Waveshare USB→4CH)")
+    head("4. 3× Punktlaser LR400 (RS-485 Modbus via Waveshare USB TO 4CH RS485)")
     ports = sorted(glob.glob("/dev/ttyUSB*"))
     if not ports:
         no("Port", "ingen /dev/ttyUSB* (koppla in Waveshare 4CH-adaptern)")
         return
-    info("Portar", ", ".join(ports))
+    info("Portar", ", ".join(ports) + "  (4CH ger 4 egna portar — en LR400 per port)")
     try:
-        from pymodbus.client import ModbusSerialClient
+        from app.hal.real.lr400_modbus import LR400ModbusLaser
+        from app.hal.real import lr400_config
     except Exception as exc:
-        no("pymodbus", f"ej installerat — {exc} (kör jetson_bootstrap.sh)")
+        no("LR400-backend", f"importfel — {exc} (kör jetson_bootstrap.sh)")
         return
+    cfg = lr400_config.load()
     found = 0
-    for port in ports:
+    for i, ch in enumerate(["ch1", "ch2", "ch3"]):
+        c = cfg[ch]
+        las = LR400ModbusLaser(i, 0.0, port=c["port"], unit=c["unit"], baud=c["baud"],
+                               d0_mm=c["d0_mm"], reg_addr=c["reg_addr"],
+                               reg_kind=c["reg_kind"], scale=c["scale"])
         try:
-            client = ModbusSerialClient(port=port, baudrate=9600, parity="N",
-                                        stopbits=1, bytesize=8, timeout=0.3)
-            if not client.connect():
-                no("RS-485", f"{port} gick inte att öppna")
-                continue
-            for unit in (1, 2, 3):                  # ch1–3 = LR-V / LR-C / LR-H
-                rr = client.read_holding_registers(address=0, count=1, slave=unit)
-                if rr.isError():
-                    no(f"LR400 unit {unit}", f"{port}: inget Modbus-svar")
-                else:
-                    dist = rr.registers[0] / 100.0
-                    ok(f"LR400 unit {unit}", f"{port}: avstånd {dist:.2f} mm")
-                    found += 1
-            client.close()
+            las.open()
+            mean, rms, n = las.read_distance_avg(10)
+            if mean is None:
+                no(f"LR400 {ch}", f"{c['port']} unit {c['unit']}: inget svar "
+                                  f"(reg {c['reg_addr']}/{c['reg_kind']} — verifiera i lr400.json)")
+            else:
+                ok(f"LR400 {ch}", f"{c['port']}: avstånd {mean:.2f} mm → tjocklek "
+                                  f"{c['d0_mm']-mean:.2f} mm (D0 {c['d0_mm']:.1f}, brus {rms*1000:.0f} µm)")
+                found += 1
+            las.close()
         except Exception as exc:
-            no("RS-485", f"{port}: {exc}")
-    info("Status", f"{found}/3 LR400 svarar (ch4 = reserv)")
+            no(f"LR400 {ch}", f"{c['port']}: {exc}")
+    info("Status", f"{found}/3 LR400 svarar (ch4 = reserv). Portmappning + register i data/lr400.json")
 
 
 # ----------------------------------------------------------------- 5. GPIO

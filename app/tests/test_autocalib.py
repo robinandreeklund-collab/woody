@@ -235,6 +235,75 @@ def test_roboclaw_driver_wraps_basicmicro():
     assert mc.closed and ("speed", 0, 0) in mc.calls     # stoppar bandet vid close
 
 
+class _FakeModbus:
+    def __init__(self, value=9000, err=False):
+        self.value, self.err, self.closed = value, err, False
+    class _RR:
+        def __init__(self, regs, err): self.registers, self._err = regs, err
+        def isError(self): return self._err
+    def connect(self): return True
+    def read_holding_registers(self, address, count, slave):
+        return _FakeModbus._RR([] if self.err else [self.value], self.err)
+    def read_input_registers(self, address, count, slave):
+        return _FakeModbus._RR([] if self.err else [self.value], self.err)
+    def close(self): self.closed = True
+
+
+def test_lr400_config_defaults_and_d0():
+    from ..hal.real import lr400_config
+    import tempfile
+    from pathlib import Path
+    # Waveshare 4CH → 4 EGNA portar (en LR400 per port, unit=1)
+    d = lr400_config.DEFAULTS
+    assert d["ch1"]["port"] == "/dev/ttyUSB0" and d["ch2"]["port"] == "/dev/ttyUSB1"
+    assert d["ch1"]["unit"] == 1 and d["ch3"]["unit"] == 1
+    with tempfile.TemporaryDirectory() as t:
+        p = Path(t) / "lr400.json"
+        lr400_config.save(lr400_config.load(p), p)
+        lr400_config.set_d0("ch2", 123.4, p)
+        assert lr400_config.load(p)["ch2"]["d0_mm"] == 123.4
+        assert lr400_config.load(p)["ch1"]["d0_mm"] == 100.0     # andra orörda
+
+
+def test_lr400_driver_reads_thickness():
+    from ..hal.real.lr400_modbus import LR400ModbusLaser
+    from ..geometry import RIG
+    mc = _FakeModbus(value=9000)                     # 9000 × 0,01 = 90,0 mm avstånd
+    las = LR400ModbusLaser(0, 0.0, d0_mm=100.0, scale=0.01, client=mc)
+    las.open()
+    assert las.read_distance_mm() == 90.0
+    assert abs(las.read_mm() - 10.0) < 1e-9          # tjocklek = 100 − 90
+    mean, rms, n = las.read_distance_avg(5)
+    assert mean == 90.0 and n == 5 and rms == 0.0
+    las.set_d0(95.0)
+    assert abs(las.read_mm() - 5.0) < 1e-9
+    mc.err = True                                    # sensorn ser inget mål
+    assert las.read_distance_mm() is None
+    assert las.read_mm() == RIG.board_thick_mm       # pipeline-fallback, ingen krasch
+
+
+class _FakeLR400:
+    def __init__(self, dist): self.dist, self.d0 = dist, 100.0
+    def read_distance_avg(self, n=50): return (self.dist, 0.005, n)   # 5 µm RMS
+    def set_d0(self, v): self.d0 = v
+
+
+def test_run_auto_lr400_zero_d0():
+    from ..hal.real import lr400_config
+    sc = _FakeScanner()
+    sc.point_lasers = [_FakeLR400(100.2), _FakeLR400(99.8), _FakeLR400(100.1)]
+    saved = lr400_config.set_d0
+    lr400_config.set_d0 = lambda *a, **k: None        # rör inte riktiga data/lr400.json
+    try:
+        ctx = autocalib.CalibrationContext(sc)
+        res = autocalib.run_auto("lr400", "zero_d0", ctx)
+    finally:
+        lr400_config.set_d0 = saved
+    assert "fel" not in res and "D0 ch1/2/3" in res
+    assert res["kanaler ok"] == "3/3"
+    assert sc.point_lasers[0].d0 == 100.2             # D0 satt till uppmätt avstånd
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0

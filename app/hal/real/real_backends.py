@@ -17,7 +17,7 @@ from __future__ import annotations
 
 from ..base import Scanner
 from ...geometry import RIG
-from . import camera_config
+from . import camera_config, lr400_config
 from .cameras import GenICamProfileCamera, GenICamSurfaceCamera
 from .gpio_io import make_field_io
 from .lr400_modbus import LR400ModbusLaser
@@ -44,9 +44,16 @@ class RealScanner(Scanner):
         self.surface.configure_encoder_line_trigger(
             divider=cs["divider"], multiplier=cs["multiplier"],
             direction=cs["direction"], line_rate_hz=cs["line_rate_hz"])
-        # 3× LR400 över RS-485 Modbus (Waveshare 4CH ch1–3) — absolut tjocklek-ankare
-        self.point_lasers = [LR400ModbusLaser(i, x, unit=i + 1)
-                             for i, x in enumerate(RIG.point_lasers_x_mm)]
+        # 3× LR400 över RS-485 Modbus (Waveshare 4CH ch1–3) — absolut tjocklek-ankare.
+        # Per-kanal port/unit/register/D0 från data/lr400.json (delad buss-klient).
+        lr = lr400_config.load()
+        chans = ["ch1", "ch2", "ch3"]
+        self.point_lasers = []
+        for i, x in enumerate(RIG.point_lasers_x_mm):
+            c = lr[chans[i]] if i < len(chans) else lr400_config.DEFAULTS["ch1"]
+            self.point_lasers.append(LR400ModbusLaser(
+                i, x, port=c["port"], unit=c["unit"], baud=c["baud"], d0_mm=c["d0_mm"],
+                reg_addr=c["reg_addr"], reg_kind=c["reg_kind"], scale=c["scale"]))
         self.conveyor = RoboClawConveyor()
         self.laser_red, self.laser_green, self.led_white, self.photocell = make_field_io()
         self._board = None

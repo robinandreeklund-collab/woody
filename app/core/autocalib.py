@@ -191,6 +191,7 @@ class CalibrationContext:
     def __init__(self, scanner):
         self.scanner = scanner
         self.conveyor = getattr(scanner, "conveyor", None)
+        self.point_lasers = getattr(scanner, "point_lasers", []) or []
         # Stegsvars-sampling (kort i test via monkeypatch av time.sleep)
         self.step_target_mm_s = 50.0
         self.step_dt = 0.05
@@ -281,6 +282,31 @@ def _conv_speedstep(ctx, _dev):
     finally:
         conv.set_speed(0.0)                            # stoppa ALLTID
 
+def _lr400_zero_d0(ctx, _dev):
+    """Nolla LR400 mot TOMT band: medelavstånd per kanal → D0 (tjocklek = D0 − avstånd).
+    Sätter D0 i drivern + persisterar till data/lr400.json."""
+    lasers = ctx.point_lasers
+    if not lasers:
+        return {"fel": "inga LR400 i HAL"}
+    from ..hal.real import lr400_config             # lazy: undvik core→hal vid import
+    d0s, noises, ok = [], [], 0
+    for i, las in enumerate(lasers):
+        mean, rms, n = las.read_distance_avg(100)
+        if mean is None:
+            d0s.append(None); continue
+        las.set_d0(mean); ok += 1
+        d0s.append(mean); noises.append(rms or 0.0)
+        try:
+            lr400_config.set_d0(f"ch{i + 1}", mean)
+        except Exception:
+            pass
+    if ok == 0:
+        return {"fel": "ingen LR400 svarade — kontrollera RS-485/adresser och töm bandet"}
+    d0str = " / ".join(f"{d:.1f}" if d is not None else "—" for d in d0s) + " mm"
+    noise_um = (sum(noises) / len(noises)) * 1000.0 if noises else 0.0
+    return {"D0 ch1/2/3": d0str, "brus": f"{noise_um:.0f} µm RMS",
+            "kanaler ok": f"{ok}/{len(lasers)}"}
+
 def _conv_beltsync(ctx, _dev):
     """Kör båda banden en känd sträcka → jämför encoder A/B → drift mm/m."""
     conv = ctx.conveyor
@@ -312,6 +338,7 @@ AUTO_ROUTINES: dict = {
     ("surface", "flatfield"):    _surf_flatfield,
     ("conveyor", "speedstep"):   _conv_speedstep,
     ("conveyor", "beltsync"):    _conv_beltsync,
+    ("lr400", "zero_d0"):        _lr400_zero_d0,
 }
 
 
