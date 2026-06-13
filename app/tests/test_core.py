@@ -151,9 +151,55 @@ def test_genicam_feature_apply():
     names = [n for n, _ in dump_genicam_features(nm)]
     assert "PixelFormat" in names and "ExposureTime" in names
 
-    # Linjekamerans defaults sätter encoder-triggad line-scan i färg
-    assert DEFAULT_SURFACE_FEATURES["TriggerMode"] == "On"
+    # Linjekameran är färg som standard (trigg sätts separat, se nedan)
     assert DEFAULT_SURFACE_FEATURES["PixelFormat"] == "RGB8"
+
+
+def test_encoder_line_trigger_resolves_node_names():
+    # Encoder-triggad line-scan ska mappa Huatengs ROTARYENC-modell till GenICam
+    # via kandidat-namnsupplösning — även om kameran använder tillverkar-egna namn.
+    from ..hal.real.cameras import GenICamSurfaceCamera, set_first_available
+
+    class _Node:
+        def __init__(self, v=None, allowed=None):
+            self._v, self._a = v, allowed
+        @property
+        def value(self): return self._v
+        @value.setter
+        def value(self, x):
+            if self._a is not None and x not in self._a: raise ValueError("enum")
+            self._v = x
+
+    # Kamera som BARA har tillverkar-egna nodnamn (inte SFNC) → kandidatlistan
+    # måste hitta dem ändå.
+    class _NM: pass
+    nm = _NM()
+    nm.TriggerSelector = _Node(allowed={"LineStart", "FrameStart"})
+    nm.TriggerMode = _Node(allowed={"On", "Off"})
+    nm.LineSource = _Node(allowed={"RotaryEncoder", "Line0"})   # ej "TriggerSource"
+    nm.TriggerActivation = _Node(allowed={"RisingEdge", "FallingEdge"})
+    nm.RotaryEncDir = _Node()                                   # tillverkar-namn
+    nm.RotaryEncDiv = _Node()
+    nm.RotaryEncMul = _Node()
+
+    cam = GenICamSurfaceCamera()
+    res = cam._apply_line_trigger(nm)               # offline-applicering mot fejk-map
+    assert res["selector"] == ("TriggerSelector", True)
+    assert res["mode"] == ("TriggerMode", True)
+    assert res["source"][1] is True and "LineSource" in res["source"][0]
+    assert nm.TriggerMode.value == "On"
+    assert nm.RotaryEncDir.value == 1               # forward → medurs (1)
+    # divider/multiplier hamnar på tillverkar-noderna
+    assert res["divider"][0] == "RotaryEncDiv" and nm.RotaryEncDiv.value == 1
+
+    # divider från kalibrering (linesync) ska nå kameran
+    cam.configure_encoder_line_trigger(divider=8, direction="reverse")
+    res2 = cam._apply_line_trigger(nm)
+    assert nm.RotaryEncDiv.value == 8 and nm.RotaryEncDir.value == 2   # reverse → moturs
+
+    # set_first_available faller tillbaka snyggt när inget namn finns
+    name, ok = set_first_available(nm, ["FinnsInte", "HellerInte"], 1)
+    assert name is None and ok is False
 
 
 if __name__ == "__main__":

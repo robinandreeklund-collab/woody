@@ -99,13 +99,54 @@ DEFAULT_PROFILE_FEATURES = {
 # Linjekamera: färg, encoder-triggad line-scan (encoder band B → Line0).
 DEFAULT_SURFACE_FEATURES = {
     "PixelFormat": "RGB8",
-    "TriggerMode": "On",
-    "TriggerSource": "Line0",
-    "TriggerActivation": "RisingEdge",
     "ExposureAuto": "Off",
     "GainAuto": "Off",
     "BalanceWhiteAuto": "Off",
 }
+
+
+def set_first_available(node_map, candidates, value, log_prefix: str = ""):
+    """Sätt 'value' på FÖRSTA noden i 'candidates' som finns och accepterar värdet.
+
+    GenICam-nodnamn varierar mellan modeller/producenter (SFNC-standard vs
+    tillverkar-egna). Vi provar en prioriterad lista och använder den som funkar.
+    Returnerar (nodnamn, ok). Kör tools/dump_camera_features.py för exakta namn."""
+    last = None
+    for name in candidates:
+        try:
+            getattr(node_map, name).value = value
+            return (name, True)
+        except Exception as exc:               # okänd nod / fel typ / ogiltigt värde
+            last = (name, str(exc))
+    print(f"[kamera{log_prefix}] ingen av {candidates} gick att sätta={value!r}"
+          + (f" (sista fel: {last[1]})" if last else ""))
+    return (None, False)
+
+
+# ── Encoder-triggad line-scan (linjekameran HT-GELM44C-T2, GigE Vision) ──────────
+# Huatengs SDK-modell (CameraDefine.h / CameraApi.h):
+#   snap-läge ROTARYENC_TRIGGER(3): en bildrad per encoderpuls (band B → Line0).
+#   CameraSetRotaryEncDir(dir):  0=båda riktn., 1=medurs (A före B), 2=moturs.
+#   CameraSetRotaryEncFreq(mul, div): radtakt = encoderpuls × mul / div (radavstånd).
+# På GenICam-standardvägen heter detta enligt SFNC, MEN exakta nodnamn varierar →
+# vi provar kandidatlistor (set_first_available) och verifierar mot dump-verktyget.
+# Riktnings-värden mappas: "forward"->medurs(1), "reverse"->moturs(2), "both"->0.
+_TRIG_CANDS = {
+    "selector":   ["TriggerSelector"],                         # -> "LineStart"
+    "mode":       ["TriggerMode"],                             # -> "On"
+    "source":     ["TriggerSource", "LineSource"],            # encoder-källa
+    "activation": ["TriggerActivation"],                       # flank
+    "enc_sel":    ["EncoderSelector"],                         # -> "Encoder0"
+    "enc_src_a":  ["EncoderSourceA", "RotaryEncoderSourceA"],
+    "enc_src_b":  ["EncoderSourceB", "RotaryEncoderSourceB"],
+    "enc_mode":   ["EncoderMode", "RotaryEncoderMode"],
+    "enc_dir":    ["EncoderDirection", "RotaryEncoderDirection", "RotaryEncDir"],
+    "divider":    ["EncoderDivider", "RotaryEncoderDivider", "RotaryEncDiv"],
+    "multiplier": ["EncoderMultiplier", "RotaryEncoderMultiplier", "RotaryEncMul"],
+    "line_rate":  ["AcquisitionLineRate", "LineRate"],
+}
+_TRIG_SOURCE_CANDS = ["Encoder0", "RotaryEncoder", "FrequencyConverter", "Line0"]
+_TRIG_DIR_VALUES = {"forward": 1, "reverse": 2, "both": 0}
 
 
 class GenICamProfileCamera(ProfileCameraIF):
@@ -180,8 +221,12 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         self._ia = None
         self._connected = False
         self._rows: list = []        # ackumulerade rad-skanningar (en bräda)
-        # GenICam-inställningar: defaults + overrides (encoder-trig, vitbalans, line-rate …)
+        # GenICam-inställningar: defaults + overrides (vitbalans, exponering, gain …)
         self._features = {**DEFAULT_SURFACE_FEATURES, **(features or {})}
+        # Encoder-triggad line-scan PÅ som standard (rigg matar förbi → en rad/puls).
+        # Parametrar tonas av kalibreringen 'linesync' (divider = rader/mm).
+        self._line_trigger: dict | None = dict(
+            divider=1, multiplier=1, direction="forward", line_rate_hz=None)
 
     def info(self) -> DeviceInfo:
         return DeviceInfo("Ytkamera 4K färg (linjekamera)", "HT-GELM44C-T2 (4096 px, encoder-trig)",
@@ -191,19 +236,79 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         h = _harvester()
         kw = {"serial_number": self._serial} if self._serial else {}
         self._ia = h.create(search_key=kw or None)
-        apply_genicam_features(self._ia.remote_device.node_map, self._features,
-                               log_prefix=" yta")
+        nm = self._ia.remote_device.node_map
+        apply_genicam_features(nm, self._features, log_prefix=" yta")
+        if self._line_trigger is not None:
+            self._apply_line_trigger(nm)
         self._ia.start()
         self._connected = True
 
     def configure(self, **features) -> dict:
-        """Uppdatera kamerainställningar (encoder-trig, exponering, gain, vitbalans,
-        line-rate, ROI …) — appliceras direkt om ansluten. Källa: kalibrering/kod."""
+        """Uppdatera kamerainställningar (exponering, gain, vitbalans, ROI …) —
+        appliceras direkt om ansluten. Källa: kalibrering/kod."""
         self._features.update(features)
         if self._connected and self._ia is not None:
             return apply_genicam_features(self._ia.remote_device.node_map, features,
                                           log_prefix=" yta")
         return {}
+
+    def configure_encoder_line_trigger(self, *, divider: int = 1, multiplier: int = 1,
+                                       direction: str = "forward",
+                                       line_rate_hz: float | None = None) -> dict:
+        """Ställ encoder-triggad line-scan (band B-encoder → kamerans Line0).
+
+        Mappar Huatengs ROTARYENC_TRIGGER-modell till GenICam-noder med
+        kandidat-namnsupplösning. ``divider`` (rader per encoderpuls) kommer från
+        kalibreringen 'linesync'; ``direction`` ∈ {forward, reverse, both};
+        ``line_rate_hz`` sätter ev. maxradtakt. Appliceras direkt om ansluten,
+        annars vid nästa open(). Returnerar {logiskt-namn: (nod, ok)}."""
+        self._line_trigger = dict(divider=int(divider), multiplier=int(multiplier),
+                                  direction=direction, line_rate_hz=line_rate_hz)
+        if self._connected and self._ia is not None:
+            return self._apply_line_trigger(self._ia.remote_device.node_map)
+        return {}
+
+    def disable_line_trigger(self) -> dict:
+        """Stäng av trigg (fri ström) — t.ex. för fokus/justering utan matning."""
+        self._line_trigger = None
+        if self._connected and self._ia is not None:
+            return {"mode": set_first_available(
+                self._ia.remote_device.node_map, _TRIG_CANDS["mode"], "Off", " yta")}
+        return {}
+
+    def _apply_line_trigger(self, nm) -> dict:
+        """Översätt encoder-trigg-parametrarna till GenICam-noder (best-effort)."""
+        p = self._line_trigger or {}
+        res: dict = {}
+        # 1) line-scan-trigg: en rad (LineStart) per puls, flank-triggad
+        res["selector"]   = set_first_available(nm, _TRIG_CANDS["selector"], "LineStart", " yta")
+        res["mode"]       = set_first_available(nm, _TRIG_CANDS["mode"], "On", " yta")
+        res["source"]     = self._set_source(nm)
+        res["activation"] = set_first_available(nm, _TRIG_CANDS["activation"], "RisingEdge", " yta")
+        # 2) encoder: A/B-faser på Line-ingångar, riktning, divider/multiplikator
+        set_first_available(nm, _TRIG_CANDS["enc_sel"], "Encoder0", " yta")
+        set_first_available(nm, _TRIG_CANDS["enc_src_a"], "Line0", " yta")
+        set_first_available(nm, _TRIG_CANDS["enc_src_b"], "Line1", " yta")
+        res["direction"]  = set_first_available(
+            nm, _TRIG_CANDS["enc_dir"], _TRIG_DIR_VALUES.get(p.get("direction"), 1), " yta")
+        res["divider"]    = set_first_available(nm, _TRIG_CANDS["divider"], p.get("divider", 1), " yta")
+        res["multiplier"] = set_first_available(nm, _TRIG_CANDS["multiplier"], p.get("multiplier", 1), " yta")
+        if p.get("line_rate_hz"):
+            res["line_rate"] = set_first_available(nm, _TRIG_CANDS["line_rate"], p["line_rate_hz"], " yta")
+        return res
+
+    def _set_source(self, nm):
+        """Encoder-triggkälla: prova nodnamn × värde-kandidater, tyst tills allt fallit."""
+        for node in _TRIG_CANDS["source"]:
+            for src in _TRIG_SOURCE_CANDS:
+                try:
+                    getattr(nm, node).value = src
+                    return (f"{node}={src}", True)
+                except Exception:
+                    continue
+        print(f"[kamera yta] kunde inte sätta triggkälla "
+              f"({_TRIG_CANDS['source']} × {_TRIG_SOURCE_CANDS})")
+        return (None, False)
 
     def grab_line(self) -> np.ndarray:
         """En radskanning (RGB) — ackumuleras till en yt-bild medan brädan matas."""

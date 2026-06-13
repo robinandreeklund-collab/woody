@@ -28,6 +28,10 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--serial", help="kamera-serienummer (annars första)")
     ap.add_argument("--grep", help="filtrera feature-namn (skiftlägesokänsligt)")
+    ap.add_argument("--trigger", action="store_true",
+                    help="förinställt filter: trigger/encoder/line/acquisition + enum-värden")
+    ap.add_argument("--enum", action="store_true",
+                    help="visa tillåtna enum-värden per nod (för att mappa trigger/encoder)")
     ap.add_argument("--list", action="store_true", help="lista bara hittade kameror")
     args = ap.parse_args()
 
@@ -46,18 +50,33 @@ def main() -> int:
 
     kw = {"serial_number": args.serial} if args.serial else {}
     ia = h.create(search_key=kw or None)
+    nm = ia.remote_device.node_map
+    # --trigger: visa allt som rör encoder-triggad line-scan + enum-värden
+    trig_terms = ("trigger", "encoder", "line", "acquisition", "rotaryenc")
+    show_enum = args.enum or args.trigger
     try:
-        rows = dump_genicam_features(ia.remote_device.node_map)
+        rows = dump_genicam_features(nm)
         g = (args.grep or "").lower()
         shown = 0
         print()
         for name, val in rows:
-            if g and g not in name.lower():
+            low = name.lower()
+            if g and g not in low:
                 continue
-            print(f"  {name:42} = {val!r}")
+            if args.trigger and not any(t in low for t in trig_terms):
+                continue
+            line = f"  {name:42} = {val!r}"
+            if show_enum:                       # lista tillåtna värden för enum-noder
+                try:
+                    allowed = list(getattr(nm, name).symbolics)
+                    if allowed:
+                        line += f"   ∈ {allowed}"
+                except Exception:
+                    pass
+            print(line)
             shown += 1
-        print(f"\n{shown}/{len(rows)} features"
-              + (f' (filter: {args.grep!r})' if g else ''))
+        flt = args.grep or ("trigger/encoder/line" if args.trigger else None)
+        print(f"\n{shown}/{len(rows)} features" + (f' (filter: {flt!r})' if flt else ''))
     finally:
         ia.destroy()
     return 0
