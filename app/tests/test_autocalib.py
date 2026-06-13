@@ -160,6 +160,81 @@ def test_runner_real_mode_runs_auto_measurement(tmp_path=None):
         assert store.get("prof_red", "exposure")["ok"] is True
 
 
+class _FakeConveyor:
+    def __init__(self):
+        self._counts_per_mm = 100.0; self._sp = 0.0; self._enc = 0; self._n = 0
+    def set_speed(self, v): self._sp = v
+    def read_speed_mm_s(self):
+        self._n += 1
+        v = min(52.0, 50.0 * (1 - 2.71828 ** (-self._n / 3.0)))   # ramp mot 50
+        return (v, v)
+    def encoder_counts(self): return (self._enc, self._enc - 4)    # liten A/B-skillnad
+    def zero(self): pass
+    def move_mm(self, d, v): self._enc += int(d * self._counts_per_mm)
+
+
+def test_conveyor_pure_metrics():
+    t = [i * 0.05 for i in range(30)]
+    v = [min(52.0, 50.0 * (1 - 2.71828 ** (-i * 0.05 / 0.1))) for i in range(30)]
+    m = autocalib.step_response_metrics(t, v, 50.0)
+    assert "ms" in m["stigtid"] and float(m["översläng"].replace(" %", "")) >= 0
+    assert autocalib.belt_drift(200.0, 199.8, 200.0)["status"] == "JUSTERA M2-trim"
+    assert autocalib.belt_drift(200.0, 199.98, 200.0)["status"] == "inom tolerans"
+
+
+def test_run_auto_conveyor_speedstep_and_sync():
+    saved = autocalib.time.sleep
+    autocalib.time.sleep = lambda *a, **k: None          # snabba upp testet
+    try:
+        sc = _FakeScanner(); sc.conveyor = _FakeConveyor()
+        ctx = autocalib.CalibrationContext(sc); ctx.step_n = 12
+        ss = autocalib.run_auto("conveyor", "speedstep", ctx)
+        assert "fel" not in ss and "stigtid" in ss
+        assert sc.conveyor._sp == 0.0                    # bandet ALLTID stoppat efteråt
+        bs = autocalib.run_auto("conveyor", "beltsync", ctx)
+        assert "fel" not in bs and "drift" in bs
+    finally:
+        autocalib.time.sleep = saved
+
+
+def test_roboclaw_driver_wraps_basicmicro():
+    # Verifierar drivern mot en INJICERAD fejk-Basicmicro (ingen seriell hårdvara).
+    from ..hal.real.roboclaw_conveyor import RoboClawConveyor
+
+    class _FakeMC:
+        def __init__(self): self.enc = 1000; self.calls = []; self.closed = False
+        def Open(self): return True
+        def ReadVersion(self, a): return (True, "USB Roboclaw 2x7a v4.1.34")
+        def ReadEncM1(self, a): return (True, self.enc, 0)
+        def ReadEncM2(self, a): return (True, self.enc, 0)
+        def SpeedM1M2(self, a, m1, m2): self.calls.append(("speed", m1, m2)); return True
+        def DutyM1M2(self, a, m1, m2): self.calls.append(("duty", m1, m2)); return True
+        def ReadSpeedM1(self, a): return (True, 3000, 0)     # 3000 counts/s → 30 mm/s
+        def ReadSpeedM2(self, a): return (True, 3000, 0)
+        def SpeedAccelDistanceM1M2(self, a, ac, s1, d1, s2, d2, b):
+            self.enc += d1; self.calls.append(("move", d1)); return True
+        def ReadMainBatteryVoltage(self, a): return (True, 124)   # 12,4 V
+        def ReadTemp(self, a): return (True, 312)                 # 31,2 °C
+        def ReadError(self, a): return (True, 0)
+        def close(self): self.closed = True
+
+    mc = _FakeMC()
+    rc = RoboClawConveyor(controller=mc, counts_per_mm=100.0)
+    rc.open()
+    assert rc._connected and "Roboclaw" in rc.firmware()
+    assert abs(rc.position_mm()) < 1e-9                  # nollreferens vid open
+    rc.set_speed(10.0)                                    # 10 mm/s → 1000 counts/s
+    assert ("speed", 1000, 1000) in mc.calls
+    assert rc.read_speed_mm_s() == (30.0, 30.0)
+    rc.move_mm(200, 30)                                   # 200 mm × 100 = 20000 counts
+    assert ("move", 20000) in mc.calls
+    assert abs(rc.position_mm() - 200.0) < 1e-6
+    h = rc.health()
+    assert h["battery_v"] == 12.4 and h["temp_c"] == 31.2 and h["enc_m1"] == 21000
+    rc.close()
+    assert mc.closed and ("speed", 0, 0) in mc.calls     # stoppar bandet vid close
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0

@@ -98,7 +98,8 @@ if [ "$VENV_OK" = 1 ]; then
     numpy scipy opencv-python-headless
     PySide6
     harvesters            # GenICam-API (appens cameras.py)
-    pyserial              # RoboClaw packet serial
+    pyserial              # seriell grund (LR400 m.m.)
+    basicmicro            # RoboClaw 2x7A officiella driver (packet serial)
     pymodbus              # 3× LR400 över RS-485 (Waveshare 4CH)
   )
   python -m pip install "${PY_PKGS[@]}" || warn "några python-paket föll bort — se ovan"

@@ -13,6 +13,8 @@ skyddsglasögon). Saknas stripen returneras ett fel som ber operatören tända l
 """
 from __future__ import annotations
 
+import time
+
 import numpy as np
 
 # ───────────────────────────── rena mätfunktioner ──────────────────────────────
@@ -152,6 +154,35 @@ def flat_field(rows: np.ndarray) -> dict:
     return {"ojämnhet före": f"{before*100:.1f} %", "efter": f"{after*100:.2f} %"}
 
 
+# -- transportör (RoboClaw) --
+
+def step_response_metrics(times, speeds, target: float) -> dict:
+    """Hastighets-stegsvar → stigtid (till 90 %), översläng (%), ripple (% av mål).
+    ``times`` (s) och ``speeds`` (mm/s) samplade efter steget till ``target`` mm/s."""
+    t = np.asarray(times, dtype=np.float64)
+    v = np.asarray(speeds, dtype=np.float64)
+    if t.size < 3 or target <= 0:
+        return {"fel": "för få sampel för stegsvar"}
+    # stigtid: första gången hastigheten når 90 % av målet
+    reach = np.where(v >= 0.9 * target)[0]
+    rise_ms = float((t[reach[0]] - t[0]) * 1000.0) if reach.size else float("nan")
+    overshoot = float(max(0.0, (v.max() - target) / target * 100.0))
+    steady = v[t >= t[0] + 0.6 * (t[-1] - t[0])]      # sista ~40 % = inställt läge
+    ripple = float(steady.std() / target * 100.0) if steady.size else float("nan")
+    return {"stigtid": f"{rise_ms:.0f} ms", "översläng": f"{overshoot:.1f} %",
+            "ripple": f"±{ripple:.1f} %"}
+
+
+def belt_drift(mm_a: float, mm_b: float, distance_mm: float) -> dict:
+    """Bandsynk: två band kör samma kommando → drift (mm/m) mellan dem (encoder A/B)."""
+    if distance_mm <= 0:
+        return {"fel": "ogiltig sträcka"}
+    drift_per_m = abs(mm_a - mm_b) / (distance_mm / 1000.0)
+    status = "inom tolerans" if drift_per_m < 0.5 else "JUSTERA M2-trim"
+    return {"drift": f"{drift_per_m:.2f} mm/m", "band A/B": f"{mm_a:.1f} / {mm_b:.1f} mm",
+            "status": status}
+
+
 # ───────────────────────────── kontext-adapter ─────────────────────────────────
 
 class CalibrationContext:
@@ -159,6 +190,13 @@ class CalibrationContext:
 
     def __init__(self, scanner):
         self.scanner = scanner
+        self.conveyor = getattr(scanner, "conveyor", None)
+        # Stegsvars-sampling (kort i test via monkeypatch av time.sleep)
+        self.step_target_mm_s = 50.0
+        self.step_dt = 0.05
+        self.step_n = 30
+        self.sync_distance_mm = 200.0
+        self.sync_speed_mm_s = 30.0
 
     def _profile(self, dev_id: str):
         return (self.scanner.profile_red if dev_id == "prof_red"
@@ -224,6 +262,42 @@ def _surf_whitebal(ctx, _dev):
 def _surf_flatfield(ctx, _dev):
     return flat_field(ctx.grab_surface_rows(200))
 
+def _conv_speedstep(ctx, _dev):
+    """Mät hastighets-stegsvar (0→mål mm/s) → stigtid/översläng/ripple. Bandet rör
+    sig bundet (operatörsinitierat); stoppas alltid efteråt."""
+    conv = ctx.conveyor
+    if conv is None:
+        return {"fel": "ingen transportör i HAL"}
+    target = ctx.step_target_mm_s
+    try:
+        conv.set_speed(0.0); time.sleep(0.2)
+        conv.set_speed(target)
+        times, speeds = [], []
+        for i in range(ctx.step_n):
+            time.sleep(ctx.step_dt)
+            times.append(i * ctx.step_dt)
+            speeds.append(conv.read_speed_mm_s()[0])
+        return step_response_metrics(times, speeds, target)
+    finally:
+        conv.set_speed(0.0)                            # stoppa ALLTID
+
+def _conv_beltsync(ctx, _dev):
+    """Kör båda banden en känd sträcka → jämför encoder A/B → drift mm/m."""
+    conv = ctx.conveyor
+    if conv is None:
+        return {"fel": "ingen transportör i HAL"}
+    dist = ctx.sync_distance_mm
+    cpm = getattr(conv, "_counts_per_mm", 100.0)
+    try:
+        conv.zero()
+        m1_0, m2_0 = conv.encoder_counts()
+        conv.move_mm(dist, ctx.sync_speed_mm_s)
+        time.sleep(dist / max(1.0, ctx.sync_speed_mm_s) + 0.5)   # vänta in rörelsen
+        m1_1, m2_1 = conv.encoder_counts()
+        return belt_drift((m1_1 - m1_0) / cpm, (m2_1 - m2_0) / cpm, dist)
+    finally:
+        conv.set_speed(0.0)
+
 
 AUTO_ROUTINES: dict = {
     ("prof_red", "exposure"):    _prof_exposure,
@@ -236,6 +310,8 @@ AUTO_ROUTINES: dict = {
     ("prof_green", "stripe_roi"): _prof_stripe_roi,
     ("surface", "whitebal"):     _surf_whitebal,
     ("surface", "flatfield"):    _surf_flatfield,
+    ("conveyor", "speedstep"):   _conv_speedstep,
+    ("conveyor", "beltsync"):    _conv_beltsync,
 }
 
 

@@ -122,8 +122,11 @@ def probe_roboclaw():
         rc = RoboClawConveyor(port=port)
         try:
             rc.open()
-            ok("RoboClaw", f"{port} — {rc.info().model} ({rc.firmware()})")
-            info("   position", f"{rc.position_mm():.1f} mm")
+            h = rc.health()
+            ok("RoboClaw", f"{port} — {rc.info().model} (fw: {h['firmware']})")
+            info("   hälsa", f"batteri {h['battery_v']:.1f} V · temp {h['temp_c']:.1f} °C "
+                            f"· fel-flaggor 0x{max(h['error'],0):X}")
+            info("   encodrar", f"M1={h['enc_m1']} (band A) · M2={h['enc_m2']} (band B)")
             rc.close()
             return
         except Exception as exc:

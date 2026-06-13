@@ -355,8 +355,9 @@ class CalibrationRunner:
             values = self._auto["values"]
             ok = "fel" not in values                  # rutinen rapporterar fel som {'fel':…}
             return values, ok
-        # real men ingen auto-rutin (guidad metod, t.ex. intrinsics) → platshållare
-        return dict(method.get("sim", {})), True
+        # real men ingen auto-rutin (guidad metod, t.ex. intrinsics/countsmm) →
+        # markera som guidad i st f att hitta på mätvärden.
+        return {"status": "guidad — utförd enligt stegen"}, True
 
 
 def _jitter(text: str) -> str:
