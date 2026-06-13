@@ -41,9 +41,77 @@ def _harvester():
     return _HARVESTER
 
 
+# ───────────────────── GenICam-inställningar (styr kameran från koden) ──────────
+# Vendor-neutralt: varje kamerafunktion (exponering, gain, line-rate, trigger,
+# vitbalans …) är en namngiven GenICam-nod enligt SFNC-standarden. Vi sätter dem
+# säkert — fel/okänt namn loggas och hoppas över, så samma kod funkar mot olika
+# modeller. Kör tools/dump_camera_features.py mot ansluten kamera för de EXAKTA
+# nodnamnen den exponerar (de varierar; defaults nedan är SFNC-standardnamn).
+
+def apply_genicam_features(node_map, features: dict, log_prefix: str = "") -> dict:
+    """Sätt varje {feature: värde} på kamerans node-map. None-värden hoppas över.
+    Returnerar {feature: (ok, värde-eller-feltext)} för loggning/verifiering."""
+    results: dict = {}
+    for name, value in features.items():
+        if value is None:
+            continue
+        try:
+            getattr(node_map, name).value = value
+            results[name] = (True, getattr(node_map, name).value)
+        except Exception as exc:                # okänd nod / fel typ / read-only
+            results[name] = (False, str(exc))
+            print(f"[kamera{log_prefix}] kunde inte sätta {name}={value!r}: {exc}")
+    return results
+
+
+def read_genicam_features(node_map, names) -> dict:
+    """Läs aktuella värden för en lista features (None om noden saknas)."""
+    out: dict = {}
+    for name in names:
+        try:
+            out[name] = getattr(node_map, name).value
+        except Exception:
+            out[name] = None
+    return out
+
+
+def dump_genicam_features(node_map) -> list:
+    """Lista (namn, värde) för alla läsbara features — för upptäckt/kalibrering.
+    Harvester exponerar feature-noder som attribut på node-mapen."""
+    rows = []
+    for name in sorted(n for n in dir(node_map) if n[:1].isupper()):
+        try:
+            rows.append((name, getattr(getattr(node_map, name), "value", None)))
+        except Exception:
+            continue
+    return rows
+
+
+# Standard-features (SFNC). Slås ihop med per-kamera-overrides från config/kalibrering.
+# Profilkamera: mono höghastighet, fri ström @60fps (laserstripe i Mono8).
+DEFAULT_PROFILE_FEATURES = {
+    "PixelFormat": "Mono8",
+    "AcquisitionMode": "Continuous",
+    "TriggerMode": "Off",
+    "ExposureAuto": "Off",
+    "GainAuto": "Off",
+}
+# Linjekamera: färg, encoder-triggad line-scan (encoder band B → Line0).
+DEFAULT_SURFACE_FEATURES = {
+    "PixelFormat": "RGB8",
+    "TriggerMode": "On",
+    "TriggerSource": "Line0",
+    "TriggerActivation": "RisingEdge",
+    "ExposureAuto": "Off",
+    "GainAuto": "Off",
+    "BalanceWhiteAuto": "Off",
+}
+
+
 class GenICamProfileCamera(ProfileCameraIF):
     def __init__(self, color: str, serial: str | None = None,
-                 roi_rows: int = 80, exposure_us: float = 800.0):
+                 roi_rows: int = 80, exposure_us: float = 800.0,
+                 features: dict | None = None):
         self._color = color
         self._serial = serial
         self._roi_rows = roi_rows
@@ -51,6 +119,8 @@ class GenICamProfileCamera(ProfileCameraIF):
         self._ia = None
         self._connected = False
         self._extractor = None        # GPU/CPU stripe-extraktor (lazy)
+        # GenICam-inställningar: defaults + overrides (från config/kalibrering)
+        self._features = {**DEFAULT_PROFILE_FEATURES, **(features or {})}
 
     def info(self) -> DeviceInfo:
         nm = "RÖD 650" if self._color == "red" else "GRÖN 520"
@@ -60,14 +130,20 @@ class GenICamProfileCamera(ProfileCameraIF):
         h = _harvester()
         kw = {"serial_number": self._serial} if self._serial else {}
         self._ia = h.create(search_key=kw or None)
-        n = self._ia.remote_device.node_map
-        try:
-            n.ExposureTime.value = self._exposure_us
-            n.PixelFormat.value = "Mono8"
-        except Exception:
-            pass
+        # ExposureTime drivs av self._exposure_us men kan överstyras via features
+        feats = {"ExposureTime": self._exposure_us, **self._features}
+        apply_genicam_features(self._ia.remote_device.node_map, feats,
+                               log_prefix=f" {self._color}")
         self._ia.start()
         self._connected = True
+
+    def configure(self, **features) -> dict:
+        """Uppdatera kamerainställningar (defaults + nu) — appliceras direkt om ansluten."""
+        self._features.update(features)
+        if self._connected and self._ia is not None:
+            return apply_genicam_features(self._ia.remote_device.node_map, features,
+                                          log_prefix=f" {self._color}")
+        return {}
 
     def read_stripe(self, y_mm: float = 0.0, n: int = 200) -> np.ndarray:
         """Hämta en ram, beskär ett ROI-band runt stripen och skala till (roi_rows, n)."""
@@ -99,11 +175,13 @@ class GenICamProfileCamera(ProfileCameraIF):
 
 
 class GenICamSurfaceCamera(SurfaceCameraIF):
-    def __init__(self, serial: str | None = None):
+    def __init__(self, serial: str | None = None, features: dict | None = None):
         self._serial = serial
         self._ia = None
         self._connected = False
         self._rows: list = []        # ackumulerade rad-skanningar (en bräda)
+        # GenICam-inställningar: defaults + overrides (encoder-trig, vitbalans, line-rate …)
+        self._features = {**DEFAULT_SURFACE_FEATURES, **(features or {})}
 
     def info(self) -> DeviceInfo:
         return DeviceInfo("Ytkamera 4K färg (linjekamera)", "HT-GELM44C-T2 (4096 px, encoder-trig)",
@@ -113,8 +191,19 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         h = _harvester()
         kw = {"serial_number": self._serial} if self._serial else {}
         self._ia = h.create(search_key=kw or None)
+        apply_genicam_features(self._ia.remote_device.node_map, self._features,
+                               log_prefix=" yta")
         self._ia.start()
         self._connected = True
+
+    def configure(self, **features) -> dict:
+        """Uppdatera kamerainställningar (encoder-trig, exponering, gain, vitbalans,
+        line-rate, ROI …) — appliceras direkt om ansluten. Källa: kalibrering/kod."""
+        self._features.update(features)
+        if self._connected and self._ia is not None:
+            return apply_genicam_features(self._ia.remote_device.node_map, features,
+                                          log_prefix=" yta")
+        return {}
 
     def grab_line(self) -> np.ndarray:
         """En radskanning (RGB) — ackumuleras till en yt-bild medan brädan matas."""

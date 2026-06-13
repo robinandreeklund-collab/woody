@@ -25,9 +25,13 @@ from .roboclaw_conveyor import RoboClawConveyor
 
 class RealScanner(Scanner):
     def __init__(self, cfg=None):
-        self.profile_red = GenICamProfileCamera("red")
-        self.profile_green = GenICamProfileCamera("green")
-        self.surface = GenICamSurfaceCamera()
+        # Kamerainställningar (GenICam-features) kan överstyras från config/kod:
+        # cfg.profile_features / cfg.surface_features (dict). Annars SFNC-defaults.
+        prof_f = getattr(cfg, "profile_features", None) if cfg else None
+        surf_f = getattr(cfg, "surface_features", None) if cfg else None
+        self.profile_red = GenICamProfileCamera("red", features=prof_f)
+        self.profile_green = GenICamProfileCamera("green", features=prof_f)
+        self.surface = GenICamSurfaceCamera(features=surf_f)
         # 3× LR400 över RS-485 Modbus (Waveshare 4CH ch1–3) — absolut tjocklek-ankare
         self.point_lasers = [LR400ModbusLaser(i, x, unit=i + 1)
                              for i, x in enumerate(RIG.point_lasers_x_mm)]

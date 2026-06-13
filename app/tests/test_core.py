@@ -105,6 +105,57 @@ def test_persistence_roundtrip():
         st.close()
 
 
+def test_genicam_feature_apply():
+    # Settings-lagret ska styra kameran från koden: sätt giltiga features, logga
+    # okända/ogiltiga utan att krascha, hoppa över None. (Fejkad GenICam-node-map.)
+    from ..hal.real.cameras import (apply_genicam_features, read_genicam_features,
+                                    dump_genicam_features, DEFAULT_SURFACE_FEATURES)
+
+    class _Node:
+        def __init__(self, v, allowed=None, ro=False):
+            self._v, self._a, self._ro = v, allowed, ro
+        @property
+        def value(self): return self._v
+        @value.setter
+        def value(self, x):
+            if self._ro: raise RuntimeError("read-only")
+            if self._a is not None and x not in self._a: raise ValueError("ogiltig enum")
+            self._v = x
+
+    class _NodeMap: pass
+    nm = _NodeMap()
+    nm.PixelFormat = _Node("Mono8", allowed={"Mono8", "RGB8"})
+    nm.TriggerMode = _Node("Off", allowed={"On", "Off"})
+    nm.ExposureTime = _Node(100.0)
+    nm.DeviceVendorName = _Node("HuaTeng", ro=True)
+
+    res = apply_genicam_features(nm, {
+        "PixelFormat": "RGB8",        # giltig enum
+        "TriggerMode": "On",          # giltig enum
+        "ExposureTime": 250.0,        # float
+        "DeviceVendorName": "X",      # read-only → loggas, ej krasch
+        "SaknasHelt": 1,              # okänd nod → loggas, ej krasch
+        "Hoppas": None,               # None → hoppas över
+    })
+    assert res["PixelFormat"] == (True, "RGB8")
+    assert res["TriggerMode"][0] is True
+    assert res["ExposureTime"] == (True, 250.0)
+    assert res["DeviceVendorName"][0] is False     # read-only fångas
+    assert res["SaknasHelt"][0] is False           # okänd nod fångas
+    assert "Hoppas" not in res                      # None applicerades aldrig
+    assert nm.PixelFormat.value == "RGB8"          # faktiskt satt
+
+    vals = read_genicam_features(nm, ["PixelFormat", "FinnsEj"])
+    assert vals["PixelFormat"] == "RGB8" and vals["FinnsEj"] is None
+
+    names = [n for n, _ in dump_genicam_features(nm)]
+    assert "PixelFormat" in names and "ExposureTime" in names
+
+    # Linjekamerans defaults sätter encoder-triggad line-scan i färg
+    assert DEFAULT_SURFACE_FEATURES["TriggerMode"] == "On"
+    assert DEFAULT_SURFACE_FEATURES["PixelFormat"] == "RGB8"
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0
