@@ -15,8 +15,11 @@ from __future__ import annotations
 
 import json
 import random
+import threading
 import time
 from pathlib import Path
+
+from . import autocalib
 
 # ---------------------------------------------------------------- enhetskatalog
 # (id, namn, modell, gränssnitt, typ) — den LÅSTA hårdvaran (docs/jetson-prep-plan.md §1)
@@ -51,6 +54,12 @@ _PROFILE_METHODS = [
              "(tar bort hotspots/reflexer).",
      "steps": [("Släck laser", 0.5), ("Medla 64 mörkramar", 2.0), ("Spara bakgrundskarta", 0.5)],
      "sim": {"bakgrund": "2,1/255 medel", "hotspots": "0 px > 30"}},
+    {"id": "stripe_roi", "title": "Stripe-ROI (auto-band)",
+     "desc": "Hitta laserstripens rad automatiskt → sätt kamerans hårdvaru-ROI-offset "
+             "så bandet centreras på stripen (mindre USB-bandbredd → 60 fps).",
+     "steps": [("Sök stripe-rad i full ram", 1.5), ("Beräkna ROI-offset", 0.5),
+               ("Sätt ROI i kameran", 0.5)],
+     "sim": {"stripe-rad": "1024,3", "ROI-offset": "984 px"}},
     {"id": "intrinsics", "title": "Kamera-intrinsics",
      "desc": "Schackbräde/ChArUco i ~15 poser → fokallängd, huvudpunkt, "
              "linsdistorsion. Krävs för geometriskt korrekt triangulering.",
@@ -261,12 +270,14 @@ class CalibrationRunner:
     (lätt jitter så det känns mätt); i real-läge kör HAL-hooks när de finns.
     """
 
-    def __init__(self, store: CalibrationStore, sim: bool = True):
+    def __init__(self, store: CalibrationStore, sim: bool = True, context=None):
         self.store = store
         self.sim = sim
+        self.context = context        # autocalib.CalibrationContext (real-läge)
         self.active: dict | None = None
         self.on_progress = None       # callable(pct: float, msg: str)
         self.on_finished = None       # callable(ok: bool, values: dict)
+        self._auto: dict | None = None  # {thread, done, values} för auto-mätning
 
     @property
     def running(self) -> bool:
@@ -284,12 +295,25 @@ class CalibrationRunner:
             return False
         self.active = {"dev": dev_id, "method": method, "step": 0, "t": 0.0,
                        "total": sum(s[1] for s in method["steps"])}
+        # Real-läge + auto-rutin finns → mät i bakgrundstråd (blockera ej GUI).
+        self._auto = None
+        if not self.sim and self.context is not None and autocalib.has_auto(dev_id, method_id):
+            self._auto = {"done": False, "values": None}
+            self._auto["thread"] = threading.Thread(
+                target=self._run_auto, args=(dev_id, method_id), daemon=True)
+            self._auto["thread"].start()
         if self.on_progress:
             self.on_progress(0.0, method["steps"][0][0])
         return True
 
+    def _run_auto(self, dev_id: str, method_id: str) -> None:
+        values = autocalib.run_auto(dev_id, method_id, self.context)
+        self._auto["values"] = values
+        self._auto["done"] = True
+
     def cancel(self) -> None:
         self.active = None
+        self._auto = None
 
     def tick(self, dt: float) -> None:
         a = self.active
@@ -308,23 +332,31 @@ class CalibrationRunner:
                 if self.on_progress:
                     self.on_progress(pct, label)
                 return
+        # Tiden slut. Om en auto-mätning kör → vänta in den (håll stapeln ~0,97).
+        if self._auto is not None and not self._auto["done"]:
+            if self.on_progress:
+                self.on_progress(0.97, "mäter mot kameran …")
+            return
         # klart → producera resultat
         dev, method = a["dev"], a["method"]
         self.active = None
-        values = self._results(dev, method)
-        self.store.set(dev, method["id"], values, ok=True)
+        values, ok = self._results(dev, method)
+        self._auto = None
+        self.store.set(dev, method["id"], values, ok=ok)
         if self.on_finished:
-            self.on_finished(True, values)
+            self.on_finished(ok, values)
 
-    def _results(self, dev_id: str, method: dict) -> dict:
-        base = dict(method.get("sim", {}))
+    def _results(self, dev_id: str, method: dict) -> tuple[dict, bool]:
+        """Returnerar (värden, ok). Real-läge: riktiga auto-mätvärden om de finns."""
         if self.sim:
             # lätt jitter på numeriska prefix så varje körning känns "mätt"
-            out = {}
-            for k, v in base.items():
-                out[k] = _jitter(v)
-            return out
-        return base                    # real: HAL-hookarna fyller på i Fas C/D
+            return {k: _jitter(v) for k, v in method.get("sim", {}).items()}, True
+        if self._auto is not None and self._auto.get("values") is not None:
+            values = self._auto["values"]
+            ok = "fel" not in values                  # rutinen rapporterar fel som {'fel':…}
+            return values, ok
+        # real men ingen auto-rutin (guidad metod, t.ex. intrinsics) → platshållare
+        return dict(method.get("sim", {})), True
 
 
 def _jitter(text: str) -> str:

@@ -15,6 +15,7 @@ import threading
 
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 
+from . import autocalib
 from .calibration import (CALIB_METHODS, DEVICE_CATALOG, CalibrationRunner,
                           CalibrationStore, methods_for)
 
@@ -31,7 +32,10 @@ class DeviceManager(QObject):
         self._mode = getattr(cfg, "mode", "sim")
         self._scanner = scanner
         self._store = CalibrationStore(store_path)
-        self._runner = CalibrationRunner(self._store, sim=(self._mode == "sim"))
+        # Real-läge: ge runnern kameraåtkomst så auto-rutinerna kan MÄTA mot HAL.
+        ctx = (autocalib.CalibrationContext(scanner)
+               if self._mode == "real" and scanner is not None else None)
+        self._runner = CalibrationRunner(self._store, sim=(self._mode == "sim"), context=ctx)
         self._runner.on_progress = self._on_progress
         self._runner.on_finished = self._on_finished
         self._status: dict[str, dict] = {}            # dev_id -> {connected, status}
@@ -146,6 +150,7 @@ class DeviceManager(QObject):
                 "id": m["id"], "title": m["title"], "desc": m["desc"],
                 "steps": [s[0] for s in m["steps"]],
                 "done": bool(rec.get("ok")), "date": rec.get("date", ""),
+                "auto": autocalib.has_auto(dev_id, m["id"]),   # mäter mot kameran
                 "summary": " · ".join(f"{k}: {v}" for k, v in list(values.items())[:3]),
             })
         return out

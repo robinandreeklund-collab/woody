@@ -85,6 +85,13 @@ RowLayout {
                                 RowLayout {
                                     Layout.fillWidth: true; spacing: 8
                                     Text { text: modelData.title; color: Theme.ink; font.pixelSize: 13; font.weight: Font.DemiBold }
+                                    Rectangle {
+                                        visible: modelData.auto === true
+                                        radius: 5; implicitWidth: aut.width+10; implicitHeight: 16
+                                        color: Qt.rgba(0.15,0.83,0.88,0.13); border.color: Qt.rgba(0.15,0.83,0.88,0.4)
+                                        Text { id: aut; anchors.centerIn: parent; text: "AUTO"
+                                               color: Theme.cyan; font.family: Theme.mono; font.pixelSize: 8; font.weight: Font.DemiBold }
+                                    }
                                     Rectangle { radius: 6; implicitWidth: mst.width+12; implicitHeight: 18
                                         color: modelData.done ? Qt.rgba(0.2,0.9,0.71,0.12) : Qt.rgba(1,0.7,0.24,0.12)
                                         border.color: modelData.done ? Qt.rgba(0.2,0.9,0.71,0.3) : Qt.rgba(1,0.7,0.24,0.3)
