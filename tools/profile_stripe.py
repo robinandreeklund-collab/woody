@@ -47,30 +47,45 @@ def synth_frames(n: int, rows: int, cols: int, xp) -> "object":
     return xp.clip(stripe + bg + noise, 0, 255).astype(xp.float32)
 
 
+def _free_gpu(xp):
+    """Frigör CuPy-minnespoolen mellan ROI:er (no-op på numpy)."""
+    try:
+        xp.get_default_memory_pool().free_all_blocks()
+    except Exception:
+        pass
+
+
 def bench(rows: int, cols: int, n: int):
     xp, name = get_xp()
     ex = StripeExtractor()
     ex.warmup(rows, cols)
-    frames = synth_frames(n, rows, cols, xp)
+
+    # Generera bara en MINNESBEGRÄNSAD pool ramar (inte alla n) och cykla genom den.
+    # Hela (n,R,C) på en gång spränger GPU-minnet vid stora ROI (Orin Nano: 8 GB delat).
+    chunk = max(1, int(40_000_000 / (rows * cols)))      # ~40M element/chunk
+    pool = synth_frames(min(n, chunk), rows, cols, xp)
+    pn = int(pool.shape[0])
 
     # värm + sync
-    centroid_batch(frames[:1], xp=xp); ex.sync()
+    centroid_batch(pool[:1], xp=xp); ex.sync()
 
-    # batchad genomströmning — i minnessäkra delar (mellanresultat är N×R×C)
-    chunk = max(1, int(40_000_000 / (rows * cols)))      # ~40M element/chunk
+    # batchad genomströmning — cykla genom poolen tills n ramar körts
     t0 = time.perf_counter()
     res0 = None
-    for i in range(0, n, chunk):
-        r = centroid_batch(frames[i:i + chunk], xp=xp)
+    done = 0
+    while done < n:
+        take = min(chunk, pn, n - done)
+        r = centroid_batch(pool[:take], xp=xp)
         if res0 is None:
             res0 = r[0] if r.ndim == 2 else r
+        done += take
     ex.sync()
     batch_s = time.perf_counter() - t0
 
     # per-ram-latens (som i drift: en ram i taget)
     t0 = time.perf_counter()
     for i in range(min(n, 120)):
-        centroid_batch(frames[i], xp=xp)
+        centroid_batch(pool[i % pn], xp=xp)
     ex.sync()
     per = time.perf_counter() - t0
     single_n = min(n, 120)
@@ -91,6 +106,8 @@ def bench(rows: int, cols: int, n: int):
     print(f"  ROI {rows:>4}×{cols} | {fps_single:8.0f} fps/ram  "
           f"({ms_single:5.2f} ms) | batch {fps_batch:8.0f} fps "
           f"| {mbps:6.0f} MB/s | {keep} ({margin:.1f}× mål) | stripe {ok}")
+    del pool, res0
+    _free_gpu(xp)
     return fps_single
 
 
