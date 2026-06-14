@@ -17,9 +17,14 @@ Item {
     property var measurePts: []         // modell-koordinater (mm)
     property real measureDist: -1
 
-    readonly property real blen: ctrl.rig.len
-    readonly property real bwid: ctrl.rig.width
-    readonly property real bthk: ctrl.rig.thick
+    // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
+    property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
+    property string texSource: (typeof ctrl !== 'undefined' && ctrl) ? ("image://live/surface/" + ctrl.surfaceRev) : ""
+    onMeshChanged: if (typeof geom !== 'undefined' && geom) geom.setMesh(root.mesh || ({}))
+
+    property real blen: (root.mesh && root.mesh.len) ? root.mesh.len : 500
+    property real bwid: (root.mesh && root.mesh.width) ? root.mesh.width : 75
+    property real bthk: (root.mesh && root.mesh.thick) ? root.mesh.thick : 15
 
     View3D {
         id: v3d
@@ -31,7 +36,7 @@ Item {
         PerspectiveCamera { id: cam; z: root.dist; fieldOfView: 38; clipFar: 6000; clipNear: 1 }
         DirectionalLight { eulerRotation.x: -38; eulerRotation.y: -35; brightness: 1.15 }
         DirectionalLight { eulerRotation.x: 30;  eulerRotation.y: 150; brightness: 0.45 }
-        Texture { id: woodTex; source: "image://live/surface/" + ctrl.surfaceRev }
+        Texture { id: woodTex; source: root.texSource }
 
         // turntable: yaw kring världens vertikal, pitch kring den yaw-roterade horisontalen
         Node {
@@ -63,8 +68,7 @@ Item {
         }
     }
 
-    Connections { target: ctrl; function onMeshChanged() { geom.setMesh(ctrl.mesh3d) } }
-    Component.onCompleted: geom.setMesh(ctrl.mesh3d)
+    Component.onCompleted: geom.setMesh(root.mesh || ({}))
     Timer { running: root.spin; interval: 16; repeat: true; onTriggered: root.yaw += 0.35 }
 
     function clickAt(mx, my) {

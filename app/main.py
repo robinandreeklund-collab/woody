@@ -73,6 +73,18 @@ def main(argv=None) -> int:
         engine.addImageProvider("remote", RemoteImageProvider(nm))
         engine.rootContext().setContextProperty("nodeManager", nm)
         engine.rootContext().setContextProperty("startFullscreen", cfg.fullscreen)
+        # Qt Quick 3D (GPU 3D-vyn) — registrera geometrin; annars software-3D-fallback
+        m_quick3d = False
+        if app.platformName() != "offscreen":
+            try:
+                import PySide6.QtQuick3D  # noqa: F401
+                from PySide6.QtQml import qmlRegisterType
+                from .ui.board_geometry import BoardGeometry
+                qmlRegisterType(BoardGeometry, "Woody3D", 1, 0, "BoardGeometry")
+                m_quick3d = True
+            except Exception as exc:
+                print("Qt Quick 3D ej tillgängligt (software-3D används):", exc)
+        engine.rootContext().setContextProperty("quick3dAvailable", m_quick3d)
         qml = Path(__file__).parent / "ui" / "qml" / "MasterMain.qml"
         engine.load(QUrl.fromLocalFile(str(qml)))
         if not engine.rootObjects():

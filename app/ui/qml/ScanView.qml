@@ -112,13 +112,24 @@ ColumnLayout {
             }
         }
 
-        // 3D-rekonstruktion
+        // 3D-rekonstruktion — GPU (Qt Quick 3D) om tillgängligt, annars software-3D
         Card {
             Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumWidth: 300
-            title: "3D-REKONSTRUKTION"; chip: "LIVE 3D"; chipColor: Theme.teal
-            Board3DSoft {
+            title: "3D-REKONSTRUKTION"
+            chip: (typeof quick3dAvailable !== 'undefined' && quick3dAvailable) ? "GPU 3D" : "SOFT 3D"
+            chipColor: Theme.teal
+            Loader {
+                id: viewer3d
                 anchors.fill: parent; anchors.margins: 6
-                mesh: root.node ? root.node.mesh3d : null
+                source: (typeof quick3dAvailable !== 'undefined' && quick3dAvailable)
+                        ? "Board3DGpu.qml" : "Board3DSoft.qml"
+                onLoaded: {
+                    item.mesh = Qt.binding(function(){ return root.node ? root.node.mesh3d : null })
+                    if (item.hasOwnProperty("texSource"))
+                        item.texSource = Qt.binding(function(){
+                            return (root.node && root.node.host && root.node.imgRev > 0)
+                                ? "image://remote/" + root.node.host + "/surface?" + root.node.imgRev : "" })
+                }
             }
         }
 
