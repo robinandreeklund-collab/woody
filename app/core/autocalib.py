@@ -187,6 +187,62 @@ def detection_stats(stamps, n_target: int, bounce_ms: float = 50.0) -> dict:
             "dubbeltrigg": str(doubles)}
 
 
+# -- rigg (nollplan, huvud-alignment, referensbräda) --
+
+def belt_baseline(profiles) -> dict:
+    """Tomt-band-profiler → nollplan B(x) (medel per X) + repeterbarhet (RMS) +
+    bandets platthet (std). ``profiles`` = lista av tjocklek-arrayer (samma längd)."""
+    a = np.asarray(profiles, dtype=np.float64)
+    if a.ndim != 2 or a.shape[0] < 1:
+        return {"fel": "för få profiler"}
+    bx = a.mean(axis=0)
+    rms = float(np.sqrt(((a - bx) ** 2).mean())) * 1000.0      # µm, profil-till-profil
+    flat = float(bx.max() - bx.min())                          # mm, bandets ojämnhet
+    return {"_bx": bx.tolist(), "bandprofil RMS": f"{rms:.0f} µm",
+            "platthet": f"{flat:.2f} mm"}
+
+
+def head_alignment(z_red, z_green) -> dict:
+    """Två huvuds höjdprofiler av SAMMA referenskloss → relativ Z-offset, lutning
+    (X-rotation) och residual. Perfekt uppriktning ⇒ skillnaden ≈ 0 överallt."""
+    zr, zg = np.asarray(z_red, np.float64), np.asarray(z_green, np.float64)
+    m = np.isfinite(zr) & np.isfinite(zg)
+    if m.sum() < 4:
+        return {"fel": "för få giltiga punkter — syns klossen i BÅDA huvuden?"}
+    x = np.arange(zr.size, dtype=np.float64)[m]
+    diff = zr[m] - zg[m]
+    slope, intercept = np.polyfit(x, diff, 1)
+    z_off = float(intercept + slope * x.mean())                # medel-Z-offset (mm)
+    resid = float(np.std(diff - (slope * x + intercept))) * 1000.0   # µm
+    tilt = float(slope * (zr.size - 1) * 1000.0)               # µm över hela linjen
+    return {"_z_offset_mm": z_off, "_slope": float(slope),
+            "Z-offset": f"{z_off:.3f} mm", "lutning": f"{tilt:.0f} µm/linje",
+            "residual": f"{resid:.0f} µm"}
+
+
+def board_profile_dims(z, mm_per_px: float) -> dict:
+    """Fused tjocklek-profil → brädans tjocklek (median av höjda regionen) + bredd
+    (pixlar över tröskel × mm/px). Längd kräver Y-svep (guidat)."""
+    a = np.asarray(z, np.float64)
+    peak = float(np.nanmax(a)) if a.size else 0.0
+    if peak < 2.0:
+        return {"fel": "ingen bräda i profilen — mata referensbrädan till mätzonen"}
+    on = a > max(2.0, 0.3 * peak)
+    thick = float(np.median(a[on]))
+    width = float(on.sum() * mm_per_px)
+    return {"_thick": thick, "_width": width,
+            "tjocklek": f"{thick:.2f} mm", "bredd": f"{width:.1f} mm"}
+
+
+def compare_to_facit(measured: dict, facit: dict) -> dict:
+    """Jämför uppmätta dimensioner mot facit (mm) → fel per dimension."""
+    out = {}
+    for key, mkey in (("tjocklek", "_thick"), ("bredd", "_width"), ("längd", "_length")):
+        if key in facit and mkey in measured:
+            out[f"{key}-fel"] = f"{abs(float(measured[mkey]) - float(facit[key])):.2f} mm"
+    return out
+
+
 # -- transportör (RoboClaw) --
 
 def step_response_metrics(times, speeds, target: float) -> dict:
@@ -283,6 +339,24 @@ class CalibrationContext:
     def cam_for_laser(self, dev_id: str) -> str:
         return "prof_red" if dev_id == "laser_red" else "prof_green"
 
+    # -- rigg (kräver BÅDA linjelasrarna tända; tänds aldrig av rutinen) --
+    def lasers_on(self) -> bool:
+        return bool(getattr(self.laser_red, "is_on", False)
+                    and getattr(self.laser_green, "is_on", False))
+
+    def head_profiles(self, n: int = 200):
+        """(z_red, z_green) = de två huvudenas tjocklek-profiler längs X."""
+        from ..processing.stripe import subpixel_centroid
+        from ..processing.triangulate import centroid_to_z
+        zr = centroid_to_z(subpixel_centroid(self.scanner.profile_red.read_stripe(0.0, n)))
+        zg = centroid_to_z(subpixel_centroid(self.scanner.profile_green.read_stripe(0.0, n)))
+        return zr, zg
+
+    def fused_profile(self, n: int = 200):
+        from ..processing.fusion import fuse
+        zr, zg = self.head_profiles(n)
+        return fuse(zr, zg)
+
 
 # ─────────────────────────────── rutin-registret ───────────────────────────────
 # (dev_id, method_id) → callable(ctx) -> values-dict. Saknas en post = ej auto
@@ -372,6 +446,66 @@ def _laser_straight(ctx, dev):
         return {"fel": "tänd lasern via interlock-kontrollen först (klass 3B)"}
     return line_straightness(ctx.grab_profile(ctx.cam_for_laser(dev)))
 
+def _save_json(path: str, obj) -> None:
+    import json, os
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w") as f:
+        json.dump(obj, f, ensure_ascii=False, indent=1)
+
+def _load_json(path: str):
+    import json, os
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _rig_zeroplane(ctx, _dev):
+    """Nollplan B(x): medla tomma-band-profiler → spara data/zero.json. GRINDAT
+    på tända lasrar; operatören tömmer mätzonen (guidat steg)."""
+    if not ctx.lasers_on():
+        return {"fel": "tänd båda linjelasrarna via interlock-kontrollen först (klass 3B)"}
+    profiles = [ctx.fused_profile() for _ in range(50)]
+    res = belt_baseline(profiles)
+    if "fel" in res:
+        return res
+    _save_json("data/zero.json", {"bx": res.pop("_bx"), "n": len(profiles)})
+    return res
+
+def _rig_align(ctx, _dev):
+    """Huvud-alignment RÖD↔GRÖN mot referenskloss → korrektion i data/align.json.
+    GRINDAT på tända lasrar; operatören lägger klossen i mätzonen (guidat)."""
+    if not ctx.lasers_on():
+        return {"fel": "tänd båda linjelasrarna via interlock-kontrollen först (klass 3B)"}
+    zr, zg = ctx.head_profiles()
+    res = head_alignment(zr, zg)
+    if "fel" in res:
+        return res
+    _save_json("data/align.json", {"z_offset_mm": res.pop("_z_offset_mm"),
+                                   "slope": res.pop("_slope")})
+    return res
+
+def _rig_refboard(ctx, _dev):
+    """Referensbräda end-to-end: mät tjocklek + bredd → jämför mot facit
+    (data/refboard.json). GRINDAT på tända lasrar; operatören matar brädan (guidat)."""
+    if not ctx.lasers_on():
+        return {"fel": "tänd båda linjelasrarna via interlock-kontrollen först (klass 3B)"}
+    from ..geometry import RIG
+    meas = board_profile_dims(ctx.fused_profile(), RIG.profile_lat_mm_per_px)
+    if "fel" in meas:
+        return meas
+    facit = _load_json("data/refboard.json")
+    if not facit:
+        meas["facit"] = "saknas — skapa data/refboard.json {tjocklek,bredd,längd}"
+        return {k: v for k, v in meas.items() if not k.startswith("_")}
+    out = {k: v for k, v in meas.items() if not k.startswith("_")}
+    out.update(compare_to_facit(meas, facit))
+    out["längd"] = "verifieras i Y-svep (guidat)"
+    return out
+
 def _lr400_zero_d0(ctx, _dev):
     """Nolla LR400 mot TOMT band: medelavstånd per kanal → D0 (tjocklek = D0 − avstånd).
     Sätter D0 i drivern + persisterar till data/lr400.json."""
@@ -436,6 +570,10 @@ AUTO_ROUTINES: dict = {
     ("laser_red", "straight"):   _laser_straight,
     ("laser_green", "width"):    _laser_width,
     ("laser_green", "straight"): _laser_straight,
+    # Rigg: GRINDADE på tända lasrar; operatören sätter upp fysiskt (guidat).
+    ("rig", "zeroplane"):        _rig_zeroplane,
+    ("rig", "align"):            _rig_align,
+    ("rig", "refboard"):         _rig_refboard,
 }
 
 

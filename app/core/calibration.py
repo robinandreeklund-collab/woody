@@ -200,24 +200,35 @@ CALIB_METHODS: dict[str, list] = {
          "sim": {"ojämnhet": "14 %", "rekommendation": "OK — flat-field räcker"}},
     ],
     "rig": [
-        {"id": "zeroplane", "title": "Nollplan B(x) — tomt band",
-         "desc": "Skanna tomt band → spara bandprofilen som noll. Tjocklek = topp − "
-                 "B(x). Se docs/zero-reference.md.",
-         "steps": [("Töm bandet", 0.5), ("Skanna 200 profiler", 2.0), ("Medla + spara B(x)", 0.5),
-                   ("Verifiera repeterbarhet", 1.0)],
+        {"id": "zeroplane", "title": "Nollplan B(x) — tomt band  [AUTO]",
+         "desc": "AUTO (grindat på tända lasrar). Bandplanet ÄR nollan: systemet medlar "
+                 "50 tomma-band-profiler → B(x) (hela profilen, inte ett tal) och sparar "
+                 "data/zero.json. Tjocklek(x) = topp(x) − B(x). Se docs/zero-reference.md.",
+         "steps": [("TÖM mätzonen helt — inga brädor, verktyg eller damm på bandet", 0.6),
+                   ("Säkra rummet + arma lasrarna (interlock, glasögon HM326-C)", 0.6),
+                   ("Systemet medlar 50 profiler av tomma bandet (rör inte riggen)", 2.0),
+                   ("Sparar B(x) + rapporterar repeterbarhet (RMS) och platthet", 0.8)],
          "sim": {"bandprofil RMS": "0,05 mm", "drift 10 min": "0,02 mm"}},
-        {"id": "align", "title": "Huvud-alignment RÖD↔GRÖN",
-         "desc": "Båda lasrarna ska ligga i SAMMA plan över bandet. Skanna referens-"
-                 "block → offset/rotation mellan huvudena → korrektionsmatris. "
-                 "Se docs/alignment-calibration.md.",
-         "steps": [("Referensblock i mätzon", 1.0), ("Skanna med båda huvuden", 2.0),
-                   ("Lös offset + rotation", 1.0), ("Skriv korrektionsmatris", 0.5)],
+        {"id": "align", "title": "Huvud-alignment RÖD↔GRÖN  [AUTO]",
+         "desc": "AUTO (grindat). Båda lasrarna ska ligga i SAMMA plan. Systemet skannar "
+                 "en referenskloss med båda huvuden → relativ Z-offset, lutning och "
+                 "residual → data/align.json. Se docs/alignment-calibration.md.",
+         "steps": [("Lägg den MASKINBEARBETADE referensklossen mitt i mätzonen, tvärs bandet, "
+                    "så båda huvuden ser hela dess ovansida", 1.2),
+                   ("Säkra rummet + arma BÅDA lasrarna (interlock, glasögon)", 0.6),
+                   ("Systemet skannar klossen med RÖD + GRÖN huvud samtidigt", 1.5),
+                   ("Beräknar Z-offset/lutning/residual → korrektion (residual < 50 µm = OK)", 1.0)],
          "sim": {"X-offset": "0,12 mm", "rotation": "0,05°", "residual": "28 µm"}},
-        {"id": "refboard", "title": "Referensbräda — end-to-end",
-         "desc": "Skanna uppmätt referensbräda → jämför längd/bredd/tjocklek/defekt-"
-                 "positioner mot facit. Systemets slutverifiering.",
-         "steps": [("Mata referensbräda", 2.0), ("Full skanning", 2.5), ("Jämför mot facit", 1.0),
-                   ("Godkänn/underkänn", 0.5)],
+        {"id": "refboard", "title": "Referensbräda — end-to-end  [AUTO+facit]",
+         "desc": "AUTO (grindat). Skanna uppmätt referensbräda → jämför tjocklek + bredd "
+                 "mot facit (data/refboard.json). Längd verifieras i Y-svep (guidat). "
+                 "Systemets slutverifiering före skarp drift.",
+         "steps": [("Skapa data/refboard.json med facit i mm: {\"tjocklek\":.., \"bredd\":.., "
+                    "\"längd\":..} (mät brädan med skjutmått/mikrometer först)", 0.6),
+                   ("Mata referensbrädan till mätzonen, mot anhållet (fotocell nollar)", 1.4),
+                   ("Säkra rummet + arma lasrarna (interlock, glasögon)", 0.6),
+                   ("Skanna → jämför tjocklek/bredd mot facit; kör Y-svep för längd", 2.0),
+                   ("Godkänn om alla fel < tolerans, annars kalibrera om föregående steg", 0.6)],
          "sim": {"tjocklek-fel": "0,04 mm", "längd-fel": "0,3 mm", "defektpos-fel": "0,8 mm"}},
     ],
 }

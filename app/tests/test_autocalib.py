@@ -383,6 +383,52 @@ def test_run_auto_gpio_led_photocell_laser():
     assert "bow" in autocalib.run_auto("laser_red", "straight", ctx)
 
 
+def test_rig_pure_functions():
+    # nollplan: nästan identiska profiler → låg RMS
+    prof = [np.full(200, 1.2) + 0.001 * i for i in range(10)]
+    bx = autocalib.belt_baseline(prof)
+    assert "_bx" in bx and "bandprofil RMS" in bx and len(bx["_bx"]) == 200
+    # huvud-alignment: identiska → ~0 offset; +0,5 mm → 0,5 mm offset
+    z = np.linspace(10, 12, 50)
+    a0 = autocalib.head_alignment(z, z.copy())
+    assert abs(a0["_z_offset_mm"]) < 1e-6
+    a1 = autocalib.head_alignment(z + 0.5, z.copy())
+    assert abs(a1["_z_offset_mm"] - 0.5) < 1e-6
+    assert "fel" in autocalib.head_alignment([1, 2], [1, 2])      # för få punkter
+    # bräddimensioner + facit-jämförelse
+    z = np.zeros(200); z[60:140] = 20.04
+    dims = autocalib.board_profile_dims(z, mm_per_px=0.9)
+    assert abs(dims["_thick"] - 20.04) < 1e-6 and dims["_width"] > 0
+    diffs = autocalib.compare_to_facit({"_thick": 20.04, "_width": 75.2},
+                                       {"tjocklek": 20.0, "bredd": 75.0})
+    assert diffs["tjocklek-fel"] == "0.04 mm" and diffs["bredd-fel"] == "0.20 mm"
+    assert "fel" in autocalib.board_profile_dims(np.zeros(200), 0.9)   # ingen bräda
+
+
+def test_run_auto_rig_gated_and_measures():
+    sc = _FakeScanner(stripe=True)
+    ctx = autocalib.CalibrationContext(sc)
+    # GRINDAT: lasrar släckta → vägrar mäta
+    sc.laser_red.set(False); sc.laser_green.set(False)
+    assert "fel" in autocalib.run_auto("rig", "zeroplane", ctx)
+    assert "fel" in autocalib.run_auto("rig", "align", ctx)
+    # tänd båda (simulerar interlock-bekräftelse)
+    for la in (sc.laser_red, sc.laser_green):
+        la.arm(confirm=True); la.set(True)
+    saved_s, saved_l = autocalib._save_json, autocalib._load_json
+    autocalib._save_json = lambda *a, **k: None          # rör inte riktiga data/-filer
+    autocalib._load_json = lambda *a, **k: None
+    try:
+        zp = autocalib.run_auto("rig", "zeroplane", ctx)
+        assert "fel" not in zp and "bandprofil RMS" in zp and "_bx" not in zp
+        al = autocalib.run_auto("rig", "align", ctx)
+        assert "fel" not in al and "Z-offset" in al and "_z_offset_mm" not in al
+        rb = autocalib.run_auto("rig", "refboard", ctx)
+        assert isinstance(rb, dict)                       # mäter el. ber om facit, kraschar ej
+    finally:
+        autocalib._save_json, autocalib._load_json = saved_s, saved_l
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0
