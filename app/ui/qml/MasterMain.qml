@@ -9,6 +9,7 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: win
     width: 1560; height: 940; visible: true
+    minimumWidth: 1280; minimumHeight: 800     // under detta börjar täta vyer trängas
     visibility: startFullscreen ? Window.FullScreen : Window.Windowed
     title: "woody · Inspection Control"
     color: Theme.bg
@@ -313,14 +314,24 @@ ApplicationWindow {
                     chipColor: win.sel && win.sel.connected ? Theme.ok : Theme.err
                     RowLayout {
                         anchors.fill: parent; spacing: Theme.sp2
-                        Flow { Layout.fillWidth: true; spacing: 6
-                            Repeater { model: win.sel ? win.sel.devices : []
-                                delegate: Rectangle { radius: 999; implicitWidth: dn.width+16; implicitHeight: 22
-                                    color: modelData.connected ? Theme.tint(Theme.ok, 0.12) : Theme.panel2
-                                    border.color: modelData.connected ? Theme.tint(Theme.ok, 0.3) : Theme.line
-                                    Text { id: dn; anchors.centerIn: parent; text: modelData.name
-                                           color: modelData.connected ? Qt.darker(Theme.ok,1.1) : Theme.ink3
-                                           font.family: Theme.sans; font.pixelSize: 10 } } } }
+                        // enheter: EN rad, konstant höjd, scrollar horisontellt
+                        // (wrappar ALDRIG → kan inte växa och måla över korten under)
+                        Flickable {
+                            Layout.fillWidth: true; Layout.fillHeight: true
+                            contentWidth: pillRow.width; contentHeight: height
+                            clip: true; flickableDirection: Flickable.HorizontalFlick
+                            Row {
+                                id: pillRow; height: parent.height; spacing: 6
+                                Repeater { model: win.sel ? win.sel.devices : []
+                                    delegate: Rectangle { radius: 999; implicitWidth: dn.width+16; height: 22
+                                        anchors.verticalCenter: parent.verticalCenter
+                                        color: modelData.connected ? Theme.tint(Theme.ok, 0.12) : Theme.panel2
+                                        border.color: modelData.connected ? Theme.tint(Theme.ok, 0.3) : Theme.line
+                                        Text { id: dn; anchors.centerIn: parent; text: modelData.name
+                                               color: modelData.connected ? Qt.darker(Theme.ok,1.1) : Theme.ink3
+                                               font.family: Theme.sans; font.pixelSize: 10 } } }
+                            }
+                        }
                         Btn { text: "Proba om"; onClicked: if (win.sel) win.sel.refresh() }
                         Btn { text: "Arma lasrar"; danger: true
                               onClicked: if (win.sel) win.sel.armLasers(true) }

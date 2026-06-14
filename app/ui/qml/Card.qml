@@ -53,6 +53,6 @@ Item {
                        font.pixelSize: 10; font.weight: Font.DemiBold; font.letterSpacing: 0.3 }
             }
         }
-        Item { id: body; Layout.fillWidth: true; Layout.fillHeight: true }
+        Item { id: body; Layout.fillWidth: true; Layout.fillHeight: true; clip: true }
     }
 }

@@ -6,6 +6,7 @@ import QtQuick.Layouts
 ApplicationWindow {
     id: win
     width: 1560; height: 940
+    minimumWidth: 1280; minimumHeight: 800     // under detta börjar täta vyer trängas
     visible: true
     visibility: startFullscreen ? Window.FullScreen : Window.Windowed
     title: "VIRKE · Kontrollsystem"
