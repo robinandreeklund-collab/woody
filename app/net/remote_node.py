@@ -22,6 +22,7 @@ class RemoteNode(QObject):
     methodsChanged = Signal()
     calibChanged = Signal()
     connectionChanged = Signal()
+    telemetryChanged = Signal()
 
     def __init__(self, name: str, host: str, port: int = 8765, parent=None):
         super().__init__(parent)
@@ -34,6 +35,7 @@ class RemoteNode(QObject):
         self._methods_pending: set = set()
         self._calib = {"running": False, "device": "", "title": "", "pct": 0.0,
                        "step": "", "log": [], "result": "", "ok": True}
+        self._telemetry: dict = {}
         self._next_id = 1
         self._pending: dict = {}             # msg_id -> callback(result, ok)
         self._fb = p.FrameBuffer()
@@ -98,6 +100,9 @@ class RemoteNode(QObject):
         elif name == p.EV_CALIB:
             self._calib = data or self._calib
             self.calibChanged.emit()
+        elif name == p.EV_TELEMETRY:
+            self._telemetry = data or {}
+            self.telemetryChanged.emit()
 
     def _apply_status(self, status):
         if isinstance(status, dict):
@@ -210,3 +215,8 @@ class RemoteNode(QObject):
     def hasConveyor(self) -> bool:
         """True = denna nod äger encodern/motorn (lead). False = ren-sensor-huvud."""
         return bool(self._status.get("has_conveyor", True))
+
+    @Property("QVariantMap", notify=telemetryChanged)
+    def telemetry(self) -> dict:
+        """RIKTIG host-telemetri (CPU/GPU/RAM/disk/temp/last) — oavsett sim/real."""
+        return dict(self._telemetry)

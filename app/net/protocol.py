@@ -28,6 +28,7 @@ EV_DEVICES = "devices_changed"
 EV_METHODS = "methods_changed"
 EV_CALIB = "calib_changed"
 EV_HELLO = "hello"                  # skickas när en klient ansluter
+EV_TELEMETRY = "telemetry"          # host-stats (CPU/GPU/RAM/disk/temp) var ~2s
 
 
 def encode(obj: dict) -> bytes:

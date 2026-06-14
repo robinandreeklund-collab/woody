@@ -5,11 +5,12 @@ när enhetsstatus/kalibrering ändras → mastern får live-uppdateringar utan p
 """
 from __future__ import annotations
 
-from PySide6.QtCore import QObject
+from PySide6.QtCore import QObject, QTimer
 from PySide6.QtNetwork import QHostAddress, QTcpServer
 
 from . import protocol as p
 from .command_handler import CommandHandler
+from .telemetry import HostTelemetry
 
 
 class SlaveServer(QObject):
@@ -25,6 +26,12 @@ class SlaveServer(QObject):
         devmgr.devicesChanged.connect(self._emit_devices)
         devmgr.methodsChanged.connect(lambda: self._broadcast(p.event(p.EV_METHODS)))
         devmgr.calibChanged.connect(self._emit_calib)
+        # Host-telemetri (RIKTIG, oavsett sim/real) → push var 2s
+        self._tele = HostTelemetry()
+        self._tele_last: dict = {}
+        self._tele_timer = QTimer(self); self._tele_timer.setInterval(2000)
+        self._tele_timer.timeout.connect(self._emit_telemetry)
+        self._tele_timer.start()
 
     def listen(self) -> bool:
         ok = self._server.listen(QHostAddress.Any, self._port)
@@ -49,6 +56,8 @@ class SlaveServer(QObject):
             sock.write(p.event(p.EV_DEVICES, {"devices": list(self._devmgr.devices),
                                               "status": self._handler._status()}))
             sock.write(p.event(p.EV_CALIB, self._handler._calib_state()))
+            if self._tele_last:
+                sock.write(p.event(p.EV_TELEMETRY, self._tele_last))
 
     def _on_ready(self, sock):
         fb = self._clients.get(sock)
@@ -78,3 +87,8 @@ class SlaveServer(QObject):
 
     def _emit_calib(self):
         self._broadcast(p.event(p.EV_CALIB, self._handler._calib_state()))
+
+    def _emit_telemetry(self):
+        self._tele_last = self._tele.collect()
+        if self._clients:
+            self._broadcast(p.event(p.EV_TELEMETRY, self._tele_last))

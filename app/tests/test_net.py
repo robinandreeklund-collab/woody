@@ -91,7 +91,20 @@ def test_loopback_master_slave():
     assert _pump(lambda: node.calibRunning), "kalibrering startade inte på distans"
     assert node.calibDevice == "prof_red"
     node.cancelCalibration()
+
+    # host-telemetri strömmar till mastern (riktiga värden oavsett sim/real)
+    server._emit_telemetry()
+    assert _pump(lambda: "cpu_pct" in node.telemetry), "fick aldrig telemetri"
+    assert node.telemetry.get("ncpu", 0) >= 1
     server._server.close()
+
+
+def test_host_telemetry_collect():
+    from ..net.telemetry import HostTelemetry
+    t = HostTelemetry().collect()
+    for k in ("cpu_pct", "ram_pct", "disk_pct", "ram_total_mb", "ncpu"):
+        assert k in t
+    assert t["ncpu"] >= 1 and t["ram_total_mb"] >= 0
 
 
 def test_head_config_position():

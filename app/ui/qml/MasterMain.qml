@@ -149,6 +149,49 @@ ApplicationWindow {
                         }
                     }
 
+                    // ---- RIKTIG host-telemetri (Jetson), oavsett sim/real ----
+                    Card {
+                        id: teleCard
+                        Layout.fillWidth: true; Layout.preferredHeight: 92
+                        title: "JETSON-TELEMETRI · host"; chip: "LIVE"; chipColor: Theme.teal
+                        property var t: win.sel ? win.sel.telemetry : ({})
+                        RowLayout {
+                            anchors.fill: parent; spacing: 8
+                            Repeater {
+                                model: {
+                                    var t = teleCard.t || ({})
+                                    function pc(x){ return (x===null||x===undefined) ? null : x }
+                                    return [
+                                        {n:"CPU",  v:(pc(t.cpu_pct)===null?"–":t.cpu_pct+" %"), p:pc(t.cpu_pct)},
+                                        {n:"GPU",  v:(pc(t.gpu_pct)===null?"–":t.gpu_pct+" %"), p:pc(t.gpu_pct)},
+                                        {n:"RAM",  v:(pc(t.ram_pct)===null?"–":t.ram_pct+" %"), p:pc(t.ram_pct),
+                                         s:((t.ram_used_mb||0)+"/"+(t.ram_total_mb||0)+" MB")},
+                                        {n:"Disk", v:(pc(t.disk_pct)===null?"–":t.disk_pct+" %"), p:pc(t.disk_pct),
+                                         s:((t.disk_used_gb||0)+"/"+(t.disk_total_gb||0)+" GB")},
+                                        {n:"Temp", v:(pc(t.temp_c)===null?"–":t.temp_c+" °C"), p:(pc(t.temp_c)===null?null:Math.min(100,t.temp_c))},
+                                        {n:"Last", v:(pc(t.load1)===null?"–":t.load1+" / "+(t.ncpu||1)+"c"),
+                                         p:(pc(t.load1)===null?null:Math.min(100,100*t.load1/(t.ncpu||1)))}
+                                    ]
+                                }
+                                delegate: Rectangle {
+                                    Layout.fillWidth: true; Layout.fillHeight: true
+                                    radius: 8; color: Theme.panel2; border.color: Theme.line
+                                    ColumnLayout {
+                                        anchors.fill: parent; anchors.margins: 8; spacing: 3
+                                        Text { text: modelData.n; color: Theme.ink3; font.pixelSize: 10; font.family: Theme.mono }
+                                        Text { text: modelData.v; color: Theme.ink; font.pixelSize: 15; font.weight: Font.DemiBold; font.family: Theme.mono }
+                                        Text { visible: modelData.s !== undefined; text: modelData.s || ""
+                                               color: Theme.ink3; font.pixelSize: 8; font.family: Theme.mono }
+                                        Item { Layout.fillHeight: true }
+                                        Rectangle { Layout.fillWidth: true; height: 4; radius: 2; color: Theme.line
+                                            Rectangle { width: parent.width * Math.max(0,Math.min(1,(modelData.p||0)/100)); height: parent.height; radius: 2
+                                                color: (modelData.p||0) > 90 ? Theme.red : ((modelData.p||0) > 70 ? Theme.amber : Theme.teal) } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
                     // återanvänd kalibreringsvyn — driver fjärrnoden via samma gränssnitt.
                     // Loader: instansiera först när en nod valts (annars vore dm null).
                     Loader {
