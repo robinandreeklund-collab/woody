@@ -24,6 +24,7 @@ class RemoteNode(QObject):
     connectionChanged = Signal()
     telemetryChanged = Signal()
     scanChanged = Signal()
+    imageChanged = Signal()
 
     def __init__(self, name: str, host: str, port: int = 8765, parent=None):
         super().__init__(parent)
@@ -38,6 +39,8 @@ class RemoteNode(QObject):
                        "step": "", "log": [], "result": "", "ok": True}
         self._telemetry: dict = {}
         self._scan: dict = {"available": False}
+        self._images: dict = {}              # name -> QImage (yt/höjd), läses av provider
+        self._img_rev = 0
         self._next_id = 1
         self._pending: dict = {}             # msg_id -> callback(result, ok)
         self._fb = p.FrameBuffer()
@@ -108,6 +111,22 @@ class RemoteNode(QObject):
         elif name == p.EV_SCAN:
             self._scan = data or {"available": False}
             self.scanChanged.emit()
+        elif name == p.EV_IMAGE:
+            self._store_image(data or {})
+
+    def _store_image(self, d: dict):
+        try:
+            import base64, zlib
+            from PySide6.QtGui import QImage
+            raw = zlib.decompress(base64.b64decode(d["data"]))
+            w, h = int(d["w"]), int(d["h"])
+            img = QImage(bytes(raw), w, h, 3 * w, QImage.Format_RGB888).copy()  # äg databufferten
+            if not img.isNull():
+                self._images[d["name"]] = img
+                self._img_rev += 1
+                self.imageChanged.emit()
+        except Exception:
+            pass
 
     def _apply_status(self, status):
         if isinstance(status, dict):
@@ -249,3 +268,12 @@ class RemoteNode(QObject):
     def scanSetAuto(self, b): self._scan_ctrl("set_auto", b)
     @Slot()
     def scanDismissNotify(self): self._scan_ctrl("dismiss_notify")
+
+    @Property(int, notify=imageChanged)
+    def imgRev(self) -> int:
+        """Ökar när en ny yt-/höjdbild kommit → QML kan busta image-cachen."""
+        return self._img_rev
+
+    def image(self, name: str):
+        """QImage för 'surface'/'height' (läses av RemoteImageProvider)."""
+        return self._images.get(name)

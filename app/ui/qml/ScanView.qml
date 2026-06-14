@@ -79,6 +79,35 @@ ColumnLayout {
         }
     }
 
+    // ---- live bilder: ytkamera + topp/höjd ----
+    Card {
+        Layout.fillWidth: true; Layout.preferredHeight: 210
+        title: "LIVE BILD · ytkamera + topp/höjd"; chip: "BILD"; chipColor: Theme.cyan
+        RowLayout {
+            anchors.fill: parent; spacing: 10
+            Repeater {
+                model: [["surface","Ytkamera (färg)"], ["height","Topp-/höjdkarta"]]
+                delegate: ColumnLayout {
+                    Layout.fillWidth: true; Layout.fillHeight: true; spacing: 3
+                    Text { text: modelData[1]; color: Theme.ink3; font.pixelSize: 10; font.family: Theme.mono }
+                    Rectangle {
+                        Layout.fillWidth: true; Layout.fillHeight: true; radius: 8
+                        color: "#05080c"; border.color: Theme.line; clip: true
+                        Image {
+                            anchors.fill: parent; anchors.margins: 4; cache: false; smooth: true
+                            fillMode: Image.PreserveAspectFit
+                            source: (root.node && root.node.host && root.node.imgRev > 0)
+                                    ? "image://remote/" + root.node.host + "/" + modelData[0] + "?" + root.node.imgRev : ""
+                        }
+                        Text { anchors.centerIn: parent
+                               visible: !(root.node && root.node.imgRev > 0)
+                               text: "väntar på skanning…"; color: Theme.ink3; font.pixelSize: 11 }
+                    }
+                }
+            }
+        }
+    }
+
     // ---- grad + defekter + historik ----
     RowLayout {
         Layout.fillWidth: true; Layout.fillHeight: true; spacing: 10

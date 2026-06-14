@@ -20,10 +20,26 @@ from ..core.run_controller import AppController
 from .slave_server import SlaveServer
 
 
-class _NoSurface:
-    """No-op bild-provider — slaven kör headless (ingen QML-bildcache)."""
-    def set_array(self, *a, **k):
-        pass
+class _NetSurface:
+    """Bild-provider på slaven: fångar yt-/höjdbilder från AppController, nedsamplar
+    och håller senaste rev per namn → SlaveServer streamar dem till mastern."""
+    def __init__(self):
+        self.imgs: dict = {}                  # name -> (rgb_bytes, w, h, rev)
+        self._rev: dict = {}
+
+    def set_array(self, arr, name):
+        try:
+            import numpy as np
+            a = np.asarray(arr)
+            if a.ndim != 3 or a.shape[2] < 3:
+                return
+            h, w = a.shape[:2]
+            step = max(1, max(h, w) // 768)   # nedsampla → tak ~768 px längs största sidan
+            s = np.ascontiguousarray(a[::step, ::step, :3].astype("uint8"))
+            self._rev[name] = self._rev.get(name, 0) + 1
+            self.imgs[name] = (s.tobytes(), int(s.shape[1]), int(s.shape[0]), self._rev[name])
+        except Exception:
+            pass
 
 
 def main(argv=None) -> int:
@@ -39,10 +55,12 @@ def main(argv=None) -> int:
     app = QCoreApplication(sys.argv)
     cfg = AppConfig(mode=args.mode, feed_mm_s=args.feed).validate()
     # AppController bygger skannern; DeviceManager DELAR den (en scanner per nod)
-    ctrl = AppController(cfg, _NoSurface())
+    surface = _NetSurface()
+    ctrl = AppController(cfg, surface)
     devmgr = DeviceManager(cfg, scanner=ctrl._scanner)
     ctrl.start()                                  # startar skannings-loopen (sim/real)
-    server = SlaveServer(devmgr, name=args.name, port=args.port, controller=ctrl)
+    server = SlaveServer(devmgr, name=args.name, port=args.port,
+                         controller=ctrl, surface=surface)
     if not server.listen():
         return 1
     beacon = None

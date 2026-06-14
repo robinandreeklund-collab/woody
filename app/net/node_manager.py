@@ -65,6 +65,12 @@ class NodeManager(QObject):
     def node(self, index: int):
         return self._nodes[index] if 0 <= index < len(self._nodes) else None
 
+    def node_by_host(self, host: str):
+        for n in self._nodes:
+            if n.host == host:
+                return n
+        return None
+
     @Slot(str, str, int)
     def addNode(self, name: str, host: str, port: int = 8765):
         if self._add(name, host, port, connect=True) is not None:

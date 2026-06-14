@@ -68,7 +68,9 @@ def main(argv=None) -> int:
     # MASTER-läge: ingen lokal hårdvara — anslut till alla Jetson-noder och styr dem.
     if getattr(cfg, "_master", False):
         from .net.node_manager import NodeManager
+        from .net.remote_image_provider import RemoteImageProvider
         nm = NodeManager()
+        engine.addImageProvider("remote", RemoteImageProvider(nm))
         engine.rootContext().setContextProperty("nodeManager", nm)
         engine.rootContext().setContextProperty("startFullscreen", cfg.fullscreen)
         qml = Path(__file__).parent / "ui" / "qml" / "MasterMain.qml"
