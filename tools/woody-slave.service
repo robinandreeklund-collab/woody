@@ -1,0 +1,21 @@
+# woody slave (läshuvud) — startar slav-servern vid boot på en Jetson.
+# Installera med:  bash tools/install_slave_service.sh   (genererar rätt sökvägar)
+# %H = maskinens hostname → blir nodnamnet i master-GUI:t (ingen per-host-redigering).
+[Unit]
+Description=woody slave (lashuvud) - master/slave-nod
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=admin
+WorkingDirectory=/home/admin/woody
+Environment=GENICAM_GENTL64_PATH=/opt/MVS/lib/aarch64
+Environment=LD_LIBRARY_PATH=/opt/MVS/lib/aarch64
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/home/admin/woody/.venv/bin/python -m app.net.slave --mode real --name %H --port 8765
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

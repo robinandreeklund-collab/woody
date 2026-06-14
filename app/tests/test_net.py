@@ -94,6 +94,30 @@ def test_loopback_master_slave():
     server._server.close()
 
 
+def test_discovery_parse():
+    from ..net import discovery as d
+    info = d.parse_announce(d.announce_packet("rod", 8765, "real"), "10.0.0.5")
+    assert info["name"] == "rod" and info["host"] == "10.0.0.5"
+    assert info["port"] == 8765 and info["mode"] == "real"
+    assert d.parse_announce(b"garbage", "x") is None
+    assert d.parse_announce(b'{"magic":"fel"}', "x") is None
+
+
+def test_discovery_listener_receives():
+    from ..net import discovery as d
+    from PySide6.QtNetwork import QHostAddress, QUdpSocket
+    lis = d.DiscoveryListener()
+    if not lis.start():
+        print("    (UDP-porten upptagen — hoppar listener-test)"); return
+    got = []
+    lis.discovered.connect(lambda name, host, port, mode: got.append((name, port)))
+    s = QUdpSocket()
+    s.writeDatagram(d.announce_packet("testnod", 8765, "sim"),
+                    QHostAddress("127.0.0.1"), d.DISCOVERY_PORT)
+    assert _pump(lambda: len(got) > 0), "listener fick ingen annons"
+    assert got[0] == ("testnod", 8765)
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0

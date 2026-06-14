@@ -26,6 +26,8 @@ def main(argv=None) -> int:
     ap.add_argument("--name", default=socket.gethostname(), help="nodnamn i master-GUI:t")
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--feed", type=float, default=50.0)
+    ap.add_argument("--no-announce", action="store_true",
+                    help="stäng av UDP-broadcast (auto-upptäckt) — använd manuell nodes.json")
     args = ap.parse_args(argv)
 
     app = QCoreApplication(sys.argv)
@@ -35,7 +37,13 @@ def main(argv=None) -> int:
     server = SlaveServer(devmgr, name=args.name, port=args.port)
     if not server.listen():
         return 1
-    print(f"[slave] redo som '{args.name}' — master ansluter via data/nodes.json")
+    beacon = None
+    if not args.no_announce:
+        from .discovery import DiscoveryBeacon
+        beacon = DiscoveryBeacon(args.name, args.port, mode=args.mode)
+        beacon.start()
+        print(f"[slave] auto-annonserar '{args.name}' på LAN (UDP-broadcast)")
+    print(f"[slave] redo som '{args.name}' — master hittar oss automatiskt (eller nodes.json)")
     return app.exec()
 
 
