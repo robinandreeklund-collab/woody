@@ -138,8 +138,21 @@ Item {
     }
 
     Text { anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.margins: 8
-           text: "mätt: topp + sidor (röd/grön) · underside antagen · Qt Quick 3D (GPU)"
+           text: "mätt: topp + V-kant (röd) + H-kant (grön) · underside antagen · Qt Quick 3D (GPU)"
            color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
+
+    // legend: MÄTTA ytor (topp + sidor) vs ANTAGEN underside
+    Row {
+        anchors.top: parent.top; anchors.left: parent.left; anchors.margins: 8; spacing: 10
+        Repeater {
+            model: [["Topp","#27d3e0"],["V-kant","#c73845"],["H-kant","#33b35c"],["Underside · antagen","#42505c"]]
+            delegate: Row { spacing: 4
+                Rectangle { width: 9; height: 9; radius: 2; color: modelData[1]
+                    border.color: index===3 ? Theme.line2 : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter }
+                Text { text: modelData[0]; color: Theme.ink2; font.pixelSize: 9; font.family: Theme.sans } }
+        }
+    }
     Text { anchors.bottom: parent.bottom; anchors.right: parent.right; anchors.margins: 8
            text: "dra = rotera · hjul = zoom"; color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
 }

@@ -71,16 +71,21 @@ Item {
                 var by0=-W/2+(jb/nby)*(W*wf), by1=-W/2+((jb+1)/nby)*(W*wf);
                 add([proj(bx0,by0,0),proj(bx1,by0,0),proj(bx1,by1,0),proj(bx0,by1,0)],[16,24,34]);
             }
-            var done = wf >= 0.999, backCol = done ? [50,170,84] : [60,72,86];
+            // MÄTTA sidoytor: V-kant (RÖD-huvudet) + H-kant (GRÖN-huvudet), med
+            // verklig sågad kant-lutning (bevel) → rektangulär bräda, fasade sidor.
+            var bevel = m.bevel || [0,0], bv0=bevel[0], bv1=bevel[1];
+            var done = wf >= 0.999, hCol = done ? [51,179,92] : [61,71,87];
+            var vCol = [199,56,69];
             for(var i2=0;i2<nx-1;i2++){
-                add([proj(vx(i2),vy(0),0),proj(vx(i2+1),vy(0),0),proj(vx(i2+1),vy(0),topZ(i2+1,0)),proj(vx(i2),vy(0),topZ(i2,0))],[150,40,52]);
+                add([proj(vx(i2),vy(0)+bv0,0),proj(vx(i2+1),vy(0)+bv0,0),proj(vx(i2+1),vy(0),topZ(i2+1,0)),proj(vx(i2),vy(0),topZ(i2,0))],vCol);
                 var jj=ny-1;
-                add([proj(vx(i2),vy(jj),0),proj(vx(i2+1),vy(jj),0),proj(vx(i2+1),vy(jj),topZ(i2+1,jj)),proj(vx(i2),vy(jj),topZ(i2,jj))],backCol);
+                add([proj(vx(i2),vy(jj)-bv1,0),proj(vx(i2+1),vy(jj)-bv1,0),proj(vx(i2+1),vy(jj),topZ(i2+1,jj)),proj(vx(i2),vy(jj),topZ(i2,jj))],hCol);
             }
+            // 500 mm-ändar — EJ mätta (neutralt)
             for(var j2=0;j2<ny-1;j2++){
-                add([proj(vx(0),vy(j2),0),proj(vx(0),vy(j2+1),0),proj(vx(0),vy(j2+1),topZ(0,j2+1)),proj(vx(0),vy(j2),topZ(0,j2))],[78,92,108]);
+                add([proj(vx(0),vy(j2),0),proj(vx(0),vy(j2+1),0),proj(vx(0),vy(j2+1),topZ(0,j2+1)),proj(vx(0),vy(j2),topZ(0,j2))],[66,78,92]);
                 var ii=nx-1;
-                add([proj(vx(ii),vy(j2),0),proj(vx(ii),vy(j2+1),0),proj(vx(ii),vy(j2+1),topZ(ii,j2+1)),proj(vx(ii),vy(j2),topZ(ii,j2))],[78,92,108]);
+                add([proj(vx(ii),vy(j2),0),proj(vx(ii),vy(j2+1),0),proj(vx(ii),vy(j2+1),topZ(ii,j2+1)),proj(vx(ii),vy(j2),topZ(ii,j2))],[66,78,92]);
             }
             faces.sort(function(p,q){ return q.depth-p.depth; });
             for(var k=0;k<faces.length;k++){ var Q=faces[k];
@@ -90,7 +95,7 @@ Item {
                 c.strokeStyle="rgba(0,0,0,0.06)"; c.lineWidth=0.25; c.stroke();
             }
             c.fillStyle="#61768c"; c.font="9px monospace"; c.textAlign="left";
-            c.fillText("mätt: topp + sidor · underside antagen · software-3D · skevhet ×"+exag, 8, h-8);
+            c.fillText("mätt: topp + V-kant (röd) + H-kant (grön) · underside antagen · skevhet ×"+exag, 8, h-8);
         }
         MouseArea {
             anchors.fill: parent; acceptedButtons: Qt.LeftButton
@@ -124,4 +129,17 @@ Item {
     }
     Text { anchors.bottom: parent.bottom; anchors.right: parent.right; anchors.margins: 6
            text: "dra = rotera · hjul = zoom"; color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
+
+    // legend: vilka ytor som MÄTS (topp + sidor) vs ANTAS (underside)
+    Row {
+        anchors.top: parent.top; anchors.left: parent.left; anchors.margins: 8; spacing: 10
+        Repeater {
+            model: [["Topp","#27d3e0"],["V-kant","#c73845"],["H-kant","#33b35c"],["Underside · antagen","#42505c"]]
+            delegate: Row { spacing: 4
+                Rectangle { width: 9; height: 9; radius: 2; color: modelData[1]
+                    border.color: index===3 ? Theme.line2 : "transparent"
+                    anchors.verticalCenter: parent.verticalCenter }
+                Text { text: modelData[0]; color: Theme.ink2; font.pixelSize: 9; font.family: Theme.sans } }
+        }
+    }
 }

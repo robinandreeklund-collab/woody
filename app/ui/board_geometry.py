@@ -47,10 +47,11 @@ def _quads(P, U, C):
     return np.concatenate([t1, t2], axis=2).reshape(-1, 12).astype(np.float32)
 
 
-def _wall(line_top, zc0, uv_line, color):
-    """En sidovägg från en topplinje ner till z=zc0. line_top,uv_line: (n,..)."""
+def _wall(line_top, zc0, uv_line, color, y_off=0.0):
+    """En sidovägg från en topplinje ner till z=zc0. line_top,uv_line: (n,..).
+    ``y_off`` lutar väggens underkant i Y (sågad kant-fas → sidan ej spikrak)."""
     top = line_top
-    bot = top.copy(); bot[:, 2] = zc0
+    bot = top.copy(); bot[:, 2] = zc0; bot[:, 1] += y_off
     P = np.stack([bot, top], 0)                          # (2,n,3)
     U = np.stack([uv_line, uv_line], 0)                  # (2,n,2)
     C = np.broadcast_to(np.array(color + [1.0], np.float32), (2, top.shape[0], 4))
@@ -121,12 +122,15 @@ class BoardGeometry(QQuick3DGeometry):
 
         parts = [_quads(P, U, C)]                            # MÄTT topp
         whitew = self._mode == 3
-        # sidofasetter (MÄTTA): framkant röd, bakkant grön (helt skannad) / neutral
-        red = [1.0, 1.0, 1.0] if whitew else [0.59, 0.16, 0.20]
-        grn = [1.0, 1.0, 1.0] if whitew else ([0.20, 0.67, 0.33] if wf >= 0.999 else [0.24, 0.28, 0.34])
-        neu = [1.0, 1.0, 1.0] if whitew else [0.31, 0.36, 0.42]
-        parts.append(_wall(P[0].copy(), zc0, U[0], red))
-        parts.append(_wall(P[ny - 1].copy(), zc0, U[ny - 1], grn))
+        bev = m.get("bevel", [0.0, 0.0])                     # sågad kant-lutning (mm)
+        # MÄTTA sidoytor: V-kant (RÖD-huvudet) + H-kant (GRÖN-huvudet) — alltid
+        # tydligt färgade. 500 mm-ändar + underside = EJ mätta (neutralt/mörkt).
+        red = [1.0, 1.0, 1.0] if whitew else [0.78, 0.22, 0.27]   # V-kant (RÖD)
+        grn = [1.0, 1.0, 1.0] if whitew else ([0.20, 0.70, 0.36] if wf >= 0.999
+                                              else [0.24, 0.28, 0.34])  # H-kant (GRÖN)
+        neu = [1.0, 1.0, 1.0] if whitew else [0.26, 0.31, 0.38]   # ände — ej mätt
+        parts.append(_wall(P[0].copy(), zc0, U[0], red, y_off=+float(bev[0])))     # V-kant
+        parts.append(_wall(P[ny - 1].copy(), zc0, U[ny - 1], grn, y_off=-float(bev[1])))  # H-kant
         parts.append(_wall(P[:, 0].copy(), zc0, U[:, 0], neu))
         parts.append(_wall(P[:, nx - 1].copy(), zc0, U[:, nx - 1], neu))
         # underside (antagen, platt) — 2×2

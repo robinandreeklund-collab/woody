@@ -174,6 +174,9 @@ class AppController(QObject):
             "wfrac": 1.0 if full else max(0.02, progress),   # skannad andel (växer från ledande kant)
             "thick": RIG.board_thick_mm,
             "zmin": float(grid.min()), "zmax": float(grid.max()),
+            # sågad kant-lutning (mm) — V-kant (RÖD) / H-kant (GRÖN) mäts; ger
+            # sidoytorna sin verkliga lutning i 3D (rektangel → fasad sida).
+            "bevel": [round(float(b.edge_bevel[0]), 2), round(float(b.edge_bevel[1]), 2)],
         }
         if full and self._grade is not None:
             mesh.update(b.warp_metrics())
