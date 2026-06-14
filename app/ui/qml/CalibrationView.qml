@@ -79,6 +79,7 @@ RowLayout {
                 visible: root.selectedId.indexOf("laser") === 0
                 color: (dm && dm.lasersArmed) ? Qt.rgba(1,0.3,0.37,0.10) : Theme.panel2
                 border.color: (dm && dm.lasersArmed) ? Qt.rgba(1,0.3,0.37,0.45) : Qt.rgba(1,0.7,0.24,0.35)
+                InterlockDialog { id: interlock; onArmed: if (root.dm) root.dm.armLasers(true) }
                 RowLayout {
                     id: lrow; x: 12; y: 9; width: parent.width - 24; spacing: 10
                     Text {
@@ -89,10 +90,10 @@ RowLayout {
                         font.family: Theme.mono; font.pixelSize: 10; Layout.fillWidth: true; wrapMode: Text.WordWrap
                     }
                     Btn {
-                        text: (dm && dm.lasersArmed) ? "Avarma" : "Arma (interlock bekräftad)"
+                        text: (dm && dm.lasersArmed) ? "Avarma" : "Arma (interlock-checklista)"
                         danger: !(dm && dm.lasersArmed)
                         onClicked: { if (!dm) return;
-                            if (dm.lasersArmed) dm.disarmLasers(); else dm.armLasers(true) }
+                            if (dm.lasersArmed) dm.disarmLasers(); else interlock.open() }
                     }
                 }
             }
