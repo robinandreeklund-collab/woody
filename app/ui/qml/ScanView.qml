@@ -102,11 +102,12 @@ ColumnLayout {
         Card {
             Layout.preferredWidth: 230; Layout.minimumWidth: 200; Layout.maximumWidth: 260
             Layout.fillHeight: true
-            title: "PROFILKAMEROR"; chip: "LIVE"; chipColor: Theme.cyan
+            title: "PROFILKAMEROR · tvärsnitt"; chip: "3 av 4 ytor"; chipColor: Theme.cyan
             ColumnLayout {
                 anchors.fill: parent; spacing: Theme.sp2
                 Repeater {
-                    model: [["cam_red","Profil RÖD · 650 nm"], ["cam_green","Profil GRÖN · 520 nm"]]
+                    model: [["cam_red","RÖD 650 · topp + vänster kant"],
+                            ["cam_green","GRÖN 520 · topp + höger kant"]]
                     delegate: ColumnLayout {
                         Layout.fillWidth: true; Layout.fillHeight: true; spacing: 2
                         Text { text: modelData[1]; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 9; font.weight: Font.DemiBold }

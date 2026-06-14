@@ -86,9 +86,9 @@ RowLayout {
                                 var baseline=height-12, g=(baseline-18)/Math.max(ctrl.rig.thick,1);
                                 var gx=10, gw=width-20, n=zp.length;
                                 function topY(i){ return baseline - zp[i]*g; }
-                                // svag bandlinje längs hela bredden
-                                c.strokeStyle="rgba(120,140,165,0.22)"; c.lineWidth=1;
-                                c.beginPath(); c.moveTo(4,baseline); c.lineTo(width-4,baseline); c.stroke();
+                                // undersidan mäts EJ idag → svag streckad linje
+                                c.strokeStyle="rgba(120,140,165,0.20)"; c.lineWidth=1; c.setLineDash([5,4]);
+                                c.beginPath(); c.moveTo(gx,baseline); c.lineTo(gx+gw,baseline); c.stroke(); c.setLineDash([]);
                                 // vinklade kant-fasetter (band → brädans ovansida)
                                 c.lineWidth=2.0; c.strokeStyle=d.c; c.globalAlpha=d.side===0?1:0.4;
                                 c.beginPath(); c.moveTo(gx,baseline); c.lineTo(gx,topY(0)); c.stroke();
@@ -108,7 +108,7 @@ RowLayout {
                                 c.strokeStyle=grad; c.stroke(); c.shadowBlur=0;
                                 c.fillStyle="rgba(255,255,255,0.28)"; c.font="8px monospace";
                                 c.textAlign = d.side===0?"right":"left"; c.fillText("ocklusion", d.side===0?width-6:6, height-6);
-                                c.textAlign="left"; c.fillStyle="rgba(255,255,255,0.22)"; c.fillText("band", 8, baseline-3);
+                                c.textAlign="left"; c.fillStyle="rgba(255,255,255,0.22)"; c.fillText("underside · mäts ej", 8, baseline-3);
                             }
                         }
                     }

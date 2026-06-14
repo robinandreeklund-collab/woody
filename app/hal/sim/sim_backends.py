@@ -44,43 +44,51 @@ class SimProfileCamera(ProfileCameraIF):
         img += np.random.normal(0, 1.5, img.shape)        # realistiskt SNR → ~0,1 mm
         return np.clip(img, 0, 255)
 
-    def stripe_preview(self, y_mm: float, cols: int = 260, rows: int = 150) -> np.ndarray:
+    def stripe_preview(self, pos_mm: float, cols: int = 220, rows: int = 150) -> np.ndarray:
         """Visualiserings-vänlig laserprofil för live-vyn (påverkar EJ mätningen).
 
-        Visar hela brädans tvärsnitt så som en OBLIK profilkamera ser det: en
-        upphöjd platå (brädans ovansida, med verklig relief/skevhet/vankant) över
-        bandets baslinje, med sågade kant-fasetter som vinklar ned mot bandet
-        ('höjdkanter i vinkel mot centrum') och oblik ocklusion — varje huvud ser
-        sin NÄRA kant ljus, den bortre skuggas. Förstärkt höjdskala så tjockleken
-        syns; mät-ROI:n (read_stripe) är smal och rörs inte."""
+        Geometri: brädan matas i LÄNGD (500 mm); laserplanet är ett TVÄRSNITT över
+        bredden (75 mm) × tjockleken (20 mm). Varje oblikt huvud mäter brädans
+        OVANSIDA + sin NÄRA sidoyta — RÖD vänster kant, GRÖN höger kant. Tillsammans
+        = 3 av 4 ytor (topp + bägge sidor). UNDERSIDAN mäts ej (brädan ligger på
+        bandet) → visas som svag streckad 'mäts ej'. Den bortre sidan ockluderas
+        för respektive huvud. Mät-ROI:n (read_stripe) är smal och rörs inte."""
         b = self._scanner.board()
-        baseline = rows - 16                                   # bandets nivå (z=0)
-        disp_gain = (baseline - rows * 0.18) / max(RIG.board_thick_mm, 1.0)
-        nb = max(8, int(cols * 0.82))                          # brädans bredd i bild
-        m = (cols - nb) // 2                                   # band-marginal
-        if b is not None:
-            prof = np.asarray(b.z_profile_row(y_mm, nb), float)   # tjocklek längs 500 mm
-        else:
-            prof = np.full(nb, RIG.board_thick_mm)
-        top = np.full(cols, baseline, float)                   # utanför brädan = band
-        top[m:m + nb] = baseline - prof * disp_gain            # brädans ovansida (upphöjd)
-        ramp = 6                                               # sågad kant-fasett (vinkel)
-        for k in range(1, ramp + 1):
-            f = 1.0 - k / (ramp + 1)
-            if m - k >= 0:
-                top[m - k] = baseline - prof[0] * disp_gain * f
-            if m + nb - 1 + k < cols:
-                top[m + nb - 1 + k] = baseline - prof[-1] * disp_gain * f
+        BW, BT = RIG.board_width_mm, RIG.board_thick_mm
+        nb = max(8, int(cols * 0.74))                          # brädans bredd i bild
+        m = (cols - nb) // 2
+        # tvärsnittets ovansida-relief längs BREDDEN (kupa/vankant) vid längdpos
+        x = float(np.clip(pos_mm / max(1.0, BW) * RIG.board_len_mm, 0, RIG.board_len_mm))
+        prof = np.asarray(b.z_profile_col(x, nb), float) if b is not None \
+            else np.full(nb, BT)
+        under = rows * 0.80                                    # undersidan (på bandet)
+        gain = (rows * 0.52) / max(BT, 1.0)                    # tjocklek → bildhöjd
+        top = under - prof * gain                             # ovansidans rad per kolumn
+        near_left = (self._color == "red")                    # RÖD ser vänster, GRÖN höger
         rr = np.arange(rows)[:, None]
-        img = np.exp(-((rr - top[None, :]) ** 2) / (2 * 1.8 ** 2)) * 235.0   # laserlinjen
-        img += np.exp(-((rr - baseline) ** 2) / (2 * 1.3 ** 2)) * 30.0       # svag bandlinje
-        # oblik vy: varje huvud ser från sin sida → NÄRA kanten ljus + brantare,
-        # BORTRE kanten/fasetten skuggas gradvis (kameran ser den i skarp vinkel).
-        fx = np.linspace(0, 1, cols)
-        far = fx if self._color == "red" else (1 - fx)        # 1 = bortre kanten
-        img *= (1 - 0.7 * np.clip((far - 0.55) / 0.45, 0, 1))[None, :]
-        near = (1 - fx) if self._color == "red" else fx       # 1 = nära kanten
-        img *= (1 + 0.18 * np.clip((near - 0.7) / 0.3, 0, 1))[None, :]
+        img = np.zeros((rows, cols))
+
+        # 1) OVANSIDAN (båda huvuden ser toppen) — ljus stripe över brädans bredd
+        img[:, m:m + nb] += np.exp(-((rr - top[None, :]) ** 2) / (2 * 1.9 ** 2)) * 232.0
+
+        def face(col, top_row, bright):
+            lo, hi = int(min(top_row, under)), int(max(top_row, under))
+            for cc in (col - 1, col, col + 1):
+                if 0 <= cc < cols:
+                    img[lo:hi + 1, cc] = np.maximum(img[lo:hi + 1, cc], bright)
+
+        # 2) NÄRA sidoytan (full ljus) + BORTRE (ockluderad, svag antydan)
+        if near_left:
+            face(m, top[0], 205);          face(m + nb - 1, top[-1], 26)
+        else:
+            face(m + nb - 1, top[-1], 205); face(m, top[0], 26)
+
+        # 3) UNDERSIDAN — mäts EJ idag → svag streckad linje på bandnivå
+        cc = np.arange(cols)
+        dash = (cc // 7) % 2 == 0
+        band = (cc >= m) & (cc < m + nb) & dash
+        img[int(under), band] = np.maximum(img[int(under), band], 32)
+
         img += np.random.normal(0, 2.0, img.shape)
         return np.clip(img, 0, 255)
 
