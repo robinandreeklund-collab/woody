@@ -189,6 +189,10 @@ class DeviceManager(QObject):
         self._armed = False
         self.devicesChanged.emit()
 
+    @Property("QVariantMap", constant=True)
+    def telemetry(self) -> dict:
+        return {}                          # lokal nod: ingen host-telemetri (bara via master)
+
     @Property(bool, notify=devicesChanged)
     def lasersArmed(self) -> bool:
         fn = getattr(self._scanner, "lasers_armed", None)

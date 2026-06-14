@@ -32,34 +32,103 @@ RowLayout {
     Card {
         Layout.preferredWidth: 290; Layout.fillHeight: true
         title: "ENHETER"; chip: dm.mode.toUpperCase(); chipColor: Theme.violet
-        ListView {
-            anchors.fill: parent; clip: true; spacing: 6
-            model: dm.devices
-            delegate: Rectangle {
-                width: ListView.view.width; height: 56; radius: 10
-                color: modelData.id === root.selectedId ? Qt.rgba(0.15,0.83,0.88,0.10) : Theme.panel2
-                border.color: modelData.id === root.selectedId ? Qt.rgba(0.15,0.83,0.88,0.4)
-                              : (dma.containsMouse ? Theme.line2 : Theme.line)
-                MouseArea { id: dma; anchors.fill: parent; hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor; onClicked: root.select(modelData.id) }
-                RowLayout {
-                    anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 9
-                    Rectangle { width: 8; height: 8; radius: 4
-                        color: modelData.connected ? Theme.teal : Theme.red }
-                    ColumnLayout { spacing: 1; Layout.fillWidth: true
-                        Text { text: modelData.name; color: Theme.ink; font.pixelSize: 12
-                               font.weight: Font.DemiBold; elide: Text.ElideRight; Layout.fillWidth: true }
-                        Text { text: modelData.status; color: modelData.connected ? Theme.ink3 : Theme.red
-                               font.family: Theme.mono; font.pixelSize: 9; elide: Text.ElideRight; Layout.fillWidth: true } }
-                    Rectangle {
-                        visible: modelData.calibTotal > 0
-                        radius: 6; implicitWidth: cb.width + 10; implicitHeight: 16
-                        color: modelData.calibDone === modelData.calibTotal
-                               ? Qt.rgba(0.2,0.9,0.71,0.12) : Qt.rgba(1,0.7,0.24,0.12)
-                        Text { id: cb; anchors.centerIn: parent
-                               text: modelData.calibDone + "/" + modelData.calibTotal
-                               color: modelData.calibDone === modelData.calibTotal ? Theme.teal : Theme.amber
-                               font.family: Theme.mono; font.pixelSize: 9 } }
+        ColumnLayout {
+            anchors.fill: parent; spacing: 8
+            ListView {
+                Layout.fillWidth: true; Layout.fillHeight: true; clip: true; spacing: 6
+                model: dm.devices
+                delegate: Rectangle {
+                    width: ListView.view.width; height: 56; radius: 10
+                    color: modelData.id === root.selectedId ? Qt.rgba(0.15,0.83,0.88,0.10) : Theme.panel2
+                    border.color: modelData.id === root.selectedId ? Qt.rgba(0.15,0.83,0.88,0.4)
+                                  : (dma.containsMouse ? Theme.line2 : Theme.line)
+                    MouseArea { id: dma; anchors.fill: parent; hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor; onClicked: root.select(modelData.id) }
+                    RowLayout {
+                        anchors.fill: parent; anchors.leftMargin: 10; anchors.rightMargin: 10; spacing: 9
+                        Rectangle { width: 8; height: 8; radius: 4
+                            color: modelData.connected ? Theme.teal : Theme.red }
+                        ColumnLayout { spacing: 1; Layout.fillWidth: true
+                            Text { text: modelData.name; color: Theme.ink; font.pixelSize: 12
+                                   font.weight: Font.DemiBold; elide: Text.ElideRight; Layout.fillWidth: true }
+                            Text { text: modelData.status; color: modelData.connected ? Theme.ink3 : Theme.red
+                                   font.family: Theme.mono; font.pixelSize: 9; elide: Text.ElideRight; Layout.fillWidth: true } }
+                        Rectangle {
+                            visible: modelData.calibTotal > 0
+                            radius: 6; implicitWidth: cb.width + 10; implicitHeight: 16
+                            color: modelData.calibDone === modelData.calibTotal
+                                   ? Qt.rgba(0.2,0.9,0.71,0.12) : Qt.rgba(1,0.7,0.24,0.12)
+                            Text { id: cb; anchors.centerIn: parent
+                                   text: modelData.calibDone + "/" + modelData.calibTotal
+                                   color: modelData.calibDone === modelData.calibTotal ? Theme.teal : Theme.amber
+                                   font.family: Theme.mono; font.pixelSize: 9 } }
+                    }
+                }
+            }
+
+            // ---- host-telemetri UNDER enheterna (RIKTIG, via master/RemoteNode) ----
+            Rectangle {
+                id: teleBox
+                Layout.fillWidth: true; Layout.preferredHeight: 304
+                visible: dm && dm.telemetry && Object.keys(dm.telemetry).length > 0
+                radius: 10; color: Theme.panel2; border.color: Theme.line
+                property var t: (dm && dm.telemetry) ? dm.telemetry : ({})
+                function pc(x){ return (x===null||x===undefined) ? null : x }
+                function fmt(x,u){ return teleBox.pc(x)===null ? "–" : x+u }
+                Flickable {
+                    anchors.fill: parent; anchors.margins: 10; clip: true
+                    contentHeight: tcol.height
+                    ColumnLayout {
+                        id: tcol; width: parent.width; spacing: 5
+                        RowLayout { Layout.fillWidth: true
+                            Text { text: "HOST-TELEMETRI"; color: Theme.teal; font.family: Theme.mono
+                                   font.pixelSize: 10; font.weight: Font.DemiBold }
+                            Item { Layout.fillWidth: true }
+                            Rectangle { width: 6; height: 6; radius: 3; color: Theme.teal
+                                SequentialAnimation on opacity { loops: Animation.Infinite
+                                    NumberAnimation { to: 0.3; duration: 800 } NumberAnimation { to: 1; duration: 800 } } } }
+                        Text { text: teleBox.t.model || ""; color: Theme.ink3; font.pixelSize: 9
+                               wrapMode: Text.WordWrap; Layout.fillWidth: true }
+                        // per-core CPU-staplar
+                        RowLayout { Layout.fillWidth: true; spacing: 2; Layout.topMargin: 2
+                            visible: (teleBox.t.per_core || []).length > 0
+                            Repeater { model: teleBox.t.per_core || []
+                                delegate: Rectangle { Layout.fillWidth: true; height: 16; radius: 2; color: Theme.line
+                                    Rectangle { anchors.bottom: parent.bottom; width: parent.width
+                                        height: parent.height * Math.max(0.04, Math.min(1, (modelData||0)/100)); radius: 2
+                                        color: (modelData||0) > 80 ? Theme.red : ((modelData||0) > 50 ? Theme.amber : Theme.teal) } } } }
+                        // mätvärdesrader
+                        Repeater {
+                            model: {
+                                var t = teleBox.t || ({}); var f = teleBox.fmt; var rows = []
+                                rows.push({l:"CPU", v:f(t.cpu_pct," %")+(t.cpu_freq_mhz?"  "+t.cpu_freq_mhz+" MHz":""), p:teleBox.pc(t.cpu_pct)})
+                                rows.push({l:"GPU", v:f(t.gpu_pct," %")+(t.gpu_freq_mhz?"  "+t.gpu_freq_mhz+" MHz":""), p:teleBox.pc(t.gpu_pct)})
+                                rows.push({l:"RAM", v:f(t.ram_pct," %")+"  "+(t.ram_used_mb||0)+"/"+(t.ram_total_mb||0)+" MB", p:teleBox.pc(t.ram_pct)})
+                                if (t.swap_total_mb > 0) rows.push({l:"Swap", v:(t.swap_used_mb||0)+"/"+(t.swap_total_mb||0)+" MB", p:(100*t.swap_used_mb/t.swap_total_mb)})
+                                rows.push({l:"Disk", v:f(t.disk_pct," %")+"  "+(t.disk_used_gb||0)+"/"+(t.disk_total_gb||0)+" GB", p:teleBox.pc(t.disk_pct)})
+                                rows.push({l:"Temp", v:f(t.temp_c," °C"), p:(teleBox.pc(t.temp_c)===null?null:Math.min(100,t.temp_c))})
+                                if (teleBox.pc(t.fan_rpm)!==null) rows.push({l:"Fläkt", v:t.fan_rpm+" RPM"})
+                                if (teleBox.pc(t.power_w)!==null) rows.push({l:"Effekt", v:t.power_w+" W"})
+                                rows.push({l:"Nät", v:"↓"+f(t.net_rx_mbps,"")+" ↑"+f(t.net_tx_mbps,"")+" MB/s"})
+                                rows.push({l:"Last", v:f(t.load1,"")+" / "+f(t.load5,"")+" / "+f(t.load15,""), p:(teleBox.pc(t.load1)===null?null:Math.min(100,100*t.load1/(t.ncpu||1)))})
+                                rows.push({l:"Processer", v:f(t.procs,"")})
+                                if (teleBox.pc(t.uptime_s)!==null) rows.push({l:"Upptid", v:Math.floor(t.uptime_s/3600)+"h "+Math.floor((t.uptime_s%3600)/60)+"m"})
+                                return rows
+                            }
+                            delegate: ColumnLayout {
+                                Layout.fillWidth: true; spacing: 1
+                                RowLayout { Layout.fillWidth: true
+                                    Text { text: modelData.l; color: Theme.ink3; font.pixelSize: 10; font.family: Theme.mono }
+                                    Item { Layout.fillWidth: true }
+                                    Text { text: modelData.v; color: Theme.ink; font.pixelSize: 10; font.family: Theme.mono
+                                           font.weight: Font.DemiBold } }
+                                Rectangle { visible: modelData.p !== undefined && modelData.p !== null
+                                    Layout.fillWidth: true; height: 3; radius: 1.5; color: Theme.line
+                                    Rectangle { width: parent.width * Math.max(0, Math.min(1, (modelData.p||0)/100)); height: parent.height; radius: 1.5
+                                        color: (modelData.p||0) > 90 ? Theme.red : ((modelData.p||0) > 70 ? Theme.amber : Theme.teal) } }
+                            }
+                        }
+                    }
                 }
             }
         }
