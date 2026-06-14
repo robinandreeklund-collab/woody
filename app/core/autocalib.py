@@ -154,6 +154,39 @@ def flat_field(rows: np.ndarray) -> dict:
     return {"ojämnhet före": f"{before*100:.1f} %", "efter": f"{after*100:.2f} %"}
 
 
+# -- linjelaser (profilkamera) + fotocell --
+
+def line_straightness(img: np.ndarray) -> dict:
+    """Laserstripens rakhet: stripe-rad per kolumn → linjeanpassning → bow (px) + vridning."""
+    a = np.asarray(img, dtype=np.float64)
+    bg = np.median(a, axis=0, keepdims=True)
+    sig = np.clip(a - bg, 0, None)
+    rows = np.arange(a.shape[0], dtype=np.float64)[:, None]
+    w = sig ** 2
+    denom = w.sum(axis=0)
+    m = denom > (float(sig.max()) ** 2) * 0.05 if sig.max() > 0 else np.zeros(a.shape[1], bool)
+    if m.sum() < 2:
+        return {"fel": "ingen stripe — tänd lasern (interlock!) och kör om"}
+    centroid = (rows * w).sum(axis=0) / np.where(denom > 0, denom, 1.0)
+    cols = np.arange(a.shape[1], dtype=np.float64)
+    coef = np.polyfit(cols[m], centroid[m], 1)
+    bow = float(np.max(np.abs(centroid[m] - np.polyval(coef, cols[m]))))
+    angle = float(np.degrees(np.arctan(coef[0])))
+    return {"bow": f"{bow:.2f} px", "vridning": f"{angle:.2f}°"}
+
+
+def detection_stats(stamps, n_target: int, bounce_ms: float = 50.0) -> dict:
+    """Fotocell-flanker → antal detektioner + dubbeltriggar (kortare än debounce)."""
+    k = len(stamps)
+    if k == 0:
+        return {"fel": "inga detektioner — kontrollera fotocell/polaritet (pin 7)"}
+    intervals = np.diff(np.asarray(stamps, dtype=np.float64)) * 1000.0 if k > 1 else np.array([])
+    doubles = int((intervals < bounce_ms).sum()) if intervals.size else 0
+    min_iv = f"{intervals.min():.0f} ms" if intervals.size else "—"
+    return {"detektioner": f"{k}/{n_target}", "min-intervall": min_iv,
+            "dubbeltrigg": str(doubles)}
+
+
 # -- transportör (RoboClaw) --
 
 def step_response_metrics(times, speeds, target: float) -> dict:
@@ -192,6 +225,10 @@ class CalibrationContext:
         self.scanner = scanner
         self.conveyor = getattr(scanner, "conveyor", None)
         self.point_lasers = getattr(scanner, "point_lasers", []) or []
+        self.led = getattr(scanner, "led_white", None)
+        self.photocell = getattr(scanner, "photocell", None)
+        self.laser_red = getattr(scanner, "laser_red", None)
+        self.laser_green = getattr(scanner, "laser_green", None)
         # Stegsvars-sampling (kort i test via monkeypatch av time.sleep)
         self.step_target_mm_s = 50.0
         self.step_dt = 0.05
@@ -231,6 +268,20 @@ class CalibrationContext:
     def set_surface_wb(self, gr: float, gg: float, gb: float) -> None:
         self.scanner.surface.configure(BalanceRatioRed=gr, BalanceRatioGreen=gg,
                                        BalanceRatioBlue=gb)
+
+    # -- fält-IO (LED / laser / fotocell) --
+    def led_on(self) -> bool:
+        return bool(self.led.set(True)) if self.led is not None else False
+
+    def led_off(self) -> None:
+        if self.led is not None:
+            self.led.set(False)
+
+    def laser_for(self, dev_id: str):
+        return self.laser_red if dev_id == "laser_red" else self.laser_green
+
+    def cam_for_laser(self, dev_id: str) -> str:
+        return "prof_red" if dev_id == "laser_red" else "prof_green"
 
 
 # ─────────────────────────────── rutin-registret ───────────────────────────────
@@ -281,6 +332,45 @@ def _conv_speedstep(ctx, _dev):
         return step_response_metrics(times, speeds, target)
     finally:
         conv.set_speed(0.0)                            # stoppa ALLTID
+
+def _led_uniform(ctx, _dev):
+    """LED-belysningsjämnhet längs linjekamerans FOV (LED är OFARLIG → tänds auto)."""
+    if ctx.led is None:
+        return {"fel": "inget LED i HAL"}
+    try:
+        if not ctx.led_on():
+            return {"fel": "kunde inte tända LED"}
+        rows = ctx.grab_surface_rows(50)
+        res = flat_field(rows)
+        res["rekommendation"] = ("OK — flat-field räcker"
+                                 if float(res["ojämnhet före"].split()[0].replace(",", ".")) < 30
+                                 else "ÅTGÄRDA mekaniskt (> 30 %)")
+        return res
+    finally:
+        ctx.led_off()
+
+def _photocell_trigger(ctx, _dev):
+    """Fotocell: räkna laddnings-flanker + debounce medan operatören laddar bräda 10×."""
+    pc = ctx.photocell
+    if pc is None or not hasattr(pc, "collect_load_events"):
+        return {"fel": "ingen fotocell i HAL"}
+    stamps = pc.collect_load_events(n=10, timeout_s=30.0)
+    return detection_stats(stamps, n_target=10)
+
+def _laser_width(ctx, dev):
+    """Stripe-bredd (FWHM). GRINDAD: tänder ALDRIG lasern — kräver att den redan
+    är tänd (operatör + interlock), annars tydligt fel."""
+    las = ctx.laser_for(dev)
+    if las is None or not getattr(las, "is_on", False):
+        return {"fel": "tänd lasern via interlock-kontrollen först (klass 3B)"}
+    return focus_fwhm(lambda: ctx.grab_profile(ctx.cam_for_laser(dev)))
+
+def _laser_straight(ctx, dev):
+    """Linjerakhet (bow). GRINDAD som ovan — tänder aldrig lasern själv."""
+    las = ctx.laser_for(dev)
+    if las is None or not getattr(las, "is_on", False):
+        return {"fel": "tänd lasern via interlock-kontrollen först (klass 3B)"}
+    return line_straightness(ctx.grab_profile(ctx.cam_for_laser(dev)))
 
 def _lr400_zero_d0(ctx, _dev):
     """Nolla LR400 mot TOMT band: medelavstånd per kanal → D0 (tjocklek = D0 − avstånd).
@@ -339,6 +429,13 @@ AUTO_ROUTINES: dict = {
     ("conveyor", "speedstep"):   _conv_speedstep,
     ("conveyor", "beltsync"):    _conv_beltsync,
     ("lr400", "zero_d0"):        _lr400_zero_d0,
+    ("led_white", "uniform"):    _led_uniform,
+    ("photocell", "trigger"):    _photocell_trigger,
+    # Laser-mätningar är GRINDADE (tänder aldrig lasern; kräver redan tänd).
+    ("laser_red", "width"):      _laser_width,
+    ("laser_red", "straight"):   _laser_straight,
+    ("laser_green", "width"):    _laser_width,
+    ("laser_green", "straight"): _laser_straight,
 }
 
 

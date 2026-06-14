@@ -103,8 +103,23 @@ class _FakeSurfaceCam:
 
 
 class _FakeLaser:
-    def __init__(self): self.on = True
-    def set(self, v): self.on = bool(v)
+    def __init__(self): self._on = True; self.armed = False
+    @property
+    def is_on(self): return self._on
+    def arm(self, confirm=False): self.armed = bool(confirm); return self.armed
+    def set(self, v):
+        self._on = bool(v); return True
+
+
+class _FakeLED:
+    def __init__(self): self.on = False
+    def set(self, v): self.on = bool(v); return True
+
+
+class _FakePhotocell:
+    def __init__(self, edges=8): self.edges = edges
+    def collect_load_events(self, n=10, timeout_s=30.0):
+        return [i * 0.12 for i in range(min(n, self.edges))]
 
 
 class _FakeScanner:
@@ -113,6 +128,7 @@ class _FakeScanner:
         self.profile_green = _FakeProfileCam(stripe)
         self.surface = _FakeSurfaceCam()
         self.laser_red = _FakeLaser(); self.laser_green = _FakeLaser()
+        self.led_white = _FakeLED(); self.photocell = _FakePhotocell()
 
 
 def test_run_auto_exposure_and_dark_and_wb():
@@ -121,7 +137,7 @@ def test_run_auto_exposure_and_dark_and_wb():
     assert "fel" not in exp and "exponering" in exp
     # dark släcker lasern (säkert) före mätning
     dark = autocalib.run_auto("prof_red", "dark", ctx)
-    assert "fel" not in dark and ctx.scanner.laser_red.on is False
+    assert "fel" not in dark and ctx.scanner.laser_red.is_on is False
     # stripe_roi sätter ROI-offset i kameran
     roi = autocalib.run_auto("prof_green", "stripe_roi", ctx)
     assert "fel" not in roi and ctx.scanner.profile_green.offset is not None
@@ -302,6 +318,69 @@ def test_run_auto_lr400_zero_d0():
     assert "fel" not in res and "D0 ch1/2/3" in res
     assert res["kanaler ok"] == "3/3"
     assert sc.point_lasers[0].d0 == 100.2             # D0 satt till uppmätt avstånd
+
+
+class _FakeGPIO:
+    BOARD = 1; OUT = 2; IN = 3; LOW = 0; HIGH = 1; FALLING = 4
+    def __init__(self, seq=None): self.state = {}; self._seq = list(seq or [])
+    def setmode(self, m): pass
+    def setwarnings(self, b): pass
+    def setup(self, p, mode, initial=None): self.state[p] = initial if initial is not None else 1
+    def output(self, p, v): self.state[p] = v
+    def input(self, p): return self._seq.pop(0) if self._seq else self.state.get(p, 1)
+    def add_event_detect(self, *a, **k): pass
+    def remove_event_detect(self, *a, **k): pass
+
+
+def test_gpio_field_io_arm_gate():
+    # Lasersäkerhet kodlåst: enable VÄGRAS tills arm(confirm=True). LED behöver ingen arm.
+    from app.hal.real import gpio_io
+    gpio_io._GPIO = _FakeGPIO()
+    laser, laser_g, led, pc = gpio_io.make_field_io()
+    laser.open(); led.open()
+    assert laser.requires_arm and not led.requires_arm
+    assert laser.set(True) is False and laser.is_on is False     # vägrad — ej armad
+    assert laser.arm(confirm=True) is True
+    assert laser.set(True) is True and laser.is_on is True        # nu tillåten
+    laser.close()
+    assert laser.is_on is False and laser.is_armed is False       # close släcker + avarmar
+    assert led.set(True) is True and led.is_on is True            # LED kräver ingen arm
+    gpio_io._GPIO = None
+
+
+def test_photocell_collect_load_events():
+    from app.hal.real import gpio_io
+    from app.hal.real.gpio_io import PhotocellInput, PIN_PHOTOCELL
+    # sekvens som ger 3 fallande flanker (1→0)
+    gpio_io._GPIO = _FakeGPIO(seq=[1, 1, 0, 1, 0, 1, 0])
+    pc = PhotocellInput(PIN_PHOTOCELL); pc.open()
+    stamps = pc.collect_load_events(n=3, timeout_s=1.0, poll_dt=0.0)
+    assert len(stamps) == 3
+    gpio_io._GPIO = None
+
+
+def test_line_straightness_and_detection_stats():
+    s = autocalib.line_straightness(_profile_frame(peak=180, row=40))
+    assert "bow" in s and float(s["bow"].split()[0]) < 3.0
+    d = autocalib.detection_stats([0.0, 0.12, 0.24, 0.36], 4)
+    assert d["detektioner"] == "4/4" and d["dubbeltrigg"] == "0"
+    assert "fel" in autocalib.detection_stats([], 10)
+
+
+def test_run_auto_gpio_led_photocell_laser():
+    sc = _FakeScanner(stripe=True)
+    ctx = autocalib.CalibrationContext(sc)
+    u = autocalib.run_auto("led_white", "uniform", ctx)
+    assert "fel" not in u and "ojämnhet före" in u
+    assert sc.led_white.on is False                       # LED släckt efteråt
+    pcr = autocalib.run_auto("photocell", "trigger", ctx)
+    assert "fel" not in pcr and "detektioner" in pcr
+    # laser GRINDAT: släckt → vägrar mäta (tänder aldrig själv)
+    sc.laser_red.set(False)
+    assert "fel" in autocalib.run_auto("laser_red", "width", ctx)
+    sc.laser_red.arm(confirm=True); sc.laser_red.set(True)    # operatör + interlock
+    assert "FWHM centrum" in autocalib.run_auto("laser_red", "width", ctx)
+    assert "bow" in autocalib.run_auto("laser_red", "straight", ctx)
 
 
 if __name__ == "__main__":

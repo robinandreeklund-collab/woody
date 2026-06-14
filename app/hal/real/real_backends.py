@@ -92,6 +92,9 @@ class RealScanner(Scanner):
                 from ...processing.acquisition import AcquisitionPipeline
                 self._pipeline = AcquisitionPipeline(
                     self, lr_positions=list(RIG.point_lasers_x_mm))
+            if not self.lasers_armed():
+                print("[SÄKERHET] lasrar ej armade — kör arm_lasers(confirm=True) efter "
+                      "interlock. Skannar utan laserprofil tills dess.")
             self.laser_red.set(True)
             self.laser_green.set(True)
             self.led_white.set(True)
@@ -111,6 +114,24 @@ class RealScanner(Scanner):
 
     def board(self):
         return self._board
+
+    # ------------------------------------------------------------ lasersäkerhet
+    def arm_lasers(self, confirm: bool = False) -> bool:
+        """Lås upp klass 3B-laser-enable EFTER människo-interlock (rum låst, dörr-
+        interlock, skyddsglasögon HM326-C). GUI:t ska anropa detta från en EXPLICIT
+        bekräftelse-kontroll. Utan arm vägrar new_board/begin_stream tända lasrarna."""
+        a = bool(confirm)
+        self.laser_red.arm(a)
+        self.laser_green.arm(a)
+        return a
+
+    def disarm_lasers(self) -> None:
+        """Släck + avarma båda lasrarna (säkert läge)."""
+        self.laser_red.disarm()
+        self.laser_green.disarm()
+
+    def lasers_armed(self) -> bool:
+        return bool(self.laser_red.is_armed and self.laser_green.is_armed)
 
     # ------------------------------------------------------------ löpande flöde
     def feed_position_mm(self) -> float:
@@ -134,6 +155,8 @@ class RealScanner(Scanner):
         real-läge (samma som new_board i pass-läge). Kräver att riggen är säkrad.
         """
         try:
+            if not self.lasers_armed():
+                print("[SÄKERHET] lasrar ej armade — arm_lasers(confirm=True) efter interlock.")
             self.laser_red.set(True)
             self.laser_green.set(True)
             self.led_white.set(True)
