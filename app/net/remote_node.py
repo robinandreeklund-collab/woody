@@ -23,6 +23,7 @@ class RemoteNode(QObject):
     calibChanged = Signal()
     connectionChanged = Signal()
     telemetryChanged = Signal()
+    scanChanged = Signal()
 
     def __init__(self, name: str, host: str, port: int = 8765, parent=None):
         super().__init__(parent)
@@ -36,6 +37,7 @@ class RemoteNode(QObject):
         self._calib = {"running": False, "device": "", "title": "", "pct": 0.0,
                        "step": "", "log": [], "result": "", "ok": True}
         self._telemetry: dict = {}
+        self._scan: dict = {"available": False}
         self._next_id = 1
         self._pending: dict = {}             # msg_id -> callback(result, ok)
         self._fb = p.FrameBuffer()
@@ -103,6 +105,9 @@ class RemoteNode(QObject):
         elif name == p.EV_TELEMETRY:
             self._telemetry = data or {}
             self.telemetryChanged.emit()
+        elif name == p.EV_SCAN:
+            self._scan = data or {"available": False}
+            self.scanChanged.emit()
 
     def _apply_status(self, status):
         if isinstance(status, dict):
@@ -220,3 +225,27 @@ class RemoteNode(QObject):
     def telemetry(self) -> dict:
         """RIKTIG host-telemetri (CPU/GPU/RAM/disk/temp/last) — oavsett sim/real."""
         return dict(self._telemetry)
+
+    # ------------------------------------------------------------ skanning (AppController)
+    @Property("QVariantMap", notify=scanChanged)
+    def scan(self) -> dict:
+        """Skanntillstånd: KPI:er, körläge, grad, defekter, historik (live från noden)."""
+        return dict(self._scan)
+
+    def _scan_ctrl(self, action, value=None):
+        self._send(p.CMD_SCAN, {"action": action, "value": value})
+
+    @Slot()
+    def scanToggleRun(self): self._scan_ctrl("toggle_run")
+    @Slot()
+    def scanNextBoard(self): self._scan_ctrl("next_board")
+    @Slot(float)
+    def scanSetFeed(self, v): self._scan_ctrl("set_feed", v)
+    @Slot(str)
+    def scanSetRunMode(self, m): self._scan_ctrl("set_run_mode", m)
+    @Slot(str)
+    def scanSetPassMode(self, m): self._scan_ctrl("set_pass_mode", m)
+    @Slot(bool)
+    def scanSetAuto(self, b): self._scan_ctrl("set_auto", b)
+    @Slot()
+    def scanDismissNotify(self): self._scan_ctrl("dismiss_notify")

@@ -22,6 +22,7 @@ CMD_REFRESH = "refresh"             # proba om hårdvaran
 CMD_SET_POSITION = "set_position"   # args {label, start_mm, end_mm} → huvudets sektion
 CMD_ARM_LASERS = "arm_lasers"      # args {confirm} → bool (klass 3B interlock)
 CMD_DISARM_LASERS = "disarm_lasers"
+CMD_SCAN = "scan_ctrl"              # args {action, value} → styr skanningen (AppController)
 
 # -- event (slave → master, oombett) --
 EV_DEVICES = "devices_changed"
@@ -29,6 +30,7 @@ EV_METHODS = "methods_changed"
 EV_CALIB = "calib_changed"
 EV_HELLO = "hello"                  # skickas när en klient ansluter
 EV_TELEMETRY = "telemetry"          # host-stats (CPU/GPU/RAM/disk/temp) var ~2s
+EV_SCAN = "scan_state"              # skanntillstånd (KPI:er, grad, defekter, historik)
 
 
 def encode(obj: dict) -> bytes:

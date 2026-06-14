@@ -12,11 +12,31 @@ VERSION = "1"
 
 
 class CommandHandler:
-    def __init__(self, devmgr, name: str = "woody-node"):
+    def __init__(self, devmgr, name: str = "woody-node", controller=None):
         self.devmgr = devmgr
         self.name = name
+        self.ctrl = controller                  # AppController (skanning), kan vara None
         self.scanner = getattr(devmgr, "_scanner", None)
         self.position = head_config.load()      # huvudets sektion av brädan
+
+    def scan_state(self) -> dict:
+        c = self.ctrl
+        if c is None:
+            return {"available": False}
+        return {
+            "available": True,
+            "running": c.running, "status": c.statusText, "mode": c.modeText,
+            "run_mode": c.runMode, "pass_mode": c.passMode, "feed": c.feedSpeed,
+            "rate": c.profileRate, "throughput": c.throughput, "boards": c.boardCount,
+            "load": c.jetsonLoad, "progress": c.scanProgress, "pass_count": c.passCount,
+            "passes_target": c.passesTarget, "auto": c.autoAdvance, "notify": c.notifyText,
+            "grade_class": c.gradeClass, "grade_title": c.gradeTitle,
+            "grade_color": c.gradeColor, "grade_reason": c.gradeReason,
+            "grade_governing": c.gradeGoverning,
+            "defects": list(c.defects), "zprofile": list(c.zProfile),
+            "nominal_thick": c.nominalThick, "lr_thickness": list(c.lrThickness),
+            "history": list(c.history),
+        }
 
     # ---- nodstatus (för master-översikten) ----
     def _status(self) -> dict:
@@ -76,6 +96,21 @@ class CommandHandler:
             return self._calib_state()
         if cmd == p.CMD_REFRESH:
             dm.refresh(); return True
+        if cmd == p.CMD_SCAN:
+            c = self.ctrl
+            if c is None:
+                return {"available": False}
+            a, v = args.get("action"), args.get("value")
+            if a == "toggle_run": c.toggleRun()
+            elif a == "next_board": c.nextBoard()
+            elif a == "set_feed": c.setFeed(float(v))
+            elif a == "set_run_mode": c.setRunMode(str(v))
+            elif a == "set_pass_mode": c.setPassMode(str(v))
+            elif a == "set_auto": c.setAuto(bool(v))
+            elif a == "set_rate": c.setRate(float(v))
+            elif a == "set_passes": c.setPasses(int(v))
+            elif a == "dismiss_notify": c.dismissNotify()
+            return self.scan_state()
         if cmd == p.CMD_SET_POSITION:
             self.position = head_config.save({
                 "label": args.get("label", ""),

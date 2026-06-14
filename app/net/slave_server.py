@@ -14,10 +14,12 @@ from .telemetry import HostTelemetry
 
 
 class SlaveServer(QObject):
-    def __init__(self, devmgr, name: str = "woody-node", port: int = 8765, parent=None):
+    def __init__(self, devmgr, name: str = "woody-node", port: int = 8765,
+                 controller=None, parent=None):
         super().__init__(parent)
-        self._handler = CommandHandler(devmgr, name=name)
+        self._handler = CommandHandler(devmgr, name=name, controller=controller)
         self._devmgr = devmgr
+        self._ctrl = controller
         self._port = port
         self._clients: dict = {}                 # QTcpSocket -> FrameBuffer
         self._server = QTcpServer(self)
@@ -32,6 +34,11 @@ class SlaveServer(QObject):
         self._tele_timer = QTimer(self); self._tele_timer.setInterval(2000)
         self._tele_timer.timeout.connect(self._emit_telemetry)
         self._tele_timer.start()
+        # Skanntillstånd (AppController) → push ~4 Hz (throttlat; stateChanged är per-frame)
+        if controller is not None:
+            self._scan_timer = QTimer(self); self._scan_timer.setInterval(250)
+            self._scan_timer.timeout.connect(self._emit_scan)
+            self._scan_timer.start()
 
     def listen(self) -> bool:
         ok = self._server.listen(QHostAddress.Any, self._port)
@@ -58,6 +65,8 @@ class SlaveServer(QObject):
             sock.write(p.event(p.EV_CALIB, self._handler._calib_state()))
             if self._tele_last:
                 sock.write(p.event(p.EV_TELEMETRY, self._tele_last))
+            if self._ctrl is not None:
+                sock.write(p.event(p.EV_SCAN, self._handler.scan_state()))
 
     def _on_ready(self, sock):
         fb = self._clients.get(sock)
@@ -92,3 +101,7 @@ class SlaveServer(QObject):
         self._tele_last = self._tele.collect()
         if self._clients:
             self._broadcast(p.event(p.EV_TELEMETRY, self._tele_last))
+
+    def _emit_scan(self):
+        if self._clients and self._ctrl is not None:
+            self._broadcast(p.event(p.EV_SCAN, self._handler.scan_state()))

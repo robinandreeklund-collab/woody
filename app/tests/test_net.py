@@ -107,6 +107,45 @@ def test_host_telemetry_collect():
     assert t["ncpu"] >= 1 and t["ram_total_mb"] >= 0
 
 
+class _FakeCtrl:
+    running = False; boards = 0
+    modeText = "SIM"; runMode = "pass"; passMode = "single"; feedSpeed = 50.0
+    profileRate = 500.0; throughput = 0.0; jetsonLoad = 0.0; scanProgress = 0.0
+    passCount = 0; passesTarget = 3; autoAdvance = True; notifyText = ""
+    gradeClass = "–"; gradeTitle = "Inväntar"; gradeColor = "#888"; gradeReason = "—"
+    gradeGoverning = ""; defects = []; zProfile = []; nominalThick = 15.0
+    lrThickness = []; history = []
+    statusText = "VÄNTAR"
+    @property
+    def boardCount(self): return self.boards
+    def toggleRun(self): self.running = not self.running
+    def nextBoard(self): self.boards += 1
+    def setFeed(self, v): pass
+    def setRunMode(self, m): pass
+    def setPassMode(self, m): pass
+    def setAuto(self, b): pass
+    def setRate(self, v): pass
+    def setPasses(self, n): pass
+    def dismissNotify(self): pass
+
+
+def test_command_handler_scan():
+    from ..core.config import AppConfig
+    from ..core.devices import DeviceManager
+    from ..net.command_handler import CommandHandler
+    ctrl = _FakeCtrl()
+    h = CommandHandler(DeviceManager(AppConfig(mode="sim")), name="x", controller=ctrl)
+    st = h.scan_state()
+    assert st["available"] and st["running"] is False and st["boards"] == 0
+    r = h.handle({"id": 1, "cmd": p.CMD_SCAN, "args": {"action": "toggle_run"}})
+    assert r["ok"] and r["result"]["running"] is True
+    r2 = h.handle({"id": 2, "cmd": p.CMD_SCAN, "args": {"action": "next_board"}})
+    assert r2["result"]["boards"] == 1
+    # ingen controller → ej tillgänglig
+    h2 = CommandHandler(DeviceManager(AppConfig(mode="sim")), name="x")
+    assert h2.scan_state()["available"] is False
+
+
 def test_head_config_position():
     from ..net import head_config
     import tempfile

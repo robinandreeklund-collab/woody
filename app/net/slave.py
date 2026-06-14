@@ -16,8 +16,14 @@ from PySide6.QtCore import QCoreApplication
 
 from ..core.config import AppConfig
 from ..core.devices import DeviceManager
-from ..hal.factory import build_scanner
+from ..core.run_controller import AppController
 from .slave_server import SlaveServer
+
+
+class _NoSurface:
+    """No-op bild-provider — slaven kör headless (ingen QML-bildcache)."""
+    def set_array(self, *a, **k):
+        pass
 
 
 def main(argv=None) -> int:
@@ -32,9 +38,11 @@ def main(argv=None) -> int:
 
     app = QCoreApplication(sys.argv)
     cfg = AppConfig(mode=args.mode, feed_mm_s=args.feed).validate()
-    scanner = build_scanner(cfg)
-    devmgr = DeviceManager(cfg, scanner=scanner)
-    server = SlaveServer(devmgr, name=args.name, port=args.port)
+    # AppController bygger skannern; DeviceManager DELAR den (en scanner per nod)
+    ctrl = AppController(cfg, _NoSurface())
+    devmgr = DeviceManager(cfg, scanner=ctrl._scanner)
+    ctrl.start()                                  # startar skannings-loopen (sim/real)
+    server = SlaveServer(devmgr, name=args.name, port=args.port, controller=ctrl)
     if not server.listen():
         return 1
     beacon = None

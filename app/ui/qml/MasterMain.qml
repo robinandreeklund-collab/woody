@@ -14,6 +14,7 @@ ApplicationWindow {
 
     property int selIndex: -1
     property var sel: null
+    property int nodeTab: 0          // 0 = Skanning (live), 1 = Sensorer & kalibrering
     function pick(i) { selIndex = i; sel = nodeManager.node(i) }
 
     Rectangle {
@@ -151,15 +152,31 @@ ApplicationWindow {
 
                     // (host-telemetrin visas nu UNDER Enheter i kalibreringsvyn nedan)
 
-                    // återanvänd kalibreringsvyn — driver fjärrnoden via samma gränssnitt.
-                    // Loader: instansiera först när en nod valts (annars vore dm null).
+                    // ---- flikar: Skanning (live) | Sensorer & kalibrering ----
+                    RowLayout {
+                        Layout.fillWidth: true; spacing: 8
+                        Repeater {
+                            model: [["Skanning (live)"], ["Sensorer & kalibrering"]]
+                            delegate: Rectangle {
+                                radius: 8; implicitWidth: tt.width + 26; implicitHeight: 32
+                                color: win.nodeTab === index ? Qt.rgba(0.15,0.83,0.88,0.12) : Theme.panel2
+                                border.color: win.nodeTab === index ? Qt.rgba(0.15,0.83,0.88,0.45) : Theme.line
+                                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: win.nodeTab = index }
+                                Text { id: tt; anchors.centerIn: parent; text: modelData[0]
+                                       color: win.nodeTab === index ? Theme.cyan : Theme.ink2
+                                       font.pixelSize: 12; font.weight: Font.DemiBold } }
+                        }
+                        Item { Layout.fillWidth: true }
+                    }
+
+                    // tabbat innehåll: skanningsvy ELLER kalibrering (samma fjärrnod)
                     Loader {
                         Layout.fillWidth: true; Layout.fillHeight: true
                         active: win.sel !== null
-                        sourceComponent: Component {
-                            CalibrationView { dm: win.sel }
-                        }
+                        sourceComponent: win.nodeTab === 0 ? scanComp : calibComp
                     }
+                    Component { id: scanComp;  ScanView { node: win.sel } }
+                    Component { id: calibComp; CalibrationView { dm: win.sel } }
                 }
 
                 // tomt läge
