@@ -158,7 +158,11 @@ class SlaveServer(QObject):
             if cam is None or not hasattr(cam, "read_stripe"):
                 continue
             try:
-                roi = np.asarray(cam.read_stripe(y, 240), dtype=np.float64)
+                # rik tvärsnitts-preview i sim (brädans profil + vinklade kanter);
+                # riktig kamera → den smala mät-ROI:n (read_stripe)
+                preview = getattr(cam, "stripe_preview", None)
+                roi = np.asarray(preview(y) if preview else cam.read_stripe(y, 240),
+                                 dtype=np.float64)
                 v = np.clip(roi / max(1.0, roi.max()), 0, 1)            # normalisera 0–1
                 rgb = np.stack([v * tint[0] * 255, v * tint[1] * 255, v * tint[2] * 255], axis=-1)
                 self._surface.set_array(rgb.astype("uint8"), name)

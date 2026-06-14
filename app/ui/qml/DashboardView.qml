@@ -81,20 +81,34 @@ RowLayout {
                                 c.strokeStyle="#1d2a38"; c.strokeRect(0.5,0.5,width-1,height-1);
                                 c.fillStyle="rgba(255,255,255,0.55)"; c.font="9px monospace"; c.textAlign="left"; c.fillText(d.nm,6,13);
                                 var zp=ctrl.zProfile; if(!zp||zp.length<2) return;
-                                var top=20, bh=height-top-8;
-                                c.lineWidth=2.2; c.strokeStyle=d.c; c.shadowColor=d.c; c.shadowBlur=6;
-                                c.beginPath(); var started=false;
-                                for(var i=0;i<zp.length;i++){
-                                    var fx=i/(zp.length-1);
-                                    var occ = d.side===0 ? fx : (1-fx);
-                                    var dz = zp[i]-ctrl.rig.thick;
-                                    var px=6+(width-12)*fx, py=top+bh*0.5 - dz*4;
-                                    if(occ>0.9 && dz<-2){ c.stroke(); c.beginPath(); started=false; }
-                                    else { started?c.lineTo(px,py):c.moveTo(px,py); started=true; }
+                                // tvärsnitt som en oblik profilkamera ser det: band-baslinje,
+                                // upphöjd platå (brädans ovansida) + vinklade sågkanter.
+                                var baseline=height-12, g=(baseline-18)/Math.max(ctrl.rig.thick,1);
+                                var gx=10, gw=width-20, n=zp.length;
+                                function topY(i){ return baseline - zp[i]*g; }
+                                // svag bandlinje längs hela bredden
+                                c.strokeStyle="rgba(120,140,165,0.22)"; c.lineWidth=1;
+                                c.beginPath(); c.moveTo(4,baseline); c.lineTo(width-4,baseline); c.stroke();
+                                // vinklade kant-fasetter (band → brädans ovansida)
+                                c.lineWidth=2.0; c.strokeStyle=d.c; c.globalAlpha=d.side===0?1:0.4;
+                                c.beginPath(); c.moveTo(gx,baseline); c.lineTo(gx,topY(0)); c.stroke();
+                                c.globalAlpha=d.side===1?1:0.4;
+                                c.beginPath(); c.moveTo(gx+gw,baseline); c.lineTo(gx+gw,topY(n-1)); c.stroke();
+                                c.globalAlpha=1;
+                                // ovansidan (platå) med relief — bortre halvan skuggas (oblik vy)
+                                c.lineWidth=2.4; c.shadowColor=d.c; c.shadowBlur=6;
+                                c.beginPath();
+                                for(var i=0;i<n;i++){
+                                    var fx=i/(n-1), px=gx+gw*fx, py=topY(i);
+                                    i?c.lineTo(px,py):c.moveTo(px,py);
                                 }
-                                c.stroke(); c.shadowBlur=0;
-                                c.fillStyle="rgba(255,255,255,0.25)"; c.font="8px monospace";
+                                var grad=c.createLinearGradient(gx,0,gx+gw,0);
+                                grad.addColorStop(0, d.side===0?d.c:"rgba(120,130,150,0.35)");
+                                grad.addColorStop(1, d.side===1?d.c:"rgba(120,130,150,0.35)");
+                                c.strokeStyle=grad; c.stroke(); c.shadowBlur=0;
+                                c.fillStyle="rgba(255,255,255,0.28)"; c.font="8px monospace";
                                 c.textAlign = d.side===0?"right":"left"; c.fillText("ocklusion", d.side===0?width-6:6, height-6);
+                                c.textAlign="left"; c.fillStyle="rgba(255,255,255,0.22)"; c.fillText("band", 8, baseline-3);
                             }
                         }
                     }
