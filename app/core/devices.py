@@ -39,6 +39,7 @@ class DeviceManager(QObject):
         self._runner.on_progress = self._on_progress
         self._runner.on_finished = self._on_finished
         self._status: dict[str, dict] = {}            # dev_id -> {connected, status}
+        self._armed = False                           # laser-interlock (klass 3B)
         self._calib = {"dev": "", "method": "", "title": "", "pct": 0.0,
                        "msg": "", "log": [], "result": "", "ok": True}
         self._timer = QTimer(self)
@@ -169,6 +170,32 @@ class DeviceManager(QObject):
             self._timer.start()
             self.calibChanged.emit()
         return ok
+
+    # ------------------------------------------------- lasersäkerhet (klass 3B)
+    @Slot(bool, result=bool)
+    def armLasers(self, confirm: bool) -> bool:
+        """Bekräfta människo-interlock → lås upp laser-tändning. Auto-kalibrering
+        får då tända→mäta→släcka. Speglar RemoteNode.armLasers (samma GUI funkar)."""
+        fn = getattr(self._scanner, "arm_lasers", None)
+        self._armed = bool(fn(confirm=confirm)) if fn else bool(confirm)
+        self.devicesChanged.emit()
+        return self._armed
+
+    @Slot()
+    def disarmLasers(self):
+        fn = getattr(self._scanner, "disarm_lasers", None)
+        if fn:
+            fn()
+        self._armed = False
+        self.devicesChanged.emit()
+
+    @Property(bool, notify=devicesChanged)
+    def lasersArmed(self) -> bool:
+        fn = getattr(self._scanner, "lasers_armed", None)
+        try:
+            return bool(fn()) if fn else self._armed
+        except Exception:
+            return self._armed
 
     @Slot()
     def cancelCalibration(self):

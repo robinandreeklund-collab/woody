@@ -103,10 +103,12 @@ class _FakeSurfaceCam:
 
 
 class _FakeLaser:
-    def __init__(self): self._on = True; self.armed = False
+    def __init__(self): self._on = True; self._armed = False
     @property
     def is_on(self): return self._on
-    def arm(self, confirm=False): self.armed = bool(confirm); return self.armed
+    @property
+    def is_armed(self): return self._armed
+    def arm(self, confirm=False): self._armed = bool(confirm); return self._armed
     def set(self, v):
         self._on = bool(v); return True
 
@@ -375,12 +377,17 @@ def test_run_auto_gpio_led_photocell_laser():
     assert sc.led_white.on is False                       # LED släckt efteråt
     pcr = autocalib.run_auto("photocell", "trigger", ctx)
     assert "fel" not in pcr and "detektioner" in pcr
-    # laser GRINDAT: släckt → vägrar mäta (tänder aldrig själv)
-    sc.laser_red.set(False)
+    # laser ARM-grindat: ej armad + släckt → vägrar (tänder aldrig utan interlock)
+    ctx.laser_settle = 0.0
+    sc.laser_red.set(False); sc.laser_red.arm(confirm=False)
     assert "fel" in autocalib.run_auto("laser_red", "width", ctx)
-    sc.laser_red.arm(confirm=True); sc.laser_red.set(True)    # operatör + interlock
+    # ARMAD men släckt → rutinen tänder→mäter→SLÄCKER själv (kameradriven auto-cal)
+    sc.laser_red.arm(confirm=True)
     assert "FWHM centrum" in autocalib.run_auto("laser_red", "width", ctx)
+    assert sc.laser_red.is_on is False                    # släckt efteråt (rutinen ägde tändningen)
     assert "bow" in autocalib.run_auto("laser_red", "straight", ctx)
+    assert "intensitetsdrift" in autocalib.run_auto("laser_red", "power", ctx)
+    assert sc.laser_red.is_on is False
 
 
 def test_rig_pure_functions():

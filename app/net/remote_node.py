@@ -154,6 +154,10 @@ class RemoteNode(QObject):
     def disarmLasers(self):
         self._send(p.CMD_DISARM_LASERS)
 
+    @Property(bool, notify=devicesChanged)
+    def lasersArmed(self) -> bool:
+        return bool(self._status.get("lasers_armed", False))
+
     # ------------------------------------------------------------ calib-properties
     @Property(bool, notify=calibChanged)
     def calibRunning(self): return bool(self._calib.get("running"))

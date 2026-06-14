@@ -26,12 +26,16 @@ kan tända lasern av misstag; auto-rutinerna tänder den **aldrig** själva.
 |---|---|---|---|
 | LED | `uniform` | ✅ | Tänd LED (ofarligt) → mät belysningsjämnhet längs FOV → ojämnhet + rekommendation. |
 | Fotocell | `trigger` | ✅ | Räkna laddnings-flanker (pin 7) medan operatören laddar bräda 10× → detektioner + dubbeltrigg/debounce. |
-| Laser RÖD/GRÖN | `straight` | ✅ grindat | Linjerakhet (bow) via profilkameran — **kräver att lasern redan är tänd** (operatör + interlock); tänder aldrig själv. |
-| Laser RÖD/GRÖN | `width` | ✅ grindat | Stripe-bredd (FWHM) — samma grind. |
-| Laser RÖD/GRÖN | `power` | ⛔ guidat | Enable & effekt-test — det ÄR tändnings-testet → görs via explicit interlock-bekräftelse. |
+| Laser RÖD/GRÖN | `power` | ✅ arm-grindat | Intensitet + drift via profilkameran. |
+| Laser RÖD/GRÖN | `straight` | ✅ arm-grindat | Linjerakhet (bow) via profilkameran. |
+| Laser RÖD/GRÖN | `width` | ✅ arm-grindat | Stripe-bredd (FWHM) för fokus. |
 
-"Grindat" = auto-mätningen körs bara om lasern redan är tänd; annars returneras
-`"tänd lasern via interlock-kontrollen först (klass 3B)"`.
+**Kameradriven laser-auto-kalibrering (klass 3B, säker):** efter att operatören
+**armat EN gång** (bekräftat interlock i GUI:t — "Arma (interlock bekräftad)") får
+laser-rutinerna själva **tända → mäta via kameran → släcka** automatiskt. Rutinen
+tänder ALDRIG om lasern inte är armad (`"arma lasern via interlock-kontrollen först"`),
+och **släcker alltid** det den tände (finally). Arm-knappen finns i kalibreringsvyn för
+laser-enheter; "Avarma" släcker + låser igen. Fungerar både lokalt och via master.
 
 ## Idrifttagning
 1. `bash tools/jetson_bootstrap.sh` (Jetson.GPIO + udev). Användaren i `gpio`-gruppen

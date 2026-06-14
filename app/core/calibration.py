@@ -167,20 +167,26 @@ CALIB_METHODS: dict[str, list] = {
          "sim": {"missade pulser": "0", "jitter": "< 2 µs"}},
     ],
     "laser_red": [
-        {"id": "power", "title": "Enable & effekt",
-         "desc": "GPIO-enable på/av → verifiera att linjen tänds/släcks och att "
-                 "intensiteten är stabil (driver varm).",
-         "steps": [("Enable PÅ via GPIO", 0.5), ("Mät intensitet 60 s", 2.0), ("Enable AV, verifiera släckt", 0.5)],
+        {"id": "power", "title": "Enable & effekt  [AUTO·arm]",
+         "desc": "AUTO via profilkameran (kräver ARMAD laser). Rutinen tänder→mäter "
+                 "stripens toppintensitet + drift→släcker. Bekräfta interlock + arma först.",
+         "steps": [("Bekräfta interlock (rum låst, glasögon) + ARMA lasern", 0.6),
+                   ("Systemet tänder lasern, mäter intensitet + drift via kameran", 2.0),
+                   ("Släcker lasern automatiskt", 0.4)],
          "sim": {"intensitetsdrift": "1,8 %", "enable-latens": "< 1 ms"}},
-        {"id": "straight", "title": "Linjerakhet",
-         "desc": "Stripe över plant referensplan → avvikelse från rät linje (bow). "
-                 "Mål < 0,1 mm över 500 mm.",
-         "steps": [("Stripe på referensplan", 1.0), ("Mät centroid över FOV", 1.0), ("Anpassa linje, residual", 0.5)],
+        {"id": "straight", "title": "Linjerakhet  [AUTO·arm]",
+         "desc": "AUTO via profilkameran (kräver ARMAD laser). Mäter stripens "
+                 "avvikelse från rät linje (bow) över FOV. Mål < 0,1 mm över 500 mm.",
+         "steps": [("Bekräfta interlock + ARMA lasern", 0.6),
+                   ("Lägg ett plant referensplan i mätzonen", 1.0),
+                   ("Systemet tänder→mäter centroid över FOV→anpassar linje→släcker", 1.5)],
          "sim": {"bow": "0,06 mm", "vridning": "0,02°"}},
-        {"id": "width", "title": "Linjebredd (fokus)",
-         "desc": "Fokusera linjegeneratorn → smalast möjliga linje vid WD 760 "
-                 "(mål < 0,3 mm). Smalare linje = bättre subpixel.",
-         "steps": [("Mät FWHM vid WD", 1.0), ("Vrid fokusring", 1.5), ("Verifiera över linjen", 1.0)],
+        {"id": "width", "title": "Linjebredd (fokus)  [AUTO·arm]",
+         "desc": "AUTO via profilkameran (kräver ARMAD laser). Mäter linjebredd (FWHM) "
+                 "för fokusjustering. Operatören vrider fokusringen mot utfallet.",
+         "steps": [("Bekräfta interlock + ARMA lasern", 0.6),
+                   ("Systemet tänder→mäter FWHM över linjen→släcker", 1.5),
+                   ("Vrid fokusringen tills FWHM minimeras, mät om", 1.5)],
          "sim": {"linjebredd": "0,24 mm", "variation": "±0,04 mm"}},
     ],
     "photocell": [

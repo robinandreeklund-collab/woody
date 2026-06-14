@@ -175,6 +175,16 @@ def line_straightness(img: np.ndarray) -> dict:
     return {"bow": f"{bow:.2f} px", "vridning": f"{angle:.2f}°"}
 
 
+def laser_power_stability(grab, n: int = 30) -> dict:
+    """Mät laserstripens toppintensitet över n ramar → medel + drift (% av medel).
+    Driver/optik-stabilitet. ``grab`` ger en profil-ROI (lasern ska redan lysa)."""
+    a = np.asarray([stripe_peak(np.asarray(grab(), np.float64)) for _ in range(max(2, n))])
+    if a.max() < 5.0:
+        return {"fel": "ingen laserstripe — kontrollera laser/optik/exponering"}
+    drift = float((a.max() - a.min()) / a.mean() * 100.0)
+    return {"toppintensitet": f"{a.mean():.0f}/255", "intensitetsdrift": f"{drift:.1f} %"}
+
+
 def detection_stats(stamps, n_target: int, bounce_ms: float = 50.0) -> dict:
     """Fotocell-flanker → antal detektioner + dubbeltriggar (kortare än debounce)."""
     k = len(stamps)
@@ -285,6 +295,7 @@ class CalibrationContext:
         self.photocell = getattr(scanner, "photocell", None)
         self.laser_red = getattr(scanner, "laser_red", None)
         self.laser_green = getattr(scanner, "laser_green", None)
+        self.laser_settle = 0.5             # s att låta dioden stabilisera efter tändning
         # Stegsvars-sampling (kort i test via monkeypatch av time.sleep)
         self.step_target_mm_s = 50.0
         self.step_dt = 0.05
@@ -338,6 +349,28 @@ class CalibrationContext:
 
     def cam_for_laser(self, dev_id: str) -> str:
         return "prof_red" if dev_id == "laser_red" else "prof_green"
+
+    def laser_measure(self, dev_id: str, fn):
+        """Säker kameramätning på en laser. Om lasern redan lyser → mät direkt. Om
+        ARMAD men släckt → tänd (bara för mätningen), låt stabilisera, mät, SLÄCK
+        alltid efter (finally). Ej armad → vägra (klass 3B kräver människo-interlock)."""
+        las = self.laser_for(dev_id)
+        if las is None:
+            return {"fel": "ingen laser i HAL"}
+        owned = False
+        if not getattr(las, "is_on", False):
+            if not getattr(las, "is_armed", False):
+                return {"fel": "arma lasern via interlock-kontrollen först (klass 3B)"}
+            if not las.set(True):
+                return {"fel": "kunde inte tända lasern (arm/HW)"}
+            owned = True
+            if self.laser_settle:
+                time.sleep(self.laser_settle)
+        try:
+            return fn()
+        finally:
+            if owned:
+                las.set(False)             # släck alltid det rutinen tände
 
     # -- rigg (kräver BÅDA linjelasrarna tända; tänds aldrig av rutinen) --
     def lasers_on(self) -> bool:
@@ -431,20 +464,20 @@ def _photocell_trigger(ctx, _dev):
     stamps = pc.collect_load_events(n=10, timeout_s=30.0)
     return detection_stats(stamps, n_target=10)
 
+def _laser_power(ctx, dev):
+    """Effekt/intensitetsstabilitet via profilkameran (tänd→mät→släck om armad)."""
+    return ctx.laser_measure(dev, lambda: laser_power_stability(
+        lambda: ctx.grab_profile(ctx.cam_for_laser(dev))))
+
 def _laser_width(ctx, dev):
-    """Stripe-bredd (FWHM). GRINDAD: tänder ALDRIG lasern — kräver att den redan
-    är tänd (operatör + interlock), annars tydligt fel."""
-    las = ctx.laser_for(dev)
-    if las is None or not getattr(las, "is_on", False):
-        return {"fel": "tänd lasern via interlock-kontrollen först (klass 3B)"}
-    return focus_fwhm(lambda: ctx.grab_profile(ctx.cam_for_laser(dev)))
+    """Stripe-bredd (FWHM) via profilkameran (tänd→mät→släck om armad)."""
+    return ctx.laser_measure(dev, lambda: focus_fwhm(
+        lambda: ctx.grab_profile(ctx.cam_for_laser(dev))))
 
 def _laser_straight(ctx, dev):
-    """Linjerakhet (bow). GRINDAD som ovan — tänder aldrig lasern själv."""
-    las = ctx.laser_for(dev)
-    if las is None or not getattr(las, "is_on", False):
-        return {"fel": "tänd lasern via interlock-kontrollen först (klass 3B)"}
-    return line_straightness(ctx.grab_profile(ctx.cam_for_laser(dev)))
+    """Linjerakhet (bow) via profilkameran (tänd→mät→släck om armad)."""
+    return ctx.laser_measure(dev, lambda: line_straightness(
+        ctx.grab_profile(ctx.cam_for_laser(dev))))
 
 def _save_json(path: str, obj) -> None:
     import json, os
@@ -565,9 +598,11 @@ AUTO_ROUTINES: dict = {
     ("lr400", "zero_d0"):        _lr400_zero_d0,
     ("led_white", "uniform"):    _led_uniform,
     ("photocell", "trigger"):    _photocell_trigger,
-    # Laser-mätningar är GRINDADE (tänder aldrig lasern; kräver redan tänd).
+    # Laser-mätningar: ARM-grindade (tänder bara om operatören armat; släcker alltid).
+    ("laser_red", "power"):      _laser_power,
     ("laser_red", "width"):      _laser_width,
     ("laser_red", "straight"):   _laser_straight,
+    ("laser_green", "power"):    _laser_power,
     ("laser_green", "width"):    _laser_width,
     ("laser_green", "straight"): _laser_straight,
     # Rigg: GRINDADE på tända lasrar; operatören sätter upp fysiskt (guidat).

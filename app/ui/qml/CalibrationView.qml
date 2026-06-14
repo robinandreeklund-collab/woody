@@ -73,6 +73,30 @@ RowLayout {
         ColumnLayout {
             anchors.fill: parent; spacing: 10
 
+            // ---- lasersäkerhet: arm-grind (klass 3B) för laser-enheter ----
+            Rectangle {
+                Layout.fillWidth: true; radius: 10; implicitHeight: lrow.height + 18
+                visible: root.selectedId.indexOf("laser") === 0
+                color: (dm && dm.lasersArmed) ? Qt.rgba(1,0.3,0.37,0.10) : Theme.panel2
+                border.color: (dm && dm.lasersArmed) ? Qt.rgba(1,0.3,0.37,0.45) : Qt.rgba(1,0.7,0.24,0.35)
+                RowLayout {
+                    id: lrow; x: 12; y: 9; width: parent.width - 24; spacing: 10
+                    Text {
+                        text: (dm && dm.lasersArmed)
+                              ? "⚠ LASER ARMERAD (klass 3B) — auto-kalibrering får tända→mäta→släcka"
+                              : "Laser AVARMERAD — bekräfta interlock (rum låst, glasögon HM326-C) för auto-kalibrering"
+                        color: (dm && dm.lasersArmed) ? Theme.red : Theme.amber
+                        font.family: Theme.mono; font.pixelSize: 10; Layout.fillWidth: true; wrapMode: Text.WordWrap
+                    }
+                    Btn {
+                        text: (dm && dm.lasersArmed) ? "Avarma" : "Arma (interlock bekräftad)"
+                        danger: !(dm && dm.lasersArmed)
+                        onClicked: { if (!dm) return;
+                            if (dm.lasersArmed) dm.disarmLasers(); else dm.armLasers(true) }
+                    }
+                }
+            }
+
             Flickable {
                 Layout.fillWidth: true; Layout.fillHeight: true
                 contentHeight: mcol.height; clip: true
