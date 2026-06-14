@@ -16,33 +16,38 @@ from ..base import DeviceInfo, PointLaserIF
 from ...geometry import RIG
 
 # Delad klient per serieport (flera lasrar på samma RS-485-buss → en klient).
+import threading
+
 _CLIENTS: dict = {}            # port -> {"client": c, "refs": int}
+_CLIENTS_LOCK = threading.Lock()
 
 
 def _get_client(port: str, baud: int):
-    entry = _CLIENTS.get(port)
-    if entry is None:
-        from pymodbus.client import ModbusSerialClient    # lazy
-        client = ModbusSerialClient(port=port, baudrate=baud, parity="N",
-                                    stopbits=1, bytesize=8, timeout=0.1)
-        if not client.connect():
-            raise RuntimeError(f"kunde inte öppna {port}")
-        entry = {"client": client, "refs": 0}
-        _CLIENTS[port] = entry
-    entry["refs"] += 1
-    return entry["client"]
+    with _CLIENTS_LOCK:
+        entry = _CLIENTS.get(port)
+        if entry is None:
+            from pymodbus.client import ModbusSerialClient    # lazy
+            client = ModbusSerialClient(port=port, baudrate=baud, parity="N",
+                                        stopbits=1, bytesize=8, timeout=0.1)
+            if not client.connect():
+                raise RuntimeError(f"kunde inte öppna {port}")
+            entry = {"client": client, "refs": 0}
+            _CLIENTS[port] = entry
+        entry["refs"] += 1
+        return entry["client"]
 
 
 def _release_client(port: str) -> None:
-    entry = _CLIENTS.get(port)
-    if not entry:
-        return
-    entry["refs"] -= 1
-    if entry["refs"] <= 0:
-        try:
-            entry["client"].close()
-        finally:
-            _CLIENTS.pop(port, None)
+    with _CLIENTS_LOCK:
+        entry = _CLIENTS.get(port)
+        if not entry:
+            return
+        entry["refs"] -= 1
+        if entry["refs"] <= 0:
+            try:
+                entry["client"].close()
+            finally:
+                _CLIENTS.pop(port, None)
 
 
 class LR400ModbusLaser(PointLaserIF):
@@ -66,9 +71,15 @@ class LR400ModbusLaser(PointLaserIF):
                           self._connected)
 
     def open(self) -> None:
+        if self._connected:                # idempotent: dubbel-open läcker annars pool-refs
+            return
         if self._owns_pool:
             self._client = _get_client(self._port, self._baud)
         self._connected = True
+
+    @property
+    def is_connected(self) -> bool:
+        return self._connected
 
     # ------------------------------------------------------------ avläsning
     def _read_register(self):

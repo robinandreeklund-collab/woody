@@ -89,6 +89,11 @@ def auto_exposure(grab, set_exposure, target: float = 200.0,
     if float(stripe_profile(final).max()) < 4.0:
         return {"fel": "ingen laserstripe sedd — tänd lasern (interlock!) och kör om"}
     peak = stripe_peak(final)
+    if peak >= 250.0:
+        # även bästa exponeringen mättar → sänk laser-effekt/bländare och kör om,
+        # annars är centroid-positionen partisk (felaktig höjd)
+        return {"fel": f"stripen mättar ({peak:.0f}/255) på lägsta exponering — "
+                       "sänk lasereffekt/bländare och kör om"}
     snr = estimate_snr(final)
     return {"exponering": f"{us:.0f} µs", "toppintensitet": f"{peak:.0f}/255",
             "SNR": f"{snr:.0f} dB"}
@@ -447,8 +452,12 @@ def _led_uniform(ctx, _dev):
     try:
         if not ctx.led_on():
             return {"fel": "kunde inte tända LED"}
-        rows = ctx.grab_surface_rows(50)
+        rows = np.asarray(ctx.grab_surface_rows(50))
+        if rows.size == 0 or rows.ndim < 2 or rows.shape[0] < 2:
+            return {"fel": "ingen yt-rad från linjekameran — kontrollera kamera/trigg"}
         res = flat_field(rows)
+        if "fel" in res:
+            return res
         res["rekommendation"] = ("OK — flat-field räcker"
                                  if float(res["ojämnhet före"].split()[0].replace(",", ".")) < 30
                                  else "ÅTGÄRDA mekaniskt (> 30 %)")

@@ -11,6 +11,7 @@ till noder i master-GUI:t eller skapa filen).
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 DEFAULT_PATH = Path("data/nodes.json")
@@ -36,4 +37,8 @@ def load(path: str | Path = DEFAULT_PATH) -> list[dict]:
 def save(nodes: list[dict], path: str | Path = DEFAULT_PATH) -> None:
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(nodes, indent=2, ensure_ascii=False))
+    # atomisk skrivning (temp + os.replace) så en avbruten skrivning aldrig
+    # lämnar en halv/trunkerad nodlista efter sig
+    tmp = p.with_suffix(p.suffix + ".tmp")
+    tmp.write_text(json.dumps(nodes, indent=2, ensure_ascii=False))
+    os.replace(tmp, p)

@@ -38,6 +38,8 @@ class RoboClawConveyor(ConveyorIF):
 
     # ------------------------------------------------------------------ comms
     def open(self) -> None:
+        if self._connected:                              # idempotent: dubbel-open nollar inte om
+            return
         if self._mc is None:
             from basicmicro import Basicmicro            # lazy (pip install basicmicro)
             self._mc = Basicmicro(self._port, self._baud)
@@ -103,9 +105,13 @@ class RoboClawConveyor(ConveyorIF):
         if not self._connected:
             return
         cpm = self._counts_per_mm
-        dist = int(abs(distance_mm) * cpm)
-        spd = int(max(1.0, abs(speed_mm_s)) * cpm) * (1 if distance_mm >= 0 else -1)
-        accel = abs(spd) * 2                                # nå hastighet på ~0,5 s
+        # clampa till protokollets 32-bitarsfält (annars wrappar en orimlig
+        # sträcka/hastighet och banden rusar). |speed| ≤ ~300 mm/s räcker rejält.
+        _CPS_MAX = 0x3FFFFFFF
+        dist = min(int(abs(distance_mm) * cpm), _CPS_MAX)
+        spd_mag = min(int(max(1.0, abs(speed_mm_s)) * cpm), _CPS_MAX)
+        spd = spd_mag * (1 if distance_mm >= 0 else -1)
+        accel = min(spd_mag * 2, _CPS_MAX)                  # nå hastighet på ~0,5 s
         # SpeedAccelDistanceM1M2(addr, accel, speed1, dist1, speed2, dist2, buffer=0)
         self._mc.SpeedAccelDistanceM1M2(self._addr, accel, spd, dist, spd, dist, 0)
 

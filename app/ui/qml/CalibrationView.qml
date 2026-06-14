@@ -10,7 +10,7 @@ RowLayout {
     // dm = enheten vi styr: lokal DeviceManager (devmgr) ELLER en fjärrnod (RemoteNode).
     // Samma gränssnitt → samma vy driver både lokalt och master/slave-fjärrstyrt.
     property var dm: (typeof devmgr !== 'undefined' && devmgr) ? devmgr : null
-    property var rig: (typeof ctrl !== 'undefined' && ctrl) ? root.rig : null
+    property var rig: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.rig : null
     property string selectedId: "prof_red"
     property var methods: []
 

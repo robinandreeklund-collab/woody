@@ -183,11 +183,17 @@ class DeviceManager(QObject):
 
     @Slot()
     def disarmLasers(self):
+        # SÄKERHET: släckning får ALDRIG fastna på ett undantag. Sätt _armed=False
+        # i finally så GUI/loggik alltid speglar "släckt" även om HAL-anropet kastar.
         fn = getattr(self._scanner, "disarm_lasers", None)
-        if fn:
-            fn()
-        self._armed = False
-        self.devicesChanged.emit()
+        try:
+            if fn:
+                fn()
+        except Exception as e:
+            print(f"[devices] disarm_lasers kastade: {e}")
+        finally:
+            self._armed = False
+            self.devicesChanged.emit()
 
     @Property("QVariantMap", constant=True)
     def telemetry(self) -> dict:

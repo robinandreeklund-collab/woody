@@ -171,6 +171,8 @@ class GenICamProfileCamera(ProfileCameraIF):
         return DeviceInfo(f"Profilkamera {nm}", "Hikrobot MV-CS050-10UM", "USB3 Vision", self._connected)
 
     def open(self) -> None:
+        if self._connected and self._ia is not None:    # idempotent: dubbel-open läcker IA-handtag
+            return
         h = _harvester()
         kw = {"serial_number": self._serial} if self._serial else {}
         self._ia = h.create(search_key=kw or None)
@@ -190,8 +192,16 @@ class GenICamProfileCamera(ProfileCameraIF):
 
     def _apply_roi(self, nm) -> dict:
         """Sätt ett ROI-band (full bredd × roi_rows) centrerat på stripen. Ordning:
-        nollställ offset → sätt höjd → sätt offset (offset-range beror på höjden)."""
+        nollställ offset → sätt full bredd → sätt höjd → sätt offset (offset-range
+        beror på höjden). Nollställ ALLTID OffsetX + maxa Width så ett tidigare
+        smalt ROI (t.ex. från en avbruten körning) inte hänger kvar."""
         res: dict = {}
+        set_first_available(nm, ["OffsetX"], 0, f" {self._color}")
+        try:
+            wmax = int(getattr(nm, "WidthMax").value)
+            res["width"] = set_first_available(nm, ["Width"], wmax, f" {self._color}")
+        except Exception:
+            pass
         set_first_available(nm, ["OffsetY"], 0, f" {self._color}")
         res["height"] = set_first_available(nm, ["Height"], int(self._roi_rows), f" {self._color}")
         # offset_y: kalibrerat värde, annars centrera bandet vertikalt på sensorn
@@ -250,6 +260,7 @@ class GenICamProfileCamera(ProfileCameraIF):
     def close(self) -> None:
         if self._ia:
             self._ia.stop(); self._ia.destroy()
+        self._ia = None
         self._connected = False
 
 
@@ -271,6 +282,8 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
                           "GigE Vision", self._connected)
 
     def open(self) -> None:
+        if self._connected and self._ia is not None:    # idempotent: dubbel-open läcker IA-handtag
+            return
         h = _harvester()
         kw = {"serial_number": self._serial} if self._serial else {}
         self._ia = h.create(search_key=kw or None)
@@ -360,4 +373,5 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
     def close(self) -> None:
         if self._ia:
             self._ia.stop(); self._ia.destroy()
+        self._ia = None
         self._connected = False

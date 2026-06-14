@@ -329,6 +329,15 @@ class CalibrationRunner:
         self._auto["done"] = True
 
     def cancel(self) -> None:
+        # SÄKERHET: en avbruten rörelse-rutin får inte lämna bandet rullande.
+        # Stoppa transportören aktivt (best-effort) innan vi släpper tillståndet.
+        if self.context is not None:
+            conv = getattr(self.context, "conveyor", None)
+            if conv is not None:
+                try:
+                    conv.set_speed(0.0)
+                except Exception:
+                    pass
         self.active = None
         self._auto = None
 
@@ -368,10 +377,13 @@ class CalibrationRunner:
         if self.sim:
             # lätt jitter på numeriska prefix så varje körning känns "mätt"
             return {k: _jitter(v) for k, v in method.get("sim", {}).items()}, True
-        if self._auto is not None and self._auto.get("values") is not None:
-            values = self._auto["values"]
+        if self._auto is not None and self._auto.get("values"):
+            values = self._auto["values"]             # icke-tomt: auto-rutinen levererade
             ok = "fel" not in values                  # rutinen rapporterar fel som {'fel':…}
             return values, ok
+        if self._auto is not None and self._auto.get("done"):
+            # auto-rutinen kördes men gav tomt/None → behandla som fel, inte tyst succé
+            return {"fel": "auto-mätningen gav inget resultat"}, False
         # real men ingen auto-rutin (guidad metod, t.ex. intrinsics/countsmm) →
         # markera som guidad i st f att hitta på mätvärden.
         return {"status": "guidad — utförd enligt stegen"}, True

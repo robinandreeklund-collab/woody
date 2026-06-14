@@ -50,6 +50,19 @@ class ScanStats:
         return (self.wall_s / denom) if denom else 0.0
 
 
+def _resize_canonical(arr: np.ndarray, len_px: int, wid_px: int) -> np.ndarray:
+    """Skala (bredd, längd[, 3]) → (wid_px, len_px[, 3]). cv2 om den finns
+    (bilinjär), annars en numpy-fallback (nearest) så appen aldrig kraschar på
+    en maskin utan OpenCV."""
+    try:
+        import cv2
+        return cv2.resize(arr, (len_px, wid_px), interpolation=cv2.INTER_LINEAR)
+    except Exception:
+        ys = np.linspace(0, arr.shape[0] - 1, wid_px).astype(int)
+        xs = np.linspace(0, arr.shape[1] - 1, len_px).astype(int)
+        return arr[np.ix_(ys, xs)] if arr.ndim == 2 else arr[np.ix_(ys, xs, np.arange(arr.shape[2]))]
+
+
 def _surface_line(scanner, y_mm: float, width_mm: float, cols: int) -> np.ndarray:
     """En färgrad (RGB, cols) från linjekameran (real) eller ur ytbilden (sim)."""
     cam = scanner.surface
@@ -156,15 +169,17 @@ class AcquisitionPipeline:
                          for r in zrows], dtype=np.float32) - nominal       # (längd, bredd)
         surface = np.array([(c if c is not None else np.full((self.cols, 3), 160, np.uint8))
                             for c in crows], dtype=np.uint8)                  # (längd, bredd, 3)
-        # → kanonisk (bredd_px, längd_px): transponera + skala till brädans mått
+        # → kanonisk (bredd_px, längd_px): transponera ALLTID (axel0=bredd,
+        # axel1=längd) + skala till brädans bildförhållande. Transponeringen får
+        # inte hänga på en cv2-import — annars blir flödesläget en roterad fyrkant
+        # på maskiner utan OpenCV.
         len_px = max(2, int(RIG.board_len_mm * PX_PER_MM))                    # 1000 för 500 mm
         wid_px = max(2, int(RIG.board_width_mm * PX_PER_MM))                  # 150 för 75 mm
+        surface = np.ascontiguousarray(surface.transpose(1, 0, 2))            # (bredd, längd, 3)
+        zmap = np.ascontiguousarray(zmap.T)                                   # (bredd, längd)
         if surface.shape[0] >= 2 and surface.shape[1] >= 2:
-            import cv2
-            surface = cv2.resize(np.ascontiguousarray(surface.transpose(1, 0, 2)),
-                                 (len_px, wid_px), interpolation=cv2.INTER_LINEAR)
-            zmap = cv2.resize(np.ascontiguousarray(zmap.T), (len_px, wid_px),
-                              interpolation=cv2.INTER_LINEAR)
+            surface = _resize_canonical(surface, len_px, wid_px)
+            zmap = _resize_canonical(zmap, len_px, wid_px)
         h, w = zmap.shape
         board = Board(seed=-1, w=w, h=h, surface=np.ascontiguousarray(surface),
                       zmap=zmap, defects=detect_defects(surface))

@@ -144,7 +144,11 @@ class SlaveServer(QObject):
         sc = getattr(self._ctrl, "_scanner", None)
         if sc is None:
             return
-        if getattr(self._ctrl._cfg, "mode", "sim") == "real" and getattr(self._ctrl, "running", False):
+        # i real får vi inte greppa kamerorna medan förvärvsloopen (single ELLER
+        # löpande flöde) äger dem — annars race/krasch i GenICam-fetch.
+        if getattr(self._ctrl._cfg, "mode", "sim") == "real" and (
+                getattr(self._ctrl, "running", False)
+                or getattr(self._ctrl, "_flow_thread", None) is not None):
             return
         import numpy as np
         y = getattr(self._ctrl._s, "feed_pos_mm", 0.0)
@@ -170,7 +174,10 @@ class SlaveServer(QObject):
         sig = (m.get("ny"), round(float(m.get("wfrac", 0)), 3), round(float(m.get("zmax", 0)), 2))
         if sig == self._mesh_sig:
             return                                  # oförändrad → skicka inte igen
+        try:
+            import base64, json, zlib
+            c = base64.b64encode(zlib.compress(json.dumps(m).encode("utf-8"), 6)).decode("ascii")
+        except (TypeError, ValueError):
+            return                                  # icke-serialiserbar mesh → hoppa över
         self._mesh_sig = sig
-        import base64, json, zlib
-        c = base64.b64encode(zlib.compress(json.dumps(m).encode("utf-8"), 6)).decode("ascii")
         self._broadcast(p.event(p.EV_MESH, {"c": c}))

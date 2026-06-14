@@ -14,6 +14,7 @@ Fält:
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 DEFAULT_PATH = Path("data/head.json")
@@ -42,5 +43,7 @@ def save(cfg: dict, path: str | Path = DEFAULT_PATH) -> dict:
            "end_mm": float(cur["end_mm"]), "has_conveyor": bool(cur["has_conveyor"])}
     p = Path(path)
     p.parent.mkdir(parents=True, exist_ok=True)
-    p.write_text(json.dumps(out, indent=2, ensure_ascii=False))
+    tmp = p.with_suffix(p.suffix + ".tmp")     # atomisk skrivning
+    tmp.write_text(json.dumps(out, indent=2, ensure_ascii=False))
+    os.replace(tmp, p)
     return out

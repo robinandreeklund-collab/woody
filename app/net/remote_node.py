@@ -11,6 +11,8 @@ strömmar via calib_changed-event → calibChanged.
 """
 from __future__ import annotations
 
+import threading
+
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 from PySide6.QtNetwork import QAbstractSocket, QTcpSocket
 
@@ -41,6 +43,7 @@ class RemoteNode(QObject):
         self._telemetry: dict = {}
         self._scan: dict = {"available": False}
         self._images: dict = {}              # name -> QImage (yt/höjd/kamera)
+        self._images_lock = threading.Lock()  # provider läser på render-tråden
         self._img_rev = 0
         self._mesh: dict = {}                # 3D-höjdrutnät (för Board3DSoft)
         self._next_id = 1
@@ -74,6 +77,10 @@ class RemoteNode(QObject):
             self._connected = False
             self.connectionChanged.emit()
         self._pending.clear()
+        # släpp method-cachen + pending så de hämtas om efter återanslutning
+        # (annars fastnar methodsFor i pending och vyn får aldrig nya metoder)
+        self._methods.clear()
+        self._methods_pending.clear()
 
     def _on_ready(self):
         for msg in self._fb.feed(bytes(self._sock.readAll().data())):
@@ -131,7 +138,8 @@ class RemoteNode(QObject):
             w, h = int(d["w"]), int(d["h"])
             img = QImage(bytes(raw), w, h, 3 * w, QImage.Format_RGB888).copy()  # äg databufferten
             if not img.isNull():
-                self._images[d["name"]] = img
+                with self._images_lock:
+                    self._images[d["name"]] = img
                 self._img_rev += 1
                 self.imageChanged.emit()
         except Exception:
@@ -285,7 +293,8 @@ class RemoteNode(QObject):
 
     def image(self, name: str):
         """QImage för 'surface'/'height'/'cam_red'/'cam_green' (RemoteImageProvider)."""
-        return self._images.get(name)
+        with self._images_lock:
+            return self._images.get(name)
 
     @Property("QVariantMap", notify=meshChanged)
     def mesh3d(self) -> dict:

@@ -63,12 +63,20 @@ class FrameBuffer:
     Tål delade paket (TCP) — ofullständiga rader sparas tills resten kommer.
     """
 
+    # tak för en enda oavslutad rad (inga \n) → skydd mot obegränsad minnesväxt
+    # vid en trasig/fientlig ström. Bilder/mesh ligger långt under detta (~MB).
+    MAX_BUF = 64 * 1024 * 1024
+
     def __init__(self):
         self._buf = b""
 
     def feed(self, data: bytes) -> list[dict]:
         """Lägg till bytes → returnera lista av färdiga, parsade meddelanden."""
         self._buf += data
+        if len(self._buf) > self.MAX_BUF and b"\n" not in self._buf:
+            print(f"[protocol] kastar {len(self._buf)} B utan radslut (över MAX_BUF)")
+            self._buf = b""
+            return []
         out: list[dict] = []
         while b"\n" in self._buf:
             line, self._buf = self._buf.split(b"\n", 1)
