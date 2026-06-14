@@ -19,6 +19,7 @@ CMD_START_CALIB = "start_calibration"   # args {dev, method} → bool
 CMD_CANCEL_CALIB = "cancel_calibration"
 CMD_CALIB_STATE = "calib_state"     # → pågående körnings pct/steg/logg/resultat
 CMD_REFRESH = "refresh"             # proba om hårdvaran
+CMD_SET_POSITION = "set_position"   # args {label, start_mm, end_mm} → huvudets sektion
 CMD_ARM_LASERS = "arm_lasers"      # args {confirm} → bool (klass 3B interlock)
 CMD_DISARM_LASERS = "disarm_lasers"
 

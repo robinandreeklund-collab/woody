@@ -65,7 +65,14 @@ ApplicationWindow {
                                     Text { text: (modelData.connected ? "ansluten · " + (modelData.mode||"?")
                                                                        : "ej ansluten") + " · " + modelData.host
                                            color: modelData.connected ? Theme.ink3 : Theme.red
-                                           font.family: Theme.mono; font.pixelSize: 9; elide: Text.ElideRight; Layout.fillWidth: true } }
+                                           font.family: Theme.mono; font.pixelSize: 9; elide: Text.ElideRight; Layout.fillWidth: true }
+                                    Text {
+                                        property var pos: modelData.position || ({})
+                                        text: pos.label && pos.label.length > 0
+                                              ? "▸ " + pos.label + "  (" + (pos.start_mm||0).toFixed(0) + "–" + (pos.end_mm||0).toFixed(0) + " mm)"
+                                              : "▸ ingen position satt"
+                                        color: pos.label && pos.label.length > 0 ? Theme.cyan : Theme.amber
+                                        font.family: Theme.mono; font.pixelSize: 9; elide: Text.ElideRight; Layout.fillWidth: true } }
                                 Rectangle {
                                     visible: modelData.connected && modelData.calib_total > 0
                                     radius: 6; implicitWidth: cb.width+10; implicitHeight: 16
@@ -104,6 +111,35 @@ ApplicationWindow {
                             Btn { text: "Arma lasrar (interlock)"; danger: true
                                   onClicked: if (win.sel) win.sel.armLasers(true) }
                             Btn { text: "Avarma"; onClicked: if (win.sel) win.sel.disarmLasers() }
+                        }
+                    }
+
+                    // ---- position: vilken del av brädan detta huvud täcker ----
+                    Card {
+                        id: posCard
+                        Layout.fillWidth: true; Layout.preferredHeight: 84
+                        title: "POSITION · brädsektion huvudet täcker"; chip: "SEKTION"; chipColor: Theme.cyan
+                        property var node: win.sel
+                        onNodeChanged: if (node) {
+                            lblF.text = node.posLabel
+                            startF.text = node.posStart.toFixed(0)
+                            endF.text = node.posEnd.toFixed(0) }
+                        component PField: TextField {
+                            color: Theme.ink; font.family: Theme.mono; font.pixelSize: 12
+                            background: Rectangle { color: Theme.panel2; radius: 6; border.color: Theme.line } }
+                        RowLayout {
+                            anchors.fill: parent; spacing: 8
+                            Text { text: "Etikett"; color: Theme.ink3; font.pixelSize: 11 }
+                            PField { id: lblF; Layout.preferredWidth: 150; placeholderText: "t.ex. Vänster" }
+                            Text { text: "Start"; color: Theme.ink3; font.pixelSize: 11 }
+                            PField { id: startF; Layout.preferredWidth: 70; placeholderText: "mm" }
+                            Text { text: "Slut"; color: Theme.ink3; font.pixelSize: 11 }
+                            PField { id: endF; Layout.preferredWidth: 70; placeholderText: "mm" }
+                            Text { text: "mm längs brädan"; color: Theme.ink3; font.pixelSize: 10; font.family: Theme.mono }
+                            Item { Layout.fillWidth: true }
+                            Btn { text: "Spara position"; primary: true
+                                  onClicked: if (win.sel) win.sel.setPosition(
+                                      lblF.text, parseFloat(startF.text) || 0, parseFloat(endF.text) || 0) }
                         }
                     }
 

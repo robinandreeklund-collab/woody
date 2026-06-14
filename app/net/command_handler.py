@@ -5,6 +5,7 @@ svar-dict. Ingen Qt-socket här → testbart med en DeviceManager i sim-läge.
 """
 from __future__ import annotations
 
+from . import head_config
 from . import protocol as p
 
 VERSION = "1"
@@ -15,6 +16,7 @@ class CommandHandler:
         self.devmgr = devmgr
         self.name = name
         self.scanner = getattr(devmgr, "_scanner", None)
+        self.position = head_config.load()      # huvudets sektion av brädan
 
     # ---- nodstatus (för master-översikten) ----
     def _status(self) -> dict:
@@ -28,6 +30,7 @@ class CommandHandler:
             "devices_total": len(devs), "devices_connected": connected,
             "calib_done": calib_done, "calib_total": calib_total,
             "calib_running": dm.calibRunning, "lasers_armed": self._lasers_armed(),
+            "position": dict(self.position),
         }
 
     def _lasers_armed(self) -> bool:
@@ -72,6 +75,12 @@ class CommandHandler:
             return self._calib_state()
         if cmd == p.CMD_REFRESH:
             dm.refresh(); return True
+        if cmd == p.CMD_SET_POSITION:
+            self.position = head_config.save({
+                "label": args.get("label", ""),
+                "start_mm": args.get("start_mm", 0.0),
+                "end_mm": args.get("end_mm", 0.0)})
+            return dict(self.position)
         if cmd == p.CMD_ARM_LASERS:
             fn = getattr(self.scanner, "arm_lasers", None)
             return bool(fn(confirm=bool(args.get("confirm")))) if fn else False

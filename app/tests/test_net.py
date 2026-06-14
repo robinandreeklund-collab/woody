@@ -94,6 +94,39 @@ def test_loopback_master_slave():
     server._server.close()
 
 
+def test_head_config_position():
+    from ..net import head_config
+    import tempfile
+    from pathlib import Path
+    with tempfile.TemporaryDirectory() as d:
+        p = Path(d) / "head.json"
+        assert head_config.load(p)["label"] == ""           # defaults när filen saknas
+        head_config.save({"label": "Vänster", "start_mm": 0, "end_mm": 250}, p)
+        c = head_config.load(p)
+        assert c["label"] == "Vänster" and c["start_mm"] == 0.0 and c["end_mm"] == 250.0
+
+
+def test_command_handler_set_position():
+    from ..core.config import AppConfig
+    from ..core.devices import DeviceManager
+    from ..net.command_handler import CommandHandler
+    from ..net import head_config
+    saved = head_config.save
+    head_config.save = lambda cfg, *a, **k: {                # mät utan att skriva repo-fil
+        "label": str(cfg.get("label", "")),
+        "start_mm": float(cfg.get("start_mm", 0)), "end_mm": float(cfg.get("end_mm", 0))}
+    try:
+        h = CommandHandler(DeviceManager(AppConfig(mode="sim")), name="x")
+        assert "position" in h.handle({"id": 1, "cmd": p.CMD_STATUS})["result"]
+        res = h.handle({"id": 2, "cmd": p.CMD_SET_POSITION,
+                        "args": {"label": "Mitten", "start_mm": 100, "end_mm": 350}})
+        assert res["ok"] and res["result"]["label"] == "Mitten"
+        st = h.handle({"id": 3, "cmd": p.CMD_STATUS})["result"]
+        assert st["position"]["label"] == "Mitten" and st["position"]["end_mm"] == 350.0
+    finally:
+        head_config.save = saved
+
+
 def test_discovery_parse():
     from ..net import discovery as d
     info = d.parse_announce(d.announce_packet("rod", 8765, "real"), "10.0.0.5")

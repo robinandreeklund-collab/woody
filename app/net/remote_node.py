@@ -189,3 +189,19 @@ class RemoteNode(QObject):
         s.update({"name": self._name, "host": self._host, "connected": self._connected,
                   "mode": self._mode})
         return s
+
+    # ------------------------------------------------------------ position (sektion)
+    def _pos(self) -> dict:
+        return self._status.get("position") or {}
+
+    @Property(str, notify=devicesChanged)
+    def posLabel(self): return str(self._pos().get("label", ""))
+    @Property(float, notify=devicesChanged)
+    def posStart(self): return float(self._pos().get("start_mm", 0.0))
+    @Property(float, notify=devicesChanged)
+    def posEnd(self): return float(self._pos().get("end_mm", 0.0))
+
+    @Slot(str, float, float)
+    def setPosition(self, label: str, start_mm: float, end_mm: float):
+        self._send(p.CMD_SET_POSITION,
+                   {"label": label, "start_mm": start_mm, "end_mm": end_mm})

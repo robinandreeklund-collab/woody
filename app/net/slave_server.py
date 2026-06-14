@@ -60,6 +60,9 @@ class SlaveServer(QObject):
             resp = self._handler.handle(msg)
             if resp is not None:
                 sock.write(p.encode(resp))
+            # positionsändring → broadcasta ny status till alla master-klienter
+            if msg.get("cmd") == p.CMD_SET_POSITION and resp and resp.get("ok"):
+                self._emit_devices()
 
     # ---- event-broadcast ----
     def _broadcast(self, data: bytes):

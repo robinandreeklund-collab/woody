@@ -2,43 +2,12 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
-      "Bash(git status:*)",
-      "Bash(git diff:*)",
-      "Bash(git log:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git fetch:*)",
-      "Bash(git pull:*)",
-      "Bash(git checkout:*)",
-      "Bash(git branch:*)",
-      "Bash(python -m app.tests.*)",
-      "Bash(python tools/verify_*.py)",
-      "Bash(python tools/profile_*.py)",
-      "Bash(python tools/jetson_selftest.py)",
-      "Bash(python tools/draw_*.py)",
-      "Bash(python -m app:*)",
-      "Bash(python -m app.main:*)",
-      "Bash(ls:*)",
-      "Bash(cat:*)",
-      "Bash(pip install:*)",
-      "Bash(pip show:*)",
-      "Bash(lsusb:*)",
-      "Bash(ip addr:*)",
-      "Bash(arv-tool-0.8:*)",
-      "Bash(dmesg:*)",
-      "Bash(nvidia-smi:*)",
-      "Bash(tegrastats:*)"
+      "Bash(*)",
+      "Read(*)",
+      "Write(*)",
+      "Edit(*)"
     ],
-    "ask": [
-      "Bash(sudo:*)",
-      "Bash(bash tools/jetson_bootstrap.sh:*)",
-      "Bash(git push:*)",
-      "Bash(dpkg:*)",
-      "Bash(nvpmodel:*)",
-      "Bash(jetson_clocks:*)",
-      "Bash(rm:*)",
-      "Bash(ip link set:*)"
-    ],
+    "ask": [],
     "deny": []
   }
 }
