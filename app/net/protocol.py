@@ -31,7 +31,8 @@ EV_CALIB = "calib_changed"
 EV_HELLO = "hello"                  # skickas när en klient ansluter
 EV_TELEMETRY = "telemetry"          # host-stats (CPU/GPU/RAM/disk/temp) var ~2s
 EV_SCAN = "scan_state"              # skanntillstånd (KPI:er, grad, defekter, historik)
-EV_IMAGE = "image"                  # bild (yt/höjd) zlib+base64-kodad RGB, vid ändring
+EV_IMAGE = "image"                  # bild (yt/höjd/kamera) zlib+base64-kodad RGB
+EV_MESH = "mesh"                    # 3D-höjdrutnät (zlib+base64-json), under skanning
 
 
 def encode(obj: dict) -> bytes:

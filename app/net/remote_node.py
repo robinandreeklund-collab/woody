@@ -25,6 +25,7 @@ class RemoteNode(QObject):
     telemetryChanged = Signal()
     scanChanged = Signal()
     imageChanged = Signal()
+    meshChanged = Signal()
 
     def __init__(self, name: str, host: str, port: int = 8765, parent=None):
         super().__init__(parent)
@@ -39,8 +40,9 @@ class RemoteNode(QObject):
                        "step": "", "log": [], "result": "", "ok": True}
         self._telemetry: dict = {}
         self._scan: dict = {"available": False}
-        self._images: dict = {}              # name -> QImage (yt/höjd), läses av provider
+        self._images: dict = {}              # name -> QImage (yt/höjd/kamera)
         self._img_rev = 0
+        self._mesh: dict = {}                # 3D-höjdrutnät (för Board3DSoft)
         self._next_id = 1
         self._pending: dict = {}             # msg_id -> callback(result, ok)
         self._fb = p.FrameBuffer()
@@ -113,6 +115,13 @@ class RemoteNode(QObject):
             self.scanChanged.emit()
         elif name == p.EV_IMAGE:
             self._store_image(data or {})
+        elif name == p.EV_MESH:
+            try:
+                import base64, json, zlib
+                self._mesh = json.loads(zlib.decompress(base64.b64decode(data["c"])).decode("utf-8"))
+                self.meshChanged.emit()
+            except Exception:
+                pass
 
     def _store_image(self, d: dict):
         try:
@@ -275,5 +284,10 @@ class RemoteNode(QObject):
         return self._img_rev
 
     def image(self, name: str):
-        """QImage för 'surface'/'height' (läses av RemoteImageProvider)."""
+        """QImage för 'surface'/'height'/'cam_red'/'cam_green' (RemoteImageProvider)."""
         return self._images.get(name)
+
+    @Property("QVariantMap", notify=meshChanged)
+    def mesh3d(self) -> dict:
+        """3D-höjdrutnät från noden (matar Board3DSoft, samma format som lokalt ctrl)."""
+        return dict(self._mesh)

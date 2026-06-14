@@ -1,8 +1,12 @@
 import QtQuick
 
 // Software-3D (Canvas) — fallback när Qt Quick 3D inte är tillgängligt.
+// mesh = höjdrutnätet: lokalt ctrl.mesh3d, eller en fjärrnods mesh3d (master).
 Item {
+    id: root
     anchors.fill: parent
+    property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
+    onMeshChanged: view3d.requestPaint()
 
     Canvas {
         id: view3d
@@ -13,8 +17,6 @@ Item {
         property real exag: 3
         property int mode: 0
         property bool spin: true
-
-        Connections { target: ctrl; function onMeshChanged() { view3d.requestPaint() } }
         Timer { running: view3d.spin; interval: 33; repeat: true
                 onTriggered: { view3d.yaw += 0.012; view3d.requestPaint() } }
 
@@ -27,7 +29,7 @@ Item {
         onPaint: {
             var c=getContext("2d"); c.reset();
             var w=width,h=height; c.clearRect(0,0,w,h);
-            var m=ctrl.mesh3d;
+            var m=root.mesh;
             if(!m || !m.z || m.z.length<4){
                 c.fillStyle="#3a4d62"; c.font="13px sans-serif"; c.textAlign="center";
                 c.fillText("Skanna en bräda → 3D-modell visas här", w/2, h/2); return;
