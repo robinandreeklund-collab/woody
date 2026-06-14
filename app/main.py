@@ -29,12 +29,15 @@ def parse_args(argv=None) -> AppConfig:
     p.add_argument("--no-store", action="store_true", help="logga inte till disk")
     p.add_argument("--save-images", action="store_true", help="spara yt-bild per bräda")
     p.add_argument("--probe", action="store_true", help="testa hårdvaruanslutning (real) och avsluta")
+    p.add_argument("--master", action="store_true",
+                   help="kör MASTER-GUI: anslut till alla Jetson-noder (data/nodes.json)")
     a = p.parse_args(argv)
     cfg = AppConfig(mode=a.mode, feed_mm_s=a.feed, profile_rate_hz=a.rate,
                     fullscreen=a.fullscreen).validate()
     cfg._db = None if a.no_store else a.db
     cfg._save_images = a.save_images
     cfg._probe = a.probe
+    cfg._master = a.master
     return cfg
 
 
@@ -61,6 +64,20 @@ def main(argv=None) -> int:
     app.setApplicationName("VIRKE Kontrollsystem")
 
     engine = QQmlApplicationEngine()
+
+    # MASTER-läge: ingen lokal hårdvara — anslut till alla Jetson-noder och styr dem.
+    if getattr(cfg, "_master", False):
+        from .net.node_manager import NodeManager
+        nm = NodeManager()
+        engine.rootContext().setContextProperty("nodeManager", nm)
+        engine.rootContext().setContextProperty("startFullscreen", cfg.fullscreen)
+        qml = Path(__file__).parent / "ui" / "qml" / "MasterMain.qml"
+        engine.load(QUrl.fromLocalFile(str(qml)))
+        if not engine.rootObjects():
+            print("FEL: kunde inte ladda master-QML", file=sys.stderr)
+            return 1
+        print(f"[master] {nm.count} noder ur data/nodes.json")
+        return app.exec()
     provider = LiveImageProvider()
     engine.addImageProvider("live", provider)
 

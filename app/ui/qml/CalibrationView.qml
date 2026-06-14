@@ -7,6 +7,10 @@ RowLayout {
     id: root
     spacing: 12
 
+    // dm = enheten vi styr: lokal DeviceManager (devmgr) ELLER en fjärrnod (RemoteNode).
+    // Samma gränssnitt → samma vy driver både lokalt och master/slave-fjärrstyrt.
+    property var dm: (typeof devmgr !== 'undefined' && devmgr) ? devmgr : null
+    property var rig: (typeof ctrl !== 'undefined' && ctrl) ? root.rig : null
     property string selectedId: "prof_red"
     property var methods: []
 
@@ -14,12 +18,12 @@ RowLayout {
         selectedId = devId
         reload()
     }
-    function reload() { methods = devmgr.methodsFor(selectedId) }
+    function reload() { methods = dm ? dm.methodsFor(selectedId) : [] }
     Component.onCompleted: reload()
-    Connections { target: devmgr; function onMethodsChanged() { root.reload() } }
+    Connections { target: root.dm; function onMethodsChanged() { root.reload() } }
 
     function devName(id) {
-        var ds = devmgr.devices
+        var ds = dm.devices
         for (var i = 0; i < ds.length; i++) if (ds[i].id === id) return ds[i].name
         return id
     }
@@ -27,10 +31,10 @@ RowLayout {
     // ------------------------------------------------------------- enheter
     Card {
         Layout.preferredWidth: 290; Layout.fillHeight: true
-        title: "ENHETER"; chip: devmgr.mode.toUpperCase(); chipColor: Theme.violet
+        title: "ENHETER"; chip: dm.mode.toUpperCase(); chipColor: Theme.violet
         ListView {
             anchors.fill: parent; clip: true; spacing: 6
-            model: devmgr.devices
+            model: dm.devices
             delegate: Rectangle {
                 width: ListView.view.width; height: 56; radius: 10
                 color: modelData.id === root.selectedId ? Qt.rgba(0.15,0.83,0.88,0.10) : Theme.panel2
@@ -101,11 +105,11 @@ RowLayout {
                                                font.family: Theme.mono; font.pixelSize: 9 } }
                                     Item { Layout.fillWidth: true }
                                     Btn {
-                                        text: devmgr.calibRunning ? "Kör…" : (modelData.done ? "Kör om" : "Kör")
+                                        text: dm.calibRunning ? "Kör…" : (modelData.done ? "Kör om" : "Kör")
                                         primary: !modelData.done
-                                        enabled: !devmgr.calibRunning
+                                        enabled: !dm.calibRunning
                                         opacity: enabled ? 1 : 0.45
-                                        onClicked: devmgr.startCalibration(root.selectedId, modelData.id)
+                                        onClicked: dm.startCalibration(root.selectedId, modelData.id)
                                     }
                                 }
                                 Text { text: modelData.desc; color: Theme.ink3; font.pixelSize: 11
@@ -131,37 +135,37 @@ RowLayout {
             // -------------------------------------------------- pågående körning
             Rectangle {
                 Layout.fillWidth: true; radius: 10
-                visible: devmgr.calibRunning || devmgr.calibResult !== ""
+                visible: dm.calibRunning || dm.calibResult !== ""
                 color: Theme.panel2
-                border.color: devmgr.calibRunning ? Qt.rgba(0.15,0.83,0.88,0.4)
-                              : (devmgr.calibOk ? Qt.rgba(0.2,0.9,0.71,0.35) : Qt.rgba(1,0.3,0.37,0.35))
+                border.color: dm.calibRunning ? Qt.rgba(0.15,0.83,0.88,0.4)
+                              : (dm.calibOk ? Qt.rgba(0.2,0.9,0.71,0.35) : Qt.rgba(1,0.3,0.37,0.35))
                 implicitHeight: wcol.height + 20
                 ColumnLayout {
                     id: wcol; x: 12; y: 10; width: parent.width - 24; spacing: 6
                     RowLayout {
                         Layout.fillWidth: true; spacing: 10
                         Text {
-                            text: devmgr.calibRunning
-                                  ? "KÖR: " + devmgr.calibTitle + " · " + root.devName(devmgr.calibDevice)
-                                  : (devmgr.calibOk ? "KLAR: " + devmgr.calibTitle : "AVBRUTEN/FEL: " + devmgr.calibTitle)
-                            color: devmgr.calibRunning ? Theme.cyan : (devmgr.calibOk ? Theme.teal : Theme.red)
+                            text: dm.calibRunning
+                                  ? "KÖR: " + dm.calibTitle + " · " + root.devName(dm.calibDevice)
+                                  : (dm.calibOk ? "KLAR: " + dm.calibTitle : "AVBRUTEN/FEL: " + dm.calibTitle)
+                            color: dm.calibRunning ? Theme.cyan : (dm.calibOk ? Theme.teal : Theme.red)
                             font.pixelSize: 12; font.weight: Font.DemiBold; font.family: Theme.mono
                         }
                         Item { Layout.fillWidth: true }
-                        Btn { visible: devmgr.calibRunning; text: "Avbryt"; onClicked: devmgr.cancelCalibration() }
+                        Btn { visible: dm.calibRunning; text: "Avbryt"; onClicked: dm.cancelCalibration() }
                     }
                     Rectangle {
                         Layout.fillWidth: true; height: 8; radius: 4; color: Theme.line
-                        Rectangle { width: parent.width * devmgr.calibPct; height: parent.height; radius: 4
-                            color: devmgr.calibRunning ? Theme.cyan : (devmgr.calibOk ? Theme.teal : Theme.red)
+                        Rectangle { width: parent.width * dm.calibPct; height: parent.height; radius: 4
+                            color: dm.calibRunning ? Theme.cyan : (dm.calibOk ? Theme.teal : Theme.red)
                             Behavior on width { NumberAnimation { duration: 110 } } }
                     }
-                    Repeater { model: devmgr.calibLog
+                    Repeater { model: dm.calibLog
                         delegate: Text { text: modelData; color: Theme.teal; font.family: Theme.mono; font.pixelSize: 10 } }
-                    Text { visible: devmgr.calibRunning; text: "▸ " + devmgr.calibStep
+                    Text { visible: dm.calibRunning; text: "▸ " + dm.calibStep
                            color: Theme.ink2; font.family: Theme.mono; font.pixelSize: 10 }
-                    Text { visible: !devmgr.calibRunning && devmgr.calibResult !== ""
-                           text: devmgr.calibResult; color: devmgr.calibOk ? Theme.cyan : Theme.red
+                    Text { visible: !dm.calibRunning && dm.calibResult !== ""
+                           text: dm.calibResult; color: dm.calibOk ? Theme.cyan : Theme.red
                            font.family: Theme.mono; font.pixelSize: 10
                            Layout.fillWidth: true; wrapMode: Text.WordWrap }
                 }
@@ -171,31 +175,32 @@ RowLayout {
 
     // ------------------------------------------------------------- geometri
     Card {
-        Layout.preferredWidth: 330; Layout.fillHeight: true
+        visible: root.rig !== null            // döljs i master-drill-in (ingen lokal ctrl)
+        Layout.preferredWidth: visible ? 330 : 0; Layout.fillHeight: true
         title: "RIGGENS GEOMETRI"; chip: "sanningskälla"; chipColor: Theme.teal
         Flickable {
             anchors.fill: parent; contentHeight: gcol.height; clip: true
             ColumnLayout {
                 id: gcol; width: parent.width; spacing: 0
                 Repeater {
-                    model: [
-                        ["Brädans längd (X)", ctrl.rig.len.toFixed(0) + " mm"],
-                        ["Brädans bredd (Y)", ctrl.rig.width.toFixed(0) + " mm"],
-                        ["Brädans tjocklek (Z)", ctrl.rig.thick.toFixed(0) + " mm"],
-                        ["Arbetsavstånd WD", ctrl.rig.wd.toFixed(0) + " mm"],
-                        ["Kamera-arm (fr. lod)", ctrl.rig.camArm.toFixed(0) + "°"],
-                        ["Laser-arm (fr. lod)", ctrl.rig.laserArm.toFixed(0) + "°"],
-                        ["Trianguleringsvinkel θ", ctrl.rig.theta.toFixed(0) + "°"],
-                        ["Obliquitet", ctrl.rig.oblique.toFixed(1) + "°"],
-                        ["Kamerahöjd", ctrl.rig.camHeight + " mm"],
-                        ["Kamera-offset", ctrl.rig.camOffset + " mm"],
-                        ["Laserhöjd", ctrl.rig.laserHeight + " mm"],
-                        ["Laser-offset", ctrl.rig.laserOffset + " mm"],
-                        ["Baslinje kamera↔laser", ctrl.rig.baseline + " mm"],
-                        ["Ytkamera WD (centrum)", ctrl.rig.surfWd.toFixed(0) + " mm"],
-                        ["Ytupplösning", ctrl.rig.surfMmPx.toFixed(3) + " mm/px"],
-                        ["Profil lateral uppl.", ctrl.rig.profLatMmPx.toFixed(3) + " mm/px"],
-                    ]
+                    model: root.rig ? [
+                        ["Brädans längd (X)", root.rig.len.toFixed(0) + " mm"],
+                        ["Brädans bredd (Y)", root.rig.width.toFixed(0) + " mm"],
+                        ["Brädans tjocklek (Z)", root.rig.thick.toFixed(0) + " mm"],
+                        ["Arbetsavstånd WD", root.rig.wd.toFixed(0) + " mm"],
+                        ["Kamera-arm (fr. lod)", root.rig.camArm.toFixed(0) + "°"],
+                        ["Laser-arm (fr. lod)", root.rig.laserArm.toFixed(0) + "°"],
+                        ["Trianguleringsvinkel θ", root.rig.theta.toFixed(0) + "°"],
+                        ["Obliquitet", root.rig.oblique.toFixed(1) + "°"],
+                        ["Kamerahöjd", root.rig.camHeight + " mm"],
+                        ["Kamera-offset", root.rig.camOffset + " mm"],
+                        ["Laserhöjd", root.rig.laserHeight + " mm"],
+                        ["Laser-offset", root.rig.laserOffset + " mm"],
+                        ["Baslinje kamera↔laser", root.rig.baseline + " mm"],
+                        ["Ytkamera WD (centrum)", root.rig.surfWd.toFixed(0) + " mm"],
+                        ["Ytupplösning", root.rig.surfMmPx.toFixed(3) + " mm/px"],
+                        ["Profil lateral uppl.", root.rig.profLatMmPx.toFixed(3) + " mm/px"],
+                    ] : []
                     delegate: Rectangle {
                         Layout.fillWidth: true; height: 30
                         color: index % 2 ? "transparent" : Qt.rgba(1,1,1,0.018)
