@@ -12,3 +12,7 @@ data/
 
 # körtidsdata (loggdb, export, bilder)
 /data/
+
+# render-artefakter (master GUI-smoke)
+master_overview.png
+master_detail.png
