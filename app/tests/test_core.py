@@ -66,8 +66,10 @@ def test_acquisition_pipeline_assembles_board():
     from ..processing.acquisition import AcquisitionPipeline
     s = SimScanner(); s.new_board()
     board, st = AcquisitionPipeline(s, cols=200).scan_board(n_rows=60)
-    assert board.zmap.shape == (60, 200)
-    assert board.surface.shape == (60, 200, 3)
+    # ytan normaliseras till board_gen:s kanoniska (bredd_px, längd_px) = (150, 1000)
+    # för 75×500 mm @ 2 px/mm → identisk orientering/förhållande i pass & flöde
+    assert board.surface.shape == (150, 1000, 3)
+    assert board.zmap.shape == (150, 1000)
     assert st.rows == 60 and st.dropped == 0
     wm = board.warp_metrics()
     assert all(k in wm for k in ("bow", "cup", "twist"))

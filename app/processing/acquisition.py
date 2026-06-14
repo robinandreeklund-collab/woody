@@ -144,12 +144,27 @@ class AcquisitionPipeline:
 
     # ---------------------------------------------------------------- assemblering
     def _assemble_board(self, zrows, crows) -> Board:
-        """Bygg en Board ur ackumulerade höjd-/färgrader (delas av single + ström)."""
+        """Bygg en Board ur ackumulerade höjd-/färgrader (delas av single + ström).
+
+        Raderna kommer i kamerans ordning: en BREDD-linje (cols px ≈ brädans bredd)
+        per scannad rad längs LÄNGDEN. Vi normaliserar till board_gen:s konvention
+        (axel0 = bredd, axel1 = längd) + brädans bildförhållande (500:75) så att yta,
+        3D och preview blir IDENTISKA i pass- och flödesläge."""
+        from ..hal.sim.board_gen import PX_PER_MM
         nominal = RIG.board_thick_mm
         zmap = np.array([(r if r is not None else np.full(self.cols, nominal))
-                         for r in zrows], dtype=np.float32) - nominal
+                         for r in zrows], dtype=np.float32) - nominal       # (längd, bredd)
         surface = np.array([(c if c is not None else np.full((self.cols, 3), 160, np.uint8))
-                            for c in crows], dtype=np.uint8)
+                            for c in crows], dtype=np.uint8)                  # (längd, bredd, 3)
+        # → kanonisk (bredd_px, längd_px): transponera + skala till brädans mått
+        len_px = max(2, int(RIG.board_len_mm * PX_PER_MM))                    # 1000 för 500 mm
+        wid_px = max(2, int(RIG.board_width_mm * PX_PER_MM))                  # 150 för 75 mm
+        if surface.shape[0] >= 2 and surface.shape[1] >= 2:
+            import cv2
+            surface = cv2.resize(np.ascontiguousarray(surface.transpose(1, 0, 2)),
+                                 (len_px, wid_px), interpolation=cv2.INTER_LINEAR)
+            zmap = cv2.resize(np.ascontiguousarray(zmap.T), (len_px, wid_px),
+                              interpolation=cv2.INTER_LINEAR)
         h, w = zmap.shape
         board = Board(seed=-1, w=w, h=h, surface=np.ascontiguousarray(surface),
                       zmap=zmap, defects=detect_defects(surface))
