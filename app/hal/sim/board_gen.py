@@ -131,13 +131,15 @@ def _hsl_to_rgb(h, s, l):
     return tuple(int(round(255 * x)) for x in (f(0), f(8), f(4)))
 
 
-def make_board(seed: int, len_mm: float | None = None) -> Board:
+def make_board(seed: int, len_mm: float | None = None,
+               px_per_mm: float | None = None) -> Board:
     """Generera en bräda. ``len_mm`` överstyr längden (default RIG.board_len_mm) —
     används av multihuvuds-simuleringen för en lång bräda (t.ex. 5400 mm)."""
     rng = np.random.default_rng(seed)
     BL = RIG.board_len_mm if len_mm is None else float(len_mm)
     BW, BT = RIG.board_width_mm, RIG.board_thick_mm
-    w, h = int(BL * PX_PER_MM), int(BW * PX_PER_MM)
+    PXM = PX_PER_MM if px_per_mm is None else float(px_per_mm)
+    w, h = int(BL * PXM), int(BW * PXM)
     yy, xx = np.mgrid[0:h, 0:w]
     fx, fy = xx / w, yy / h
 
@@ -165,11 +167,11 @@ def make_board(seed: int, len_mm: float | None = None) -> Board:
         grain = np.zeros((h, w), float)
         for _ in range(46):
             y0 = rng.uniform(0, h)
-            amp = rng.uniform(2, 9) * PX_PER_MM
-            frq = rng.uniform(0.004, 0.014) / PX_PER_MM
+            amp = rng.uniform(2, 9) * PXM
+            frq = rng.uniform(0.004, 0.014) / PXM
             phase = rng.uniform(0, 7)
             line_y = y0 + np.sin(xx * frq + phase) * amp
-            grain += np.exp(-((yy - line_y) ** 2) / (2 * (1.4 * PX_PER_MM) ** 2)) * rng.uniform(0.12, 0.30)
+            grain += np.exp(-((yy - line_y) ** 2) / (2 * (1.4 * PXM) ** 2)) * rng.uniform(0.12, 0.30)
         surf *= (1 - 0.5 * np.clip(grain, 0, 1))[..., None]
 
         # katedral-/flammådring (äkta flatsågad brädkänsla)
@@ -204,8 +206,8 @@ def make_board(seed: int, len_mm: float | None = None) -> Board:
     defects = []
 
     def stamp_ellipse(cx, cy, rx, ry, color, alpha, zdip=0.0):
-        m = (((xx - cx * PX_PER_MM) / (rx * PX_PER_MM)) ** 2
-             + ((yy - cy * PX_PER_MM) / (ry * PX_PER_MM)) ** 2)
+        m = (((xx - cx * PXM) / (rx * PXM)) ** 2
+             + ((yy - cy * PXM) / (ry * PXM)) ** 2)
         inside = m <= 1.0
         a = np.clip(1.0 - m, 0, 1) * alpha
         for c in range(3):
@@ -227,11 +229,11 @@ def make_board(seed: int, len_mm: float | None = None) -> Board:
         length = rng.uniform(80, 280)
         depth = rng.uniform(4, BT * 0.5)
         x1 = x0 + length
-        in_x = (xx / PX_PER_MM >= x0) & (xx / PX_PER_MM <= x1)
+        in_x = (xx / PXM >= x0) & (xx / PXM <= x1)
         if side:
-            edgef = np.clip((yy / PX_PER_MM - (BW - depth)) / depth, 0, 1)
+            edgef = np.clip((yy / PXM - (BW - depth)) / depth, 0, 1)
         else:
-            edgef = np.clip((depth - yy / PX_PER_MM) / depth, 0, 1)
+            edgef = np.clip((depth - yy / PXM) / depth, 0, 1)
         mask = in_x & (edgef > 0)
         col = np.array(DEFECT_INFO["wane"][1], float)
         for c in range(3):
@@ -246,10 +248,10 @@ def make_board(seed: int, len_mm: float | None = None) -> Board:
         length = rng.uniform(30, 140)
         ang = rng.uniform(-0.25, 0.25)
         t = np.linspace(0, 1, 40)
-        px = (cx + np.cos(ang) * length * t) * PX_PER_MM
-        py = (cy + np.sin(ang) * length * t) * PX_PER_MM + rng.normal(0, 1, t.size)
+        px = (cx + np.cos(ang) * length * t) * PXM
+        py = (cy + np.sin(ang) * length * t) * PXM + rng.normal(0, 1, t.size)
         for X, Y in zip(px, py):
-            stamp_ellipse(X / PX_PER_MM, Y / PX_PER_MM, 0.8, 0.8, DEFECT_INFO["crack"][1], 0.7)
+            stamp_ellipse(X / PXM, Y / PXM, 0.8, 0.8, DEFECT_INFO["crack"][1], 0.7)
         defects.append({"type": "crack", "x": cx, "y": cy, "r": length / 2, "len": length})
 
     # blånad (blåaktiga partier)

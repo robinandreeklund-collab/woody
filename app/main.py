@@ -69,9 +69,14 @@ def main(argv=None) -> int:
     if getattr(cfg, "_master", False):
         from .net.node_manager import NodeManager
         from .net.remote_image_provider import RemoteImageProvider
+        from .ui.multihead_sim import MultiHeadSimController, MultiHeadSimImageProvider
         nm = NodeManager()
         engine.addImageProvider("remote", RemoteImageProvider(nm))
         engine.rootContext().setContextProperty("nodeManager", nm)
+        # Multihuvuds-simulering (live demo: N huvuden över lång bräda + fusion)
+        sim_head = MultiHeadSimController()
+        engine.addImageProvider("simhead", MultiHeadSimImageProvider(sim_head))
+        engine.rootContext().setContextProperty("simHead", sim_head)
         engine.rootContext().setContextProperty("startFullscreen", cfg.fullscreen)
         # Qt Quick 3D (GPU 3D-vyn) — registrera geometrin; annars software-3D-fallback
         m_quick3d = False

@@ -68,14 +68,15 @@ def build_heads(total_len_mm: float, n_heads: int, overlap_mm: float) -> list[He
 
 def simulate(total_len_mm: float = 5400.0, n_heads: int = 6, overlap_mm: float = 80.0,
              seed: int = 20240614, noise_mm: float = 0.04, bias_span_mm: float = 0.45,
-             biases=None) -> MultiHeadResult:
+             biases=None, px_per_mm: float | None = None) -> MultiHeadResult:
     """Kör multihuvuds-simuleringen och returnera allt som behövs för att visa
     synk + fusion. Genererar en lång bräda, låter varje huvud mäta sin sektion
     (med per-huvud bias + brus), syr ihop och ankrar."""
-    from ..hal.sim.board_gen import make_board, PX_PER_MM
+    from ..hal.sim.board_gen import make_board
 
-    board = make_board(seed, len_mm=total_len_mm)
+    board = make_board(seed, len_mm=total_len_mm, px_per_mm=px_per_mm)
     H, W = board.zmap.shape                       # (bredd_px, längd_px)
+    pm = W / total_len_mm                          # FAKTISK px/mm (kan vara nedsamplad)
     true_thick = RIG.board_thick_mm + board.zmap.astype(np.float64)   # absolut tjocklek
 
     heads = build_heads(total_len_mm, n_heads, overlap_mm)
@@ -91,8 +92,8 @@ def simulate(total_len_mm: float = 5400.0, n_heads: int = 6, overlap_mm: float =
     # --- varje huvud mäter sin kolumn-sektion: sann + bias + brus ---
     sections = []
     for hd in heads:
-        c0 = max(0, int(round(hd.start_mm * PX_PER_MM)))
-        c1 = min(W, int(round(hd.end_mm * PX_PER_MM)))
+        c0 = max(0, int(round(hd.start_mm * pm)))
+        c1 = min(W, int(round(hd.end_mm * pm)))
         meas = true_thick[:, c0:c1] + hd.bias_mm + rn.normal(0, noise_mm, (H, c1 - c0))
         prof = meas.mean(axis=0)                  # medel över bredd → längdprofil
         sections.append({"idx": hd.idx, "start_mm": hd.start_mm, "end_mm": hd.end_mm,
@@ -127,9 +128,13 @@ def simulate(total_len_mm: float = 5400.0, n_heads: int = 6, overlap_mm: float =
     aligned, offset = _anchor(x_mm, aligned, true_profile, total_len_mm)
 
     # --- fuserad 2D-höjdkarta ur de KALIBRERADE sektionerna (hela brädan) ---
+    #     varje huvuds sektion ligger redan på brädans kolumnrutnät [c0:c1] → placera
+    #     + medla överlapp vektoriserat (inget per-rad-resampling → millisekunder).
+    acc = np.zeros((H, W)); cnt = np.zeros((H, W))
     for s in sections:
-        s["zmap_corr"] = s["zmap"] + corr[s["idx"]] - offset
-    fused_zmap = _stitch_2d(sections, total_len_mm, W, H, key="zmap_corr")
+        acc[:, s["c0"]:s["c1"]] += s["zmap"] + corr[s["idx"]] - offset
+        cnt[:, s["c0"]:s["c1"]] += 1.0
+    fused_zmap = np.where(cnt > 0, acc / np.maximum(cnt, 1.0), RIG.board_thick_mm)
 
     # --- skarv-mått: överlappens samstämmighet FÖRE och EFTER kalibrering ---
     seams = []
@@ -200,17 +205,6 @@ def _align_heads(sections) -> dict:
         d = float(np.mean(np.interp(grid, xa, a["profile"]) - np.interp(grid, xb, b["profile"])))
         corr[b["idx"]] = corr[a["idx"]] + d
     return corr
-
-
-def _stitch_2d(sections, total_len_mm, W, H, key="zmap") -> np.ndarray:
-    """Sy ihop varje bredd-rad för sig → hela brädans fuserade höjdkarta (H×W)."""
-    out = np.empty((H, W), dtype=np.float64)
-    for r in range(H):
-        sec1d = [{"start_mm": s["start_mm"], "end_mm": s["end_mm"], "values": s[key][r]}
-                 for s in sections]
-        row = stitch_sections(sec1d, n_out=W, total_start=0.0, total_end=total_len_mm)
-        out[r] = _fill_nan(row)
-    return out
 
 
 def _anchor(x_mm, fused, true_profile, total_len_mm):

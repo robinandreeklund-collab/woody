@@ -126,7 +126,8 @@ ApplicationWindow {
             Layout.fillWidth: true; Layout.leftMargin: Theme.sp4; Layout.rightMargin: Theme.sp4
             Layout.topMargin: Theme.sp3; spacing: Theme.sp2
             Repeater {
-                model: [["Översikt", 0, true], ["Nod-detalj", 1, win.sel !== null]]
+                model: [["Översikt", 0, true], ["Nod-detalj", 1, win.sel !== null],
+                        ["Simulering · multihuvud", 2, true]]
                 delegate: Rectangle {
                     radius: Theme.rSm; implicitWidth: sgt.width + 30; implicitHeight: 34
                     enabled: modelData[2]
@@ -149,9 +150,12 @@ ApplicationWindow {
         Loader {
             Layout.fillWidth: true; Layout.fillHeight: true
             Layout.margins: Theme.sp4; Layout.topMargin: Theme.sp3
-            sourceComponent: win.view === 0 ? overviewComp : detailComp
+            sourceComponent: win.view === 0 ? overviewComp
+                           : win.view === 1 ? detailComp : simComp
         }
     }
+
+    Component { id: simComp; SimMultiHeadView {} }
 
     // ---------------------------------------------------------------- ÖVERSIKT
     Component {

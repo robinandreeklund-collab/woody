@@ -37,6 +37,15 @@ def main(argv):
     engine = QQmlApplicationEngine()
     root = Path(__file__).resolve().parent.parent / "app" / "ui" / "qml"
 
+    # multihuvuds-sim-kontroller (master + komponenter som refererar simHead)
+    try:
+        from app.ui.multihead_sim import MultiHeadSimController, MultiHeadSimImageProvider
+        _sim = MultiHeadSimController()
+        engine.addImageProvider("simhead", MultiHeadSimImageProvider(_sim))
+        engine.rootContext().setContextProperty("simHead", _sim)
+    except Exception as e:
+        print("simHead ej tillgänglig:", e)
+
     if which == "comp":
         # parsa en enskild komponent (node/ctrl = null) via en temp-wrapper
         comp = argv[2] if len(argv) > 2 else "ScanView"
