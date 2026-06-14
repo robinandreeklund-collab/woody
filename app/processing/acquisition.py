@@ -64,12 +64,18 @@ def _resize_canonical(arr: np.ndarray, len_px: int, wid_px: int) -> np.ndarray:
 
 
 def _surface_line(scanner, y_mm: float, width_mm: float, cols: int) -> np.ndarray:
-    """En färgrad (RGB, cols) från linjekameran (real) eller ur ytbilden (sim)."""
+    """En färgrad (RGB, cols) från linjekameran. Ytkameran sitter +40 mm nedströms
+    (RIG.surface_cam_lead_mm) men encoder-leadet registrerar varje färgrad mot
+    SAMMA brädrad som höjden → vi samplar brädrad ``y_mm`` (sim: positions-medveten
+    grab_line; real: kamerans aktuella encoder-triggade rad)."""
     cam = scanner.surface
     grab = getattr(cam, "grab_line", None)
     if grab is not None:
         try:
-            line = np.asarray(grab())
+            try:
+                line = np.asarray(grab(y_mm))         # positions-medveten (sim)
+            except TypeError:
+                line = np.asarray(grab())             # aktuell kameralinje (real)
             if line.ndim == 2 and line.shape[1] == 3:
                 idx = np.linspace(0, line.shape[0] - 1, cols).astype(int)
                 return line[idx].astype(np.uint8)

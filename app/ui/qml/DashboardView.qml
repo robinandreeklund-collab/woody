@@ -174,8 +174,18 @@ RowLayout {
                     c.lineWidth=3; c.strokeStyle=Theme.red; c.shadowColor=Theme.red; c.shadowBlur=8;
                     c.beginPath(); c.moveTo(bx,yLAS-1.5); c.lineTo(bx+bw,yLAS-1.5); c.stroke();
                     c.strokeStyle=Theme.grn; c.shadowColor=Theme.grn; c.beginPath(); c.moveTo(bx,yLAS+1.5); c.lineTo(bx+bw,yLAS+1.5); c.stroke(); c.shadowBlur=0;
+                    // YTKAMERA — EGEN rad +40 mm NEDSTRÖMS (rakt ned, avbildar längden,
+                    // laserlinjen UTANFÖR FOV → ingen laser i färgbilden)
+                    var yYTA = yLAS + (R.surfLead||40)*mmY;
+                    var ytaOn = (p>0 && yYTA<=yLead && yYTA>=yTrail);
+                    c.strokeStyle=Qt.rgba(0.29,0.66,1.0,ytaOn?0.8:0.35); c.setLineDash([3,3]); c.lineWidth=1.4;
+                    c.beginPath(); c.moveTo(bx,yYTA); c.lineTo(bx+bw,yYTA); c.stroke(); c.setLineDash([]);
                     c.fillStyle="#16212e"; c.strokeStyle=Theme.blue; c.lineWidth=1.5;
-                    c.fillRect((bx+bx+bw)/2-13, yLAS-7, 26, 14); c.strokeRect((bx+bx+bw)/2-13, yLAS-7, 26, 14);
+                    c.fillRect((bx+bx+bw)/2-16, yYTA-7, 32, 14); c.strokeRect((bx+bx+bw)/2-16, yYTA-7, 32, 14);
+                    c.fillStyle=Theme.blue; c.font="8px monospace"; c.textAlign="center";
+                    c.fillText("YTKAMERA", (bx+bx+bw)/2, yYTA-11);
+                    c.fillStyle="#4aa8ff"; c.textAlign="left";
+                    c.fillText("ytkamera · +40 mm nedströms · rakt ned · avbildar längden · ingen laser i FOV", bx+2, yYTA+19);
                     // etiketter
                     c.fillStyle="#61768c"; c.font="9px monospace";
                     c.textAlign="left"; c.fillText("0", bx, h-8);

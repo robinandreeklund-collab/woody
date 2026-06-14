@@ -98,30 +98,42 @@ ColumnLayout {
     RowLayout {
         Layout.fillWidth: true; Layout.fillHeight: true; spacing: Theme.sp3
 
-        // vänster: profilkameror (laserstripe)
-        Card {
-            Layout.preferredWidth: 230; Layout.minimumWidth: 200; Layout.maximumWidth: 260
-            Layout.fillHeight: true
-            title: "PROFILKAMEROR · tvärsnitt"; chip: "3 av 4 ytor"; chipColor: Theme.cyan
-            ColumnLayout {
-                anchors.fill: parent; spacing: Theme.sp2
-                Repeater {
-                    model: [["cam_red","RÖD 650 · topp + vänster kant"],
-                            ["cam_green","GRÖN 520 · topp + höger kant"]]
-                    delegate: ColumnLayout {
-                        Layout.fillWidth: true; Layout.fillHeight: true; spacing: 2
-                        Text { text: modelData[1]; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 9; font.weight: Font.DemiBold }
-                        Rectangle {
-                            Layout.fillWidth: true; Layout.fillHeight: true; radius: Theme.rSm
-                            color: "#0b1220"; border.color: Theme.line; clip: true
-                            Image {
-                                anchors.fill: parent; anchors.margins: 3; cache: false; smooth: true
-                                fillMode: Image.PreserveAspectFit; source: root.imgUrl(modelData[0])
+        // vänster: profilkameror (längsprofil) + LR400-spår
+        ColumnLayout {
+            Layout.preferredWidth: 260; Layout.minimumWidth: 230; Layout.maximumWidth: 300
+            Layout.fillHeight: true; spacing: Theme.sp3
+            Card {
+                Layout.fillWidth: true; Layout.preferredHeight: 250
+                title: "PROFILKAMEROR · längsprofil"; chip: "laserstripe"; chipColor: Theme.cyan
+                ColumnLayout {
+                    anchors.fill: parent; spacing: Theme.sp2
+                    Repeater {
+                        model: [["cam_red","RÖD 650 · längs 500 mm + V-kant (vid änden)"],
+                                ["cam_green","GRÖN 520 · längs 500 mm + H-kant (vid änden)"]]
+                        delegate: ColumnLayout {
+                            Layout.fillWidth: true; Layout.fillHeight: true; spacing: 2
+                            Text { text: modelData[1]; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 9; font.weight: Font.DemiBold }
+                            Rectangle {
+                                Layout.fillWidth: true; Layout.fillHeight: true; radius: Theme.rSm
+                                color: "#0b1220"; border.color: Theme.line; clip: true
+                                Image {
+                                    anchors.fill: parent; anchors.margins: 3; cache: false; smooth: true
+                                    fillMode: Image.PreserveAspectFit; source: root.imgUrl(modelData[0])
+                                }
+                                Text { anchors.centerIn: parent; visible: !(root.node && root.node.imgRev > 0)
+                                       text: "ingen signal"; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 10 }
                             }
-                            Text { anchors.centerIn: parent; visible: !(root.node && root.node.imgRev > 0)
-                                   text: "ingen signal"; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 10 }
                         }
                     }
+                }
+            }
+            Card {
+                Layout.fillWidth: true; Layout.fillHeight: true
+                title: "LR400 · ABSOLUT TJOCKLEK"; chip: "3× uppströms"; chipColor: Theme.violet
+                LrChart {
+                    anchors.fill: parent
+                    track: root.s.lr_track || []; lrx: root.s.lr_x || []
+                    nominal: root.s.nominal_thick || 20; widthMm: (root.s.dims ? root.s.dims.width : 75)
                 }
             }
         }
@@ -157,10 +169,37 @@ ColumnLayout {
             }
         }
 
-        // höger: bedömning + defekter + historik
+        // höger: mått + bedömning + defekter + historik
         ColumnLayout {
             Layout.preferredWidth: 290; Layout.minimumWidth: 260; Layout.maximumWidth: 320
             Layout.fillHeight: true; spacing: Theme.sp3
+
+            // UPPMÄTTA MÅTT
+            Card {
+                Layout.fillWidth: true; Layout.preferredHeight: 92
+                title: "MÅTT · uppmätt"; chip: "mm"; chipColor: Theme.teal
+                RowLayout {
+                    anchors.fill: parent; spacing: Theme.sp2
+                    Repeater {
+                        model: [
+                            {l:"Längd", v:(root.s.dims&&root.s.dims.length!==undefined?root.s.dims.length.toFixed(0):"–"), c:Theme.ink},
+                            {l:"Bredd", v:(root.s.dims&&root.s.dims.width!==undefined?root.s.dims.width.toFixed(0):"–"), c:Theme.ink},
+                            {l:"Tjocklek", v:(root.s.dims&&root.s.dims.thick_mean!==undefined?root.s.dims.thick_mean.toFixed(1):"–"), c:Theme.teal}
+                        ]
+                        delegate: ColumnLayout {
+                            Layout.fillWidth: true; spacing: 1
+                            Text { text: modelData.l.toUpperCase(); color: Theme.ink3; font.family: Theme.sans
+                                   font.pixelSize: 9; font.weight: Font.DemiBold; Layout.alignment: Qt.AlignHCenter }
+                            Text { text: modelData.v; color: modelData.c; font.family: Theme.sans
+                                   font.pixelSize: 22; font.weight: Font.Bold; Layout.alignment: Qt.AlignHCenter }
+                        }
+                    }
+                    ColumnLayout { Layout.preferredWidth: 70; spacing: 1
+                        Text { text: "MIN/MAX TJ."; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 8; font.weight: Font.DemiBold }
+                        Text { text: (root.s.dims&&root.s.dims.thick_min!==undefined ? root.s.dims.thick_min.toFixed(1)+" / "+root.s.dims.thick_max.toFixed(1) : "–")
+                               color: Theme.ink2; font.family: Theme.mono; font.pixelSize: 11 } }
+                }
+            }
 
             Card {
                 Layout.fillWidth: true; Layout.preferredHeight: 220

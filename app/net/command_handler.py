@@ -35,6 +35,7 @@ class CommandHandler:
             "grade_governing": c.gradeGoverning,
             "defects": list(c.defects), "zprofile": list(c.zProfile),
             "nominal_thick": c.nominalThick, "lr_thickness": list(c.lrThickness),
+            "lr_track": list(c.lrTrack), "lr_x": list(c.lrPositions), "dims": dict(c.dims),
             "history": list(c.history),
         }
 

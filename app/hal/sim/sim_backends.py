@@ -44,63 +44,64 @@ class SimProfileCamera(ProfileCameraIF):
         img += np.random.normal(0, 1.5, img.shape)        # realistiskt SNR → ~0,1 mm
         return np.clip(img, 0, 255)
 
-    def stripe_preview(self, pos_mm: float, cols: int = 240, rows: int = 150) -> np.ndarray:
-        """Visualiserings-vänlig profilkamera-vy för live (påverkar EJ mätningen).
-
-        Skalenligt TVÄRSNITT enligt head-mech.svg: brädan (75 mm bred × tjocklek,
-        på bandet) sedd rakt framifrån. Detta huvud (kamera+laser SAMMA sida, arm
-        25°/laser 50° fr lod) mäter brädans OVANSIDA + sin NÄRA sidoyta — RÖD
-        V-kant (vänster), GRÖN H-kant (höger). Bortre sidan ockluderas. UNDERSIDAN
-        ligger an mot bandet → mäts EJ (streckad). Tillsammans täcker huvudena 3 av
-        4 ytor. read_stripe (smal mät-ROI) är orörd."""
+    def stripe_preview(self, pos_mm: float, cols: int = 260, rows: int = 120) -> np.ndarray:
+        """Profilkamerans FAKTISKA bild (live, påverkar EJ mätningen): laserstripen
+        LÄNGS brädan (500 mm), höjd-kodad. Kameran ser BARA stripen där lasern
+        träffar en yta — ALDRIG lasern i luften. Brädan cross-matas i bredd (75 mm)
+        → de två långsidorna (V-kant/H-kant) passerar lasern vid matningens ÄNDLÄGEN,
+        EN i taget: RÖD ser sin kant vid ena änden, GRÖN vid andra. Mitt på brädan
+        ser båda bara ovansidan. read_stripe (smal mät-ROI) är orörd."""
         b = self._scanner.board()
         BW, BT = RIG.board_width_mm, RIG.board_thick_mm
-        nb = max(8, int(cols * 0.58))                          # brädans bredd i bild
-        m = (cols - nb) // 2
-        gain = nb / BW                                         # SKALENLIGT: px/mm lika i b/h
-        x = float(np.clip(pos_mm / max(1.0, BW) * RIG.board_len_mm, 0, RIG.board_len_mm))
-        prof = np.asarray(b.z_profile_col(x, nb), float) if b is not None \
-            else np.full(nb, BT)
-        under = rows * 0.84                                    # undersidan (bandnivå)
-        top = under - prof * gain                             # ovansidan (följer tjockleken)
-        near_left = (self._color == "red")                    # RÖD ser vänster, GRÖN höger
+        # ovansidans höjdprofil LÄNGS brädan vid matningsraden pos_mm
+        z = np.asarray(b.z_profile_row(pos_mm, cols), float) if b is not None \
+            else np.full(cols, BT)
+        base = rows * 0.30                                     # ovansidans nominella rad
+        gain = (rows * 0.42) / max(BT, 1.0)                   # px/mm höjd (förstärkt)
+        top = base - (z - BT) * gain                          # stripen vandrar med höjden
+        under = base + BT * gain                              # bandnivå (undersidan)
         rr = np.arange(rows)[:, None]
-        img = np.zeros((rows, cols))
+        img = np.exp(-((rr - top[None, :]) ** 2) / (2 * 1.7 ** 2)) * 232.0   # OVANSIDAN
 
-        def vline(col, r0, r1, val, w=1):
-            lo, hi = int(min(r0, r1)), int(max(r0, r1))
-            for cc in range(col - w + 1, col + w):
-                if 0 <= cc < cols:
-                    img[lo:hi + 1, cc] = np.maximum(img[lo:hi + 1, cc], val)
-
-        # 1) OVANSIDAN — ljus laserlinje över brädans bredd (med verklig relief)
-        img[:, m:m + nb] += np.exp(-((rr - top[None, :]) ** 2) / (2 * 1.8 ** 2)) * 232.0
-        # 2) SIDOYTORNA (lodräta — brädan är rektangulär): NÄRA ljus, BORTRE ockluderad
-        vline(m,          top[0],  under, 210 if near_left else 24, w=2)
-        vline(m + nb - 1, top[-1], under,  24 if near_left else 210, w=2)
-        # 3) UNDERSIDAN — mäts EJ → svag streckad linje på bandnivå
-        cc = np.arange(cols); dash = (cc // 7) % 2 == 0
-        band = (cc >= m) & (cc < m + nb) & dash
-        img[int(under), band] = np.maximum(img[int(under), band], 30)
-        # 4) infallande laserstråle mot NÄRA kanten (50° fr lod) — visar vinkeln
-        tan50 = 1.19175                                       # tan(50°)
-        ncol, ntop = (m, top[0]) if near_left else (m + nb - 1, top[-1])
-        sgn = 1 if near_left else -1                          # strålen kommer från samma sida
-        for t in range(0, int(rows * 0.5)):
-            c = int(round(ncol - sgn * t * tan50)); r = int(round(ntop - t))
-            if 0 <= c < cols and 0 <= r < rows:
-                img[r, c] = max(img[r, c], 30)
+        # Ser DETTA huvud sin kant just nu? (en kant i taget vid matningens ändläge)
+        near_left = (self._color == "red")
+        ez = 9.0                                              # kant-zon (mm)
+        prox = (max(0.0, (ez - pos_mm) / ez) if near_left
+                else max(0.0, (ez - (BW - pos_mm)) / ez))     # 0..1, 1 = kanten vid lasern
+        if prox > 0.02:
+            # SIDOYTAN syns: stripen faller NED längs hela längden mot bandet
+            face = np.exp(-((rr - under) ** 2) / (2 * 1.5 ** 2)) * (150.0 * prox)  # underkant
+            band = ((rr >= top[None, :]) & (rr <= under)).astype(float) * (70.0 * prox)  # fasaden
+            img = np.maximum(img, band)
+            img += np.broadcast_to(face, (rows, cols))
 
         img += np.random.normal(0, 2.0, img.shape)
         return np.clip(img, 0, 255)
 
 
 class SimSurfaceCamera(SurfaceCameraIF):
+    """Line-scan färgkamera (Huateng 4K). RAKT NED → avbildar längden 1:1 (ingen
+    oblik förvrängning som profilkamerorna). Hänger på EGEN rad +40 mm nedströms
+    laserlinjen (RIG.surface_cam_lead_mm) så laserplanet ligger UTANFÖR FOV →
+    INGEN laser i färgbilden. Encoder-triggad: en färgrad per matningssteg;
+    registreras mot höjdkartan via encoder-leadet → färg ↔ höjd hamnar i linje."""
+
     def __init__(self, scanner: "SimScanner"):
         self._scanner = scanner
 
     def info(self) -> DeviceInfo:
         return DeviceInfo("Ytkamera 4K färg", "Huateng 4096×4 TDI", "GigE Vision", True)
+
+    def grab_line(self, pos_mm: float = 0.0) -> np.ndarray:
+        """En encoder-triggad färgrad (RGB längs LÄNGDEN) vid matningsposition
+        ``pos_mm`` — rakt ned, 1:1, ingen laser. Registrerad till brädans rad."""
+        b = self._scanner.board()
+        if b is None:
+            return np.full((RIG.surface_px, 3), 160, np.uint8)
+        from .board_gen import PX_PER_MM
+        ry = int(np.clip(pos_mm * PX_PER_MM, 0, b.h - 1))
+        xs = np.linspace(0, b.w - 1, RIG.surface_px).astype(int)
+        return b.surface[ry, xs].astype(np.uint8)
 
     def surface_image(self) -> np.ndarray:
         b = self._scanner.board()

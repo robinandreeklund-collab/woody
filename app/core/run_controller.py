@@ -41,6 +41,7 @@ class AppController(QObject):
         self._surface_provider = surface_provider
         self._surface_rev = 0
         self._lr = [RIG.board_thick_mm] * len(RIG.point_lasers_x_mm)
+        self._lr_track = [[] for _ in RIG.point_lasers_x_mm]   # (feed_mm, tjocklek) per laser
         self._zprofile: list = []
         self._grade = None
         self._history: list = []
@@ -138,6 +139,13 @@ class AppController(QObject):
             for i, pl in enumerate(self._scanner.point_lasers):
                 target = pl.read_mm(y_lr)
                 self._lr[i] += (target - self._lr[i]) * min(1.0, dt * 8)
+                # spara LR400-spår (absolut tjocklek vid varje matningsrad → massa
+                # datapunkter över 75 mm). Glesa till ~0,6 mm-steg, tak 140 punkter.
+                tr = self._lr_track[i]
+                if not tr or (y - tr[-1][0]) >= 0.6:
+                    tr.append([round(y, 1), round(target, 2)])
+                    if len(tr) > 140:
+                        del tr[0]
             # ankaret för AKTUELL profilrad = värdet som fångades när raden passerade
             # LR-planet (sim: brädan är statisk → läs sanna tjockleken vid den raden)
             lr_anchor = [b.thickness_at(x, y) for x in RIG.point_lasers_x_mm]
@@ -198,6 +206,7 @@ class AppController(QObject):
         self._pass_grades = []
         self._s.detected = []
         self._grade = None
+        self._lr_track = [[] for _ in RIG.point_lasers_x_mm]
         self._mesh = {}; self._mesh_t = 0.0
         self.meshChanged.emit()
         self._s.load_target = 58 + 22 * random.random()
@@ -553,6 +562,30 @@ class AppController(QObject):
     @Property("QVariantList", notify=stateChanged)
     def lrThickness(self): return [round(v, 2) for v in self._lr]
 
+    @Property("QVariantList", notify=stateChanged)
+    def lrTrack(self):
+        """LR400-spår: per laser en lista [feed_mm, tjocklek] över 75 mm-passagen."""
+        return [list(tr) for tr in self._lr_track]
+
+    @Property("QVariantMap", notify=stateChanged)
+    def dims(self):
+        """Uppmätta brädmått (mm): längd × bredd + tjocklek (medel/min/max) ur höjd-
+        kartan + LR400. Längd/bredd ur skann-geometrin, tjocklek ur mätdata."""
+        b = self._scanner.board()
+        thick = [v for v in self._lr if v]
+        if b is not None:
+            import numpy as np
+            t = RIG.board_thick_mm + b.zmap
+            tmean, tmin, tmax = float(t.mean()), float(t.min()), float(t.max())
+        else:
+            tmean = sum(thick) / len(thick) if thick else RIG.board_thick_mm
+            tmin = min(thick) if thick else tmean
+            tmax = max(thick) if thick else tmean
+        return {"length": round(RIG.board_len_mm, 1), "width": round(RIG.board_width_mm, 1),
+                "thick_mean": round(tmean, 2), "thick_min": round(tmin, 2),
+                "thick_max": round(tmax, 2),
+                "scanned_mm": round(self._s.feed_pos_mm, 1)}
+
     @Property("QVariantList", constant=True)
     def lrPositions(self): return list(RIG.point_lasers_x_mm)
 
@@ -636,7 +669,7 @@ class AppController(QObject):
             "laserHeight": round(RIG.laser_height_mm), "laserOffset": round(RIG.laser_offset_mm),
             "baseline": round(RIG.baseline_mm), "surfWd": RIG.surface_cam_wd_mm,
             "len": RIG.board_len_mm, "width": RIG.board_width_mm, "thick": RIG.board_thick_mm,
-            "lrLead": RIG.lr_lead_mm,
+            "lrLead": RIG.lr_lead_mm, "surfLead": RIG.surface_cam_lead_mm,
             "surfMmPx": round(RIG.surface_mm_per_px, 4), "profLatMmPx": round(RIG.profile_lat_mm_per_px, 4),
         }
 

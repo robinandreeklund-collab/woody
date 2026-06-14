@@ -33,6 +33,11 @@ class RigGeometry:
     cam_arm_deg: float = 25.0            # kamera-arm, vinkel från lod
     laser_arm_deg: float = 50.0          # laser-arm, vinkel från lod
     surface_cam_wd_mm: float = 400.0     # ytkamera rakt ned i centrum
+    # Ytkameran (line-scan färg) hänger på EGEN rad +40 mm NEDSTRÖMS laserlinjen
+    # (CAD 39,75), rakt ned, avbildar längden. Offset så laserlinjen hamnar UTANFÖR
+    # dess FOV → ingen laser i färgbilden. Encoder-triggad → varje matningssteg = en
+    # färgrad; registreras mot höjdkartan via encoder-leadet (färg ↔ höjd i linje).
+    surface_cam_lead_mm: float = 40.0
 
     # --- sensorer ---
     profile_px_long: int = 2448          # MV-CS050 lång axel (längs linjen)

@@ -114,7 +114,7 @@ class _FakeCtrl:
     passCount = 0; passesTarget = 3; autoAdvance = True; notifyText = ""
     gradeClass = "–"; gradeTitle = "Inväntar"; gradeColor = "#888"; gradeReason = "—"
     gradeGoverning = ""; defects = []; zProfile = []; nominalThick = 15.0
-    lrThickness = []; history = []
+    lrThickness = []; lrTrack = []; lrPositions = []; dims = {}; history = []
     statusText = "VÄNTAR"
     @property
     def boardCount(self): return self.boards
