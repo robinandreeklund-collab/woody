@@ -54,7 +54,15 @@ class RealScanner(Scanner):
             self.point_lasers.append(LR400ModbusLaser(
                 i, x, port=c["port"], unit=c["unit"], baud=c["baud"], d0_mm=c["d0_mm"],
                 reg_addr=c["reg_addr"], reg_kind=c["reg_kind"], scale=c["scale"]))
-        self.conveyor = RoboClawConveyor()
+        # Delad rigg: EN encoder + EN motordrivare. Bara lead-noden (has_conveyor)
+        # bygger en egen RoboClaw; sensor-huvuden får matningspositionen från lead.
+        from ...net import head_config
+        self.is_lead = bool(head_config.load().get("has_conveyor", True))
+        if self.is_lead:
+            self.conveyor = RoboClawConveyor()
+        else:
+            from .shared_conveyor import SharedConveyorClient
+            self.conveyor = SharedConveyorClient()
         self.laser_red, self.laser_green, self.led_white, self.photocell = make_field_io()
         self._board = None
         self._pipeline = None         # AcquisitionPipeline (lazy — värmer GPU)

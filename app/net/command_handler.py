@@ -31,6 +31,7 @@ class CommandHandler:
             "calib_done": calib_done, "calib_total": calib_total,
             "calib_running": dm.calibRunning, "lasers_armed": self._lasers_armed(),
             "position": dict(self.position),
+            "has_conveyor": bool(self.position.get("has_conveyor", True)),
         }
 
     def _lasers_armed(self) -> bool:

@@ -105,6 +105,24 @@ def test_persistence_roundtrip():
         st.close()
 
 
+def test_stitch_sections():
+    # Flera huvuden delar encoder-koordinaten → stitch syr ihop hela brädan.
+    from ..processing.stitch import stitch_sections
+    secs = [{"start_mm": 0, "end_mm": 250, "values": [10.0] * 50},
+            {"start_mm": 250, "end_mm": 500, "values": [20.0] * 50}]
+    out = stitch_sections(secs, n_out=100, total_start=0, total_end=500)
+    assert out is not None and len(out) == 100
+    assert abs(out[10] - 10.0) < 1e-6 and abs(out[90] - 20.0) < 1e-6   # rätt sektion
+    # demo: ett huvud över hela brädan → bara dess profil
+    one = stitch_sections([{"start_mm": 0, "end_mm": 500, "values": [15.0] * 20}], n_out=50)
+    assert one is not None and abs(np.nanmean(one) - 15.0) < 1e-6
+    # överlapp medlas; inga sektioner → None
+    ov = stitch_sections([{"start_mm": 0, "end_mm": 100, "values": [10.0] * 10},
+                          {"start_mm": 0, "end_mm": 100, "values": [20.0] * 10}], n_out=10)
+    assert abs(np.nanmean(ov) - 15.0) < 1e-6
+    assert stitch_sections([]) is None
+
+
 def test_genicam_feature_apply():
     # Settings-lagret ska styra kameran från koden: sätt giltiga features, logga
     # okända/ogiltiga utan att krascha, hoppa över None. (Fejkad GenICam-node-map.)

@@ -205,3 +205,8 @@ class RemoteNode(QObject):
     def setPosition(self, label: str, start_mm: float, end_mm: float):
         self._send(p.CMD_SET_POSITION,
                    {"label": label, "start_mm": start_mm, "end_mm": end_mm})
+
+    @Property(bool, notify=devicesChanged)
+    def hasConveyor(self) -> bool:
+        """True = denna nod äger encodern/motorn (lead). False = ren-sensor-huvud."""
+        return bool(self._status.get("has_conveyor", True))

@@ -74,6 +74,12 @@ ApplicationWindow {
                                         color: pos.label && pos.label.length > 0 ? Theme.cyan : Theme.amber
                                         font.family: Theme.mono; font.pixelSize: 9; elide: Text.ElideRight; Layout.fillWidth: true } }
                                 Rectangle {
+                                    visible: modelData.has_conveyor === true
+                                    radius: 6; implicitWidth: ld.width+10; implicitHeight: 16
+                                    color: Qt.rgba(0.55,0.36,0.96,0.14); border.color: Qt.rgba(0.55,0.36,0.96,0.4)
+                                    Text { id: ld; anchors.centerIn: parent; text: "LEAD"
+                                           color: Theme.violet; font.family: Theme.mono; font.pixelSize: 8; font.weight: Font.DemiBold } }
+                                Rectangle {
                                     visible: modelData.connected && modelData.calib_total > 0
                                     radius: 6; implicitWidth: cb.width+10; implicitHeight: 16
                                     color: modelData.calib_done === modelData.calib_total
