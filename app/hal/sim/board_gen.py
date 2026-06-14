@@ -131,9 +131,12 @@ def _hsl_to_rgb(h, s, l):
     return tuple(int(round(255 * x)) for x in (f(0), f(8), f(4)))
 
 
-def make_board(seed: int) -> Board:
+def make_board(seed: int, len_mm: float | None = None) -> Board:
+    """Generera en bräda. ``len_mm`` överstyr längden (default RIG.board_len_mm) —
+    används av multihuvuds-simuleringen för en lång bräda (t.ex. 5400 mm)."""
     rng = np.random.default_rng(seed)
-    BL, BW, BT = RIG.board_len_mm, RIG.board_width_mm, RIG.board_thick_mm
+    BL = RIG.board_len_mm if len_mm is None else float(len_mm)
+    BW, BT = RIG.board_width_mm, RIG.board_thick_mm
     w, h = int(BL * PX_PER_MM), int(BW * PX_PER_MM)
     yy, xx = np.mgrid[0:h, 0:w]
     fx, fy = xx / w, yy / h

@@ -16,3 +16,7 @@ data/
 # render-artefakter (master GUI-smoke)
 master_overview.png
 master_detail.png
+
+# multihuvuds-sim-render
+multihead_sim.png
+mh_*.png
