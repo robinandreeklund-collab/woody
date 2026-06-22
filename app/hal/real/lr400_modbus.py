@@ -88,9 +88,9 @@ class LR400ModbusLaser(PointLaserIF):
             return None
         try:
             if self._reg_kind == "input":
-                rr = self._client.read_input_registers(address=self._reg_addr, count=1, slave=self._unit)
+                rr = self._client.read_input_registers(address=self._reg_addr, count=1, device_id=self._unit)
             else:
-                rr = self._client.read_holding_registers(address=self._reg_addr, count=1, slave=self._unit)
+                rr = self._client.read_holding_registers(address=self._reg_addr, count=1, device_id=self._unit)
             if rr is None or rr.isError() or not getattr(rr, "registers", None):
                 return None
             return rr.registers[0] * self._scale

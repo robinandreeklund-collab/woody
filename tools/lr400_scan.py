@@ -45,9 +45,9 @@ def main() -> int:
             for addr in range(args.start, args.start + args.count):
                 try:
                     if kind == "input":
-                        rr = client.read_input_registers(address=addr, count=1, slave=args.unit)
+                        rr = client.read_input_registers(address=addr, count=1, device_id=args.unit)
                     else:
-                        rr = client.read_holding_registers(address=addr, count=1, slave=args.unit)
+                        rr = client.read_holding_registers(address=addr, count=1, device_id=args.unit)
                     if rr is None or rr.isError() or not getattr(rr, "registers", None):
                         continue
                     raw = rr.registers[0]
