@@ -1,13 +1,15 @@
 """Persistent LR400-config + nollreferenser (``data/lr400.json``).
 
 3× LR400 punktlaser läses över RS-485 Modbus via **Waveshare USB TO 4CH RS485**
-(industriell, FT4232-baserad) → 4 SEPARATA serieportar (`/dev/ttyUSB0..3`), en
-RS485-buss per port. Varje LR400 sitter ensam på sin port, så samma slav-adress
-(unit=1) men OLIKA ``port``. Per-kanal ``port`` + ``unit`` täcker även en delad-buss-
-topologi om man hellre kedjar dem. Två saker som varierar och hör hemma i fil:
+(WCH CH9344, USB-id ``1a86:55d5``) → 4 SEPARATA serieportar. Chipet ger CDC-ACM,
+dvs portarna heter ``/dev/ttyACM*`` (INTE ttyUSB). En RS485-buss per port; varje
+LR400 sitter ensam på sin port → samma slav-adress (unit=1) men OLIKA ``port``.
+Per-kanal ``port`` + ``unit`` täcker även en delad-buss-topologi om man hellre
+kedjar dem. Två saker som varierar och hör hemma i fil:
 
-  * **Port-mappning:** vilken fysisk RS485-1/2/3 → vilken ttyUSB (ordningen kan
-    behöva verifieras; FT4232 ger stabila men inte alltid 1:1-numrerade portar).
+  * **Port-mappning:** bind via stabil ``/dev/serial/by-id/…``-sökväg, INTE
+    ``ttyACM0``-numret — RoboClawen enumererar också som ttyACM och kan förskjuta
+    numreringen. CH9344:s fyra kanaler = interface ``if00/if02/if04/if06``.
   * **Register-karta:** vilket Modbus-register som håller avståndet + skala är
     sensor-specifikt (verifiera mot LR400-databladet / ``tools/lr400_scan.py``).
 
@@ -22,14 +24,18 @@ from pathlib import Path
 DEFAULT_PATH = Path("data/lr400.json")
 
 # Säkra defaults: Waveshare 4CH ger 4 EGNA portar → en LR400 per port, unit=1.
-# Verifiera port↔kanal-ordningen vid idrifttagning. reg_addr/scale mot databladet.
+# Bind via stabil by-id-sökväg (CH9344 if00/if02/if04). Serienr-delen i sökvägen
+# (BD650CABCD) är unik per Waveshare-kort — verifierad mot riggen vid idrifttagning.
+# Verifiera V/C/H↔kanal-ordningen vid idrifttagning. reg_addr/scale mot databladet.
+_BYID = "/dev/serial/by-id/usb-WCH.CN_USB_Quad_Serial_BD650CABCD-if{:02d}"
+
 def _ch(port: str) -> dict:
     return {"port": port, "unit": 1, "baud": 9600,
             "reg_addr": 0, "reg_kind": "holding", "scale": 0.01,  # register → mm
             "d0_mm": 100.0}
 
-DEFAULTS: dict = {"ch1": _ch("/dev/ttyUSB0"), "ch2": _ch("/dev/ttyUSB1"),
-                  "ch3": _ch("/dev/ttyUSB2")}
+DEFAULTS: dict = {"ch1": _ch(_BYID.format(0)), "ch2": _ch(_BYID.format(2)),
+                  "ch3": _ch(_BYID.format(4))}
 
 
 def load(path: str | Path = DEFAULT_PATH) -> dict:
