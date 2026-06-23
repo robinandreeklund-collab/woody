@@ -126,7 +126,11 @@ class PhotocellInput(Device):
 
     def open(self) -> None:
         g = _gpio()
-        g.setup(self._pin, g.IN)              # NPN open collector → extern/intern pull-up
+        # NPN open-collector (LSZ-S30N1): drar bara till 0 V, kan ALDRIG källa 24 V.
+        # Intern pull-up till 3,3 V håller det öppna läget (inget objekt) på 3,3 V →
+        # ren tretrådskoppling utan externt motstånd, pin ser bara 0↔3,3 V. Databladets
+        # "spök-24 V" är högohmig mätartefakt och kollapsar under pull-upen.
+        g.setup(self._pin, g.IN, pull_up_down=g.PUD_UP)
         self._connected = True
 
     def read(self) -> bool:
