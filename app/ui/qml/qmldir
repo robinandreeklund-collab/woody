@@ -1,4 +1,6 @@
 singleton Theme 1.0 Theme.qml
+singleton RigCal 1.0 RigCal.qml
+CamView3D 1.0 CamView3D.qml
 Card 1.0 Card.qml
 Btn 1.0 Btn.qml
 Kpi 1.0 Kpi.qml

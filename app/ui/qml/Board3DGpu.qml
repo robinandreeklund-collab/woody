@@ -36,15 +36,15 @@ Item {
     // förankrat mot meshen: bandyta rig-Y≈75, linjekam rig-Z≈73, din måttkedja
     // (anhåll→+339,4 linjekam) → anhåll rig-Z≈−266; belt-X-centrum rig≈310.
     // scene = rig + rigOffset(−277,−469,323): X 33, Y −385 (band), Z 57.
-    property vector3d boardPos: Qt.vector3d(22, -391, 57)   // X/Y kalibrerat (Z används ej, se anhallZ)
+    property vector3d boardPos: Qt.vector3d(RigCal.boardX, RigCal.boardY, 57)   // X/Y kalibrerat (Z används ej, se anhallZ)
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
     // ANKARE = anhållet (din korrekta brädladdnings-Z). Lasrarna kommer från sidan
     // i vinkel (profil 25° / laser 50°) och konvergerar PÅ bandet — laser-centrum är
     // en punkt på ytan, 299,4 mm från anhållet (inget huvud rakt ovanför).
     // Allt härleds längs matningsriktningen feedDir: anhåll(0) → 129,4 LR400 →
     // 299,4 laser → 339,4 linjekamera.
-    property real anhallZ: 360           // ← din korrekta anhålls-Z (kalibreras i GUI)
-    property real feedDir: -1            // matningsriktning; flippa i GUI vid behov
+    property real anhallZ: RigCal.anhallZ   // ← din korrekta anhålls-Z (kalibreras i GUI, delas via RigCal)
+    property real feedDir: RigCal.feedDir   // matningsriktning; flippa i GUI vid behov
     property real lr400Z:   anhallZ + feedDir * 129.404
     property real laserZ:   anhallZ + feedDir * 299.404   // laser-centrum på bandet
     property real lineCamZ: anhallZ + feedDir * 339.404
@@ -64,7 +64,7 @@ Item {
     // KONVERGENS 35 mm ö. bandet (vald för 15–50 mm). På en bräda tunnare än 35 mm
     // korsas lasrarna OVANFÖR ytan → röd/grön landar SEPARERADE (parallax), inte på
     // varandra. Parallax på brädytan = (konvergenshöjd − brädtopp)·tan50°.
-    property real boardThick: 20                 // brädtjocklek (mm) — styr parallaxen
+    property real boardThick: RigCal.boardThick  // brädtjocklek (mm) — styr parallaxen
     property real convergeAboveBelt: 35          // laserkonvergens ö. bandet (LÅST)
     readonly property real _beltY: boardTopY - boardThick
     readonly property real _convY: _beltY + convergeAboveBelt
@@ -346,13 +346,14 @@ Item {
         root.yaw = y; root.pitch = p; root.dist = d; root.fov = (f === undefined ? 38 : f);
     }
     // brädjustering (kalibrering): Z=matning (flyttar hela sensorkedjan), X=bredd, Y=höjd
+    // skriver till RigCal (delad sanningskälla) → både tvillingen OCH kameravyern följer.
     function nudge(axis, d) {
-        if (axis === "z") root.anhallZ += d;        // flyttar anhållet → hela kedjan följer
-        else if (axis === "x") root.boardPos = Qt.vector3d(root.boardPos.x + d, root.boardPos.y, root.boardPos.z);
-        else if (axis === "y") root.boardPos = Qt.vector3d(root.boardPos.x, root.boardPos.y + d, root.boardPos.z);
+        if (axis === "z") RigCal.anhallZ += d;       // flyttar anhållet → hela kedjan följer
+        else if (axis === "x") RigCal.boardX += d;
+        else if (axis === "y") RigCal.boardY += d;
     }
     function axisVal(axis) {
-        return axis === "z" ? root.anhallZ : (axis === "x" ? root.boardPos.x : root.boardPos.y);
+        return axis === "z" ? RigCal.anhallZ : (axis === "x" ? RigCal.boardX : RigCal.boardY);
     }
     // var laserplanet (sign +1 röd / −1 grön) träffar ytan: ovansida, lodrät kant, eller band.
     // Plan: Z = laserZ + sign·(Y − convY)·tanArm. Ocklusion: varje huvud ser bara sin närkant.
@@ -532,7 +533,7 @@ Item {
                 Rectangle { width: 122; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
                     Text { anchors.centerIn: parent; color: Theme.amber; font.pixelSize: 10
                            text: root.feedDir > 0 ? "anhåll → fram" : "fram → anhåll" }
-                    MouseArea { anchors.fill: parent; onClicked: root.feedDir = -root.feedDir } }
+                    MouseArea { anchors.fill: parent; onClicked: RigCal.feedDir = -RigCal.feedDir } }
             }
             Text { color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono
                    text: "anhåll @ " + root.anhallZ.toFixed(0) + " · LR400 @ " + root.lr400Z.toFixed(0)

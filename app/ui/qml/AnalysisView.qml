@@ -14,20 +14,34 @@ ColumnLayout {
                     ["GRÖN · MV-CS050 mono · 520 nm", "cam_green", Theme.grn],
                     ["Linjekamera · HT-GELM44C 4K",   "cam_line",  Theme.blue]]
             delegate: Card {
+                id: camCard
                 Layout.fillWidth: true; Layout.fillHeight: true
                 title: modelData[0]; chipColor: modelData[2]
                 chip: ctrl.modeText === "REAL" ? "● LIVE" : "DEMO"
+                property int camKind: index
+                property string camName: modelData[1]
+                property bool q3d: typeof quick3dAvailable !== "undefined" && quick3dAvailable
                 Rectangle {
                     anchors.fill: parent; radius: 8; color: "#05080c"; clip: true
-                    Image {
+                    // ÄKTA renderad kameravy (scenen sedd från kamerans pose + lins-FOV).
+                    // Faller tillbaka till bild-providern i mjukvaruläge (utan Quick3D).
+                    Loader {
                         anchors.fill: parent; anchors.margins: 2
-                        fillMode: Image.PreserveAspectFit; smooth: true
-                        cache: false; asynchronous: false
-                        source: "image://live/" + modelData[1] + "/" + ctrl.camRev
+                        active: camCard.q3d
+                        sourceComponent: Component { CamView3D { camKind: camCard.camKind } }
                     }
-                    Text {
-                        anchors.centerIn: parent; visible: ctrl.camRev === 0
-                        text: "väntar på skanning…"; color: Theme.ink3; font.pixelSize: 11; font.italic: true
+                    Item {
+                        anchors.fill: parent; anchors.margins: 2; visible: !camCard.q3d
+                        Image {
+                            anchors.fill: parent
+                            fillMode: Image.PreserveAspectFit; smooth: true
+                            cache: false; asynchronous: false
+                            source: "image://live/" + camName + "/" + ctrl.camRev
+                        }
+                        Text {
+                            anchors.centerIn: parent; visible: ctrl.camRev === 0
+                            text: "väntar på skanning…"; color: Theme.ink3; font.pixelSize: 11; font.italic: true
+                        }
                     }
                 }
             }
