@@ -110,16 +110,7 @@ Item {
                 id: pitchNode
                 eulerRotation.x: root.pitch
 
-                // reflektionssond → reflekterande golv speglar riggen (bara i tvillingvyn)
-                ReflectionProbe {
-                    visible: root.showRig
-                    position: Qt.vector3d(33, -250, 80)
-                    boxSize: Qt.vector3d(1700, 1300, 1700)
-                    quality: ReflectionProbe.Medium
-                    refreshMode: ReflectionProbe.EveryFrame
-                    timeSlicing: ReflectionProbe.IndividualFaces
-                }
-                // golv — grundar riggen, tar emot slagskuggor + speglar mjukt
+                // golv — grundar riggen och tar emot slagskuggor (matt → mörknar ej)
                 Model {
                     visible: root.showRig
                     source: "#Rectangle"
@@ -127,13 +118,14 @@ Item {
                     position: Qt.vector3d(33, -458, 0)
                     scale: Qt.vector3d(30, 30, 1)
                     castsShadows: false; receivesShadows: true
-                    materials: PrincipledMaterial { baseColor: "#2b323c"; roughness: 0.55; metalness: 0.25 }
+                    materials: PrincipledMaterial { baseColor: "#39414c"; roughness: 0.8; metalness: 0.0 }
                 }
 
-                // när tvillingen visas läggs brädan platt på bandet vid anhållet;
-                // annars i origo upprätt (vanlig analysvy)
+                // scannad bräd-mesh: visas i analysvyn (dölj i tvillingen — där visas
+                // i stället en statisk referensbräda vid anhållet, se nedan)
                 Node {
                     id: boardAlign
+                    visible: !root.showRig
                     position: root.showRig ? Qt.vector3d(root.boardPos.x, root.boardPos.y, root.boardFeedZ)
                                            : Qt.vector3d(0, 0, 0)
                     eulerRotation: root.showRig ? root.boardEuler : Qt.vector3d(0, 0, 0)
@@ -162,8 +154,20 @@ Item {
                     }
                 }
 
+                // STATISK referensbräda vid anhållet (bräda laddad / fotocell triggad)
+                // — stabilt kalibreringsmål: rikta laser/sensorer mot denna. 500×75×20 mm.
+                // Flyttas med anhallZ → kalibrera så den sitter mot anhållet.
+                Model {
+                    visible: root.showRig
+                    source: "#Cube"
+                    position: Qt.vector3d(root.boardPos.x, root.boardPos.y, root.anhallZ)
+                    scale: Qt.vector3d(5.0, 0.20, 0.75)    // X 500 (längd) · Y 20 (tjock) · Z 75 (matning)
+                    castsShadows: true; receivesShadows: true
+                    materials: PrincipledMaterial { baseColor: "#c9a468"; roughness: 0.72; metalness: 0.0 }
+                }
+
                 // RÖD + GRÖN laserlinje vid laserplanet (laser-"gardin" tvärs bandet).
-                // Alltid synlig i tvillingvyn; brädan matas under den.
+                // Alltid synlig i tvillingvyn; vid anhållet ligger den 299,4 mm framför brädan.
                 Node {
                     visible: root.showRig
                     position: Qt.vector3d(root.boardPos.x, root.boardTopY, root.laserZ)

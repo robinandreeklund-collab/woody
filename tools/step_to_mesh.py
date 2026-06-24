@@ -64,11 +64,11 @@ def to_glb(stl_path: str, glb_path: str, target_faces: int) -> None:
         except Exception as exc:
             print(f"decimering hoppad ({exc}) — exporterar full mesh")
     m.merge_vertices()
-    # mörkt anodiserat metall (rigg) — svart-grått men metalliskt → fångar dagrar,
-    # syns som riktig alu-profil i stället för platt silhuett
+    # matt mörk-grå (rigg) — låg metallic → syns under direktljus utan IBL-miljö
+    # (metalliska ytor blir svarta utan omgivning att spegla)
     from trimesh.visual.material import PBRMaterial
-    mat = PBRMaterial(name="rig_metal", baseColorFactor=[44, 48, 54, 255],
-                      metallicFactor=0.75, roughnessFactor=0.42)
+    mat = PBRMaterial(name="rig_matte", baseColorFactor=[72, 78, 86, 255],
+                      metallicFactor=0.08, roughnessFactor=0.55)
     uv = np.zeros((len(m.vertices), 2), np.float32)
     m.visual = trimesh.visual.TextureVisuals(uv=uv, material=mat)
     os.makedirs(os.path.dirname(os.path.abspath(glb_path)), exist_ok=True)
