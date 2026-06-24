@@ -80,7 +80,7 @@ Item {
             glowStrength: 0.9; glowIntensity: 0.95; glowBloom: 0.4
             glowQualityHigh: true; glowUseBicubicUpscale: true
             glowHDRMinimumValue: 1.05; glowHDRMaximumValue: 9.0; glowHDRScale: 2.2
-            vignetteEnabled: root.showRig; vignetteStrength: 0.32
+            vignetteEnabled: root.showRig; vignetteStrength: 0.16
         }
         PerspectiveCamera { id: cam; x: root.panX; y: root.panY; z: root.dist
             fieldOfView: 38; clipFar: 6000; clipNear: 1 }
@@ -88,13 +88,13 @@ Item {
         // nyckelljus med MJUKA slagskuggor + två fyllnadsljus + topp → ljus, läsbar scen
         DirectionalLight {
             eulerRotation.x: -42; eulerRotation.y: -38
-            brightness: 2.4 + ((root.showRig && root.scanActive) ? 0.6 : 0)   // LED-glöd
+            brightness: 3.1 + ((root.showRig && root.scanActive) ? 0.6 : 0)   // LED-glöd
             castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityVeryHigh
             shadowFactor: 22; shadowMapFar: 4000; shadowBias: 18; pcfFactor: 6
         }
-        DirectionalLight { eulerRotation.x: 18;  eulerRotation.y: 150; brightness: 1.1 }
-        DirectionalLight { eulerRotation.x: -10; eulerRotation.y: 55;  brightness: 0.8 }
-        DirectionalLight { eulerRotation.x: -85; eulerRotation.y: 0;   brightness: 0.5 }
+        DirectionalLight { eulerRotation.x: 18;  eulerRotation.y: 150; brightness: 1.5 }
+        DirectionalLight { eulerRotation.x: -10; eulerRotation.y: 55;  brightness: 1.1 }
+        DirectionalLight { eulerRotation.x: -85; eulerRotation.y: 0;   brightness: 0.7 }
         Texture { id: woodTex; source: root.texSource }
 
         // turntable: yaw kring världens vertikal, pitch kring den yaw-roterade horisontalen
@@ -122,7 +122,7 @@ Item {
                     position: Qt.vector3d(33, -458, 0)
                     scale: Qt.vector3d(30, 30, 1)
                     castsShadows: false; receivesShadows: true
-                    materials: PrincipledMaterial { baseColor: "#1b212a"; roughness: 0.38; metalness: 0.6 }
+                    materials: PrincipledMaterial { baseColor: "#2b323c"; roughness: 0.55; metalness: 0.25 }
                 }
 
                 // när tvillingen visas läggs brädan platt på bandet vid anhållet;
@@ -157,10 +157,10 @@ Item {
                     }
                 }
 
-                // RÖD + GRÖN laserlinje där lasern träffar brädan (FAST vid laserplanet;
-                // brädan matas under den). Glöder bara under skanning.
+                // RÖD + GRÖN laserlinje vid laserplanet (laser-"gardin" tvärs bandet).
+                // Alltid synlig i tvillingvyn; brädan matas under den.
                 Node {
-                    visible: root.showRig && root.scanActive
+                    visible: root.showRig
                     position: Qt.vector3d(root.boardPos.x, root.boardTopY, root.laserZ)
                     Model {                                   // RÖD 650 nm (HDR-emissiv → bloom)
                         source: "#Cube"; z: -3
@@ -243,8 +243,8 @@ Item {
         onPositionChanged: (e)=>{
             var dx = e.x-px, dy = e.y-py;
             if (Math.abs(dx) + Math.abs(dy) > 2) moved=true;
-            if (btn === Qt.LeftButton) {                          // vänster = rotera
-                root.yaw += dx*0.35; root.pitch += dy*0.35;
+            if (btn === Qt.LeftButton) {                          // vänster = rotera (grabb-känsla)
+                root.yaw -= dx*0.35; root.pitch -= dy*0.35;
                 root.pitch = Math.max(-89, Math.min(25, root.pitch));
             } else {                                              // höger/mitt = panorera
                 var k = root.dist / 700;                          // skala med zoom
