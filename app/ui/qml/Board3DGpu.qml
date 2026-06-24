@@ -187,6 +187,26 @@ Item {
                     }
                 }
 
+                // LINJEKAMERANS plan (blå linje) — 40 mm bortom lasern (339,4 från anhåll)
+                Node {
+                    visible: root.showRig
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + 1, root.lineCamZ)
+                    Model { source: "#Cube"; scale: Qt.vector3d(5.0, 0.04, 0.04)
+                        materials: PrincipledMaterial { baseColor: "#08121f"
+                            emissiveFactor: Qt.vector3d(0.2, 0.5, 1.3) } }
+                }
+                // LR400-punkter (3 cyan) vid LR-planet — 129,4 från anhåll (uppströms)
+                Repeater3D {
+                    model: root.showRig && (typeof ctrl !== 'undefined' && ctrl) ? ctrl.lrPositions : []
+                    Model {
+                        source: "#Sphere"
+                        scale: Qt.vector3d(0.09, 0.09, 0.09)
+                        position: Qt.vector3d(root.boardPos.x - 250 + modelData, root.boardTopY + 5, root.lr400Z)
+                        materials: PrincipledMaterial { baseColor: "#06201f"
+                            emissiveFactor: Qt.vector3d(0.15, 1.4, 1.5) }
+                    }
+                }
+
                 // vita LED-lister (×2) — glöder när vitljuset är på (skanning)
                 Node {
                     visible: root.showRig && root.scanActive
