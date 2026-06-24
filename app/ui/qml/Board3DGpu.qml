@@ -81,8 +81,8 @@ Item {
             clearColor: Theme.bg; backgroundMode: SceneEnvironment.Color
             antialiasingMode: SceneEnvironment.MSAA; antialiasingQuality: SceneEnvironment.High
             tonemapMode: SceneEnvironment.TonemapModeFilmic       // mjukare högdagrar
-            aoStrength: 45; aoDistance: 55; aoSoftness: 28        // SSAO → djup (lättare)
-            aoSampleRate: 2
+            aoStrength: 60; aoDistance: 55; aoSoftness: 28        // SSAO → djup (RTX-desktop)
+            aoSampleRate: 4
             // glow ENDAST på mycket starka emissiva ytor (lasern) → ingen scen-dis.
             // Hög HDR-tröskel så bakgrund/rigg inte blommar; ingen bred bloom.
             glowEnabled: root.showRig
@@ -98,8 +98,8 @@ Item {
         DirectionalLight {
             eulerRotation.x: -42; eulerRotation.y: -38
             brightness: 2.3 + ((root.showRig && root.scanActive) ? 0.5 : 0)   // LED-glöd
-            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityHigh
-            shadowFactor: 20; shadowMapFar: 3500; shadowBias: 18; pcfFactor: 3
+            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityVeryHigh
+            shadowFactor: 20; shadowMapFar: 4000; shadowBias: 18; pcfFactor: 8
         }
         DirectionalLight { eulerRotation.x: 18;  eulerRotation.y: 150; brightness: 1.0 }
         DirectionalLight { eulerRotation.x: -10; eulerRotation.y: 55;  brightness: 0.7 }
