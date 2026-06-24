@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick3D
+import QtQuick3D.AssetUtils
 import Woody3D
 
 // GPU-renderad 3D (Qt Quick 3D): ljus, MSAA, UV-foto-textur, mätverktyg.
@@ -16,6 +17,15 @@ Item {
     property bool measure: false
     property var measurePts: []         // modell-koordinater (mm)
     property real measureDist: -1
+
+    // digital tvilling: riggens CAD (step/Rig.step → assets/rig.glb)
+    property bool showRig: false
+    property url rigUrl: Qt.resolvedUrl("../assets/rig.glb")
+    // align rig-frame → bräd-frame (mm). Default: centrera bbox i origo; finjusteras
+    // med ögat (säg till så tonar jag in brädan på bandet). bbox-center ≈ (277,469,-323).
+    property vector3d rigOffset: Qt.vector3d(-277, -469, 323)
+    property vector3d rigEuler: Qt.vector3d(0, 0, 0)
+    property real rigScale: 1.0
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
     property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
@@ -63,6 +73,19 @@ Item {
                         position: modelData
                         materials: PrincipledMaterial { baseColor: Theme.cyan
                             emissiveFactor: Qt.vector3d(0.7,0.7,0.7) } }
+                }
+
+                // digital tvilling: hela riggen (CAD) orbitar med brädan
+                Node {
+                    id: rigAlign
+                    visible: root.showRig
+                    position: root.rigOffset
+                    eulerRotation: root.rigEuler
+                    scale: Qt.vector3d(root.rigScale, root.rigScale, root.rigScale)
+                    RuntimeLoader {
+                        // laddas först när tvillingen slås på (håller startup lätt)
+                        source: root.showRig ? root.rigUrl : ""
+                    }
                 }
             }
         }
@@ -123,6 +146,15 @@ Item {
             color: root.spin ? Theme.teal : Theme.panel2; border.color: root.spin ? "transparent" : Theme.line
             Text { id: st; anchors.centerIn: parent; text: "↻ Snurr"; color: root.spin ? "#04222a" : Theme.ink2; font.pixelSize: 10; font.weight: Font.DemiBold }
             MouseArea { anchors.fill: parent; onClicked: root.spin=!root.spin }
+        }
+        Rectangle {
+            radius: 7; implicitHeight: 24; implicitWidth: rgt.width+18
+            color: root.showRig ? Theme.violet : Theme.panel2; border.color: root.showRig ? "transparent" : Theme.line
+            Text { id: rgt; anchors.centerIn: parent; text: "⌂ Rigg"; color: root.showRig ? "#fff" : Theme.ink2; font.pixelSize: 10; font.weight: Font.DemiBold }
+            MouseArea { anchors.fill: parent; onClicked: {
+                root.showRig = !root.showRig
+                if (root.showRig && root.dist < 1700) root.dist = 1700   // rama in hela riggen
+            } }
         }
     }
 
