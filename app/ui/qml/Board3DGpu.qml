@@ -17,6 +17,7 @@ Item {
     property real dist: 820
     property real panX: 0
     property real panY: 0
+    property real fov: 38            // vidvinkel; vy-knappar sätter smal (~platt/ortografisk)
     property bool measure: false
     property var measurePts: []         // modell-koordinater (mm)
     property real measureDist: -1
@@ -39,8 +40,8 @@ Item {
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
     // ALLT härleds ur anhållet (nollpunkt) + din måttkedja, längs matningsriktningen
     // feedDir (1mm rig = 1 scen-enhet): anhåll(0) → +129,4 LR400 → +299,4 LASER → +339,4 linjekam.
-    property real anhallZ: 57            // brädans START vid anhållet (scen-Z) — flytta vid behov
-    property real feedDir: 1             // matningsriktning (+1/−1); flippa om brädan går fel håll
+    property real anhallZ: 317           // brädans START vid anhållet (scen-Z) — finjustera i GUI
+    property real feedDir: -1            // matningsriktning (fram→anhåll); flippa i GUI vid behov
     property real lr400Z:   anhallZ + feedDir * 129.404
     property real laserZ:   anhallZ + feedDir * 299.404      // laser CENTRUM (129,404 + 170)
     property real lineCamZ: anhallZ + feedDir * 339.404      // linjekamerans centrum (+40)
@@ -89,7 +90,7 @@ Item {
             vignetteEnabled: false
         }
         PerspectiveCamera { id: cam; x: root.panX; y: root.panY; z: root.dist
-            fieldOfView: 38; clipFar: 6000; clipNear: 1 }
+            fieldOfView: root.fov; clipFar: 30000; clipNear: 1 }
         // nyckelljus med mjuka slagskuggor (grundar riggen) + fyllnad + motljus
         // nyckelljus med MJUKA slagskuggor + två fyllnadsljus + topp → ljus, läsbar scen
         DirectionalLight {
@@ -227,14 +228,15 @@ Item {
 
     // återställ kameran till standardvyn (rigg- eller bräd-läge)
     function resetView() {
-        root.panX = 0; root.panY = 0; root.spin = false;
+        root.panX = 0; root.panY = 0; root.spin = false; root.fov = 38;
         if (root.showRig) { root.yaw = 254; root.pitch = -2;  root.dist = 2034; }
         else              { root.yaw = -28; root.pitch = -62; root.dist = 820; }
     }
-    // fast vy (vy-knappar): nollställ panorering + sätt vinkel/avstånd
-    function setView(y, p, d) {
+    // fast vy (vy-knappar): nollställ panorering + sätt vinkel/avstånd/vidvinkel.
+    // Liten fov (~5°) + stort avstånd ≈ ortografisk → spikrak, platt CAD-vy.
+    function setView(y, p, d, f) {
         root.spin = false; root.panX = 0; root.panY = 0;
-        root.yaw = y; root.pitch = p; root.dist = d;
+        root.yaw = y; root.pitch = p; root.dist = d; root.fov = (f === undefined ? 38 : f);
     }
     // brädjustering (kalibrering): Z=matning (flyttar hela sensorkedjan), X=bredd, Y=höjd
     function nudge(axis, d) {
@@ -279,7 +281,7 @@ Item {
         onReleased: (e)=>{ if (!moved && btn === Qt.LeftButton) root.clickAt(e.x, e.y) }
         onWheel: (e)=>{
             var nd = Math.max(150, Math.min(4000, root.dist * (e.angleDelta.y>0 ? 0.88 : 1.14)));
-            var k = 2*Math.tan(38*Math.PI/360)/height;     // världsenheter/px per dist-enhet
+            var k = 2*Math.tan(root.fov*Math.PI/360)/height;   // världsenheter/px per dist-enhet
             root.panX += (e.x - width/2)  * k * (root.dist - nd);   // zooma mot pekaren
             root.panY -= (e.y - height/2) * k * (root.dist - nd);
             root.dist = nd;
@@ -318,7 +320,7 @@ Item {
             Text { id: rgt; anchors.centerIn: parent; text: "⌂ Rigg"; color: root.showRig ? "#fff" : Theme.ink2; font.pixelSize: 10; font.weight: Font.DemiBold }
             MouseArea { anchors.fill: parent; onClicked: {
                 root.showRig = !root.showRig
-                root.panX = 0; root.panY = 0                            // nollställ panorering
+                root.panX = 0; root.panY = 0; root.fov = 38             // nollställ panorering + vidvinkel
                 if (root.showRig) {
                     root.yaw = 254; root.pitch = -2; root.dist = 2034   // inställd tvillingvy
                 } else {
@@ -356,12 +358,16 @@ Item {
         anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; anchors.leftMargin: 10
         spacing: 5
         Repeater {
-            model: [["3D",254,-2,2034],["Sida",90,-4,2000],["Fram",2,-4,2000],["Ovan",0,-89,2300]]
+            // namn, yaw, pitch, avstånd, fov  (platta vyer: liten fov + stort avstånd)
+            model: [["3D",   254, -2,  2034, 38],
+                    ["Sida",  90,  0, 14000,  5],
+                    ["Fram",   0,  0, 14000,  5],
+                    ["Ovan",   0, -90, 14000, 5]]
             delegate: Rectangle {
                 width: 66; height: 26; radius: 7; color: Theme.panel2; border.color: Theme.line
                 Text { anchors.centerIn: parent; text: modelData[0]; color: Theme.ink2; font.pixelSize: 11; font.weight: Font.DemiBold }
                 MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                    onClicked: root.setView(modelData[1], modelData[2], modelData[3]) }
+                    onClicked: root.setView(modelData[1], modelData[2], modelData[3], modelData[4]) }
             }
         }
     }
@@ -378,17 +384,23 @@ Item {
             Repeater {
                 model: [["Z matning","z",10],["X bredd","x",10],["Höjd Y","y",5]]
                 delegate: Row {
-                    spacing: 6
-                    Text { text: modelData[0]; color: Theme.ink2; font.pixelSize: 10; width: 58
+                    spacing: 3
+                    Text { text: modelData[0]; color: Theme.ink2; font.pixelSize: 10; width: 54
                            anchors.verticalCenter: parent.verticalCenter }
-                    Rectangle { width: 22; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
-                        Text { anchors.centerIn: parent; text: "−"; color: Theme.cyan; font.pixelSize: 14 }
+                    Rectangle { width: 24; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                        Text { anchors.centerIn: parent; text: "−" + modelData[2]; color: Theme.cyan; font.pixelSize: 9 }
                         MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], -modelData[2]) } }
-                    Text { width: 50; horizontalAlignment: Text.AlignHCenter; color: Theme.cyan
+                    Rectangle { width: 18; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                        Text { anchors.centerIn: parent; text: "−"; color: Theme.cyan; font.pixelSize: 13 }
+                        MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], -1) } }
+                    Text { width: 46; horizontalAlignment: Text.AlignHCenter; color: Theme.cyan
                            font.family: Theme.mono; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter
                            text: root.axisVal(modelData[1]).toFixed(0) }
-                    Rectangle { width: 22; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
-                        Text { anchors.centerIn: parent; text: "+"; color: Theme.cyan; font.pixelSize: 14 }
+                    Rectangle { width: 18; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                        Text { anchors.centerIn: parent; text: "+"; color: Theme.cyan; font.pixelSize: 13 }
+                        MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], 1) } }
+                    Rectangle { width: 24; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                        Text { anchors.centerIn: parent; text: "+" + modelData[2]; color: Theme.cyan; font.pixelSize: 9 }
                         MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], modelData[2]) } }
                 }
             }
