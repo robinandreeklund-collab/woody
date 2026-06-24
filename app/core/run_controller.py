@@ -215,12 +215,16 @@ class AppController(QObject):
         try:
             img = sc.surface.surface_image()
             if img is not None and getattr(img, "size", 0):
-                # linjekameran BYGGER bilden rad-för-rad i realtid: visa bara de rader
-                # som hunnit passera (resten svart), precis som en line-scan gör.
+                # linjekameran BYGGER bilden rad-för-rad i realtid OCH först NÄR brädan
+                # når kameran i tvillingen. Brädan glider anhåll→fram; den korsar
+                # linjekameran i fönstret ~0.68→0.87 av glidet (ur tvillingens kalibrering
+                # anhåll 360, lineCam −339,4). Innan dess: svart (board ej framme än).
                 prog = min(1.0, self._s.feed_pos_mm / RIG.board_width_mm)
-                rows = max(1, int(prog * img.shape[0]))
+                fill = max(0.0, min(1.0, (prog - 0.68) / 0.19))
+                rows = int(fill * img.shape[0])
                 built = np.zeros_like(img)
-                built[:rows] = img[:rows]
+                if rows > 0:
+                    built[:rows] = img[:rows]
                 self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
         except Exception:
             pass

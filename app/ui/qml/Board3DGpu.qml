@@ -236,9 +236,9 @@ Item {
                     position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
                                           root.laserZ + root._laserZoff/2)
                     eulerRotation.x: root.laserArmDeg
-                    scale: Qt.vector3d(root._fanBaseW/100, root._laserBeam/100, 0.02)  // 45° Powell-fan, längd WD
+                    scale: Qt.vector3d(root._fanBaseW/100, -root._laserBeam/100, 0.02)  // 45° Powell, spets vid diod
                     materials: PrincipledMaterial { baseColor: "#ff1828"
-                        alphaMode: PrincipledMaterial.Blend
+                        alphaMode: PrincipledMaterial.Blend; cullMode: Material.NoCulling
                         emissiveFactor: Qt.vector3d(1.3, 0.05, 0.06) }
                 }
                 Model {                                   // GRÖN-fan (520 nm Powell)
@@ -247,9 +247,9 @@ Item {
                     position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
                                           root.laserZ - root._laserZoff/2)
                     eulerRotation.x: -root.laserArmDeg
-                    scale: Qt.vector3d(root._fanBaseW/100, root._laserBeam/100, 0.02)
+                    scale: Qt.vector3d(root._fanBaseW/100, -root._laserBeam/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#18ff40"
-                        alphaMode: PrincipledMaterial.Blend
+                        alphaMode: PrincipledMaterial.Blend; cullMode: Material.NoCulling
                         emissiveFactor: Qt.vector3d(0.06, 1.3, 0.22) }
                 }
 
