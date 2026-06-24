@@ -233,8 +233,7 @@ Item {
                 Model {                                   // RÖD-fan (638 nm Powell)
                     visible: root.showRig
                     source: "#Cone"; opacity: 0.22; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
-                                          root.laserZ + root._laserZoff/2)
+                    position: Qt.vector3d(root.boardPos.x, root._convY, root.laserZ)  // bas vid konvergens
                     eulerRotation.x: root.laserArmDeg
                     scale: Qt.vector3d(root._fanBaseW/100, root._laserBeam/100, 0.02)   // 45° Powell-fan
                     materials: PrincipledMaterial { baseColor: "#ff1828"
@@ -244,8 +243,7 @@ Item {
                 Model {                                   // GRÖN-fan (520 nm Powell)
                     visible: root.showRig
                     source: "#Cone"; opacity: 0.22; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
-                                          root.laserZ - root._laserZoff/2)
+                    position: Qt.vector3d(root.boardPos.x, root._convY, root.laserZ)  // bas vid konvergens
                     eulerRotation.x: -root.laserArmDeg
                     scale: Qt.vector3d(root._fanBaseW/100, root._laserBeam/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#18ff40"
