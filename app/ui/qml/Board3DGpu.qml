@@ -26,6 +26,14 @@ Item {
     property vector3d rigOffset: Qt.vector3d(-277, -469, 323)
     property vector3d rigEuler: Qt.vector3d(0, 0, 0)
     property real rigScale: 1.0
+    // brädans placering PÅ bandet vid anhållet (rig-frame: Y=upp, X=bredd, Z=matning).
+    // aktiveras bara när tvillingen visas; annars ligger brädan i origo (vanlig vy).
+    // -90° runt X → brädan platt, längd (500) tvärs bandet, matning längs Z.
+    // förankrat mot meshen: bandyta rig-Y≈75, linjekam rig-Z≈73, din måttkedja
+    // (anhåll→+339,4 linjekam) → anhåll rig-Z≈−266; belt-X-centrum rig≈310.
+    // scene = rig + rigOffset(−277,−469,323): X 33, Y −385 (band), Z 57.
+    property vector3d boardPos: Qt.vector3d(33, -385, 57)
+    property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
     property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
@@ -56,14 +64,21 @@ Item {
                 id: pitchNode
                 eulerRotation.x: root.pitch
 
-                Model {
-                    id: board
-                    pickable: true
-                    geometry: BoardGeometry { id: geom; mode: root.mode; exaggeration: root.exag }
-                    materials: PrincipledMaterial {
-                        baseColor: "white"; vertexColorsEnabled: true
-                        baseColorMap: root.mode === 3 ? woodTex : null
-                        roughness: 0.82; metalness: 0.0; cullMode: Material.NoCulling
+                // när tvillingen visas läggs brädan platt på bandet vid anhållet;
+                // annars i origo upprätt (vanlig analysvy)
+                Node {
+                    id: boardAlign
+                    position: root.showRig ? root.boardPos : Qt.vector3d(0, 0, 0)
+                    eulerRotation: root.showRig ? root.boardEuler : Qt.vector3d(0, 0, 0)
+                    Model {
+                        id: board
+                        pickable: true
+                        geometry: BoardGeometry { id: geom; mode: root.mode; exaggeration: root.exag }
+                        materials: PrincipledMaterial {
+                            baseColor: "white"; vertexColorsEnabled: true
+                            baseColorMap: root.mode === 3 ? woodTex : null
+                            roughness: 0.82; metalness: 0.0; cullMode: Material.NoCulling
+                        }
                     }
                 }
                 // mät-markörer (roterar med brädan)
