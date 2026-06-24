@@ -64,9 +64,13 @@ def to_glb(stl_path: str, glb_path: str, target_faces: int) -> None:
         except Exception as exc:
             print(f"decimering hoppad ({exc}) — exporterar full mesh")
     m.merge_vertices()
-    # mörk färg (rigg-svart) bakad via vertex-färger → GLB COLOR_0 → Qt visar svart
-    m.visual = trimesh.visual.ColorVisuals(
-        mesh=m, vertex_colors=np.tile([26, 27, 30, 255], (len(m.vertices), 1)).astype(np.uint8))
+    # mörkt anodiserat metall (rigg) — svart-grått men metalliskt → fångar dagrar,
+    # syns som riktig alu-profil i stället för platt silhuett
+    from trimesh.visual.material import PBRMaterial
+    mat = PBRMaterial(name="rig_metal", baseColorFactor=[44, 48, 54, 255],
+                      metallicFactor=0.75, roughnessFactor=0.42)
+    uv = np.zeros((len(m.vertices), 2), np.float32)
+    m.visual = trimesh.visual.TextureVisuals(uv=uv, material=mat)
     os.makedirs(os.path.dirname(os.path.abspath(glb_path)), exist_ok=True)
     m.export(glb_path)
     print(f"GLB: {glb_path}  {os.path.getsize(glb_path)/1e6:.1f} MB")

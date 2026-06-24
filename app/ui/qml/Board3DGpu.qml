@@ -35,7 +35,10 @@ Item {
     property vector3d boardPos: Qt.vector3d(33, -385, 57)
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
     property real laserZ: 356            // laserplanet i scen-Z (rig-Z 33 + offset)
+    property real lineCamZ: 396          // linjekamerans centrum i scen-Z (rig-Z 73 + offset)
     property real boardTopY: -375        // brädans ovansida i scen-Y (på bandet)
+    property real anhallZ: -160          // brädans START vid bakre anhållet (scen-Z)
+    property real frontZ: 450            // främre vändläge — förbi linjekameran
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
@@ -45,7 +48,8 @@ Item {
     // bandet, förbi det fasta laserplanet. Kopplat till faktisk matningsposition →
     // glider även tillbaka mot anhållet i pass-lägets returfas.
     property real feedFrac: (typeof ctrl !== 'undefined' && ctrl) ? (ctrl.feedPos / 75) : 0
-    property real boardFeedZ: root.boardPos.z + root.feedFrac * 373   // anhåll → förbi lasern
+    // bakre anhållet → framåt förbi linjekameran (lång tydlig resa), sen åter i pass-retur
+    property real boardFeedZ: root.anhallZ + root.feedFrac * (root.frontZ - root.anhallZ)
     Behavior on boardFeedZ { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
@@ -69,14 +73,16 @@ Item {
         }
         PerspectiveCamera { id: cam; z: root.dist; fieldOfView: 38; clipFar: 6000; clipNear: 1 }
         // nyckelljus med mjuka slagskuggor (grundar riggen) + fyllnad + motljus
+        // nyckelljus med MJUKA slagskuggor + två fyllnadsljus + topp → ljus, läsbar scen
         DirectionalLight {
             eulerRotation.x: -42; eulerRotation.y: -38
-            brightness: 1.2 + ((root.showRig && root.scanActive) ? 0.35 : 0)   // LED-glöd
-            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityHigh
-            shadowFactor: 75; shadowMapFar: 4000; shadowBias: 12
+            brightness: 2.4 + ((root.showRig && root.scanActive) ? 0.6 : 0)   // LED-glöd
+            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityVeryHigh
+            shadowFactor: 22; shadowMapFar: 4000; shadowBias: 18; pcfFactor: 6
         }
-        DirectionalLight { eulerRotation.x: 22; eulerRotation.y: 150; brightness: 0.5 }
-        DirectionalLight { eulerRotation.x: -8; eulerRotation.y: 60;  brightness: 0.35 }
+        DirectionalLight { eulerRotation.x: 18;  eulerRotation.y: 150; brightness: 1.1 }
+        DirectionalLight { eulerRotation.x: -10; eulerRotation.y: 55;  brightness: 0.8 }
+        DirectionalLight { eulerRotation.x: -85; eulerRotation.y: 0;   brightness: 0.5 }
         Texture { id: woodTex; source: root.texSource }
 
         // turntable: yaw kring världens vertikal, pitch kring den yaw-roterade horisontalen
@@ -95,7 +101,7 @@ Item {
                     position: Qt.vector3d(33, -458, 0)
                     scale: Qt.vector3d(30, 30, 1)
                     castsShadows: false; receivesShadows: true
-                    materials: PrincipledMaterial { baseColor: "#11161c"; roughness: 0.95; metalness: 0.0 }
+                    materials: PrincipledMaterial { baseColor: "#262d37"; roughness: 0.9; metalness: 0.0 }
                 }
 
                 // när tvillingen visas läggs brädan platt på bandet vid anhållet;
