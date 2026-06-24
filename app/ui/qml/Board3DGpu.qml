@@ -169,8 +169,7 @@ Item {
             MouseArea { anchors.fill: parent; onClicked: {
                 root.showRig = !root.showRig
                 if (root.showRig) {
-                    root.dist = Math.max(root.dist, 1750)   // rama in hela riggen
-                    root.yaw = -32; root.pitch = -14        // riggen är Y-upp → nästan ögonhöjd
+                    root.yaw = 254; root.pitch = -2; root.dist = 2034   // inställd tvillingvy
                 } else {
                     root.dist = 820; root.yaw = -28; root.pitch = -62   // tillbaka till bräd-vy (uppifrån)
                 }
@@ -207,14 +206,4 @@ Item {
     }
     Text { anchors.bottom: parent.bottom; anchors.right: parent.right; anchors.margins: 8
            text: "dra = rotera · hjul = zoom"; color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
-
-    // vy-avläsning (endast när tvillingen visas) → läs upp siffrorna för exakt default-vy
-    Text {
-        visible: root.showRig
-        anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottomMargin: 8
-        text: "VY  yaw " + root.yaw.toFixed(0) + "°   pitch " + root.pitch.toFixed(0)
-              + "°   dist " + root.dist.toFixed(0)
-        color: Theme.amber; font.pixelSize: 11; font.family: Theme.mono; font.weight: Font.DemiBold
-    }
 }
