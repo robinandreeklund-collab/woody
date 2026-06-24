@@ -62,6 +62,7 @@ class AppController(QObject):
         self._tel_t: float = 0.0
         self._paint_t: float = 0.0    # senaste repaintTick (throttle)
         self._meas_t: float = 0.0     # senaste tunga sim-mätning (throttle → avlasta GUI-tråd)
+        self._state_t: float = 0.0    # senaste per-tick stateChanged (throttle ~33 Hz)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -105,7 +106,7 @@ class AppController(QObject):
             s.up_ms += dt * 1000
             self._tick_flow(dt)
             s.jetson_load += (s.load_target - s.jetson_load) * min(1.0, dt * 1.5)
-            self.stateChanged.emit()
+            self._emit_state_throttled(now)
             return
 
         if s.running:
@@ -174,7 +175,15 @@ class AppController(QObject):
                     self._mesh = self._build_mesh(b, self.scanProgress, full=False)
                     self._mesh_t = now
                     self.meshChanged.emit()
-        self.stateChanged.emit()
+        self._emit_state_throttled(now)
+
+    def _emit_state_throttled(self, now):
+        """Per-tick stateChanged throttlad till ~33 Hz → halverar QML-bindnings-
+        omräkningarna på Python-huvudtråden (mindre lagg). Händelsestyrda emits
+        (knappar, pass-byten) går direkt och påverkas ej."""
+        if now - self._state_t > 0.03:
+            self._state_t = now
+            self.stateChanged.emit()
 
     def _set_phase(self, p): self._s.phase = p
 
