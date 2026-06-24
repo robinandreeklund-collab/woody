@@ -225,30 +225,30 @@ Item {
                     materials: PrincipledMaterial { baseColor: "#222"
                         emissiveFactor: Qt.vector3d(1.0, 0.9, 0.3) } }
 
-                // LASER-RIDÅER (fans): RÖD från huvud +Z, GRÖN från huvud −Z, vinklade
-                // (laser-arm 50°) → konvergerar på laserlinjen. Halvgenomskinligt glödande
-                // sken i luften = simulerad ljusbild. Tänds under skanning.
-                Model {                                   // RÖD-ridå (650 nm)
+                // LASER-RIDÅER (Powell-fan, ~38°): TRIANGEL från diod-huvudet → 500 mm linje
+                // vid WD. Tillplattad kon (spets vid dioden, bas = linjen). RÖD +Z-huvud,
+                // GRÖN −Z-huvud, lutade 50°, korsas vid konvergensen 35 mm ö. bandet.
+                Model {                                   // RÖD-fan (638 nm Powell)
                     visible: root.showRig
-                    source: "#Cube"; opacity: 0.20; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root._fanCenterY,
-                                          root.laserZ + root._fanZmag)
+                    source: "#Cone"; opacity: 0.22; castsShadows: false
+                    position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
+                                          root.laserZ + root._laserZoff/2)
                     eulerRotation.x: root.laserArmDeg
-                    scale: Qt.vector3d(5.0, root._fanLen/100, 0.02)
+                    scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)   // bas 500 mm, längd WD, tunn
                     materials: PrincipledMaterial { baseColor: "#ff1828"
                         alphaMode: PrincipledMaterial.Blend
-                        emissiveFactor: Qt.vector3d(1.2, 0.05, 0.06) }
+                        emissiveFactor: Qt.vector3d(1.3, 0.05, 0.06) }
                 }
-                Model {                                   // GRÖN-ridå (520 nm)
+                Model {                                   // GRÖN-fan (520 nm Powell)
                     visible: root.showRig
-                    source: "#Cube"; opacity: 0.20; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root._fanCenterY,
-                                          root.laserZ - root._fanZmag)
+                    source: "#Cone"; opacity: 0.22; castsShadows: false
+                    position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
+                                          root.laserZ - root._laserZoff/2)
                     eulerRotation.x: -root.laserArmDeg
-                    scale: Qt.vector3d(5.0, root._fanLen/100, 0.02)
+                    scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#18ff40"
                         alphaMode: PrincipledMaterial.Blend
-                        emissiveFactor: Qt.vector3d(0.06, 1.2, 0.22) }
+                        emissiveFactor: Qt.vector3d(0.06, 1.3, 0.22) }
                 }
 
                 // PROFILKAMERORNAS siktlinjer (kamera-arm 25°): RÖD-huvud +Z, GRÖN-huvud −Z,

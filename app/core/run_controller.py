@@ -215,7 +215,13 @@ class AppController(QObject):
         try:
             img = sc.surface.surface_image()
             if img is not None and getattr(img, "size", 0):
-                self._surface_provider.set_array(np.ascontiguousarray(img), "cam_line")
+                # linjekameran BYGGER bilden rad-för-rad i realtid: visa bara de rader
+                # som hunnit passera (resten svart), precis som en line-scan gör.
+                prog = min(1.0, self._s.feed_pos_mm / RIG.board_width_mm)
+                rows = max(1, int(prog * img.shape[0]))
+                built = np.zeros_like(img)
+                built[:rows] = img[:rows]
+                self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
         except Exception:
             pass
         self._cam_rev += 1
