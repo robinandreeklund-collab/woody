@@ -41,11 +41,12 @@ Item {
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
     property real scanProg:   (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanProgress : 0
     property var  defectList: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.defects : []
-    // matning: brädan vilar vid anhållet; under skanning glider den genom laserplanet
-    // (sveper sin 75 mm-bredd förbi den fasta laserlinjen)
-    property real boardFeedZ: root.scanActive ? (root.laserZ - 37.5 + root.scanProg * 75)
-                                              : root.boardPos.z
-    Behavior on boardFeedZ { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
+    // matning: brädan vilar vid anhållet (feedPos 0) och glider tydligt framåt längs
+    // bandet, förbi det fasta laserplanet. Kopplat till faktisk matningsposition →
+    // glider även tillbaka mot anhållet i pass-lägets returfas.
+    property real feedFrac: (typeof ctrl !== 'undefined' && ctrl) ? (ctrl.feedPos / 75) : 0
+    property real boardFeedZ: root.boardPos.z + root.feedFrac * 373   // anhåll → förbi lasern
+    Behavior on boardFeedZ { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
     property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
@@ -62,11 +63,20 @@ Item {
         environment: SceneEnvironment {
             clearColor: Theme.bg; backgroundMode: SceneEnvironment.Color
             antialiasingMode: SceneEnvironment.MSAA; antialiasingQuality: SceneEnvironment.High
+            tonemapMode: SceneEnvironment.TonemapModeFilmic       // mjukare högdagrar
+            aoStrength: 70; aoDistance: 55; aoSoftness: 28        // SSAO → djup i ramen
+            aoSampleRate: 3
         }
         PerspectiveCamera { id: cam; z: root.dist; fieldOfView: 38; clipFar: 6000; clipNear: 1 }
-        DirectionalLight { eulerRotation.x: -38; eulerRotation.y: -35
-            brightness: 1.15 + ((root.showRig && root.scanActive) ? 0.35 : 0) }   // LED-glöd
-        DirectionalLight { eulerRotation.x: 30;  eulerRotation.y: 150; brightness: 0.45 }
+        // nyckelljus med mjuka slagskuggor (grundar riggen) + fyllnad + motljus
+        DirectionalLight {
+            eulerRotation.x: -42; eulerRotation.y: -38
+            brightness: 1.2 + ((root.showRig && root.scanActive) ? 0.35 : 0)   // LED-glöd
+            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityHigh
+            shadowFactor: 75; shadowMapFar: 4000; shadowBias: 12
+        }
+        DirectionalLight { eulerRotation.x: 22; eulerRotation.y: 150; brightness: 0.5 }
+        DirectionalLight { eulerRotation.x: -8; eulerRotation.y: 60;  brightness: 0.35 }
         Texture { id: woodTex; source: root.texSource }
 
         // turntable: yaw kring världens vertikal, pitch kring den yaw-roterade horisontalen
@@ -76,6 +86,17 @@ Item {
             Node {
                 id: pitchNode
                 eulerRotation.x: root.pitch
+
+                // golv — grundar riggen och tar emot slagskuggor (bara i tvillingvyn)
+                Model {
+                    visible: root.showRig
+                    source: "#Rectangle"
+                    eulerRotation.x: -90
+                    position: Qt.vector3d(33, -458, 0)
+                    scale: Qt.vector3d(30, 30, 1)
+                    castsShadows: false; receivesShadows: true
+                    materials: PrincipledMaterial { baseColor: "#11161c"; roughness: 0.95; metalness: 0.0 }
+                }
 
                 // när tvillingen visas läggs brädan platt på bandet vid anhållet;
                 // annars i origo upprätt (vanlig analysvy)
