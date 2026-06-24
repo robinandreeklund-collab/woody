@@ -544,6 +544,11 @@ class AppController(QObject):
     def scanProgress(self):
         return min(1.0, self._s.feed_pos_mm / RIG.board_width_mm)
 
+    @Property(bool, notify=stateChanged)
+    def scanActive(self):
+        """Skannar just nu → lasrar + LED tända (digital tvilling: glöd)."""
+        return self._s.running and self._s.phase in ("scanning", "flow")
+
     @Property(float, constant=True)
     def boardAspect(self): return RIG.board_aspect
 

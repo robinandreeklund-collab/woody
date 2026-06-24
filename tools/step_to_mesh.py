@@ -64,6 +64,9 @@ def to_glb(stl_path: str, glb_path: str, target_faces: int) -> None:
         except Exception as exc:
             print(f"decimering hoppad ({exc}) — exporterar full mesh")
     m.merge_vertices()
+    # mörk färg (rigg-svart) bakad via vertex-färger → GLB COLOR_0 → Qt visar svart
+    m.visual = trimesh.visual.ColorVisuals(
+        mesh=m, vertex_colors=np.tile([26, 27, 30, 255], (len(m.vertices), 1)).astype(np.uint8))
     os.makedirs(os.path.dirname(os.path.abspath(glb_path)), exist_ok=True)
     m.export(glb_path)
     print(f"GLB: {glb_path}  {os.path.getsize(glb_path)/1e6:.1f} MB")

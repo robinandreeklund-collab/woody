@@ -34,6 +34,18 @@ Item {
     // scene = rig + rigOffset(−277,−469,323): X 33, Y −385 (band), Z 57.
     property vector3d boardPos: Qt.vector3d(33, -385, 57)
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
+    property real laserZ: 356            // laserplanet i scen-Z (rig-Z 33 + offset)
+    property real boardTopY: -375        // brädans ovansida i scen-Y (på bandet)
+
+    // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
+    property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
+    property real scanProg:   (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanProgress : 0
+    property var  defectList: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.defects : []
+    // matning: brädan vilar vid anhållet; under skanning glider den genom laserplanet
+    // (sveper sin 75 mm-bredd förbi den fasta laserlinjen)
+    property real boardFeedZ: root.scanActive ? (root.laserZ - 37.5 + root.scanProg * 75)
+                                              : root.boardPos.z
+    Behavior on boardFeedZ { NumberAnimation { duration: 250; easing.type: Easing.InOutQuad } }
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
     property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
@@ -52,7 +64,8 @@ Item {
             antialiasingMode: SceneEnvironment.MSAA; antialiasingQuality: SceneEnvironment.High
         }
         PerspectiveCamera { id: cam; z: root.dist; fieldOfView: 38; clipFar: 6000; clipNear: 1 }
-        DirectionalLight { eulerRotation.x: -38; eulerRotation.y: -35; brightness: 1.15 }
+        DirectionalLight { eulerRotation.x: -38; eulerRotation.y: -35
+            brightness: 1.15 + ((root.showRig && root.scanActive) ? 0.35 : 0) }   // LED-glöd
         DirectionalLight { eulerRotation.x: 30;  eulerRotation.y: 150; brightness: 0.45 }
         Texture { id: woodTex; source: root.texSource }
 
@@ -68,7 +81,8 @@ Item {
                 // annars i origo upprätt (vanlig analysvy)
                 Node {
                     id: boardAlign
-                    position: root.showRig ? root.boardPos : Qt.vector3d(0, 0, 0)
+                    position: root.showRig ? Qt.vector3d(root.boardPos.x, root.boardPos.y, root.boardFeedZ)
+                                           : Qt.vector3d(0, 0, 0)
                     eulerRotation: root.showRig ? root.boardEuler : Qt.vector3d(0, 0, 0)
                     Model {
                         id: board
@@ -80,6 +94,50 @@ Item {
                             roughness: 0.82; metalness: 0.0; cullMode: Material.NoCulling
                         }
                     }
+                    // defekter som glödande markörer på brädans yta (följer med brädan)
+                    Repeater3D {
+                        model: root.showRig ? root.defectList : []
+                        Model {
+                            source: "#Sphere"
+                            scale: Qt.vector3d(0.10, 0.10, 0.10)
+                            position: Qt.vector3d(modelData.x - 250, modelData.y - 37.5, root.bthk / 2 + 3)
+                            materials: PrincipledMaterial {
+                                baseColor: modelData.color
+                                emissiveFactor: Qt.vector3d(0.9, 0.55, 0.12)
+                            }
+                        }
+                    }
+                }
+
+                // RÖD + GRÖN laserlinje där lasern träffar brädan (FAST vid laserplanet;
+                // brädan matas under den). Glöder bara under skanning.
+                Node {
+                    visible: root.showRig && root.scanActive
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY, root.laserZ)
+                    Model {                                   // RÖD 650 nm
+                        source: "#Cube"; z: -3
+                        scale: Qt.vector3d(5.0, 0.045, 0.05)
+                        materials: PrincipledMaterial { baseColor: "#1a0203"
+                            emissiveFactor: Qt.vector3d(1.0, 0.06, 0.07) }
+                    }
+                    Model {                                   // GRÖN 520 nm
+                        source: "#Cube"; z: 3
+                        scale: Qt.vector3d(5.0, 0.045, 0.05)
+                        materials: PrincipledMaterial { baseColor: "#021a08"
+                            emissiveFactor: Qt.vector3d(0.10, 1.0, 0.28) }
+                    }
+                }
+
+                // vita LED-lister (×2) — glöder när vitljuset är på (skanning)
+                Node {
+                    visible: root.showRig && root.scanActive
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + 130, root.laserZ)
+                    Model { source: "#Cube"; x: -120; scale: Qt.vector3d(4.2, 0.08, 0.12)
+                        materials: PrincipledMaterial { baseColor: "#202018"
+                            emissiveFactor: Qt.vector3d(0.95, 0.95, 0.88) } }
+                    Model { source: "#Cube"; x: 120; scale: Qt.vector3d(4.2, 0.08, 0.12)
+                        materials: PrincipledMaterial { baseColor: "#202018"
+                            emissiveFactor: Qt.vector3d(0.95, 0.95, 0.88) } }
                 }
                 // mät-markörer (roterar med brädan)
                 Repeater3D {
