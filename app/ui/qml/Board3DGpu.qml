@@ -36,16 +36,16 @@ Item {
     // förankrat mot meshen: bandyta rig-Y≈75, linjekam rig-Z≈73, din måttkedja
     // (anhåll→+339,4 linjekam) → anhåll rig-Z≈−266; belt-X-centrum rig≈310.
     // scene = rig + rigOffset(−277,−469,323): X 33, Y −385 (band), Z 57.
-    property vector3d boardPos: Qt.vector3d(33, -385, 57)
+    property vector3d boardPos: Qt.vector3d(22, -391, 57)   // X/Y kalibrerat (Z används ej, se anhallZ)
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
     // ALLT härleds ur anhållet (nollpunkt) + din måttkedja, längs matningsriktningen
     // feedDir (1mm rig = 1 scen-enhet): anhåll(0) → +129,4 LR400 → +299,4 LASER → +339,4 linjekam.
-    property real anhallZ: 317           // brädans START vid anhållet (scen-Z) — finjustera i GUI
+    property real anhallZ: 325           // brädans START vid anhållet (scen-Z) — kalibrerat
     property real feedDir: -1            // matningsriktning (fram→anhåll); flippa i GUI vid behov
     property real lr400Z:   anhallZ + feedDir * 129.404
     property real laserZ:   anhallZ + feedDir * 299.404      // laser CENTRUM (129,404 + 170)
     property real lineCamZ: anhallZ + feedDir * 339.404      // linjekamerans centrum (+40)
-    property real boardTopY: -375        // brädans ovansida i scen-Y (på bandet)
+    property real boardTopY: -381        // brädans ovansida (= boardPos.y −391 + halva tjockleken 10)
     // främre vändläge: HELA brädan (75 mm) förbi linjekameran + 50 mm
     property real frontZ:   anhallZ + feedDir * (339.404 + 50 + 37.5)
 
