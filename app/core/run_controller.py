@@ -61,6 +61,7 @@ class AppController(QObject):
         self._tel: dict = {}          # cachad telemetri (byggs ~5 Hz, ej per frame)
         self._tel_t: float = 0.0
         self._paint_t: float = 0.0    # senaste repaintTick (throttle)
+        self._meas_t: float = 0.0     # senaste tunga sim-mätning (throttle → avlasta GUI-tråd)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -153,14 +154,17 @@ class AppController(QObject):
                     tr.append([round(y, 1), round(target, 2)])
                     if len(tr) > 140:
                         del tr[0]
-            # ankaret för AKTUELL profilrad = värdet som fångades när raden passerade
-            # LR-planet (sim: brädan är statisk → läs sanna tjockleken vid den raden)
-            lr_anchor = [b.thickness_at(x, y) for x in RIG.point_lasers_x_mm]
-            # ÄKTA mätning: dubbel-oblik stripe → subpixel → triangulering → fusion → ankring
-            z = measure_profile(self._scanner, y, lr_anchor, RIG.point_lasers_x_mm)
-            self._zprofile = [round(float(v), 3) for v in z]
-            if True:                                           # tvärprofil Z(y) vid skannfronten
-                xc = RIG.board_len_mm * 0.5
+            # TUNG mätning throttlad till ~25 Hz (annars blockerar den GUI-tråden 60 ggr/s
+            # → upplevd lagg). Graferna märker ingen skillnad.
+            if now - self._meas_t > 0.04:
+                self._meas_t = now
+                # ankaret för AKTUELL profilrad = värdet som fångades när raden passerade
+                # LR-planet (sim: brädan är statisk → läs sanna tjockleken vid den raden)
+                lr_anchor = [b.thickness_at(x, y) for x in RIG.point_lasers_x_mm]
+                # ÄKTA mätning: dubbel-oblik stripe → subpixel → triangulering → fusion → ankring
+                z = measure_profile(self._scanner, y, lr_anchor, RIG.point_lasers_x_mm)
+                self._zprofile = [round(float(v), 3) for v in z]
+                xc = RIG.board_len_mm * 0.5                     # tvärprofil Z(y) vid skannfronten
                 self._zprofile_w = [round(float(v), 3) for v in b.z_profile_col(xc)]
                 lf, rf = b.cross_facets(xc)                     # mätta sidofasetter (röd/grön)
                 self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf]
