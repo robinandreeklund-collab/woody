@@ -206,7 +206,7 @@ Item {
                 // när den träffar en lodrät tjocklecksida (.z=1). Ocklusion: varje huvud
                 // ser bara sin egen kant. Konvergens 35 mm ö. bandet → linjerna separerade.
                 Model {                                   // RÖD 650 nm
-                    visible: root.showRig
+                    visible: root.showRig && root.scanActive
                     source: "#Cube"; scale: Qt.vector3d(5.0, 0.05, 0.05)
                     position: Qt.vector3d(root.boardPos.x, root.redHit.x, root.redHit.y)
                     materials: PrincipledMaterial { baseColor: "#1a0203"
@@ -214,7 +214,7 @@ Item {
                                                             : Qt.vector3d(3.0, 0.14, 0.16) }
                 }
                 Model {                                   // GRÖN 520 nm
-                    visible: root.showRig
+                    visible: root.showRig && root.scanActive
                     source: "#Cube"; scale: Qt.vector3d(5.0, 0.05, 0.05)
                     position: Qt.vector3d(root.boardPos.x, root.greenHit.x, root.greenHit.y)
                     materials: PrincipledMaterial { baseColor: "#021a08"
@@ -231,7 +231,7 @@ Item {
                 // vid WD. Tillplattad kon (spets vid dioden, bas = linjen). RÖD +Z-huvud,
                 // GRÖN −Z-huvud, lutade 50°, korsas vid konvergensen 35 mm ö. bandet.
                 Model {                                   // RÖD-fan (638 nm Powell)
-                    visible: root.showRig
+                    visible: root.showRig && root.scanActive
                     source: "#Cone"; opacity: 0.22; castsShadows: false
                     position: Qt.vector3d(root.boardPos.x, root._convY, root.laserZ)  // bas vid konvergens
                     eulerRotation.x: root.laserArmDeg
@@ -241,7 +241,7 @@ Item {
                         emissiveFactor: Qt.vector3d(1.3, 0.05, 0.06) }
                 }
                 Model {                                   // GRÖN-fan (520 nm Powell)
-                    visible: root.showRig
+                    visible: root.showRig && root.scanActive
                     source: "#Cone"; opacity: 0.22; castsShadows: false
                     position: Qt.vector3d(root.boardPos.x, root._convY, root.laserZ)  // bas vid konvergens
                     eulerRotation.x: -root.laserArmDeg
