@@ -156,13 +156,13 @@ Item {
                     }
                 }
 
-                // STATISK referensbräda vid anhållet (bräda laddad / fotocell triggad)
-                // — stabilt kalibreringsmål: rikta laser/sensorer mot denna. 500×75×20 mm.
-                // Flyttas med anhallZ → kalibrera så den sitter mot anhållet.
+                // Referensbräda (500×75×20 mm). Vilar vid anhållet (kalibrerat) och MATAS
+                // fram genom skanningen (boardFeedZ): anhåll → genom laser/linjekamera →
+                // tillbaka i pass-retur. I vila (feedPos 0) = exakt vid anhållet.
                 Model {
                     visible: root.showRig
                     source: "#Cube"
-                    position: Qt.vector3d(root.boardPos.x, root.boardPos.y, root.anhallZ)
+                    position: Qt.vector3d(root.boardPos.x, root.boardPos.y, root.boardFeedZ)
                     scale: Qt.vector3d(5.0, 0.20, 0.75)    // X 500 (längd) · Y 20 (tjock) · Z 75 (matning)
                     castsShadows: true; receivesShadows: true
                     materials: PrincipledMaterial { baseColor: "#c9a468"; roughness: 0.72; metalness: 0.0 }
