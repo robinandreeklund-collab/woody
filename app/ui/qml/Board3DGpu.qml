@@ -43,7 +43,7 @@ Item {
     // en punkt på ytan, 299,4 mm från anhållet (inget huvud rakt ovanför).
     // Allt härleds längs matningsriktningen feedDir: anhåll(0) → 129,4 LR400 →
     // 299,4 laser → 339,4 linjekamera.
-    property real anhallZ: 325           // ← din korrekta anhålls-Z (kalibreras i GUI)
+    property real anhallZ: 360           // ← din korrekta anhålls-Z (kalibreras i GUI)
     property real feedDir: -1            // matningsriktning; flippa i GUI vid behov
     property real lr400Z:   anhallZ + feedDir * 129.404
     property real laserZ:   anhallZ + feedDir * 299.404   // laser-centrum på bandet
@@ -59,8 +59,10 @@ Item {
     // bandet, förbi det fasta laserplanet. Kopplat till faktisk matningsposition →
     // glider även tillbaka mot anhållet i pass-lägets returfas.
     property real feedFrac: (typeof ctrl !== 'undefined' && ctrl) ? (ctrl.feedPos / 75) : 0
-    // bakre anhållet → framåt förbi linjekameran (lång tydlig resa), sen åter i pass-retur
-    property real boardFeedZ: root.anhallZ + root.feedFrac * (root.frontZ - root.anhallZ)
+    // brädan ligger med KANTEN mot anhållet (nollpunkt) och kroppen 37,5 mm in i riggen
+    // → mitt i vila = anhåll + feedDir·37,5. Matas sen framåt förbi linjekameran, åter i retur.
+    property real boardRestZ: anhallZ + feedDir * 37.5
+    property real boardFeedZ: root.boardRestZ + root.feedFrac * (root.frontZ - root.boardRestZ)
     // SmoothedAnimation följer det rörliga matningsvärdet med jämn hastighet (ingen
     // ease-out-restart per frame → inget hack). Velocity > max matningsbehov.
     Behavior on boardFeedZ { SmoothedAnimation { velocity: 3000; reversingMode: SmoothedAnimation.Sync } }
