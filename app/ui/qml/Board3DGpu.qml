@@ -61,6 +61,18 @@ Item {
     readonly property real _camH: 689           // kamerahöjd = WD·cos25
     readonly property real _camZoff: 321         // = WD·sin25
     readonly property real _camBeam: 760
+    // KONVERGENS 35 mm ö. bandet (vald för 15–50 mm). På en bräda tunnare än 35 mm
+    // korsas lasrarna OVANFÖR ytan → röd/grön landar SEPARERADE (parallax), inte på
+    // varandra. Parallax på brädytan = (konvergenshöjd − brädtopp)·tan50°.
+    property real boardThick: 20                 // brädtjocklek (mm) — styr parallaxen
+    property real convergeAboveBelt: 35          // laserkonvergens ö. bandet (LÅST)
+    readonly property real _beltY: boardTopY - boardThick
+    readonly property real _convY: _beltY + convergeAboveBelt
+    readonly property real _arm: laserArmDeg * Math.PI / 180
+    readonly property real _laserParallax: (_convY - boardTopY) * Math.tan(_arm)
+    readonly property real _fanCenterY: _convY + (_laserH - convergeAboveBelt) / 2
+    readonly property real _fanZmag: (_laserZoff - convergeAboveBelt * Math.tan(_arm)) / 2
+    readonly property real _fanLen: (_laserH + convergeAboveBelt) / Math.cos(_arm)
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
@@ -183,23 +195,29 @@ Item {
                     materials: PrincipledMaterial { baseColor: "#c9a468"; roughness: 0.72; metalness: 0.0 }
                 }
 
-                // RÖD + GRÖN laserlinje vid laserplanet (laser-"gardin" tvärs bandet).
-                // Alltid synlig i tvillingvyn; vid anhållet ligger den 299,4 mm framför brädan.
+                // RÖD + GRÖN laserlinje DÄR DEN TRÄFFAR BRÄDAN. Eftersom konvergensen
+                // ligger 35 mm ö. bandet landar linjerna SEPARERADE (parallax) på en
+                // bräda tunnare än 35 mm — inte på varandra. Röd −parallax, grön +parallax.
                 Node {
                     visible: root.showRig
                     position: Qt.vector3d(root.boardPos.x, root.boardTopY, root.laserZ)
                     Model {                                   // RÖD 650 nm (HDR-emissiv → bloom)
-                        source: "#Cube"; z: -3
+                        source: "#Cube"; z: -root._laserParallax
                         scale: Qt.vector3d(5.0, 0.05, 0.05)
                         materials: PrincipledMaterial { baseColor: "#1a0203"
                             emissiveFactor: Qt.vector3d(3.2, 0.15, 0.18) }
                     }
                     Model {                                   // GRÖN 520 nm (HDR-emissiv → bloom)
-                        source: "#Cube"; z: 3
+                        source: "#Cube"; z: root._laserParallax
                         scale: Qt.vector3d(5.0, 0.05, 0.05)
                         materials: PrincipledMaterial { baseColor: "#021a08"
                             emissiveFactor: Qt.vector3d(0.22, 3.2, 0.6) }
                     }
+                    // konvergenspunkt 35 mm ö. bandet (där linjerna SKULLE mötas)
+                    Model { source: "#Sphere"; scale: Qt.vector3d(0.05, 0.05, 0.05)
+                        position: Qt.vector3d(0, root._convY - root.boardTopY, 0)
+                        materials: PrincipledMaterial { baseColor: "#222"
+                            emissiveFactor: Qt.vector3d(1.0, 0.9, 0.3) } }
                 }
 
                 // LASER-RIDÅER (fans): RÖD från huvud +Z, GRÖN från huvud −Z, vinklade
@@ -208,10 +226,10 @@ Item {
                 Model {                                   // RÖD-ridå (650 nm)
                     visible: root.showRig
                     source: "#Cube"; opacity: 0.20; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root._laserH/2,
-                                          root.laserZ + root._laserZoff/2)
+                    position: Qt.vector3d(root.boardPos.x, root._fanCenterY,
+                                          root.laserZ + root._fanZmag)
                     eulerRotation.x: root.laserArmDeg
-                    scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)
+                    scale: Qt.vector3d(5.0, root._fanLen/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#ff1828"
                         alphaMode: PrincipledMaterial.Blend
                         emissiveFactor: Qt.vector3d(1.2, 0.05, 0.06) }
@@ -219,10 +237,10 @@ Item {
                 Model {                                   // GRÖN-ridå (520 nm)
                     visible: root.showRig
                     source: "#Cube"; opacity: 0.20; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root._laserH/2,
-                                          root.laserZ - root._laserZoff/2)
+                    position: Qt.vector3d(root.boardPos.x, root._fanCenterY,
+                                          root.laserZ - root._fanZmag)
                     eulerRotation.x: -root.laserArmDeg
-                    scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)
+                    scale: Qt.vector3d(5.0, root._fanLen/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#18ff40"
                         alphaMode: PrincipledMaterial.Blend
                         emissiveFactor: Qt.vector3d(0.06, 1.2, 0.22) }
