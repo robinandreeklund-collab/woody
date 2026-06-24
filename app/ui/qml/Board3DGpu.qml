@@ -73,6 +73,8 @@ Item {
     readonly property real _fanCenterY: _convY + (_laserH - convergeAboveBelt) / 2
     readonly property real _fanZmag: (_laserZoff - convergeAboveBelt * Math.tan(_arm)) / 2
     readonly property real _fanLen: (_laserH + convergeAboveBelt) / Math.cos(_arm)
+    property real laserFanDeg: 45        // MZLaser Powell-lins fan-vinkel → ~630 mm linje vid WD
+    readonly property real _fanBaseW: 2 * _laserBeam * Math.tan(laserFanDeg / 2 * Math.PI / 180)
     // ÄKTA laserträff: var respektive laserplan möter ytan (band → kant → ovansida).
     // [Y, Z, påKant]. sign +1 = RÖD (+Z-huvud, ser +Z-kant), −1 = GRÖN (−Z-huvud).
     property vector3d redHit: laserHit(1)
@@ -234,7 +236,7 @@ Item {
                     position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
                                           root.laserZ + root._laserZoff/2)
                     eulerRotation.x: root.laserArmDeg
-                    scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)   // bas 500 mm, längd WD, tunn
+                    scale: Qt.vector3d(root._fanBaseW/100, root._laserBeam/100, 0.02)  // 45° Powell-fan, längd WD
                     materials: PrincipledMaterial { baseColor: "#ff1828"
                         alphaMode: PrincipledMaterial.Blend
                         emissiveFactor: Qt.vector3d(1.3, 0.05, 0.06) }
@@ -245,7 +247,7 @@ Item {
                     position: Qt.vector3d(root.boardPos.x, root._convY + root._laserH/2,
                                           root.laserZ - root._laserZoff/2)
                     eulerRotation.x: -root.laserArmDeg
-                    scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)
+                    scale: Qt.vector3d(root._fanBaseW/100, root._laserBeam/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#18ff40"
                         alphaMode: PrincipledMaterial.Blend
                         emissiveFactor: Qt.vector3d(0.06, 1.3, 0.22) }
