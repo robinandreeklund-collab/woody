@@ -12,6 +12,8 @@ import random
 import threading
 import time
 
+import numpy as np
+
 from PySide6.QtCore import Property, QObject, QTimer, Signal, Slot
 
 from ..geometry import RIG
@@ -33,6 +35,7 @@ class AppController(QObject):
     boardDetected = Signal()          # fotocell: bräda laddad (från GPIO-tråd → queued)
     flowBoardReady = Signal()         # löpande flöde: ny bräda klar (från flödestråd → queued)
     repaintTick = Signal()            # throttlad (~20 Hz) → tunga Canvas-vyer ritar om
+    camChanged = Signal()             # live kamera-previews uppdaterade (header)
 
     def __init__(self, cfg: AppConfig, surface_provider, parent=None):
         super().__init__(parent)
@@ -63,6 +66,7 @@ class AppController(QObject):
         self._paint_t: float = 0.0    # senaste repaintTick (throttle)
         self._meas_t: float = 0.0     # senaste tunga sim-mätning (throttle → avlasta GUI-tråd)
         self._state_t: float = 0.0    # senaste per-tick stateChanged (throttle ~33 Hz)
+        self._cam_rev: int = 0        # revision för live kamera-previews (cache-bust)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -170,6 +174,7 @@ class AppController(QObject):
                 lf, rf = b.cross_facets(xc)                     # mätta sidofasetter (röd/grön)
                 self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf]
                 self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in rf]
+                self._update_cam_previews(y)                    # live kamera-header
                 # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
                 if now - self._mesh_t > 0.08:
                     self._mesh = self._build_mesh(b, self.scanProgress, full=False)
@@ -184,6 +189,40 @@ class AppController(QObject):
         if now - self._state_t > 0.03:
             self._state_t = now
             self.stateChanged.emit()
+
+    @staticmethod
+    def _tint(gray, rgb):
+        """(rows,cols) gråskala → HxWx3 uint8 i laserfärg (för kamera-preview)."""
+        g = np.clip(np.asarray(gray, dtype=np.float32), 0, 255)
+        return np.dstack([(g * rgb[0]), (g * rgb[1]), (g * rgb[2])]).astype(np.uint8)
+
+    def _update_cam_previews(self, y):
+        """Live kamera-previews → bild-providern (header). Sim: demo-data via
+        stripe_preview/surface_image; real: samma väg med riktiga kameraramar."""
+        sc = self._scanner
+        try:
+            sp = getattr(sc.profile_red, "stripe_preview", None)
+            if sp is not None:                                  # sim
+                gr = sc.profile_red.stripe_preview(y)
+                gg = sc.profile_green.stripe_preview(y)
+            else:                                               # real (GenICam-ROI)
+                gr = sc.profile_red.read_stripe(y)
+                gg = sc.profile_green.read_stripe(y)
+            self._surface_provider.set_array(self._tint(gr, (1.0, 0.22, 0.24)), "cam_red")
+            self._surface_provider.set_array(self._tint(gg, (0.22, 1.0, 0.36)), "cam_green")
+        except Exception:
+            pass
+        try:
+            img = sc.surface.surface_image()
+            if img is not None and getattr(img, "size", 0):
+                self._surface_provider.set_array(np.ascontiguousarray(img), "cam_line")
+        except Exception:
+            pass
+        self._cam_rev += 1
+        self.camChanged.emit()
+
+    @Property(int, notify=camChanged)
+    def camRev(self): return self._cam_rev
 
     def _set_phase(self, p): self._s.phase = p
 
