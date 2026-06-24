@@ -50,11 +50,17 @@ Item {
     property real lineCamZ: anhallZ + feedDir * 339.404
     property real frontZ:   anhallZ + feedDir * (339.404 + 50 + 37.5)
     property real boardTopY: -381        // brädans ovansida i scen-Y (på bandet)
-    // laser-FANS (ljusbild): två ridåer från vinklade huvuden som konvergerar på bandet.
-    property real laserHeadH: 580        // laserhuvudenas höjd över bandet (≈ WD-komponent)
-    property real laserArmDeg: 50        // laser-arm vinkel (LÅST geometri)
-    readonly property real _laserZoff: laserHeadH * Math.tan(laserArmDeg * Math.PI / 180)
-    readonly property real _laserBeam: laserHeadH / Math.cos(laserArmDeg * Math.PI / 180)
+    // dubbelt profilhuvud (head-mech.svg, LÅST geometri): per huvud kamera + laser på
+    // SAMMA sida, RÖD ena sidan (+Z), GRÖN andra (−Z), båda mot samma laserlinje.
+    // Offset i matningsled (±Z): laser ±582, kamera ±321. WD 760 slant.
+    property real laserArmDeg: 50        // laser-arm fr lod (offset 582, höjd 489)
+    property real camArmDeg: 25          // kamera-arm fr lod (offset 321, höjd 689)
+    readonly property real _laserH: 489  // laserhöjd ö. bräda = WD·cos50
+    readonly property real _laserZoff: 582      // = WD·sin50
+    readonly property real _laserBeam: 760      // WD (slant)
+    readonly property real _camH: 689           // kamerahöjd = WD·cos25
+    readonly property real _camZoff: 321         // = WD·sin25
+    readonly property real _camBeam: 760
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
@@ -202,7 +208,7 @@ Item {
                 Model {                                   // RÖD-ridå (650 nm)
                     visible: root.showRig
                     source: "#Cube"; opacity: 0.20; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root.laserHeadH/2,
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root._laserH/2,
                                           root.laserZ + root._laserZoff/2)
                     eulerRotation.x: root.laserArmDeg
                     scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)
@@ -213,13 +219,36 @@ Item {
                 Model {                                   // GRÖN-ridå (520 nm)
                     visible: root.showRig
                     source: "#Cube"; opacity: 0.20; castsShadows: false
-                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root.laserHeadH/2,
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root._laserH/2,
                                           root.laserZ - root._laserZoff/2)
                     eulerRotation.x: -root.laserArmDeg
                     scale: Qt.vector3d(5.0, root._laserBeam/100, 0.02)
                     materials: PrincipledMaterial { baseColor: "#18ff40"
                         alphaMode: PrincipledMaterial.Blend
                         emissiveFactor: Qt.vector3d(0.06, 1.2, 0.22) }
+                }
+
+                // PROFILKAMERORNAS siktlinjer (kamera-arm 25°): RÖD-huvud +Z, GRÖN-huvud −Z,
+                // båda mot samma laserlinje (triangulering θ 25°). Tunna, dämpade linjer.
+                Model {                                   // RÖD-kamera siktlinje
+                    visible: root.showRig
+                    source: "#Cube"; opacity: 0.5; castsShadows: false
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root._camH/2,
+                                          root.laserZ + root._camZoff/2)
+                    eulerRotation.x: root.camArmDeg
+                    scale: Qt.vector3d(0.04, root._camBeam/100, 0.04)
+                    materials: PrincipledMaterial { baseColor: "#3a1416"
+                        emissiveFactor: Qt.vector3d(0.6, 0.18, 0.2) }
+                }
+                Model {                                   // GRÖN-kamera siktlinje
+                    visible: root.showRig
+                    source: "#Cube"; opacity: 0.5; castsShadows: false
+                    position: Qt.vector3d(root.boardPos.x, root.boardTopY + root._camH/2,
+                                          root.laserZ - root._camZoff/2)
+                    eulerRotation.x: -root.camArmDeg
+                    scale: Qt.vector3d(0.04, root._camBeam/100, 0.04)
+                    materials: PrincipledMaterial { baseColor: "#14301a"
+                        emissiveFactor: Qt.vector3d(0.16, 0.6, 0.26) }
                 }
 
                 // LINJEKAMERANS plan (blå linje) — 40 mm bortom lasern (339,4 från anhåll)
