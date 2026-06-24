@@ -52,7 +52,9 @@ Item {
     property real feedFrac: (typeof ctrl !== 'undefined' && ctrl) ? (ctrl.feedPos / 75) : 0
     // bakre anhållet → framåt förbi linjekameran (lång tydlig resa), sen åter i pass-retur
     property real boardFeedZ: root.anhallZ + root.feedFrac * (root.frontZ - root.anhallZ)
-    Behavior on boardFeedZ { NumberAnimation { duration: 120; easing.type: Easing.OutQuad } }
+    // SmoothedAnimation följer det rörliga matningsvärdet med jämn hastighet (ingen
+    // ease-out-restart per frame → inget hack). Velocity > max matningsbehov.
+    Behavior on boardFeedZ { SmoothedAnimation { velocity: 1500; reversingMode: SmoothedAnimation.Sync } }
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
     property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
