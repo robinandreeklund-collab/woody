@@ -37,15 +37,16 @@ Item {
     // scene = rig + rigOffset(−277,−469,323): X 33, Y −385 (band), Z 57.
     property vector3d boardPos: Qt.vector3d(33, -385, 57)
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
-    property real laserZ: 356            // laserplanet i scen-Z (rig-Z 33 + offset)
-    property real lineCamZ: 396          // linjekamerans centrum i scen-Z (rig-Z 73 + offset)
+    // ALLT härleds ur anhållet (nollpunkt) + din måttkedja, längs matningsriktningen
+    // feedDir (1mm rig = 1 scen-enhet): anhåll(0) → +129,4 LR400 → +299,4 LASER → +339,4 linjekam.
+    property real anhallZ: 57            // brädans START vid anhållet (scen-Z) — flytta vid behov
+    property real feedDir: 1             // matningsriktning (+1/−1); flippa om brädan går fel håll
+    property real lr400Z:   anhallZ + feedDir * 129.404
+    property real laserZ:   anhallZ + feedDir * 299.404      // laser CENTRUM (129,404 + 170)
+    property real lineCamZ: anhallZ + feedDir * 339.404      // linjekamerans centrum (+40)
     property real boardTopY: -375        // brädans ovansida i scen-Y (på bandet)
-    // måttkedja: anhåll → +129,4 LR400 → +170 laser → +40 linjekamera (=339,4 från anhåll).
-    // linjekamera mätt i mesh ≈ scen-Z 396 → anhåll ≈ 396−339,4 ≈ 57 (brädans mitt i vila).
-    property real anhallZ: 57            // brädans START vid anhållet (scen-Z), måttriktigt
-    // främre vändläge: HELA brädan (75 mm) förbi linjekameran (396) + 50 mm
-    // → mitt = 396 + 50 + 37,5 ≈ 484
-    property real frontZ: 484
+    // främre vändläge: HELA brädan (75 mm) förbi linjekameran + 50 mm
+    property real frontZ:   anhallZ + feedDir * (339.404 + 50 + 37.5)
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
