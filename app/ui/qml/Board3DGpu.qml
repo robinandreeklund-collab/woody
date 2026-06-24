@@ -168,7 +168,12 @@ Item {
             Text { id: rgt; anchors.centerIn: parent; text: "⌂ Rigg"; color: root.showRig ? "#fff" : Theme.ink2; font.pixelSize: 10; font.weight: Font.DemiBold }
             MouseArea { anchors.fill: parent; onClicked: {
                 root.showRig = !root.showRig
-                if (root.showRig && root.dist < 1700) root.dist = 1700   // rama in hela riggen
+                if (root.showRig) {
+                    root.dist = Math.max(root.dist, 1750)   // rama in hela riggen
+                    root.yaw = -32; root.pitch = -14        // riggen är Y-upp → nästan ögonhöjd
+                } else {
+                    root.dist = 820; root.yaw = -28; root.pitch = -62   // tillbaka till bräd-vy (uppifrån)
+                }
             } }
         }
     }
