@@ -173,11 +173,15 @@ class AppController(QObject):
                 # ÄKTA mätning: dubbel-oblik stripe → subpixel → triangulering → fusion → ankring
                 z = measure_profile(self._scanner, y, lr_anchor, RIG.point_lasers_x_mm)
                 self._zprofile = [round(float(v), 3) for v in z]
-                xc = RIG.board_len_mm * 0.5                     # tvärprofil Z(y) vid skannfronten
-                self._zprofile_w = [round(float(v), 3) for v in b.z_profile_col(xc)]
+                xc = RIG.board_len_mm * 0.5                     # tvärprofil Z(y) över bredden
+                # tvärprofilen BYGGS i realtid: bara de rader (i bredd) som hunnit
+                # skannas (feed_pos), resten kommer allteftersom — inte hela direkt.
+                zw = b.z_profile_col(xc)
+                ns = max(1, int(self.scanProgress * len(zw)))
+                self._zprofile_w = [round(float(v), 3) for v in zw[:ns]]
                 lf, rf = b.cross_facets(xc)                     # mätta sidofasetter (röd/grön)
-                self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf]
-                self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in rf]
+                self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf[:ns]]
+                self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in rf[:ns]]
                 # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
                 if now - self._mesh_t > 0.08:
                     self._mesh = self._build_mesh(b, self.scanProgress, full=False)
@@ -288,6 +292,9 @@ class AppController(QObject):
         self._s.detected = []
         self._grade = None
         self._lr_track = [[] for _ in RIG.point_lasers_x_mm]
+        # rensa profiler → byggs i realtid under skanning, inte direkt vid ny bräda
+        self._zprofile = []; self._zprofile_w = []
+        self._left_facet = []; self._right_facet = []
         self._mesh = {}; self._mesh_t = 0.0
         self.meshChanged.emit()
         self._s.load_target = 58 + 22 * random.random()
