@@ -63,7 +63,7 @@ Item {
     property real boardFeedZ: root.anhallZ + root.feedFrac * (root.frontZ - root.anhallZ)
     // SmoothedAnimation följer det rörliga matningsvärdet med jämn hastighet (ingen
     // ease-out-restart per frame → inget hack). Velocity > max matningsbehov.
-    Behavior on boardFeedZ { SmoothedAnimation { velocity: 1500; reversingMode: SmoothedAnimation.Sync } }
+    Behavior on boardFeedZ { SmoothedAnimation { velocity: 3000; reversingMode: SmoothedAnimation.Sync } }
 
     // mesh + textur: lokalt ctrl.mesh3d / image://live, eller en fjärrnods data (master)
     property var mesh: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.mesh3d : null
@@ -81,8 +81,8 @@ Item {
             clearColor: Theme.bg; backgroundMode: SceneEnvironment.Color
             antialiasingMode: SceneEnvironment.MSAA; antialiasingQuality: SceneEnvironment.High
             tonemapMode: SceneEnvironment.TonemapModeFilmic       // mjukare högdagrar
-            aoStrength: 55; aoDistance: 55; aoSoftness: 28        // SSAO → djup i ramen
-            aoSampleRate: 3
+            aoStrength: 45; aoDistance: 55; aoSoftness: 28        // SSAO → djup (lättare)
+            aoSampleRate: 2
             // glow ENDAST på mycket starka emissiva ytor (lasern) → ingen scen-dis.
             // Hög HDR-tröskel så bakgrund/rigg inte blommar; ingen bred bloom.
             glowEnabled: root.showRig
@@ -97,13 +97,13 @@ Item {
         // nyckelljus med MJUKA slagskuggor + två fyllnadsljus + topp → ljus, läsbar scen
         DirectionalLight {
             eulerRotation.x: -42; eulerRotation.y: -38
-            brightness: 3.1 + ((root.showRig && root.scanActive) ? 0.6 : 0)   // LED-glöd
-            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityVeryHigh
-            shadowFactor: 22; shadowMapFar: 4000; shadowBias: 18; pcfFactor: 6
+            brightness: 2.3 + ((root.showRig && root.scanActive) ? 0.5 : 0)   // LED-glöd
+            castsShadow: root.showRig; shadowMapQuality: Light.ShadowMapQualityHigh
+            shadowFactor: 20; shadowMapFar: 3500; shadowBias: 18; pcfFactor: 3
         }
-        DirectionalLight { eulerRotation.x: 18;  eulerRotation.y: 150; brightness: 1.5 }
-        DirectionalLight { eulerRotation.x: -10; eulerRotation.y: 55;  brightness: 1.1 }
-        DirectionalLight { eulerRotation.x: -85; eulerRotation.y: 0;   brightness: 0.7 }
+        DirectionalLight { eulerRotation.x: 18;  eulerRotation.y: 150; brightness: 1.0 }
+        DirectionalLight { eulerRotation.x: -10; eulerRotation.y: 55;  brightness: 0.7 }
+        DirectionalLight { eulerRotation.x: -85; eulerRotation.y: 0;   brightness: 0.45 }
         Texture { id: woodTex; source: root.texSource }
 
         // turntable: yaw kring världens vertikal, pitch kring den yaw-roterade horisontalen
