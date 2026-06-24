@@ -10,9 +10,9 @@ ColumnLayout {
         Layout.fillWidth: true; Layout.preferredHeight: 138
         spacing: 12
         Repeater {
-            model: [["RÖD profil · 650 nm", "cam_red",   Theme.red],
-                    ["GRÖN profil · 520 nm", "cam_green", Theme.grn],
-                    ["Linjekamera · yta",    "cam_line",  Theme.blue]]
+            model: [["RÖD · MV-CS050 mono · 638 nm", "cam_red",   Theme.red],
+                    ["GRÖN · MV-CS050 mono · 520 nm", "cam_green", Theme.grn],
+                    ["Linjekamera · HT-GELM44C 4K",   "cam_line",  Theme.blue]]
             delegate: Card {
                 Layout.fillWidth: true; Layout.fillHeight: true
                 title: modelData[0]; chipColor: modelData[2]

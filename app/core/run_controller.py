@@ -67,6 +67,7 @@ class AppController(QObject):
         self._meas_t: float = 0.0     # senaste tunga sim-mätning (throttle → avlasta GUI-tråd)
         self._state_t: float = 0.0    # senaste per-tick stateChanged (throttle ~33 Hz)
         self._cam_rev: int = 0        # revision för live kamera-previews (cache-bust)
+        self._cam_t: float = 0.0      # senaste kamera-preview (throttle ~20 Hz)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -103,6 +104,9 @@ class AppController(QObject):
         if now - self._paint_t > 0.05:        # ~20 Hz → throttlad omritning av Canvas-vyer
             self._paint_t = now
             self.repaintTick.emit()
+        if now - self._cam_t > 0.05:          # ~20 Hz → live kamera-header (svart i vila)
+            self._cam_t = now
+            self._update_cam_previews()
         s, cfg = self._s, self._cfg
         BW = RIG.board_width_mm
 
@@ -174,7 +178,6 @@ class AppController(QObject):
                 lf, rf = b.cross_facets(xc)                     # mätta sidofasetter (röd/grön)
                 self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf]
                 self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in rf]
-                self._update_cam_previews(y)                    # live kamera-header
                 # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
                 if now - self._mesh_t > 0.08:
                     self._mesh = self._build_mesh(b, self.scanProgress, full=False)
@@ -191,43 +194,52 @@ class AppController(QObject):
             self.stateChanged.emit()
 
     @staticmethod
-    def _tint(gray, rgb):
-        """(rows,cols) gråskala → HxWx3 uint8 i laserfärg (för kamera-preview)."""
-        g = np.clip(np.asarray(gray, dtype=np.float32), 0, 255)
-        return np.dstack([(g * rgb[0]), (g * rgb[1]), (g * rgb[2])]).astype(np.uint8)
+    def _gray(a):
+        """(rows,cols) → HxWx3 uint8 GRÅSKALA. Mono-kamera: lasern syns som ljus
+        stripe på svart (bandpass blockerar omgivning) — ingen färgton."""
+        g = np.clip(np.asarray(a, dtype=np.float32), 0, 255).astype(np.uint8)
+        return np.dstack([g, g, g])
 
-    def _update_cam_previews(self, y):
-        """Live kamera-previews → bild-providern (header). Sim: demo-data via
-        stripe_preview/surface_image; real: samma väg med riktiga kameraramar."""
+    def _update_cam_previews(self):
+        """Live kamera-previews → bild-providern (header), exakt vad kamerorna ser.
+        Profilkameror = MONO + bandpass: laser PÅ (D4184-enable, scanActive) → ljus
+        stripe (höjd-kodad) på svart; laser AV → svart. Linjekamera = färg, bygger
+        rad-för-rad när brädan når den. Real: samma väg med riktiga kameraramar."""
         sc = self._scanner
-        try:
-            sp = getattr(sc.profile_red, "stripe_preview", None)
-            if sp is not None:                                  # sim
-                gr = sc.profile_red.stripe_preview(y)
-                gg = sc.profile_green.stripe_preview(y)
-            else:                                               # real (GenICam-ROI)
-                gr = sc.profile_red.read_stripe(y)
-                gg = sc.profile_green.read_stripe(y)
-            self._surface_provider.set_array(self._tint(gr, (1.0, 0.22, 0.24)), "cam_red")
-            self._surface_provider.set_array(self._tint(gg, (0.22, 1.0, 0.36)), "cam_green")
-        except Exception:
-            pass
-        try:
-            img = sc.surface.surface_image()
-            if img is not None and getattr(img, "size", 0):
-                # linjekameran BYGGER bilden rad-för-rad i realtid OCH först NÄR brädan
-                # når kameran i tvillingen. Brädan glider anhåll→fram; den korsar
-                # linjekameran i fönstret ~0.68→0.87 av glidet (ur tvillingens kalibrering
-                # anhåll 360, lineCam −339,4). Innan dess: svart (board ej framme än).
-                prog = min(1.0, self._s.feed_pos_mm / RIG.board_width_mm)
-                fill = max(0.0, min(1.0, (prog - 0.68) / 0.19))
-                rows = int(fill * img.shape[0])
-                built = np.zeros_like(img)
-                if rows > 0:
-                    built[:rows] = img[:rows]
-                self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
-        except Exception:
-            pass
+        on = self._s.running and self._s.phase in ("scanning", "flow")   # = laser enablad
+        y = self._s.feed_pos_mm
+        if on:
+            try:
+                sp = getattr(sc.profile_red, "stripe_preview", None)
+                if sp is not None:                              # sim — kamerans faktiska bild
+                    # Hikrobot MV-CS050 sensor-proportion 2448×2048 ≈ 1,2:1 (12 mm-lins)
+                    gr = sc.profile_red.stripe_preview(y, 480, 400)
+                    gg = sc.profile_green.stripe_preview(y, 480, 400)
+                else:                                           # real (GenICam mono-ROI)
+                    gr = sc.profile_red.read_stripe(y); gg = sc.profile_green.read_stripe(y)
+                self._surface_provider.set_array(self._gray(gr), "cam_red")
+                self._surface_provider.set_array(self._gray(gg), "cam_green")
+            except Exception:
+                pass
+            try:                                                # linjekamera bygger rad-för-rad
+                img = sc.surface.surface_image()
+                if img is not None and getattr(img, "size", 0):
+                    # börjar först när brädan når linjekameran (glide-fönster ~0.68→0.87)
+                    prog = min(1.0, y / RIG.board_width_mm)
+                    fill = max(0.0, min(1.0, (prog - 0.68) / 0.19))
+                    rows = int(fill * img.shape[0])
+                    built = np.zeros_like(img)
+                    if rows > 0:
+                        built[:rows] = img[:rows]
+                    self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
+            except Exception:
+                pass
+        else:
+            # laser släckt (D4184) → mono-profilkamerorna ser SVART (bandpass)
+            blk = np.zeros((400, 480, 3), np.uint8)             # Hikrobot-proportion
+            self._surface_provider.set_array(blk, "cam_red")
+            self._surface_provider.set_array(blk, "cam_green")
+            # linjekameran behåller sista ackumulerade bilden (skanningsresultatet)
         self._cam_rev += 1
         self.camChanged.emit()
 
