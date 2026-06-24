@@ -73,6 +73,10 @@ Item {
     readonly property real _fanCenterY: _convY + (_laserH - convergeAboveBelt) / 2
     readonly property real _fanZmag: (_laserZoff - convergeAboveBelt * Math.tan(_arm)) / 2
     readonly property real _fanLen: (_laserH + convergeAboveBelt) / Math.cos(_arm)
+    // ÄKTA laserträff: var respektive laserplan möter ytan (band → kant → ovansida).
+    // [Y, Z, påKant]. sign +1 = RÖD (+Z-huvud, ser +Z-kant), −1 = GRÖN (−Z-huvud).
+    property vector3d redHit: laserHit(1)
+    property vector3d greenHit: laserHit(-1)
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
@@ -195,30 +199,31 @@ Item {
                     materials: PrincipledMaterial { baseColor: "#c9a468"; roughness: 0.72; metalness: 0.0 }
                 }
 
-                // RÖD + GRÖN laserlinje DÄR DEN TRÄFFAR BRÄDAN. Eftersom konvergensen
-                // ligger 35 mm ö. bandet landar linjerna SEPARERADE (parallax) på en
-                // bräda tunnare än 35 mm — inte på varandra. Röd −parallax, grön +parallax.
-                Node {
+                // ÄKTA laserstripe DÄR DEN TRÄFFAR YTAN: band → klättrar lodrät kant →
+                // ovansida. Ligger på redHit/greenHit (beräknat mot brädan). Tänds STARKARE
+                // när den träffar en lodrät tjocklecksida (.z=1). Ocklusion: varje huvud
+                // ser bara sin egen kant. Konvergens 35 mm ö. bandet → linjerna separerade.
+                Model {                                   // RÖD 650 nm
                     visible: root.showRig
-                    position: Qt.vector3d(root.boardPos.x, root.boardTopY, root.laserZ)
-                    Model {                                   // RÖD 650 nm (HDR-emissiv → bloom)
-                        source: "#Cube"; z: -root._laserParallax
-                        scale: Qt.vector3d(5.0, 0.05, 0.05)
-                        materials: PrincipledMaterial { baseColor: "#1a0203"
-                            emissiveFactor: Qt.vector3d(3.2, 0.15, 0.18) }
-                    }
-                    Model {                                   // GRÖN 520 nm (HDR-emissiv → bloom)
-                        source: "#Cube"; z: root._laserParallax
-                        scale: Qt.vector3d(5.0, 0.05, 0.05)
-                        materials: PrincipledMaterial { baseColor: "#021a08"
-                            emissiveFactor: Qt.vector3d(0.22, 3.2, 0.6) }
-                    }
-                    // konvergenspunkt 35 mm ö. bandet (där linjerna SKULLE mötas)
-                    Model { source: "#Sphere"; scale: Qt.vector3d(0.05, 0.05, 0.05)
-                        position: Qt.vector3d(0, root._convY - root.boardTopY, 0)
-                        materials: PrincipledMaterial { baseColor: "#222"
-                            emissiveFactor: Qt.vector3d(1.0, 0.9, 0.3) } }
+                    source: "#Cube"; scale: Qt.vector3d(5.0, 0.05, 0.05)
+                    position: Qt.vector3d(root.boardPos.x, root.redHit.x, root.redHit.y)
+                    materials: PrincipledMaterial { baseColor: "#1a0203"
+                        emissiveFactor: root.redHit.z > 0.5 ? Qt.vector3d(5.2, 0.25, 0.3)
+                                                            : Qt.vector3d(3.0, 0.14, 0.16) }
                 }
+                Model {                                   // GRÖN 520 nm
+                    visible: root.showRig
+                    source: "#Cube"; scale: Qt.vector3d(5.0, 0.05, 0.05)
+                    position: Qt.vector3d(root.boardPos.x, root.greenHit.x, root.greenHit.y)
+                    materials: PrincipledMaterial { baseColor: "#021a08"
+                        emissiveFactor: root.greenHit.z > 0.5 ? Qt.vector3d(0.3, 5.2, 0.8)
+                                                              : Qt.vector3d(0.2, 3.0, 0.55) }
+                }
+                // konvergenspunkt 35 mm ö. bandet (där linjerna SKULLE mötas)
+                Model { source: "#Sphere"; visible: root.showRig; scale: Qt.vector3d(0.05, 0.05, 0.05)
+                    position: Qt.vector3d(root.boardPos.x, root._convY, root.laserZ)
+                    materials: PrincipledMaterial { baseColor: "#222"
+                        emissiveFactor: Qt.vector3d(1.0, 0.9, 0.3) } }
 
                 // LASER-RIDÅER (fans): RÖD från huvud +Z, GRÖN från huvud −Z, vinklade
                 // (laser-arm 50°) → konvergerar på laserlinjen. Halvgenomskinligt glödande
@@ -348,6 +353,21 @@ Item {
     }
     function axisVal(axis) {
         return axis === "z" ? root.anhallZ : (axis === "x" ? root.boardPos.x : root.boardPos.y);
+    }
+    // var laserplanet (sign +1 röd / −1 grön) träffar ytan: ovansida, lodrät kant, eller band.
+    // Plan: Z = laserZ + sign·(Y − convY)·tanArm. Ocklusion: varje huvud ser bara sin närkant.
+    function laserHit(sign) {
+        var tA = Math.tan(root._arm);
+        var lz = root.laserZ, cY = root._convY, bt = root.boardTopY, bl = root._beltY;
+        var fz = root.boardFeedZ, lo = fz - 37.5, hi = fz + 37.5;
+        var topHitZ = lz + sign * (bt - cY) * tA;                 // plan @ brädtopp-höjd
+        if (topHitZ >= lo && topHitZ <= hi)
+            return Qt.vector3d(bt, topHitZ, 0);                   // på OVANSIDAN
+        var nearEdgeZ = fz + sign * 37.5;                        // den kant detta huvud ser
+        var yFace = cY + sign * (nearEdgeZ - lz) / tA;           // plan @ kantens Z
+        if (yFace > bl && yFace < bt)
+            return Qt.vector3d(yFace, nearEdgeZ, 1);             // på LODRÄT TJOCKLECKSKANT
+        return Qt.vector3d(bl, lz + sign * (bl - cY) * tA, 0);  // på BANDET
     }
 
     function clickAt(mx, my) {
