@@ -38,14 +38,17 @@ Item {
     // scene = rig + rigOffset(−277,−469,323): X 33, Y −385 (band), Z 57.
     property vector3d boardPos: Qt.vector3d(22, -391, 57)   // X/Y kalibrerat (Z används ej, se anhallZ)
     property vector3d boardEuler: Qt.vector3d(-90, 0, 0)
-    // ANKARE: linjekamera-modulens läge i scenen (mätt i meshen ≈ 396). Kalibrera så
-    // blå linjekamera-markören hamnar under den VERKLIGA modulen — allt annat följer
-    // ur måttkedjan bakåt: laser −40, LR400 −210, anhåll −339,404 från linjekameran.
-    property real lineCamZ: 396          // ← kalibreras i GUI (Z)
-    property real laserZ:   lineCamZ - 40        // laser CENTRUM (40 mm före linjekamera)
-    property real lr400Z:   lineCamZ - 210       // LR400 (170 + 40 före linjekamera)
-    property real anhallZ:  lineCamZ - 339.404   // brädans START / anhåll
-    property real frontZ:   lineCamZ + 87.5      // vändläge: hela brädan (75) förbi linjekam + 50
+    // ANKARE = anhållet (din korrekta brädladdnings-Z). Lasrarna kommer från sidan
+    // i vinkel (profil 25° / laser 50°) och konvergerar PÅ bandet — laser-centrum är
+    // en punkt på ytan, 299,4 mm från anhållet (inget huvud rakt ovanför).
+    // Allt härleds längs matningsriktningen feedDir: anhåll(0) → 129,4 LR400 →
+    // 299,4 laser → 339,4 linjekamera.
+    property real anhallZ: 325           // ← din korrekta anhålls-Z (kalibreras i GUI)
+    property real feedDir: -1            // matningsriktning; flippa i GUI vid behov
+    property real lr400Z:   anhallZ + feedDir * 129.404
+    property real laserZ:   anhallZ + feedDir * 299.404   // laser-centrum på bandet
+    property real lineCamZ: anhallZ + feedDir * 339.404
+    property real frontZ:   anhallZ + feedDir * (339.404 + 50 + 37.5)
     property real boardTopY: -381        // brädans ovansida i scen-Y (på bandet)
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
@@ -259,12 +262,12 @@ Item {
     }
     // brädjustering (kalibrering): Z=matning (flyttar hela sensorkedjan), X=bredd, Y=höjd
     function nudge(axis, d) {
-        if (axis === "z") root.lineCamZ += d;       // flyttar HELA sensorkedjan + brädan
+        if (axis === "z") root.anhallZ += d;        // flyttar anhållet → hela kedjan följer
         else if (axis === "x") root.boardPos = Qt.vector3d(root.boardPos.x + d, root.boardPos.y, root.boardPos.z);
         else if (axis === "y") root.boardPos = Qt.vector3d(root.boardPos.x, root.boardPos.y + d, root.boardPos.z);
     }
     function axisVal(axis) {
-        return axis === "z" ? root.lineCamZ : (axis === "x" ? root.boardPos.x : root.boardPos.y);
+        return axis === "z" ? root.anhallZ : (axis === "x" ? root.boardPos.x : root.boardPos.y);
     }
 
     function clickAt(mx, my) {
@@ -401,7 +404,7 @@ Item {
             id: cal; x: 10; y: 8; spacing: 5
             Text { text: "BRÄDA · KALIBRERING"; color: Theme.ink3; font.pixelSize: 9; font.letterSpacing: 0.5 }
             Repeater {
-                model: [["Z kedja","z",10],["X bredd","x",10],["Höjd Y","y",5]]
+                model: [["Z anhåll","z",10],["X bredd","x",10],["Höjd Y","y",5]]
                 delegate: Row {
                     spacing: 3
                     Text { text: modelData[0]; color: Theme.ink2; font.pixelSize: 10; width: 54
@@ -423,9 +426,17 @@ Item {
                         MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], modelData[2]) } }
                 }
             }
+            Row { spacing: 6
+                Text { text: "Riktning"; color: Theme.ink2; font.pixelSize: 10; width: 54
+                       anchors.verticalCenter: parent.verticalCenter }
+                Rectangle { width: 122; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                    Text { anchors.centerIn: parent; color: Theme.amber; font.pixelSize: 10
+                           text: root.feedDir > 0 ? "anhåll → fram" : "fram → anhåll" }
+                    MouseArea { anchors.fill: parent; onClicked: root.feedDir = -root.feedDir } }
+            }
             Text { color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono
-                   text: "laser @ " + root.laserZ.toFixed(0) + " · linjekam @ " + root.lineCamZ.toFixed(0)
-                         + " · anhåll @ " + root.anhallZ.toFixed(0) }
+                   text: "anhåll @ " + root.anhallZ.toFixed(0) + " · LR400 @ " + root.lr400Z.toFixed(0)
+                         + " · laser @ " + root.laserZ.toFixed(0) + " · linjekam @ " + root.lineCamZ.toFixed(0) }
         }
     }
 
