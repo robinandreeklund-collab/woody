@@ -39,7 +39,7 @@ Item {
     property real laserZ: 356            // laserplanet i scen-Z (rig-Z 33 + offset)
     property real lineCamZ: 396          // linjekamerans centrum i scen-Z (rig-Z 73 + offset)
     property real boardTopY: -375        // brädans ovansida i scen-Y (på bandet)
-    property real anhallZ: -160          // brädans START vid bakre anhållet (scen-Z)
+    property real anhallZ: -250          // brädans START vid bakre anhållet (scen-Z)
     property real frontZ: 450            // främre vändläge — förbi linjekameran
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
