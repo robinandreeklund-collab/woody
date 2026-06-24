@@ -14,6 +14,8 @@ Item {
     property real yaw: -28
     property real pitch: -62
     property real dist: 820
+    property real panX: 0
+    property real panY: 0
     property bool measure: false
     property var measurePts: []         // modell-koordinater (mm)
     property real measureDist: -1
@@ -71,7 +73,8 @@ Item {
             aoStrength: 70; aoDistance: 55; aoSoftness: 28        // SSAO → djup i ramen
             aoSampleRate: 3
         }
-        PerspectiveCamera { id: cam; z: root.dist; fieldOfView: 38; clipFar: 6000; clipNear: 1 }
+        PerspectiveCamera { id: cam; x: root.panX; y: root.panY; z: root.dist
+            fieldOfView: 38; clipFar: 6000; clipNear: 1 }
         // nyckelljus med mjuka slagskuggor (grundar riggen) + fyllnad + motljus
         // nyckelljus med MJUKA slagskuggor + två fyllnadsljus + topp → ljus, läsbar scen
         DirectionalLight {
@@ -194,6 +197,13 @@ Item {
     Component.onCompleted: geom.setMesh(root.mesh || ({}))
     Timer { running: root.spin; interval: 16; repeat: true; onTriggered: root.yaw += 0.35 }
 
+    // återställ kameran till standardvyn (rigg- eller bräd-läge)
+    function resetView() {
+        root.panX = 0; root.panY = 0; root.spin = false;
+        if (root.showRig) { root.yaw = 254; root.pitch = -2;  root.dist = 2034; }
+        else              { root.yaw = -28; root.pitch = -62; root.dist = 820; }
+    }
+
     function clickAt(mx, my) {
         if (!root.measure) return;
         var r = v3d.pick(mx, my);
@@ -209,16 +219,23 @@ Item {
     MouseArea {
         id: drag
         anchors.fill: parent
-        property real px: 0; property real py: 0; property bool moved: false
-        onPressed: (e)=>{ px=e.x; py=e.y; moved=false; root.spin=false }
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+        property real px: 0; property real py: 0; property bool moved: false; property int btn: 0
+        onPressed: (e)=>{ px=e.x; py=e.y; moved=false; btn=e.button; root.spin=false }
         onPositionChanged: (e)=>{
-            if (Math.abs(e.x-px) + Math.abs(e.y-py) > 2) moved=true;
-            root.yaw += (e.x-px)*0.45; root.pitch += (e.y-py)*0.45;
-            root.pitch = Math.max(-89, Math.min(-2, root.pitch));
+            var dx = e.x-px, dy = e.y-py;
+            if (Math.abs(dx) + Math.abs(dy) > 2) moved=true;
+            if (btn === Qt.LeftButton) {                          // vänster = rotera
+                root.yaw += dx*0.35; root.pitch += dy*0.35;
+                root.pitch = Math.max(-89, Math.min(25, root.pitch));
+            } else {                                              // höger/mitt = panorera
+                var k = root.dist / 700;                          // skala med zoom
+                root.panX -= dx*k; root.panY += dy*k;
+            }
             px=e.x; py=e.y;
         }
-        onReleased: (e)=>{ if (!moved) root.clickAt(e.x, e.y) }
-        onWheel: (e)=> root.dist = Math.max(280, Math.min(2200, root.dist * (e.angleDelta.y>0 ? 0.9 : 1.1)))
+        onReleased: (e)=>{ if (!moved && btn === Qt.LeftButton) root.clickAt(e.x, e.y) }
+        onWheel: (e)=> root.dist = Math.max(150, Math.min(4000, root.dist * (e.angleDelta.y>0 ? 0.88 : 1.14)))
     }
 
     // verktyg (färgläge, mät, snurr)
@@ -253,12 +270,19 @@ Item {
             Text { id: rgt; anchors.centerIn: parent; text: "⌂ Rigg"; color: root.showRig ? "#fff" : Theme.ink2; font.pixelSize: 10; font.weight: Font.DemiBold }
             MouseArea { anchors.fill: parent; onClicked: {
                 root.showRig = !root.showRig
+                root.panX = 0; root.panY = 0                            // nollställ panorering
                 if (root.showRig) {
                     root.yaw = 254; root.pitch = -2; root.dist = 2034   // inställd tvillingvy
                 } else {
                     root.dist = 820; root.yaw = -28; root.pitch = -62   // tillbaka till bräd-vy (uppifrån)
                 }
             } }
+        }
+        Rectangle {
+            radius: 7; implicitHeight: 24; implicitWidth: rvt.width+18
+            color: Theme.panel2; border.color: Theme.line
+            Text { id: rvt; anchors.centerIn: parent; text: "⟲ Vy"; color: Theme.ink2; font.pixelSize: 10; font.weight: Font.DemiBold }
+            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.resetView() }
         }
     }
 
@@ -290,5 +314,6 @@ Item {
         }
     }
     Text { anchors.bottom: parent.bottom; anchors.right: parent.right; anchors.margins: 8
-           text: "dra = rotera · hjul = zoom"; color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
+           text: "vänsterdra = rotera · högerdra = panorera · hjul = zoom · ⟲ Vy = återställ"
+           color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
 }
