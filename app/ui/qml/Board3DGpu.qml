@@ -40,8 +40,12 @@ Item {
     property real laserZ: 356            // laserplanet i scen-Z (rig-Z 33 + offset)
     property real lineCamZ: 396          // linjekamerans centrum i scen-Z (rig-Z 73 + offset)
     property real boardTopY: -375        // brädans ovansida i scen-Y (på bandet)
-    property real anhallZ: -250          // brädans START vid bakre anhållet (scen-Z)
-    property real frontZ: 450            // främre vändläge — förbi linjekameran
+    // måttkedja: anhåll → +129,4 LR400 → +170 laser → +40 linjekamera (=339,4 från anhåll).
+    // linjekamera mätt i mesh ≈ scen-Z 396 → anhåll ≈ 396−339,4 ≈ 57 (brädans mitt i vila).
+    property real anhallZ: 57            // brädans START vid anhållet (scen-Z), måttriktigt
+    // främre vändläge: HELA brädan (75 mm) förbi linjekameran (396) + 50 mm
+    // → mitt = 396 + 50 + 37,5 ≈ 484
+    property real frontZ: 484
 
     // levande tvilling: status från controllern (säkra guards för smoke utan ctrl)
     property bool scanActive: (typeof ctrl !== 'undefined' && ctrl) ? ctrl.scanActive : false
