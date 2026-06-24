@@ -78,14 +78,15 @@ Item {
             clearColor: Theme.bg; backgroundMode: SceneEnvironment.Color
             antialiasingMode: SceneEnvironment.MSAA; antialiasingQuality: SceneEnvironment.High
             tonemapMode: SceneEnvironment.TonemapModeFilmic       // mjukare högdagrar
-            aoStrength: 70; aoDistance: 55; aoSoftness: 28        // SSAO → djup i ramen
+            aoStrength: 55; aoDistance: 55; aoSoftness: 28        // SSAO → djup i ramen
             aoSampleRate: 3
-            // GLOW/BLOOM → lasrar + LED blöder ut ljus (tänds bara i tvillingvyn)
+            // glow ENDAST på mycket starka emissiva ytor (lasern) → ingen scen-dis.
+            // Hög HDR-tröskel så bakgrund/rigg inte blommar; ingen bred bloom.
             glowEnabled: root.showRig
-            glowStrength: 0.9; glowIntensity: 0.95; glowBloom: 0.4
+            glowStrength: 0.4; glowIntensity: 0.85; glowBloom: 0.0
             glowQualityHigh: true; glowUseBicubicUpscale: true
-            glowHDRMinimumValue: 1.05; glowHDRMaximumValue: 9.0; glowHDRScale: 2.2
-            vignetteEnabled: root.showRig; vignetteStrength: 0.16
+            glowHDRMinimumValue: 2.2; glowHDRMaximumValue: 9.0; glowHDRScale: 2.0
+            vignetteEnabled: false
         }
         PerspectiveCamera { id: cam; x: root.panX; y: root.panY; z: root.dist
             fieldOfView: 38; clipFar: 6000; clipNear: 1 }
@@ -230,6 +231,20 @@ Item {
         if (root.showRig) { root.yaw = 254; root.pitch = -2;  root.dist = 2034; }
         else              { root.yaw = -28; root.pitch = -62; root.dist = 820; }
     }
+    // fast vy (vy-knappar): nollställ panorering + sätt vinkel/avstånd
+    function setView(y, p, d) {
+        root.spin = false; root.panX = 0; root.panY = 0;
+        root.yaw = y; root.pitch = p; root.dist = d;
+    }
+    // brädjustering (kalibrering): Z=matning (flyttar hela sensorkedjan), X=bredd, Y=höjd
+    function nudge(axis, d) {
+        if (axis === "z") root.anhallZ += d;
+        else if (axis === "x") root.boardPos = Qt.vector3d(root.boardPos.x + d, root.boardPos.y, root.boardPos.z);
+        else if (axis === "y") root.boardPos = Qt.vector3d(root.boardPos.x, root.boardPos.y + d, root.boardPos.z);
+    }
+    function axisVal(axis) {
+        return axis === "z" ? root.anhallZ : (axis === "x" ? root.boardPos.x : root.boardPos.y);
+    }
 
     function clickAt(mx, my) {
         if (!root.measure) return;
@@ -330,12 +345,69 @@ Item {
                                            : "Mät: klicka två punkter på brädan" }
     }
 
-    Text { anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.margins: 8
+    Text { visible: !root.showRig
+           anchors.bottom: parent.bottom; anchors.left: parent.left; anchors.margins: 8
            text: "mätt: topp + V-kant (röd) + H-kant (grön) · underside antagen · Qt Quick 3D (GPU)"
            color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono }
 
-    // legend: MÄTTA ytor (topp + sidor) vs ANTAGEN underside
+    // ---- vy-knappar (fasta vinklar) — tvillingvyn ----
+    Column {
+        visible: root.showRig
+        anchors.left: parent.left; anchors.verticalCenter: parent.verticalCenter; anchors.leftMargin: 10
+        spacing: 5
+        Repeater {
+            model: [["3D",254,-2,2034],["Sida",90,-4,2000],["Fram",2,-4,2000],["Ovan",0,-89,2300]]
+            delegate: Rectangle {
+                width: 66; height: 26; radius: 7; color: Theme.panel2; border.color: Theme.line
+                Text { anchors.centerIn: parent; text: modelData[0]; color: Theme.ink2; font.pixelSize: 11; font.weight: Font.DemiBold }
+                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                    onClicked: root.setView(modelData[1], modelData[2], modelData[3]) }
+            }
+        }
+    }
+
+    // ---- brädjustering / kalibrering — tvillingvyn ----
+    Rectangle {
+        visible: root.showRig
+        anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: 10
+        radius: 9; color: Qt.rgba(0.05,0.08,0.11,0.92); border.color: Theme.line
+        width: cal.width + 20; height: cal.height + 16
+        Column {
+            id: cal; x: 10; y: 8; spacing: 5
+            Text { text: "BRÄDA · KALIBRERING"; color: Theme.ink3; font.pixelSize: 9; font.letterSpacing: 0.5 }
+            Repeater {
+                model: [["Z matning","z",10],["X bredd","x",10],["Höjd Y","y",5]]
+                delegate: Row {
+                    spacing: 6
+                    Text { text: modelData[0]; color: Theme.ink2; font.pixelSize: 10; width: 58
+                           anchors.verticalCenter: parent.verticalCenter }
+                    Rectangle { width: 22; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                        Text { anchors.centerIn: parent; text: "−"; color: Theme.cyan; font.pixelSize: 14 }
+                        MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], -modelData[2]) } }
+                    Text { width: 50; horizontalAlignment: Text.AlignHCenter; color: Theme.cyan
+                           font.family: Theme.mono; font.pixelSize: 11; anchors.verticalCenter: parent.verticalCenter
+                           text: root.axisVal(modelData[1]).toFixed(0) }
+                    Rectangle { width: 22; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                        Text { anchors.centerIn: parent; text: "+"; color: Theme.cyan; font.pixelSize: 14 }
+                        MouseArea { anchors.fill: parent; onClicked: root.nudge(modelData[1], modelData[2]) } }
+                }
+            }
+            Row { spacing: 6
+                Text { text: "Riktning"; color: Theme.ink2; font.pixelSize: 10; width: 58
+                       anchors.verticalCenter: parent.verticalCenter }
+                Rectangle { width: 122; height: 22; radius: 5; color: Theme.panel2; border.color: Theme.line
+                    Text { anchors.centerIn: parent; color: Theme.amber; font.pixelSize: 10
+                           text: root.feedDir > 0 ? "anhåll → fram" : "fram → anhåll" }
+                    MouseArea { anchors.fill: parent; onClicked: root.feedDir = -root.feedDir } }
+            }
+            Text { color: Theme.ink3; font.pixelSize: 9; font.family: Theme.mono
+                   text: "laser @ Z " + root.laserZ.toFixed(0) + " · linjekam @ " + root.lineCamZ.toFixed(0) }
+        }
+    }
+
+    // legend: MÄTTA ytor (topp + sidor) vs ANTAGEN underside (döljs i tvillingvyn)
     Row {
+        visible: !root.showRig
         anchors.top: parent.top; anchors.left: parent.left; anchors.margins: 8; spacing: 10
         Repeater {
             model: [["Topp","#27d3e0"],["V-kant","#c73845"],["H-kant","#33b35c"],["Underside · antagen","#42505c"]]
