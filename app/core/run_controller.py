@@ -32,6 +32,7 @@ class AppController(QObject):
     meshChanged = Signal()            # ny 3D-rekonstruktion klar (bräda färdigskannad)
     boardDetected = Signal()          # fotocell: bräda laddad (från GPIO-tråd → queued)
     flowBoardReady = Signal()         # löpande flöde: ny bräda klar (från flödestråd → queued)
+    repaintTick = Signal()            # throttlad (~20 Hz) → tunga Canvas-vyer ritar om
 
     def __init__(self, cfg: AppConfig, surface_provider, parent=None):
         super().__init__(parent)
@@ -57,6 +58,9 @@ class AppController(QObject):
         self._flow_stop: threading.Event | None = None
         self._flow_pipe = None
         self._flow_q: queue.Queue = queue.Queue()
+        self._tel: dict = {}          # cachad telemetri (byggs ~5 Hz, ej per frame)
+        self._tel_t: float = 0.0
+        self._paint_t: float = 0.0    # senaste repaintTick (throttle)
         self._scanner.conveyor.set_speed(0.0)
 
         self._timer = QTimer(self)
@@ -90,6 +94,9 @@ class AppController(QObject):
             self._last_ns = now
         dt = min(0.05, now - self._last_ns)
         self._last_ns = now
+        if now - self._paint_t > 0.05:        # ~20 Hz → throttlad omritning av Canvas-vyer
+            self._paint_t = now
+            self.repaintTick.emit()
         s, cfg = self._s, self._cfg
         BW = RIG.board_width_mm
 
@@ -681,6 +688,12 @@ class AppController(QObject):
     # ------------------------------------------------------ sensor-telemetri (live)
     @Property("QVariantMap", notify=stateChanged)
     def telemetry(self):
+        # cachad: bygg om högst ~5 Hz i st f per binding-läsning per frame (~25 läsningar
+        # × 60 Hz tidigare). Sänker CPU rejält, särskilt på Jetson.
+        now = time.perf_counter()
+        if self._tel and now - self._tel_t < 0.2:
+            return self._tel
+        self._tel_t = now
         sc = self._s.phase == "scanning"
         rate = self._cfg.profile_rate_hz
         feed = self._cfg.feed_mm_s
@@ -701,7 +714,7 @@ class AppController(QObject):
         enc = round(self._scanner.conveyor.position_mm())
         # jetson
         ingest = (2 * dr_prof if sc else 0) + dr_surf
-        return {
+        self._tel = {
             "profRate": f"{rate:.0f} Hz", "profData": f"{(dr_prof if sc else 0):.0f} MB/s",
             "profZres": f"~{zres_um} µm", "profSig": f"{sig:.0f} %",
             "profExp": f"{(1e6/rate*0.4 if sc else 0):.0f} µs",
@@ -714,3 +727,4 @@ class AppController(QObject):
             "jetRam": f"{38 + load*0.12:.0f} %", "jetIngest": f"{ingest:.0f} MB/s",
             "jetPwr": f"{7 + load*0.16:.1f} W", "jetTemp": f"{45 + load*0.18:.0f} °C",
         }
+        return self._tel

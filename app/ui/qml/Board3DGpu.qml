@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick3D
 import QtQuick3D.AssetUtils
+import QtQuick3D.Helpers
 import Woody3D
 
 // GPU-renderad 3D (Qt Quick 3D): ljus, MSAA, UV-foto-textur, mätverktyg.
@@ -68,12 +69,18 @@ Item {
     View3D {
         id: v3d
         anchors.fill: parent
-        environment: SceneEnvironment {
+        environment: ExtendedSceneEnvironment {
             clearColor: Theme.bg; backgroundMode: SceneEnvironment.Color
             antialiasingMode: SceneEnvironment.MSAA; antialiasingQuality: SceneEnvironment.High
             tonemapMode: SceneEnvironment.TonemapModeFilmic       // mjukare högdagrar
             aoStrength: 70; aoDistance: 55; aoSoftness: 28        // SSAO → djup i ramen
             aoSampleRate: 3
+            // GLOW/BLOOM → lasrar + LED blöder ut ljus (tänds bara i tvillingvyn)
+            glowEnabled: root.showRig
+            glowStrength: 0.9; glowIntensity: 0.95; glowBloom: 0.4
+            glowQualityHigh: true; glowUseBicubicUpscale: true
+            glowHDRMinimumValue: 1.05; glowHDRMaximumValue: 9.0; glowHDRScale: 2.2
+            vignetteEnabled: root.showRig; vignetteStrength: 0.32
         }
         PerspectiveCamera { id: cam; x: root.panX; y: root.panY; z: root.dist
             fieldOfView: 38; clipFar: 6000; clipNear: 1 }
@@ -98,7 +105,16 @@ Item {
                 id: pitchNode
                 eulerRotation.x: root.pitch
 
-                // golv — grundar riggen och tar emot slagskuggor (bara i tvillingvyn)
+                // reflektionssond → reflekterande golv speglar riggen (bara i tvillingvyn)
+                ReflectionProbe {
+                    visible: root.showRig
+                    position: Qt.vector3d(33, -250, 80)
+                    boxSize: Qt.vector3d(1700, 1300, 1700)
+                    quality: ReflectionProbe.Medium
+                    refreshMode: ReflectionProbe.EveryFrame
+                    timeSlicing: ReflectionProbe.IndividualFaces
+                }
+                // golv — grundar riggen, tar emot slagskuggor + speglar mjukt
                 Model {
                     visible: root.showRig
                     source: "#Rectangle"
@@ -106,7 +122,7 @@ Item {
                     position: Qt.vector3d(33, -458, 0)
                     scale: Qt.vector3d(30, 30, 1)
                     castsShadows: false; receivesShadows: true
-                    materials: PrincipledMaterial { baseColor: "#262d37"; roughness: 0.9; metalness: 0.0 }
+                    materials: PrincipledMaterial { baseColor: "#1b212a"; roughness: 0.38; metalness: 0.6 }
                 }
 
                 // när tvillingen visas läggs brädan platt på bandet vid anhållet;
@@ -146,17 +162,17 @@ Item {
                 Node {
                     visible: root.showRig && root.scanActive
                     position: Qt.vector3d(root.boardPos.x, root.boardTopY, root.laserZ)
-                    Model {                                   // RÖD 650 nm
+                    Model {                                   // RÖD 650 nm (HDR-emissiv → bloom)
                         source: "#Cube"; z: -3
-                        scale: Qt.vector3d(5.0, 0.045, 0.05)
+                        scale: Qt.vector3d(5.0, 0.05, 0.05)
                         materials: PrincipledMaterial { baseColor: "#1a0203"
-                            emissiveFactor: Qt.vector3d(1.0, 0.06, 0.07) }
+                            emissiveFactor: Qt.vector3d(3.2, 0.15, 0.18) }
                     }
-                    Model {                                   // GRÖN 520 nm
+                    Model {                                   // GRÖN 520 nm (HDR-emissiv → bloom)
                         source: "#Cube"; z: 3
-                        scale: Qt.vector3d(5.0, 0.045, 0.05)
+                        scale: Qt.vector3d(5.0, 0.05, 0.05)
                         materials: PrincipledMaterial { baseColor: "#021a08"
-                            emissiveFactor: Qt.vector3d(0.10, 1.0, 0.28) }
+                            emissiveFactor: Qt.vector3d(0.22, 3.2, 0.6) }
                     }
                 }
 
@@ -166,10 +182,10 @@ Item {
                     position: Qt.vector3d(root.boardPos.x, root.boardTopY + 130, root.laserZ)
                     Model { source: "#Cube"; x: -120; scale: Qt.vector3d(4.2, 0.08, 0.12)
                         materials: PrincipledMaterial { baseColor: "#202018"
-                            emissiveFactor: Qt.vector3d(0.95, 0.95, 0.88) } }
+                            emissiveFactor: Qt.vector3d(1.7, 1.7, 1.55) } }
                     Model { source: "#Cube"; x: 120; scale: Qt.vector3d(4.2, 0.08, 0.12)
                         materials: PrincipledMaterial { baseColor: "#202018"
-                            emissiveFactor: Qt.vector3d(0.95, 0.95, 0.88) } }
+                            emissiveFactor: Qt.vector3d(1.7, 1.7, 1.55) } }
                 }
                 // mät-markörer (roterar med brädan)
                 Repeater3D {
@@ -237,7 +253,13 @@ Item {
             px=e.x; py=e.y;
         }
         onReleased: (e)=>{ if (!moved && btn === Qt.LeftButton) root.clickAt(e.x, e.y) }
-        onWheel: (e)=> root.dist = Math.max(150, Math.min(4000, root.dist * (e.angleDelta.y>0 ? 0.88 : 1.14)))
+        onWheel: (e)=>{
+            var nd = Math.max(150, Math.min(4000, root.dist * (e.angleDelta.y>0 ? 0.88 : 1.14)));
+            var k = 2*Math.tan(38*Math.PI/360)/height;     // världsenheter/px per dist-enhet
+            root.panX += (e.x - width/2)  * k * (root.dist - nd);   // zooma mot pekaren
+            root.panY -= (e.y - height/2) * k * (root.dist - nd);
+            root.dist = nd;
+        }
     }
 
     // verktyg (färgläge, mät, snurr)

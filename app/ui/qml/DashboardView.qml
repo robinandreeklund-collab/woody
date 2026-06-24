@@ -36,7 +36,7 @@ RowLayout {
                 title: "LÄNGSPROFIL · LIVE Z(x) längs 500 mm"; chip: "θ " + ctrl.rig.theta.toFixed(0) + "° · RÖD+GRÖN"
                 Canvas {
                     id: crossCv; anchors.fill: parent
-                    Connections { target: ctrl; function onStateChanged() { crossCv.requestPaint() } }
+                    Connections { target: ctrl; function onRepaintTick() { crossCv.requestPaint() } }
                     onPaint: {
                         var c = getContext("2d"); c.reset();
                         var w = width, h = height, m = 34, gx = m, gy = 10, gw = w - m - 12, gh = h - 26;
@@ -74,7 +74,7 @@ RowLayout {
                             id: stripeCanvas
                             Layout.fillWidth: true; Layout.fillHeight: true
                             property var d: modelData
-                            Connections { target: ctrl; function onStateChanged() { stripeCanvas.requestPaint() } }
+                            Connections { target: ctrl; function onRepaintTick() { stripeCanvas.requestPaint() } }
                             onPaint: {
                                 var c=getContext("2d"); c.reset();
                                 c.fillStyle=d.bg; c.fillRect(0,0,width,height);
@@ -123,7 +123,7 @@ RowLayout {
             chip: "laserlinje längs X · 500 mm · θ " + ctrl.rig.theta.toFixed(0) + "°"
             Canvas {
                 id: rigCv; anchors.fill: parent
-                Connections { target: ctrl; function onStateChanged() { rigCv.requestPaint() } }
+                Connections { target: ctrl; function onRepaintTick() { rigCv.requestPaint() } }
                 // Maskinvy: sensorerna är FASTA, brädan matas igenom. Ledande kanten
                 // passerar LR400-ankaret (uppströms) FÖRST → 3 absolutmått, sedan laser/yta.
                 onPaint: {

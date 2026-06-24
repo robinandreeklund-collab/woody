@@ -12,7 +12,7 @@ Canvas {
     property bool crossSection: false
     property var leftFacet: []
     property var rightFacet: []
-    Connections { target: ctrl; function onStateChanged() { plot.requestPaint() } }
+    Connections { target: ctrl; function onRepaintTick() { plot.requestPaint() } }
     onPaint: {
         var c=getContext("2d"); c.reset();
         var w=width,h=height,m=34,gx=m,gy=8,gw=w-m-12,gh=h-24;
