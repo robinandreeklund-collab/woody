@@ -100,11 +100,11 @@ ColumnLayout {
 
         // vänster: profilkameror (längsprofil) + LR400-spår
         ColumnLayout {
-            Layout.preferredWidth: 260; Layout.minimumWidth: 230; Layout.maximumWidth: 300
+            Layout.preferredWidth: 420; Layout.minimumWidth: 340; Layout.maximumWidth: 520
             Layout.fillHeight: true; spacing: Theme.sp3
             Card {
-                Layout.fillWidth: true; Layout.preferredHeight: 250
-                title: "PROFILKAMEROR · längsprofil"; chip: "laserstripe"; chipColor: Theme.cyan
+                Layout.fillWidth: true; Layout.fillHeight: true
+                title: "PROFILKAMEROR · längsprofil"; chip: "klicka = fullskärm"; chipColor: Theme.cyan
                 ColumnLayout {
                     anchors.fill: parent; spacing: Theme.sp2
                     Repeater {
@@ -122,13 +122,17 @@ ColumnLayout {
                                 }
                                 Text { anchors.centerIn: parent; visible: !(root.node && root.node.imgRev > 0)
                                        text: "ingen signal"; color: Theme.ink3; font.family: Theme.sans; font.pixelSize: 10 }
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: { camZoom.cam = modelData[0]; camZoom.lbl = modelData[1]; camZoom.open() }
+                                }
                             }
                         }
                     }
                 }
             }
             Card {
-                Layout.fillWidth: true; Layout.fillHeight: true
+                Layout.fillWidth: true; Layout.preferredHeight: 170
                 title: "LR400 · ABSOLUT TJOCKLEK"; chip: "3× uppströms"; chipColor: Theme.violet
                 LrChart {
                     anchors.fill: parent
@@ -271,6 +275,38 @@ ColumnLayout {
                             Text { text: modelData.title || ""; color: Theme.ink2; font.family: Theme.sans; font.pixelSize: 10; Layout.fillWidth: true; elide: Text.ElideRight } } }
                 }
             }
+        }
+    }
+
+    // ---- fullskärms-zoom av en kamera (klick på previewen) ----
+    Popup {
+        id: camZoom
+        property string cam: ""
+        property string lbl: ""
+        parent: Overlay.overlay
+        width: parent ? parent.width * 0.92 : 1000
+        height: parent ? parent.height * 0.92 : 760
+        x: parent ? (parent.width - width) / 2 : 0
+        y: parent ? (parent.height - height) / 2 : 0
+        modal: true; padding: 0
+        background: Rectangle { color: "#0b1220"; border.color: Theme.line; radius: Theme.rSm }
+        contentItem: Item {
+            Image {
+                anchors.fill: parent; anchors.margins: 16; cache: false; smooth: true
+                fillMode: Image.PreserveAspectFit
+                source: (camZoom.visible && camZoom.cam) ? root.imgUrl(camZoom.cam) : ""
+            }
+            Text {
+                anchors { top: parent.top; left: parent.left; margins: 12 }
+                text: camZoom.lbl; color: Theme.ink; font.family: Theme.sans
+                font.pixelSize: 14; font.weight: Font.DemiBold
+            }
+            Text {
+                anchors { top: parent.top; right: parent.right; margins: 12 }
+                text: "✕  klicka för att stänga"; color: Theme.ink3
+                font.family: Theme.sans; font.pixelSize: 12
+            }
+            MouseArea { anchors.fill: parent; onClicked: camZoom.close() }
         }
     }
 }
