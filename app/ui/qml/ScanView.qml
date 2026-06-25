@@ -146,12 +146,16 @@ ColumnLayout {
         ColumnLayout {
             Layout.fillWidth: true; Layout.fillHeight: true; Layout.minimumWidth: 320; spacing: Theme.sp3
             Card {
-                Layout.fillWidth: true; Layout.preferredHeight: 150
-                title: "YTA · linjekamera + defekter"
-                chip: (root.s.defects ? root.s.defects.length : 0) + " defekter"; chipColor: Theme.warn
+                Layout.fillWidth: true; Layout.preferredHeight: 210
+                title: "YTA · linjekamera (live)"
+                chip: "klicka = fullskärm"; chipColor: Theme.warn
                 BoardOverlay {
                     anchors.fill: parent
-                    imgSource: root.imgUrl("surface"); defects: root.s.defects || []
+                    imgSource: root.imgUrl("cam_line"); defects: root.s.defects || []
+                }
+                MouseArea {
+                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                    onClicked: { camZoom.cam = "cam_line"; camZoom.lbl = "YTA · linjekamera (4096 px)"; camZoom.open() }
                 }
             }
             Card {

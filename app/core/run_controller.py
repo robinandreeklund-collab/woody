@@ -273,6 +273,18 @@ class AppController(QObject):
                     self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
             except Exception:
                 pass
+        elif is_real:
+            # idle i real (ingen skanning) → LIVE linjekamera-strip för preview, så
+            # man ser vad ytkameran ser vid idrifttagning (throttlad). Under skanning
+            # bygger blocket ovan i st f.
+            if self._cam_rev % 8 == 0:
+                try:
+                    limg = sc.surface.surface_image()
+                    if getattr(limg, "ndim", 0) == 3 and limg.size > 12:
+                        self._surface_provider.set_array(
+                            np.ascontiguousarray(limg).astype(np.uint8), "cam_line")
+                except Exception:
+                    pass
         if not laser_on and not is_real:
             # SIM, laser släckt → mono-profilkamerorna ser SVART (bandpass-modell).
             # I REAL hanteras previewen ovan (riktig ram), ingen fejk-svärta här.
