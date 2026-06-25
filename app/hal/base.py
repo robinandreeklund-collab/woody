@@ -47,11 +47,17 @@ class PointLaserIF(Device):
 
 
 class ConveyorIF(Device):
-    """Transportör (Jrk G2) — matning."""
+    """Transportör — matning."""
     @abstractmethod
     def set_speed(self, mm_s: float) -> None: ...
     @abstractmethod
     def position_mm(self) -> float: ...
+
+    def advance(self, dt: float) -> None:
+        """Bokför matningsframsteg över dt sekunder. Standard: NO-OP — riktig
+        transportör (RoboClaw) läser sin position fysiskt via encodern
+        (``position_mm``), inget mjukvarusteg behövs. Sim överskuggar och
+        integrerar kommenderad hastighet. Anropas varje tick av run_controller."""
 
 
 class Scanner(ABC):
