@@ -27,6 +27,13 @@ def _sdk():
     """(MvCameraControl_class, CameraParams_header) — laddas en gång, lazy."""
     global _SDK
     if _SDK is None:
+        # MvImport/MvCameraControl_class kräver MVS-miljövariabler VID IMPORT
+        # (check_sys_and_update_dll gör os.getenv('MVCAM_COMMON_RUNENV') + "...").
+        # Saknas de (systemd/cron utan profil-källning) → None+str-TypeError. Sätt
+        # säkra defaults om de inte redan finns, så importen funkar i alla kontexter.
+        os.environ.setdefault("MVCAM_COMMON_RUNENV", "/opt/MVS/lib")
+        os.environ.setdefault("MVCAM_SDK_PATH", "/opt/MVS")
+        os.environ.setdefault("GENICAM_GENTL64_PATH", "/opt/MVS/lib/aarch64")
         for d in _MVS_PY_CANDIDATES:
             if os.path.isdir(d) and d not in sys.path:
                 sys.path.append(d)

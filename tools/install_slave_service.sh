@@ -33,6 +33,13 @@ WorkingDirectory=$REPO
 Environment=GENICAM_GENTL64_PATH=/opt/MVS/lib/aarch64
 Environment=LD_LIBRARY_PATH=/opt/MVS/lib/aarch64
 Environment=PYTHONUNBUFFERED=1
+# MVS Python-SDK kräver dessa VID IMPORT (annars None+str-TypeError under systemd,
+# som inte källar profilen). mvs_u3v sätter samma defaults i kod som extra skydd.
+Environment=MVCAM_COMMON_RUNENV=/opt/MVS/lib
+Environment=MVCAM_SDK_PATH=/opt/MVS
+Environment=MVCAM_GENICAM_CLPROTOCOL=/opt/MVS/lib/CLProtocol
+Environment=ALLUSERSPROFILE=/opt/MVS/MVFG
+Environment=GENICAM_CTI=/opt/MVS/lib/aarch64/MvProducerU3V.cti
 ExecStart=$PY -m app.net.slave --mode $MODE --name %H --port $PORT
 Restart=always
 RestartSec=3
