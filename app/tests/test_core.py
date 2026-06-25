@@ -180,46 +180,52 @@ def test_encoder_line_trigger_resolves_node_names():
     # via kandidat-namnsupplösning — även om kameran använder tillverkar-egna namn.
     from ..hal.real.cameras import GenICamSurfaceCamera, set_first_available
 
-    class _Node:
-        def __init__(self, v=None, allowed=None):
-            self._v, self._a = v, allowed
-        @property
-        def value(self): return self._v
-        @value.setter
-        def value(self, x):
-            if self._a is not None and x not in self._a: raise ValueError("enum")
-            self._v = x
+    # Fejk-kamera (Aravis-stil) som BARA har tillverkar-egna nodnamn (inte SFNC) →
+    # kandidatlistan + set_first måste hitta dem ändå. set_str/int/float lyckas bara
+    # för kända noder (och giltiga enum-värden), precis som AravisGigeCamera.
+    class _Dev:
+        def __init__(self):
+            self.vals = {}
+            self.nodes = {
+                "TriggerSelector": {"LineStart", "FrameStart"},
+                "TriggerMode": {"On", "Off"},
+                "LineSource": {"RotaryEncoder", "Line0"},      # ej "TriggerSource"
+                "TriggerActivation": {"RisingEdge", "FallingEdge"},
+                "RotaryEncDir": None, "RotaryEncDiv": None, "RotaryEncMul": None,
+            }
+        def _set(self, name, value, enum=False):
+            if name not in self.nodes: return False
+            allowed = self.nodes[name]
+            if enum and allowed is not None and value not in allowed: return False
+            self.vals[name] = value; return True
+        def set_str(self, n, v): return self._set(n, v, enum=True)
+        def set_int(self, n, v): return self._set(n, int(v))
+        def set_float(self, n, v): return self._set(n, float(v))
+        def set_first(self, candidates, value):
+            for n in candidates:
+                ok = (self.set_str(n, value) if isinstance(value, str)
+                      else self.set_int(n, value) if isinstance(value, (int, bool))
+                      else self.set_float(n, value))
+                if ok: return (n, True)
+            return (None, False)
 
-    # Kamera som BARA har tillverkar-egna nodnamn (inte SFNC) → kandidatlistan
-    # måste hitta dem ändå.
-    class _NM: pass
-    nm = _NM()
-    nm.TriggerSelector = _Node(allowed={"LineStart", "FrameStart"})
-    nm.TriggerMode = _Node(allowed={"On", "Off"})
-    nm.LineSource = _Node(allowed={"RotaryEncoder", "Line0"})   # ej "TriggerSource"
-    nm.TriggerActivation = _Node(allowed={"RisingEdge", "FallingEdge"})
-    nm.RotaryEncDir = _Node()                                   # tillverkar-namn
-    nm.RotaryEncDiv = _Node()
-    nm.RotaryEncMul = _Node()
-
+    dev = _Dev()
     cam = GenICamSurfaceCamera()
-    res = cam._apply_line_trigger(nm)               # offline-applicering mot fejk-map
+    res = cam._apply_line_trigger(dev)              # offline-applicering mot fejk-kamera
     assert res["selector"] == ("TriggerSelector", True)
     assert res["mode"] == ("TriggerMode", True)
     assert res["source"][1] is True and "LineSource" in res["source"][0]
-    assert nm.TriggerMode.value == "On"
-    assert nm.RotaryEncDir.value == 1               # forward → medurs (1)
-    # divider/multiplier hamnar på tillverkar-noderna
-    assert res["divider"][0] == "RotaryEncDiv" and nm.RotaryEncDiv.value == 1
+    assert dev.vals["TriggerMode"] == "On"
+    assert dev.vals["RotaryEncDir"] == 1            # forward → medurs (1)
+    assert res["divider"][0] == "RotaryEncDiv" and dev.vals["RotaryEncDiv"] == 1
 
     # divider från kalibrering (linesync) ska nå kameran
     cam.configure_encoder_line_trigger(divider=8, direction="reverse")
-    res2 = cam._apply_line_trigger(nm)
-    assert nm.RotaryEncDiv.value == 8 and nm.RotaryEncDir.value == 2   # reverse → moturs
+    cam._apply_line_trigger(dev)
+    assert dev.vals["RotaryEncDiv"] == 8 and dev.vals["RotaryEncDir"] == 2   # reverse → moturs
 
-    # set_first_available faller tillbaka snyggt när inget namn finns
-    name, ok = set_first_available(nm, ["FinnsInte", "HellerInte"], 1)
-    assert name is None and ok is False
+    # set_first faller tillbaka snyggt när inget namn finns
+    assert dev.set_first(["FinnsInte", "HellerInte"], 1) == (None, False)
 
 
 def test_camera_config_and_profile_roi():

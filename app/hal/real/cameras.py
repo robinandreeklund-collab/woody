@@ -296,7 +296,7 @@ class GenICamProfileCamera(ProfileCameraIF):
 class GenICamSurfaceCamera(SurfaceCameraIF):
     def __init__(self, serial: str | None = None, features: dict | None = None):
         self._serial = serial
-        self._ia = None
+        self._dev = None             # AravisGigeCamera (GigE Vision via Aravis)
         self._connected = False
         self._rows: list = []        # ackumulerade rad-skanningar (en bräda)
         # GenICam-inställningar: defaults + overrides (vitbalans, exponering, gain …)
@@ -311,25 +311,42 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
                           "GigE Vision", self._connected)
 
     def open(self) -> None:
-        if self._connected and self._ia is not None:    # idempotent: dubbel-open läcker IA-handtag
+        if self._connected and self._dev is not None:   # idempotent
             return
-        h = _harvester()
-        kw = {"serial_number": self._serial} if self._serial else {}
-        self._ia = h.create(search_key=kw or None)
-        nm = self._ia.remote_device.node_map
-        apply_genicam_features(nm, self._features, log_prefix=" yta")
+        from .aravis_gige import AravisGigeCamera       # lazy (gi/Aravis)
+        dev = AravisGigeCamera(self._serial)
+        dev.open(pixel_format=self._features.get("PixelFormat"))
+        for k, v in self._features.items():             # exponering/gain/vitbalans (best-effort)
+            if k != "PixelFormat":
+                _apply_feature(dev, k, v)
+        # Encoder-triggad line-scan om konfigurerad — men _apply_line_trigger faller
+        # tillbaka på FREE-RUN om kamerans trigg-noder saknas (okända på HT-GELM44C)
+        # eller ingen encoder finns → kameran greppar/previewar ändå vid idrifttagning.
         if self._line_trigger is not None:
-            self._apply_line_trigger(nm)
-        self._ia.start()
+            self._apply_line_trigger(dev)
+        else:
+            dev.set_str("TriggerMode", "Off")
+        # säkerställ att free-run faktiskt STRÖMMAR (annars greppar preview ingen ram):
+        # kontinuerligt läge + exponering + radtakt. Trigg-läget (om encodern finns)
+        # överstyr radtakten ändå.
+        dev.set_enum("AcquisitionMode", "Continuous")
+        dev.set_enum("ExposureAuto", "Off")
+        _exp = float(self._features.get("ExposureTime", 3000.0))
+        dev.set_float("ExposureTime", _exp) or dev.set_float("ExposureTimeAbs", _exp)
+        for _en in ("AcquisitionLineRateEnable", "AcquisitionFrameRateEnable"):
+            dev.set_bool(_en, True)
+        dev.set_float("AcquisitionLineRate", 2000.0)
+        dev.set_float("AcquisitionFrameRate", 100.0)
+        dev.start(height=48)                            # liten strip för snabb preview-grab
+        self._dev = dev
         self._connected = True
 
     def configure(self, **features) -> dict:
         """Uppdatera kamerainställningar (exponering, gain, vitbalans, ROI …) —
         appliceras direkt om ansluten. Källa: kalibrering/kod."""
         self._features.update(features)
-        if self._connected and self._ia is not None:
-            return apply_genicam_features(self._ia.remote_device.node_map, features,
-                                          log_prefix=" yta")
+        if self._connected and self._dev is not None:
+            return {k: _apply_feature(self._dev, k, v) for k, v in features.items()}
         return {}
 
     def configure_encoder_line_trigger(self, *, divider: int = 1, multiplier: int = 1,
@@ -344,63 +361,70 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         annars vid nästa open(). Returnerar {logiskt-namn: (nod, ok)}."""
         self._line_trigger = dict(divider=int(divider), multiplier=int(multiplier),
                                   direction=direction, line_rate_hz=line_rate_hz)
-        if self._connected and self._ia is not None:
-            return self._apply_line_trigger(self._ia.remote_device.node_map)
+        if self._connected and self._dev is not None:
+            return self._apply_line_trigger(self._dev)
         return {}
 
     def disable_line_trigger(self) -> dict:
         """Stäng av trigg (fri ström) — t.ex. för fokus/justering utan matning."""
         self._line_trigger = None
-        if self._connected and self._ia is not None:
-            return {"mode": set_first_available(
-                self._ia.remote_device.node_map, _TRIG_CANDS["mode"], "Off", " yta")}
+        if self._connected and self._dev is not None:
+            return {"mode": self._dev.set_first(_TRIG_CANDS["mode"], "Off")}
         return {}
 
-    def _apply_line_trigger(self, nm) -> dict:
-        """Översätt encoder-trigg-parametrarna till GenICam-noder (best-effort)."""
+    def _apply_line_trigger(self, dev) -> dict:
+        """Översätt encoder-trigg-parametrarna till GenICam-noder (best-effort, via Aravis).
+        Faller tillbaka på FREE-RUN om triggkällan inte går att sätta (okända noder på
+        HT-GELM44C) — annars skulle kameran vänta på obefintliga pulser och aldrig greppa."""
         p = self._line_trigger or {}
         res: dict = {}
-        # 1) line-scan-trigg: en rad (LineStart) per puls, flank-triggad
-        res["selector"]   = set_first_available(nm, _TRIG_CANDS["selector"], "LineStart", " yta")
-        res["mode"]       = set_first_available(nm, _TRIG_CANDS["mode"], "On", " yta")
-        res["source"]     = self._set_source(nm)
-        res["activation"] = set_first_available(nm, _TRIG_CANDS["activation"], "RisingEdge", " yta")
-        # 2) encoder: A/B-faser på Line-ingångar, riktning, divider/multiplikator
-        set_first_available(nm, _TRIG_CANDS["enc_sel"], "Encoder0", " yta")
-        set_first_available(nm, _TRIG_CANDS["enc_src_a"], "Line0", " yta")
-        set_first_available(nm, _TRIG_CANDS["enc_src_b"], "Line1", " yta")
-        res["direction"]  = set_first_available(
-            nm, _TRIG_CANDS["enc_dir"], _TRIG_DIR_VALUES.get(p.get("direction"), 1), " yta")
-        res["divider"]    = set_first_available(nm, _TRIG_CANDS["divider"], p.get("divider", 1), " yta")
-        res["multiplier"] = set_first_available(nm, _TRIG_CANDS["multiplier"], p.get("multiplier", 1), " yta")
+        res["selector"]   = dev.set_first(_TRIG_CANDS["selector"], "LineStart")
+        res["mode"]       = dev.set_first(_TRIG_CANDS["mode"], "On")
+        res["source"]     = self._set_source(dev)
+        res["activation"] = dev.set_first(_TRIG_CANDS["activation"], "RisingEdge")
+        dev.set_first(_TRIG_CANDS["enc_sel"], "Encoder0")
+        dev.set_first(_TRIG_CANDS["enc_src_a"], "Line0")
+        dev.set_first(_TRIG_CANDS["enc_src_b"], "Line1")
+        res["direction"]  = dev.set_first(_TRIG_CANDS["enc_dir"],
+                                          _TRIG_DIR_VALUES.get(p.get("direction"), 1))
+        res["divider"]    = dev.set_first(_TRIG_CANDS["divider"], p.get("divider", 1))
+        res["multiplier"] = dev.set_first(_TRIG_CANDS["multiplier"], p.get("multiplier", 1))
         if p.get("line_rate_hz"):
-            res["line_rate"] = set_first_available(nm, _TRIG_CANDS["line_rate"], p["line_rate_hz"], " yta")
+            res["line_rate"] = dev.set_first(_TRIG_CANDS["line_rate"], p["line_rate_hz"])
+        if not res["source"][1]:                       # ingen triggkälla → free-run
+            dev.set_str("TriggerMode", "Off")
+            print("[kamera yta] encoder-trigg-noder ej tillgängliga → free-run (preview)")
         return res
 
-    def _set_source(self, nm):
+    def _set_source(self, dev):
         """Encoder-triggkälla: prova nodnamn × värde-kandidater, tyst tills allt fallit."""
         for node in _TRIG_CANDS["source"]:
             for src in _TRIG_SOURCE_CANDS:
-                try:
-                    getattr(nm, node).value = src
+                if dev.set_str(node, src):
                     return (f"{node}={src}", True)
-                except Exception:
-                    continue
-        print(f"[kamera yta] kunde inte sätta triggkälla "
-              f"({_TRIG_CANDS['source']} × {_TRIG_SOURCE_CANDS})")
         return (None, False)
 
     def grab_line(self) -> np.ndarray:
         """En radskanning (RGB) — ackumuleras till en yt-bild medan brädan matas."""
-        with self._ia.fetch(timeout=0.5) as buf:
-            comp = buf.payload.components[0]
-            return comp.data.reshape(-1, 3).astype(np.uint8)
+        if not self._connected or self._dev is None:
+            return np.zeros((0, 3), np.uint8)
+        frame = self._dev.grab(timeout_ms=500)
+        if frame is None:
+            return np.zeros((0, 3), np.uint8)
+        if frame.ndim == 2:                            # mono → 3 kanaler
+            frame = np.dstack([frame, frame, frame])
+        return frame.reshape(-1, 3).astype(np.uint8)
 
     def surface_image(self) -> np.ndarray:
+        """Live yt-strip (H×4096×3) för preview — greppar en färsk ram om ansluten."""
+        if self._connected and self._dev is not None:
+            frame = self._dev.grab(timeout_ms=800)
+            if frame is not None:
+                return np.dstack([frame] * 3) if frame.ndim == 2 else frame.astype(np.uint8)
         return np.array(self._rows, dtype=np.uint8) if self._rows else np.zeros((2, 2, 3), np.uint8)
 
     def close(self) -> None:
-        if self._ia:
-            self._ia.stop(); self._ia.destroy()
-        self._ia = None
+        if self._dev is not None:
+            self._dev.close()
+        self._dev = None
         self._connected = False
