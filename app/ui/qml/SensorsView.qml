@@ -43,7 +43,7 @@ Flickable {
             devId: "surface"
             sName: "Ytkamera · 4K linjekamera"; sModel: "HT-GELM44C-T2 · färg"; sIface: "GigE Vision"
             tag: "datablad: 7 µm · ~8 kHz färg · M42 · encoder-triggad (band B)"
-            spec: [["Upplösning","4096×4 TDI"],["Pixel","7,0 µm"],["Färg","RGB888 8-bit"],["Lins","ZLKC TM2004MPC 20 mm"]]
+            spec: [["Upplösning","4096×6 TDI"],["Pixel","7,0 µm"],["Färg","RGB888 8-bit"],["Lins","ZLKC TM2004MPC 20 mm"]]
             live: [["Radtakt",ctrl.telemetry.surfRate],["Rader/bräda",ctrl.telemetry.surfRows],
                    ["Upplösning",ctrl.telemetry.surfMmPx],["Datatakt",ctrl.telemetry.surfData],
                    ["Av kapacitet",ctrl.telemetry.surfCap]]

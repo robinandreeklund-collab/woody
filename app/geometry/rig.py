@@ -42,7 +42,7 @@ class RigGeometry:
     # --- sensorer ---
     profile_px_long: int = 2448          # MV-CS050 lång axel (längs linjen)
     profile_px_short: int = 2048         # kort axel (höjd/triangulering)
-    surface_px: int = 4096               # Huateng 4K radkamera
+    surface_px: int = 4096               # Huateng line-scan: 4096×6 TDI → 4096 px ut per rad
     point_lasers_x_mm: tuple = (60.0, 250.0, 440.0)   # LR400 V / C / H längs X
     # LR400-ankaret sitter UPPSTRÖMS (eget mätplan före lasertrianguleringen), så det
     # mäter varje rads absoluta tjocklek INNAN den når profil-FOV → ingen 655 nm-

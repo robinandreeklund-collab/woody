@@ -90,7 +90,7 @@ class SimSurfaceCamera(SurfaceCameraIF):
         self._scanner = scanner
 
     def info(self) -> DeviceInfo:
-        return DeviceInfo("Ytkamera 4K färg", "Huateng 4096×4 TDI", "GigE Vision", True)
+        return DeviceInfo("Ytkamera 4K färg", "Huateng 4096×6 TDI", "GigE Vision", True)
 
     def grab_line(self, pos_mm: float = 0.0) -> np.ndarray:
         """En encoder-triggad färgrad (RGB längs LÄNGDEN) vid matningsposition
