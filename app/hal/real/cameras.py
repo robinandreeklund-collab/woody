@@ -123,6 +123,20 @@ def set_first_available(node_map, candidates, value, log_prefix: str = ""):
     return (None, False)
 
 
+def _apply_feature(dev, name: str, value) -> bool:
+    """Sätt en GenICam-nod på en MvsU3VCamera; väljer setter efter Python-typ.
+    bool→SetBool, str→SetEnumByString, int→SetInt (fallback enum), float→SetFloat."""
+    if isinstance(value, bool):
+        return dev.set_bool(name, value)
+    if isinstance(value, str):
+        return dev.set_enum(name, value)
+    if isinstance(value, int):
+        return dev.set_int(name, value) or dev.set_enum(name, str(value))
+    if isinstance(value, float):
+        return dev.set_float(name, value)
+    return False
+
+
 # ── Encoder-triggad line-scan (linjekameran HT-GELM44C-T2, GigE Vision) ──────────
 # Huatengs SDK-modell (CameraDefine.h / CameraApi.h):
 #   snap-läge ROTARYENC_TRIGGER(3): en bildrad per encoderpuls (band B → Line0).
@@ -160,9 +174,10 @@ class GenICamProfileCamera(ProfileCameraIF):
         self._exposure_us = exposure_us
         self._roi_offset_y = roi_offset_y   # None = centrera bandet; annars kalibrerat
         self._frame_rate_hz = frame_rate_hz
-        self._ia = None
+        self._dev = None              # MvsU3VCamera (MVS-SDK, sätts i open())
         self._connected = False
         self._extractor = None        # GPU/CPU stripe-extraktor (lazy)
+        self._meas_rows = int(roi_rows) if roi_rows else 80   # mät-band för read_stripe
         # GenICam-inställningar: defaults + overrides (från config/kalibrering)
         self._features = {**DEFAULT_PROFILE_FEATURES, **(features or {})}
 
@@ -171,81 +186,95 @@ class GenICamProfileCamera(ProfileCameraIF):
         return DeviceInfo(f"Profilkamera {nm}", "Hikrobot MV-CS050-10UM", "USB3 Vision", self._connected)
 
     def open(self) -> None:
-        if self._connected and self._ia is not None:    # idempotent: dubbel-open läcker IA-handtag
+        if self._connected and self._dev is not None:    # idempotent: dubbel-open läcker handtag
             return
-        h = _harvester()
-        kw = {"serial_number": self._serial} if self._serial else {}
-        self._ia = h.create(search_key=kw or None)
-        nm = self._ia.remote_device.node_map
-        # 1) hårdvaru-ROI: bara ett band runt stripen → mindre USB-bandbredd, 60 fps
-        self._apply_roi(nm)
-        # 2) ExposureTime drivs av self._exposure_us men kan överstyras via features
-        feats = {"ExposureTime": self._exposure_us, **self._features}
-        apply_genicam_features(nm, feats, log_prefix=f" {self._color}")
-        # 3) bildtakt (free-run): 60 fps per kamera (designkrav)
+        from .mvs_u3v import MvsU3VCamera               # lazy: vendor-SDK
+        dev = MvsU3VCamera(self._serial)
+        dev.open(pixel_format=self._features.get("PixelFormat", "Mono8"))
+        # 1) ROI: roi_rows satt → hårdvaru-ROI (smalt band, 60 fps); None → full ram
+        #    (live-preview/idrifttagning så man ser HELA bilden i GUI:t)
+        self._apply_roi(dev)
+        # 2) exponering + övriga GenICam-features (defaults + overrides)
+        dev.set_enum("ExposureAuto", "Off")
+        dev.set_float("ExposureTime", float(self._exposure_us))
+        for k, v in self._features.items():
+            _apply_feature(dev, k, v)
+        # 3) bildtakt (free-run): 60 fps per kamera (designkrav vid smalt ROI)
         if self._frame_rate_hz:
-            set_first_available(nm, ["AcquisitionFrameRateEnable"], True, f" {self._color}")
-            set_first_available(nm, ["AcquisitionFrameRate", "AcquisitionFrameRateAbs"],
-                                float(self._frame_rate_hz), f" {self._color}")
-        self._ia.start()
+            dev.set_bool("AcquisitionFrameRateEnable", True)
+            dev.set_float("AcquisitionFrameRate", float(self._frame_rate_hz))
+        dev.start()
+        self._dev = dev
         self._connected = True
 
-    def _apply_roi(self, nm) -> dict:
-        """Sätt ett ROI-band (full bredd × roi_rows) centrerat på stripen. Ordning:
-        nollställ offset → sätt full bredd → sätt höjd → sätt offset (offset-range
-        beror på höjden). Nollställ ALLTID OffsetX + maxa Width så ett tidigare
-        smalt ROI (t.ex. från en avbruten körning) inte hänger kvar."""
+    def _apply_roi(self, dev) -> dict:
+        """Sätt sensorområdet. Ordning: nollställ offset → maxa bredd → sätt höjd →
+        sätt offset. ``roi_rows`` satt → smalt mät-band (centrerat/kalibrerat) för
+        60 fps; ``roi_rows`` None/0 → full höjd (hela bilden, för live-preview)."""
         res: dict = {}
-        set_first_available(nm, ["OffsetX"], 0, f" {self._color}")
-        try:
-            wmax = int(getattr(nm, "WidthMax").value)
-            res["width"] = set_first_available(nm, ["Width"], wmax, f" {self._color}")
-        except Exception:
-            pass
-        set_first_available(nm, ["OffsetY"], 0, f" {self._color}")
-        res["height"] = set_first_available(nm, ["Height"], int(self._roi_rows), f" {self._color}")
-        # offset_y: kalibrerat värde, annars centrera bandet vertikalt på sensorn
-        off = self._roi_offset_y
-        if off is None:
-            try:
-                hmax = int(getattr(nm, "HeightMax").value)
+        dev.set_int("OffsetX", 0)
+        dev.set_int("OffsetY", 0)
+        wmax = dev.get_int_max("Width")
+        hmax = dev.get_int_max("Height")
+        if wmax:
+            res["width"] = dev.set_int("Width", wmax)
+        if self._roi_rows and hmax and int(self._roi_rows) < hmax:
+            res["height"] = dev.set_int("Height", int(self._roi_rows))
+            off = self._roi_offset_y
+            if off is None:                            # centrera bandet vertikalt
                 off = max(0, (hmax - int(self._roi_rows)) // 2)
-            except Exception:
-                off = None
-        if off is not None:
-            res["offset_y"] = set_first_available(nm, ["OffsetY"], int(off), f" {self._color}")
+            res["offset_y"] = dev.set_int("OffsetY", int(off))
+        elif hmax:                                     # full ram
+            res["height"] = dev.set_int("Height", hmax)
         return res
 
     def configure(self, **features) -> dict:
         """Uppdatera kamerainställningar (defaults + nu) — appliceras direkt om ansluten."""
         self._features.update(features)
-        if self._connected and self._ia is not None:
-            return apply_genicam_features(self._ia.remote_device.node_map, features,
-                                          log_prefix=f" {self._color}")
+        if self._connected and self._dev is not None:
+            return {k: _apply_feature(self._dev, k, v) for k, v in features.items()}
         return {}
 
     def configure_roi(self, rows: int | None = None, offset_y: int | None = None) -> dict:
         """Ställ ROI-bandet (höjd + vertikal position) — från alignment-kalibreringen.
-        Appliceras vid nästa open() (ROI kräver stoppat förvärv på de flesta kameror)."""
+        ROI kräver stoppat förvärv → vi stoppar/startar greppet runt omsättningen."""
         if rows is not None:
             self._roi_rows = int(rows)
         self._roi_offset_y = offset_y
-        if self._connected and self._ia is not None:
-            return self._apply_roi(self._ia.remote_device.node_map)
+        self._meas_rows = int(self._roi_rows) if self._roi_rows else 80
+        if self._connected and self._dev is not None:
+            self._dev.stop()
+            res = self._apply_roi(self._dev)
+            self._dev.start()
+            return res
         return {}
 
     def read_stripe(self, y_mm: float = 0.0, n: int = 200) -> np.ndarray:
-        """Hämta en ram, beskär ett ROI-band runt stripen och skala till (roi_rows, n)."""
-        if not self._connected:
-            return np.zeros((self._roi_rows, n))
-        with self._ia.fetch(timeout=0.5) as buf:
-            comp = buf.payload.components[0]
-            img = comp.data.reshape(comp.height, comp.width).astype(np.float64)
-        # centrera ROI vertikalt; nedsampla längs linjen till n kolumner
-        r0 = max(0, img.shape[0] // 2 - self._roi_rows // 2)
-        roi = img[r0:r0 + self._roi_rows]
+        """Hämta en ram, beskär mät-bandet runt stripen och skala till (meas_rows, n)."""
+        if not self._connected or self._dev is None:
+            return np.zeros((self._meas_rows, n))
+        arr = self._dev.grab(timeout_ms=500)
+        if arr is None:
+            return np.zeros((self._meas_rows, n))
+        img = arr.astype(np.float64)
+        # centrera mät-bandet vertikalt; nedsampla längs linjen till n kolumner
+        rows = min(self._meas_rows, img.shape[0])
+        r0 = max(0, img.shape[0] // 2 - rows // 2)
+        roi = img[r0:r0 + rows]
         cols = np.linspace(0, roi.shape[1] - 1, n).astype(int)
         return roi[:, cols]
+
+    def grab_preview(self, y_mm: float = 0.0, max_dim: int = 600) -> np.ndarray:
+        """HELA sensorramen (mono, nedskalad) för live-preview i GUI:t — inte mätning.
+        Slaven färglägger den (röd/grön tint) och streamar som cam_red/cam_green."""
+        if not self._connected or self._dev is None:
+            return np.zeros((2, 2), dtype=np.uint8)
+        arr = self._dev.grab(timeout_ms=800)
+        if arr is None:
+            return np.zeros((2, 2), dtype=np.uint8)
+        h, w = arr.shape
+        step = max(1, max(h, w) // int(max_dim))
+        return arr[::step, ::step]
 
     def read_profile(self, y_mm: float = 0.0) -> np.ndarray:
         # GPU-accelererad stripe-extraktion (CuPy på Jetson, numpy fallback) — keep-up
@@ -254,13 +283,13 @@ class GenICamProfileCamera(ProfileCameraIF):
         if self._extractor is None:
             from ...processing.stripe_gpu import StripeExtractor
             self._extractor = StripeExtractor()
-            self._extractor.warmup(self._roi_rows, 2448)
+            self._extractor.warmup(self._meas_rows, 2448)
         return centroid_to_z(self._extractor.process(self.read_stripe(y_mm)))
 
     def close(self) -> None:
-        if self._ia:
-            self._ia.stop(); self._ia.destroy()
-        self._ia = None
+        if self._dev is not None:
+            self._dev.close()
+        self._dev = None
         self._connected = False
 
 

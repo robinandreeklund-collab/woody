@@ -247,25 +247,30 @@ def test_camera_config_and_profile_roi():
     assert (sk["profile_red"]["serial"], sk["profile_green"]["serial"],
             sk["surface"]["serial"]) == ("A", "B", "C")
 
-    # Hårdvaru-ROI: bandet centreras via HeightMax, offset nollas före höjd
-    class _Node:
-        def __init__(self, v=None): self._v = v
-        @property
-        def value(self): return self._v
-        @value.setter
-        def value(self, x): self._v = x
+    # Hårdvaru-ROI via MVS-SDK: _apply_roi pratar med en MvsU3VCamera (set_int/
+    # get_int_max). Fake-dev fångar satta värden. Bandet centreras via HeightMax,
+    # offset nollas före höjd.
+    class _Dev:
+        def __init__(self, wmax=2448, hmax=2048):
+            self.vals = {}; self._wmax = wmax; self._hmax = hmax
+        def set_int(self, name, value): self.vals[name] = int(value); return True
+        def get_int_max(self, name): return {"Width": self._wmax, "Height": self._hmax}.get(name)
 
-    class _NM: pass
-    nm = _NM(); nm.Height = _Node(2048); nm.OffsetY = _Node(99); nm.HeightMax = _Node(2048)
+    dev = _Dev()
     cam = GenICamProfileCamera("red", roi_rows=128)
-    cam._apply_roi(nm)
-    assert nm.Height.value == 128
-    assert nm.OffsetY.value == (2048 - 128) // 2          # centrerat band
+    cam._apply_roi(dev)
+    assert dev.vals["Height"] == 128
+    assert dev.vals["OffsetY"] == (2048 - 128) // 2       # centrerat band
 
     # Kalibrerat offset (alignment) vinner över centrering
     cam.configure_roi(rows=200, offset_y=500)
-    cam._apply_roi(nm)
-    assert nm.Height.value == 200 and nm.OffsetY.value == 500
+    cam._apply_roi(dev)
+    assert dev.vals["Height"] == 200 and dev.vals["OffsetY"] == 500
+
+    # roi_rows=None → full sensorram (live-preview vid idrifttagning)
+    dev2 = _Dev()
+    GenICamProfileCamera("green", roi_rows=None)._apply_roi(dev2)
+    assert dev2.vals["Height"] == 2048 and dev2.vals["Width"] == 2448
 
 
 if __name__ == "__main__":
