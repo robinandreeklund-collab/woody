@@ -31,9 +31,10 @@ _BYID = "/dev/serial/by-id/usb-WCH.CN_USB_Quad_Serial_BD650CABCD-if{:02d}"
 
 def _ch(port: str) -> dict:
     return {"port": port, "unit": 1, "baud": 9600,
-            # Verifierat mot riggens LR400 (2026-06-25): avstånd i HOLDING reg 1,
-            # ×0,1 = mm (757 ⇄ 75,7 mm; 0 = inget mål i mätområdet). reg5 ≈ kvalitet.
-            "reg_addr": 1, "reg_kind": "holding", "scale": 0.1,   # register → mm
+            # Verifierat mot riggens LR400 (2026-06-25): avstånd är ett 32-bitarsvärde i
+            # HOLDING reg 0–1 (reg0=hög=0, reg1=låg), ×0,1 = mm (757 ⇄ 75,7 mm; 0 = inget
+            # mål). Sensorn svarar BARA på count=2-läs från adress 0 → reg_count=2.
+            "reg_addr": 0, "reg_kind": "holding", "scale": 0.1, "reg_count": 2,
             "d0_mm": 100.0}
 
 DEFAULTS: dict = {"ch1": _ch(_BYID.format(0)), "ch2": _ch(_BYID.format(2)),

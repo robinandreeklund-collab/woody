@@ -56,11 +56,14 @@ class LR400ModbusLaser(PointLaserIF):
     def __init__(self, idx: int, x_mm: float, port: str = "/dev/ttyUSB0",
                  unit: int = 1, baud: int = 9600, d0_mm: float = 100.0,
                  reg_addr: int = 0, reg_kind: str = "holding", scale: float = 0.01,
-                 client=None):
+                 reg_count: int = 1, client=None):
         self._idx, self._x = idx, x_mm
         self._port, self._unit, self._baud = port, unit, baud
         self._d0 = d0_mm                    # nollreferens (kalibreras mot tomt band)
         self._reg_addr, self._reg_kind, self._scale = reg_addr, reg_kind, scale
+        # reg_count=2 → 32-bitarsvärde (reg[0]=hög, reg[1]=låg). LR400 svarar BARA på
+        # count=2-läs från adress 0 (count=1 ger 0/inget) → avstånd = (hög<<16|låg)×scale.
+        self._reg_count = max(1, int(reg_count))
         self._client = client              # injicerbar för test; annars delad pool
         self._owns_pool = client is None
         self._connected = client is not None
@@ -88,12 +91,14 @@ class LR400ModbusLaser(PointLaserIF):
             return None
         try:
             if self._reg_kind == "input":
-                rr = self._client.read_input_registers(address=self._reg_addr, count=1, device_id=self._unit)
+                rr = self._client.read_input_registers(address=self._reg_addr, count=self._reg_count, device_id=self._unit)
             else:
-                rr = self._client.read_holding_registers(address=self._reg_addr, count=1, device_id=self._unit)
+                rr = self._client.read_holding_registers(address=self._reg_addr, count=self._reg_count, device_id=self._unit)
             if rr is None or rr.isError() or not getattr(rr, "registers", None):
                 return None
-            return rr.registers[0] * self._scale
+            regs = rr.registers
+            raw = ((regs[0] << 16) | regs[1]) if self._reg_count >= 2 and len(regs) >= 2 else regs[0]
+            return raw * self._scale
         except Exception:
             return None
 

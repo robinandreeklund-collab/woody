@@ -53,7 +53,8 @@ class RealScanner(Scanner):
             c = lr[chans[i]] if i < len(chans) else lr400_config.DEFAULTS["ch1"]
             self.point_lasers.append(LR400ModbusLaser(
                 i, x, port=c["port"], unit=c["unit"], baud=c["baud"], d0_mm=c["d0_mm"],
-                reg_addr=c["reg_addr"], reg_kind=c["reg_kind"], scale=c["scale"]))
+                reg_addr=c["reg_addr"], reg_kind=c["reg_kind"], scale=c["scale"],
+                reg_count=c.get("reg_count", 1)))
         # Delad rigg: EN encoder + EN motordrivare. Bara lead-noden (has_conveyor)
         # bygger en egen RoboClaw; sensor-huvuden får matningspositionen från lead.
         from ...net import head_config
