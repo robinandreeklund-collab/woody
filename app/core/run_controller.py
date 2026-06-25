@@ -56,6 +56,7 @@ class AppController(QObject):
         self._mesh: dict = {}         # senaste 3D-data (live under skanning, full vid klar)
         self._mesh_t: float = 0.0     # senaste mesh-uppdatering (throttling)
         self._pass_grades: list = []  # grad per pass (multi-pass → kombineras)
+        self._homing: bool = False    # ren hemresa (sista svepet → backa till anhåll, ingen mätning)
         # löpande flöde (scan_stream i egen tråd → brädor via kö till GUI-tråden)
         self._flow_thread: threading.Thread | None = None
         self._flow_stop: threading.Event | None = None
@@ -117,49 +118,57 @@ class AppController(QObject):
             self._emit_state_throttled(now)
             return
 
-        if s.running:
+        if s.running and s.phase in ("scanning", "returning"):
             s.up_ms += dt * 1000
-            if s.phase == "scanning":
-                s.feed_pos_mm += cfg.feed_mm_s * dt              # framåt-pass
-                self._scanner.conveyor.advance(dt)
+            dirn = 1.0 if s.phase == "scanning" else -1.0       # fram (+) eller retur (−)
+            s.feed_pos_mm += dirn * cfg.feed_mm_s * dt
+            self._scanner.conveyor.advance(dt)
+            # defektdetektion — riktnings-medveten; ej under ren hemresa (_homing)
+            if not self._homing:
                 b = self._scanner.board()
                 if b:
                     added = False
                     for d in b.defects:
-                        if not d.get("_seen") and d["y"] <= s.feed_pos_mm:
+                        seen = (d["y"] <= s.feed_pos_mm) if dirn > 0 else (d["y"] >= s.feed_pos_mm)
+                        if not d.get("_seen") and seen:
                             d["_seen"] = True
                             s.detected.append(d)
                             added = True
                     if added:
                         self.defectsChanged.emit()
-                if s.feed_pos_mm >= BW:
-                    s.feed_pos_mm = BW
-                    self._finish_pass()
-            elif s.phase == "returning":
-                s.feed_pos_mm -= cfg.feed_mm_s * dt              # backa mot anhåll/fotocell
-                self._scanner.conveyor.advance(dt)
-                if s.feed_pos_mm <= 0:
-                    s.feed_pos_mm = 0.0
-                    self._home_reached()
+            # nådde svepets ände?
+            if dirn > 0 and s.feed_pos_mm >= BW:
+                s.feed_pos_mm = BW
+                self._end_sweep(at_home=False)
+            elif dirn < 0 and s.feed_pos_mm <= 0:
+                s.feed_pos_mm = 0.0
+                if self._homing:
+                    self._home_reached()                        # ren hemresa klar → färdigställ
+                else:
+                    self._end_sweep(at_home=True)               # mätande retur klar
             # "reload" = väntar på ny bräda (notis visas); inget rör sig
             cycle = (2 * BW) / max(1.0, cfg.feed_mm_s) + 0.7     # fram + tillbaka per pass
             s.throughput += (60.0 / cycle - s.throughput) * min(1.0, dt * 2)
 
         s.jetson_load += (s.load_target - s.jetson_load) * min(1.0, dt * 1.5)
 
-        # sensoravläsningar via HAL
+        # sensoravläsningar via HAL — mäter på BÅDE framåt- och retursvep (profil + LR400
+        # är riktnings-oberoende), men ej under ren hemresa (_homing).
         b = self._scanner.board()
-        if b is not None and s.phase == "scanning":
-            y = min(BW - 1e-3, s.feed_pos_mm)
-            # LR400-ankaret sitter UPPSTRÖMS → mäter raden y_lr i förväg (utanför FOV)
-            y_lr = min(BW - 1e-3, y + RIG.lr_lead_mm)
+        measuring = s.running and s.phase in ("scanning", "returning") and not self._homing
+        if b is not None and measuring:
+            dirn = 1.0 if s.phase == "scanning" else -1.0
+            y = min(BW - 1e-3, max(0.0, s.feed_pos_mm))
+            # LR400-ankaret sitter UPPSTRÖMS i matningsled → leder i färdriktningen
+            y_lr = min(BW - 1e-3, max(0.0, y + dirn * RIG.lr_lead_mm))
             for i, pl in enumerate(self._scanner.point_lasers):
                 target = pl.read_mm(y_lr)
                 self._lr[i] += (target - self._lr[i]) * min(1.0, dt * 8)
                 # spara LR400-spår (absolut tjocklek vid varje matningsrad → massa
                 # datapunkter över 75 mm). Glesa till ~0,6 mm-steg, tak 140 punkter.
+                # Bygg spåret på framåt-svepet (returen mäter samma rader baklänges).
                 tr = self._lr_track[i]
-                if not tr or (y - tr[-1][0]) >= 0.6:
+                if dirn > 0 and (not tr or (y - tr[-1][0]) >= 0.6):
                     tr.append([round(y, 1), round(target, 2)])
                     if len(tr) > 140:
                         del tr[0]
@@ -175,13 +184,19 @@ class AppController(QObject):
                 self._zprofile = [round(float(v), 3) for v in z]
                 xc = RIG.board_len_mm * 0.5                     # tvärprofil Z(y) över bredden
                 # tvärprofilen BYGGS i realtid: bara de rader (i bredd) som hunnit
-                # skannas (feed_pos), resten kommer allteftersom — inte hela direkt.
+                # skannas, resten kommer allteftersom — inte hela direkt. Framåt-svep
+                # bygger från ena änden, retursvep från den andra (mätlinjen vänd).
                 zw = b.z_profile_col(xc)
-                ns = max(1, int(self.scanProgress * len(zw)))
-                self._zprofile_w = [round(float(v), 3) for v in zw[:ns]]
                 lf, rf = b.cross_facets(xc)                     # mätta sidofasetter (röd/grön)
-                self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in lf[:ns]]
-                self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in rf[:ns]]
+                fwd = (s.phase == "scanning")
+                swept = self.scanProgress if fwd else (1.0 - self.scanProgress)
+
+                def _clip(seq):
+                    n = max(1, int(swept * len(seq)))
+                    return seq[:n] if fwd else seq[len(seq) - n:]
+                self._zprofile_w = [round(float(v), 3) for v in _clip(zw)]
+                self._left_facet = [[round(p[0], 2), round(p[1], 3)] for p in _clip(lf)]
+                self._right_facet = [[round(p[0], 2), round(p[1], 3)] for p in _clip(rf)]
                 # live 3D: bygg upp brädan i realtid (throttlat ~12 Hz)
                 if now - self._mesh_t > 0.08:
                     self._mesh = self._build_mesh(b, self.scanProgress, full=False)
@@ -210,9 +225,13 @@ class AppController(QObject):
         stripe (höjd-kodad) på svart; laser AV → svart. Linjekamera = färg, bygger
         rad-för-rad när brädan når den. Real: samma väg med riktiga kameraramar."""
         sc = self._scanner
-        on = self._s.running and self._s.phase in ("scanning", "flow")   # = laser enablad
-        y = self._s.feed_pos_mm
-        if on:
+        s = self._s
+        # profilkameror + laser = PÅ på både fram- och retursvep (ej ren hemresa)
+        laser_on = s.running and (s.phase in ("scanning", "flow")
+                                  or (s.phase == "returning" and not self._homing))
+        forward = s.running and s.phase in ("scanning", "flow")   # linjekameran: bara framåt
+        y = s.feed_pos_mm
+        if laser_on:
             try:
                 sp = getattr(sc.profile_red, "stripe_preview", None)
                 if sp is not None:                              # sim — kamerans faktiska bild
@@ -225,7 +244,8 @@ class AppController(QObject):
                 self._surface_provider.set_array(self._gray(gg), "cam_green")
             except Exception:
                 pass
-            try:                                                # linjekamera: line-scan, rad-för-rad
+        if forward:
+            try:                                                # linjekamera: line-scan, rad-för-rad (enkelriktad)
                 img = sc.surface.surface_image()
                 if img is not None and getattr(img, "size", 0):
                     # ÄKTA line-scan, NEDSTRÖMS lasern: brädans framkant ligger vid lasern när
@@ -243,12 +263,12 @@ class AppController(QObject):
                     self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
             except Exception:
                 pass
-        else:
-            # laser släckt (D4184) → mono-profilkamerorna ser SVART (bandpass)
+        if not laser_on:
+            # laser släckt (D4184) → mono-profilkamerorna ser SVART (bandpass).
+            # Linjekameran behåller sista ackumulerade bilden (skanningsresultatet).
             blk = np.zeros((400, 480, 3), np.uint8)             # Hikrobot-proportion
             self._surface_provider.set_array(blk, "cam_red")
             self._surface_provider.set_array(blk, "cam_green")
-            # linjekameran behåller sista ackumulerade bilden (skanningsresultatet)
         self._cam_rev += 1
         self.camChanged.emit()
 
@@ -308,43 +328,57 @@ class AppController(QObject):
         self.defectsChanged.emit()
         self.stateChanged.emit()
 
-    # -- en framåt-pass klar: gradera passet, börja backa mot fotocellen --
-    def _finish_pass(self):
-        s = self._s
+    # -- ett mätsvep klart (fram ELLER retur): gradera; fler pass → vänd och fortsätt mäta,
+    #    annars hem till anhållet och färdigställ. Returresan blir alltså ett RIKTIGT svep. --
+    def _end_sweep(self, at_home: bool):
+        s, cfg = self._s, self._cfg
         s.pass_count += 1
         b = self._scanner.board()
         self._pass_grades.append(grade_board(s.detected, b.warp_metrics() if b else {}))
         self._grade = self._combine_grades()
-        # backa till anhåll/home (fotocellen nollar där)
-        self._scanner.conveyor.set_speed(-self._cfg.feed_mm_s)
-        s.phase = "returning"
+        target = cfg.passes_target if cfg.pass_mode == "multi" else 1
+        if s.pass_count < target:
+            # nästa mätsvep i MOTSATT riktning: slutade vid anhåll → framåt, vid BW → retur
+            self._begin_sweep(forward=at_home)
+        elif at_home:
+            self._zero_home()                  # mätande retur slutade vid anhållet → klar
+            self._finalize_board()
+        else:
+            # sista svepet slutade vid BW → ren hemresa (ingen mätning), färdigställ vid anhåll
+            self._homing = True
+            s.phase = "returning"
+            self._scanner.conveyor.set_speed(-cfg.feed_mm_s)
+            self.stateChanged.emit()
+
+    # -- starta ett nytt mätsvep i given riktning (nollställ per-svep-detektion) --
+    def _begin_sweep(self, forward: bool):
+        s, cfg = self._s, self._cfg
+        b = self._scanner.board()              # varje svep ser hela brädan → nollställ detektion
+        if b is not None:
+            for d in b.defects:
+                d.pop("_seen", None)
+        s.detected = []
+        self._homing = False
+        s.phase = "scanning" if forward else "returning"
+        self._scanner.conveyor.set_speed((1.0 if forward else -1.0) * cfg.feed_mm_s)
+        self.defectsChanged.emit()
         self.stateChanged.emit()
 
-    # -- åter vid fotocellen: nolla; multi → ny pass på samma bräda, annars klar --
-    def _home_reached(self):
-        s, cfg = self._s, self._cfg
-        self._scanner.conveyor.set_speed(0.0)
+    def _zero_home(self):
+        """Vid anhåll/fotocell: stoppa bandet + nollställ encoder/position."""
         conv = self._scanner.conveyor
-        if hasattr(conv, "zero"):              # fotocell-home → nollställ encoder/position
+        conv.set_speed(0.0)
+        if hasattr(conv, "zero"):
             try:
                 conv.zero()
             except Exception:
                 pass
-        more = cfg.pass_mode == "multi" and s.pass_count < cfg.passes_target
-        if more:
-            # skanna SAMMA bräda igen (multi-pass medel) — nollställ pass-detektion
-            b = self._scanner.board()
-            if b is not None:
-                for d in b.defects:
-                    d.pop("_seen", None)
-            s.detected = []
-            s.feed_pos_mm = 0.0
-            s.phase = "scanning"
-            self._scanner.conveyor.set_speed(cfg.feed_mm_s)
-            self.defectsChanged.emit()
-            self.stateChanged.emit()
-        else:
-            self._finalize_board()
+
+    # -- ren hemresa klar (sista svepet slutade vid BW → backade hem) → färdigställ --
+    def _home_reached(self):
+        self._zero_home()
+        self._homing = False
+        self._finalize_board()
 
     def _combine_grades(self):
         """Brädans grad ur alla pass: sämsta klassen styr, medelpoäng."""
@@ -588,9 +622,10 @@ class AppController(QObject):
         ph = self._s.phase
         if ph == "flow":
             return "LÖPANDE FLÖDE"
-        if ph == "scanning":
-            return f"SKANNAR · PASS {self._s.pass_count + 1}" \
-                if self._cfg.pass_mode == "multi" else "SKANNAR"
+        if ph == "scanning" or (ph == "returning" and not self._homing):
+            arrow = " ←" if ph == "returning" else " →"          # svepriktning
+            return (f"SKANNAR · PASS {self._s.pass_count + 1}{arrow}"
+                    if self._cfg.pass_mode == "multi" else f"SKANNAR{arrow}")
         if ph == "returning":
             return "ÅTERGÅNG → ANHÅLL"
         if ph == "reload":
@@ -639,8 +674,11 @@ class AppController(QObject):
 
     @Property(bool, notify=stateChanged)
     def scanActive(self):
-        """Skannar just nu → lasrar + LED tända (digital tvilling: glöd)."""
-        return self._s.running and self._s.phase in ("scanning", "flow")
+        """Skannar just nu → lasrar + LED tända (digital tvilling: glöd). Sant på
+        BÅDE framåt- och retursvep (bidirektionell mätning), ej under ren hemresa."""
+        s = self._s
+        return s.running and (s.phase == "scanning" or s.phase == "flow"
+                              or (s.phase == "returning" and not self._homing))
 
     @Property(float, constant=True)
     def boardAspect(self): return RIG.board_aspect

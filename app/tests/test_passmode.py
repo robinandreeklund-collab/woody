@@ -83,6 +83,24 @@ def test_returning_decreases_then_homes():
     assert c._s.feed_pos_mm < pos_at_turn
 
 
+def test_multi_returvep_ar_matande():
+    """Bidirektionellt: i multi blir retursvepet ett RIKTIGT mätsvep (laser på,
+    scanActive) och räknas som ett pass — inte en bortkastad transport."""
+    c = _controller(pass_mode="multi", passes_target=2)
+    saw_measuring_return = {"v": False}
+
+    def step(cc):
+        if cc._s.phase == "returning" and cc.scanActive:
+            saw_measuring_return["v"] = True
+        return cc._s.phase == "reload"
+
+    assert _run_until(c, step), "nådde aldrig reload"
+    assert saw_measuring_return["v"], "retursvepet mätte aldrig (laser av under retur)"
+    assert c._s.pass_count == 2
+    assert len(c._pass_grades) == 2
+    assert c._s.feed_pos_mm == 0.0                     # slutar vid anhållet
+
+
 def test_combine_grades_worst_governs():
     from ..processing.grade import Grade
     c = _controller(pass_mode="multi", passes_target=2)
