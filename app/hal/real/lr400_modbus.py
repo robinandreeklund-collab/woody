@@ -28,7 +28,7 @@ def _get_client(port: str, baud: int):
         if entry is None:
             from pymodbus.client import ModbusSerialClient    # lazy
             client = ModbusSerialClient(port=port, baudrate=baud, parity="N",
-                                        stopbits=1, bytesize=8, timeout=0.1)
+                                        stopbits=1, bytesize=8, timeout=0.1, retries=1)
             if not client.connect():
                 raise RuntimeError(f"kunde inte öppna {port}")
             entry = {"client": client, "refs": 0}
@@ -79,6 +79,16 @@ class LR400ModbusLaser(PointLaserIF):
         if self._owns_pool:
             self._client = _get_client(self._port, self._baud)
         self._connected = True
+        # Verifiera att en sensor FAKTISKT svarar — en öppen men TOM kanal (port finns,
+        # ingen LR400) får inte räknas som ansluten: dess reg-läs skulle blockera
+        # huvudtråden på timeout under varje skanning. Försök några ggr (läs kan vara
+        # lite flaky). Svarar ingen → markera frånkopplad + släpp klienten.
+        if not any(self._read_register() is not None for _ in range(3)):
+            self._connected = False
+            if self._owns_pool and self._client is not None:
+                _release_client(self._port)
+                self._client = None
+            raise RuntimeError("ingen sensor svarar på kanalen")
 
     @property
     def is_connected(self) -> bool:
