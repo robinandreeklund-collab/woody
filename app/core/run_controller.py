@@ -231,15 +231,25 @@ class AppController(QObject):
                                   or (s.phase == "returning" and not self._homing))
         forward = s.running and s.phase in ("scanning", "flow")   # linjekameran: bara framåt
         y = s.feed_pos_mm
-        if laser_on:
+        is_real = getattr(sc.profile_red, "stripe_preview", None) is None
+        if is_real:
+            # REAL: visa kamerornas FAKTISKA helbild (grab_preview), throttlad ~5 Hz
+            # för att inte belasta MVS-greppet i onödan. Bandpass + laser av → bilden
+            # är fysiskt svart; utan filter (idrifttagning) ser man rummet. Ingen
+            # fejkad svärta — det kameran faktiskt ser ÄR previewen.
+            if self._cam_rev % 12 == 0:
+                try:
+                    gr = sc.profile_red.grab_preview(y)
+                    gg = sc.profile_green.grab_preview(y)
+                    self._surface_provider.set_array(self._gray(gr), "cam_red")
+                    self._surface_provider.set_array(self._gray(gg), "cam_green")
+                except Exception:
+                    pass
+        elif laser_on:                                          # SIM: syntetisk stripe-preview
             try:
-                sp = getattr(sc.profile_red, "stripe_preview", None)
-                if sp is not None:                              # sim — kamerans faktiska bild
-                    # Hikrobot MV-CS050 sensor-proportion 2448×2048 ≈ 1,2:1 (12 mm-lins)
-                    gr = sc.profile_red.stripe_preview(y, 480, 400)
-                    gg = sc.profile_green.stripe_preview(y, 480, 400)
-                else:                                           # real (GenICam mono-ROI)
-                    gr = sc.profile_red.read_stripe(y); gg = sc.profile_green.read_stripe(y)
+                # Hikrobot MV-CS050 sensor-proportion 2448×2048 ≈ 1,2:1 (12 mm-lins)
+                gr = sc.profile_red.stripe_preview(y, 480, 400)
+                gg = sc.profile_green.stripe_preview(y, 480, 400)
                 self._surface_provider.set_array(self._gray(gr), "cam_red")
                 self._surface_provider.set_array(self._gray(gg), "cam_green")
             except Exception:
@@ -263,8 +273,9 @@ class AppController(QObject):
                     self._surface_provider.set_array(np.ascontiguousarray(built), "cam_line")
             except Exception:
                 pass
-        if not laser_on:
-            # laser släckt (D4184) → mono-profilkamerorna ser SVART (bandpass).
+        if not laser_on and not is_real:
+            # SIM, laser släckt → mono-profilkamerorna ser SVART (bandpass-modell).
+            # I REAL hanteras previewen ovan (riktig ram), ingen fejk-svärta här.
             # Linjekameran behåller sista ackumulerade bilden (skanningsresultatet).
             blk = np.zeros((400, 480, 3), np.uint8)             # Hikrobot-proportion
             self._surface_provider.set_array(blk, "cam_red")

@@ -12,6 +12,7 @@ from __future__ import annotations
 import ctypes
 import os
 import sys
+import threading
 
 import numpy as np
 
@@ -83,6 +84,7 @@ class MvsU3VCamera:
         self._cam = None
         self._hdr = None
         self._grabbing = False
+        self._lock = threading.Lock()      # serialisera grab över trådar (preview∥förvärv)
 
     def open(self, pixel_format: str = "Mono8") -> None:
         cc, hdr = _sdk()
@@ -161,23 +163,27 @@ class MvsU3VCamera:
             self._grabbing = False
 
     def grab(self, timeout_ms: int = 1000):
-        """En mono-ram som numpy (H, W) uint8 — eller None vid timeout."""
+        """En mono-ram som numpy (H, W) uint8 — eller None vid timeout.
+        Låst: preview-tråden och förvärvsloopen kan greppa samma handle utan race."""
         hdr = self._hdr
-        frame = hdr.MV_FRAME_OUT()
-        ctypes.memset(ctypes.byref(frame), 0, ctypes.sizeof(frame))
-        if self._cam.MV_CC_GetImageBuffer(frame, int(timeout_ms)) != 0:
-            return None
-        try:
-            fi = frame.stFrameInfo
-            n = fi.nHeight * fi.nWidth
-            buf = (ctypes.c_ubyte * fi.nFrameLen)()
-            ctypes.memmove(buf, frame.pBufAddr, fi.nFrameLen)
-            return np.frombuffer(buf, dtype=np.uint8)[:n].reshape(fi.nHeight, fi.nWidth).copy()
-        finally:
+        with self._lock:
+            if self._cam is None:
+                return None
+            frame = hdr.MV_FRAME_OUT()
+            ctypes.memset(ctypes.byref(frame), 0, ctypes.sizeof(frame))
+            if self._cam.MV_CC_GetImageBuffer(frame, int(timeout_ms)) != 0:
+                return None
             try:
-                self._cam.MV_CC_FreeImageBuffer(frame)
-            except Exception:
-                pass
+                fi = frame.stFrameInfo
+                n = fi.nHeight * fi.nWidth
+                buf = (ctypes.c_ubyte * fi.nFrameLen)()
+                ctypes.memmove(buf, frame.pBufAddr, fi.nFrameLen)
+                return np.frombuffer(buf, dtype=np.uint8)[:n].reshape(fi.nHeight, fi.nWidth).copy()
+            finally:
+                try:
+                    self._cam.MV_CC_FreeImageBuffer(frame)
+                except Exception:
+                    pass
 
     def close(self) -> None:
         if self._cam is not None:
