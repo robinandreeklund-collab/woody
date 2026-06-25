@@ -45,9 +45,14 @@ ColumnLayout {
                         }
                         Text {
                             anchors.centerIn: parent
-                            visible: camCard.isLine ? (!ctrl.scanActive && ctrl.scanProgress < 0.001 && !ctrl.mesh3d.cls)
+                            // linjekameran sitter NEDSTRÖMS → brädan når den först vid ~0,53
+                            // av matningen (surface_cam_lead 40 / bredd 75). Visa väntetext tills
+                            // dess (om inget tidigare resultat finns att behålla).
+                            visible: camCard.isLine ? (ctrl.scanProgress < 0.53 && !ctrl.mesh3d.cls)
                                                     : (ctrl.camRev === 0)
-                            text: "väntar på skanning…"; color: Theme.ink3; font.pixelSize: 11; font.italic: true
+                            text: camCard.isLine && ctrl.scanActive ? "brädan matas mot linjekameran…"
+                                                                    : "väntar på skanning…"
+                            color: Theme.ink3; font.pixelSize: 11; font.italic: true
                         }
                     }
                 }

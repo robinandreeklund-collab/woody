@@ -228,11 +228,15 @@ class AppController(QObject):
             try:                                                # linjekamera: line-scan, rad-för-rad
                 img = sc.surface.surface_image()
                 if img is not None and getattr(img, "size", 0):
-                    # ÄKTA line-scan: en encoder-triggad pixelrad (4096 px längs LÄNGDEN) per
-                    # matningssteg → bilden växer uppifrån-ned i takt med matningen
-                    # (feed_pos / brädbredd). Nedanför matningsfronten finns inga rader ännu → svart.
-                    prog = max(0.0, min(1.0, y / RIG.board_width_mm))
-                    rows = int(prog * img.shape[0])
+                    # ÄKTA line-scan, NEDSTRÖMS lasern: brädans framkant ligger vid lasern när
+                    # feed_pos=0 och når linjekameran (RIG.surface_cam_lead_mm nedströms) FÖRST
+                    # när den matats ytterligare den sträckan. Därför börjar bilden byggas
+                    # (rad-för-rad, uppifrån-ned) först vid lead_frac, klar vid full matning.
+                    bw = RIG.board_width_mm
+                    lead_frac = min(0.95, RIG.surface_cam_lead_mm / bw)   # ~0,53 (40/75)
+                    prog = max(0.0, min(1.0, y / bw))
+                    fill = 0.0 if prog <= lead_frac else (prog - lead_frac) / (1.0 - lead_frac)
+                    rows = int(fill * img.shape[0])
                     built = np.zeros_like(img)
                     if rows > 0:
                         built[:rows] = img[:rows]
