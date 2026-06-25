@@ -53,12 +53,16 @@ def main(argv=None) -> int:
     args = ap.parse_args(argv)
 
     app = QCoreApplication(sys.argv)
-    cfg = AppConfig(mode=args.mode, feed_mm_s=args.feed).validate()
+    # Slaven kör IDLE: ingen auto-skanning. new_board() kör förvärvet synkront på
+    # huvudtråden → en auto-startad skanning fryser event-loopen (all nät-I/O) under
+    # hela svepet. Idle håller previews + enheter svarande; skanning startas på
+    # kommando från master-GUI:t (toggleRun) eller fotocellen.
+    cfg = AppConfig(mode=args.mode, feed_mm_s=args.feed, auto_advance=False).validate()
     # AppController bygger skannern; DeviceManager DELAR den (en scanner per nod)
     surface = _NetSurface()
     ctrl = AppController(cfg, surface)
     devmgr = DeviceManager(cfg, scanner=ctrl._scanner)
-    ctrl.start()                                  # startar skannings-loopen (sim/real)
+    ctrl.begin_idle()                             # tick-loop för previews, men SKANNAR EJ
     server = SlaveServer(devmgr, name=args.name, port=args.port,
                          controller=ctrl, surface=surface)
     if not server.listen():

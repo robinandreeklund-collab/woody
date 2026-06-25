@@ -564,6 +564,16 @@ class AppController(QObject):
             self.toggleRun()
 
     @Slot()
+    def begin_idle(self):
+        """Starta tick-loopen (kamera-previews + repaint) UTAN att starta en skanning.
+        För slav/idrifttagning: new_board() kör förvärvet SYNKRONT på huvudtråden och
+        skulle frysa event-loopen (och därmed all nät-I/O) under hela svepet. Idle-läget
+        håller previewen levande och enheterna svarande; skanning startas på kommando
+        (toggleRun från master-GUI:t / fotocellen)."""
+        if not self._timer.isActive():
+            self._timer.start()
+
+    @Slot()
     def nextBoard(self):
         """Ladda ny bräda (fotocellen i verkligt läge, knappen i sim) → ny cykel."""
         if self._cfg.run_mode == "flow":
