@@ -331,13 +331,17 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         # överstyr radtakten ändå.
         dev.set_enum("AcquisitionMode", "Continuous")
         dev.set_enum("ExposureAuto", "Off")
-        _exp = float(self._features.get("ExposureTime", 3000.0))
+        # ljus free-run-preview vid idrifttagning (linjekamera samlar lite ljus/rad
+        # utan linjeljus). Liten strip-höjd så ramen ändå hinner bli klar snabbt.
+        # OBS: encoder-trigg-läget (riktig skanning) överstyr radtakt/exponering.
+        _exp = float(self._features.get("ExposureTime", 50000.0))
         dev.set_float("ExposureTime", _exp) or dev.set_float("ExposureTimeAbs", _exp)
+        dev.set_float("Gain", 8.0)
         for _en in ("AcquisitionLineRateEnable", "AcquisitionFrameRateEnable"):
             dev.set_bool(_en, True)
         dev.set_float("AcquisitionLineRate", 2000.0)
         dev.set_float("AcquisitionFrameRate", 100.0)
-        dev.start(height=48)                            # liten strip för snabb preview-grab
+        dev.start(height=12)                            # liten strip → snabb preview-grab
         self._dev = dev
         self._connected = True
 
