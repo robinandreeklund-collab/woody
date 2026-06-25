@@ -20,11 +20,14 @@ ColumnLayout {
                 chip: ctrl.modeText === "REAL" ? "● LIVE" : "DEMO"
                 property int camKind: index
                 property string camName: modelData[1]
-                property bool q3d: typeof quick3dAvailable !== "undefined" && quick3dAvailable
+                property bool isLine: index === 2          // linjekamera = line-scan (2D, bygger rad-för-rad)
+                property bool q3d: (typeof quick3dAvailable !== "undefined" && quick3dAvailable) && !isLine
                 Rectangle {
                     anchors.fill: parent; radius: 8; color: "#05080c"; clip: true
-                    // ÄKTA renderad kameravy (scenen sedd från kamerans pose + lins-FOV).
-                    // Faller tillbaka till bild-providern i mjukvaruläge (utan Quick3D).
+                    // PROFILKAMEROR (area-scan MV-CS050): äkta renderad 3D-vy från kamerans
+                    // pose + lins-FOV. LINJEKAMERA (line-scan 4096 px): kan INTE renderas i 3D —
+                    // den skjuter pixelrader encoder-triggat och bygger bilden rad-för-rad
+                    // medan brädan matas → visas som progressiv 2D-bild från bild-providern.
                     Loader {
                         anchors.fill: parent; anchors.margins: 2
                         active: camCard.q3d
@@ -34,12 +37,16 @@ ColumnLayout {
                         anchors.fill: parent; anchors.margins: 2; visible: !camCard.q3d
                         Image {
                             anchors.fill: parent
-                            fillMode: Image.PreserveAspectFit; smooth: true
-                            cache: false; asynchronous: false
+                            // line-scan byggs uppifrån-ned (rad-för-rad) → fyll höjden;
+                            // profil-fallback (utan Quick3D) bevarar bildproportionen.
+                            fillMode: camCard.isLine ? Image.Stretch : Image.PreserveAspectFit
+                            smooth: true; cache: false; asynchronous: false
                             source: "image://live/" + camName + "/" + ctrl.camRev
                         }
                         Text {
-                            anchors.centerIn: parent; visible: ctrl.camRev === 0
+                            anchors.centerIn: parent
+                            visible: camCard.isLine ? (!ctrl.scanActive && ctrl.scanProgress < 0.001 && !ctrl.mesh3d.cls)
+                                                    : (ctrl.camRev === 0)
                             text: "väntar på skanning…"; color: Theme.ink3; font.pixelSize: 11; font.italic: true
                         }
                     }

@@ -225,13 +225,14 @@ class AppController(QObject):
                 self._surface_provider.set_array(self._gray(gg), "cam_green")
             except Exception:
                 pass
-            try:                                                # linjekamera bygger rad-för-rad
+            try:                                                # linjekamera: line-scan, rad-för-rad
                 img = sc.surface.surface_image()
                 if img is not None and getattr(img, "size", 0):
-                    # börjar först när brädan når linjekameran (glide-fönster ~0.68→0.87)
-                    prog = min(1.0, y / RIG.board_width_mm)
-                    fill = max(0.0, min(1.0, (prog - 0.68) / 0.19))
-                    rows = int(fill * img.shape[0])
+                    # ÄKTA line-scan: en encoder-triggad pixelrad (4096 px längs LÄNGDEN) per
+                    # matningssteg → bilden växer uppifrån-ned i takt med matningen
+                    # (feed_pos / brädbredd). Nedanför matningsfronten finns inga rader ännu → svart.
+                    prog = max(0.0, min(1.0, y / RIG.board_width_mm))
+                    rows = int(prog * img.shape[0])
                     built = np.zeros_like(img)
                     if rows > 0:
                         built[:rows] = img[:rows]
