@@ -1,7 +1,7 @@
 """GPIO-IO på Jetsons 40-pin header — laser-enable, LED-enable, anhåll-fotocell.
 
 Pin-tilldelning enligt prototype-pinout.svg (BOARD-numrering, J12):
-  pin  7  ANHÅLL-FOTOCELL in (NPN → pull-up, aktiv LÅG när bräda laddats)
+  pin  7  ANHÅLL-FOTOCELL in (24 V NPN via OPTOKOPPLARE → pin dras LÅG vid bräda)
   pin 16  LINJELASER RÖD enable  (→ D4184/AO3400-MOSFET, 5 V-laser)
   pin 18  LINJELASER GRÖN enable (→ AOD4184 opto-MOSFET, 24 V-laser)
   pin 13  VITT LED A enable      (→ MOSFET, 24 V-list)
@@ -126,11 +126,13 @@ class PhotocellInput(Device):
 
     def open(self) -> None:
         g = _gpio()
-        # NPN open-collector (LSZ-S30N1): drar bara till 0 V, kan ALDRIG källa 24 V.
-        # Intern pull-up till 3,3 V håller det öppna läget (inget objekt) på 3,3 V →
-        # ren tretrådskoppling utan externt motstånd, pin ser bara 0↔3,3 V. Databladets
-        # "spök-24 V" är högohmig mätartefakt och kollapsar under pull-upen.
-        g.setup(self._pin, g.IN, pull_up_down=g.PUD_UP)
+        # OBS: Jetson.GPIO stödjer INTE intern pull-up (ignorerar pull_up_down med
+        # warning). Givaren (LSZ-S30N1) sitter i 24 V-domänen och mäter 24 V i vilo-
+        # läge — får ALDRIG kopplas direkt på 3,3 V-pinnen. Gränssnittet är en
+        # OPTOKOPPLARE (PC817): 24 V-sidan optiskt isolerad, opto-transistorn drar
+        # pin 7 LÅG när bräda laddas. Extern 10k pull-up till 3,3 V håller viloläget
+        # HÖG. Pinnen ser bara 0↔3,3 V. (Ingen pull_up_down här — undviker warningen.)
+        g.setup(self._pin, g.IN)
         self._connected = True
 
     def read(self) -> bool:
