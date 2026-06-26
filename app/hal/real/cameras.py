@@ -97,12 +97,31 @@ DEFAULT_PROFILE_FEATURES = {
     "GainAuto": "Off",
 }
 # Linjekamera: färg, encoder-triggad line-scan (encoder band B → Line0).
+# OBS: HT-GELM44C-T2 levererar ENDAST Bayer-format (BayerRG8/GR8/BG8/GB8 — ingen RGB8).
+# Vi begär BayerRG8 och debayrar i mjukvara (se _debayer_to_rgb): kamerans GenICam
+# "BayerRG8" = OpenCV:s BG-mönster (förskjuten namnkonvention), VERIFIERAT mot färgtavla
+# (rött=rött, blått=blått). Tidigare "RGB8" stöddes ej → 2D Bayer tolkades som gråskala.
 DEFAULT_SURFACE_FEATURES = {
-    "PixelFormat": "RGB8",
+    "PixelFormat": "BayerRG8",
     "ExposureAuto": "Off",
     "GainAuto": "Off",
     "BalanceWhiteAuto": "Off",
 }
+
+
+def _debayer_to_rgb(raw: np.ndarray) -> np.ndarray:
+    """Bayer-mosaik (2D, BayerRG8) → färg-RGB (H×W×3, uint8).
+
+    Kamerans GenICam-"BayerRG8" motsvarar OpenCV:s **BG**-mönster (förskjuten
+    namnkonvention). VERIFIERAT mot färgtavla: BG ger rött=rött, blått=blått; RG
+    gav R/B-byte (blåton). Kantmedveten demosaicing (EA) om OpenCV stödjer det.
+    Faller tillbaka på gråskala om cv2 saknas (dev-maskin) — aldrig fel färg."""
+    try:
+        import cv2
+        code = getattr(cv2, "COLOR_BAYER_BG2RGB_EA", cv2.COLOR_BAYER_BG2RGB)
+        return cv2.cvtColor(raw, code).astype(np.uint8)
+    except Exception:
+        return np.dstack([raw, raw, raw]).astype(np.uint8)
 
 
 def set_first_available(node_map, candidates, value, log_prefix: str = ""):
@@ -415,8 +434,8 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         frame = self._dev.grab(timeout_ms=500)
         if frame is None:
             return np.zeros((0, 3), np.uint8)
-        if frame.ndim == 2:                            # mono → 3 kanaler
-            frame = np.dstack([frame, frame, frame])
+        if frame.ndim == 2:                            # Bayer-mosaik → debayra till färg-RGB (BG)
+            frame = _debayer_to_rgb(frame)
         return frame.reshape(-1, 3).astype(np.uint8)
 
     def surface_image(self) -> np.ndarray:
@@ -424,7 +443,7 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         if self._connected and self._dev is not None:
             frame = self._dev.grab(timeout_ms=800)
             if frame is not None:
-                return np.dstack([frame] * 3) if frame.ndim == 2 else frame.astype(np.uint8)
+                return _debayer_to_rgb(frame) if frame.ndim == 2 else frame.astype(np.uint8)
         return np.array(self._rows, dtype=np.uint8) if self._rows else np.zeros((2, 2, 3), np.uint8)
 
     def close(self) -> None:

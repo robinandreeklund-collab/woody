@@ -171,8 +171,27 @@ def test_genicam_feature_apply():
     names = [n for n, _ in dump_genicam_features(nm)]
     assert "PixelFormat" in names and "ExposureTime" in names
 
-    # Linjekameran är färg som standard (trigg sätts separat, se nedan)
-    assert DEFAULT_SURFACE_FEATURES["PixelFormat"] == "RGB8"
+    # Linjekameran är färg via Bayer (HT-GELM44C-T2 ger bara Bayer-format; vi debayrar
+    # BG→RGB i mjukvara, verifierat mot färgtavla). Trigg sätts separat, se nedan.
+    assert DEFAULT_SURFACE_FEATURES["PixelFormat"] == "BayerRG8"
+
+
+def test_surface_debayer_is_BG_phase():
+    """Ytkamerans debayer ska använda BG-mönstret (= kamerans BayerRG8), VERIFIERAT mot
+    färgtavla: rött=rött. Fångar regression till fel fas (RG → R/B-byte, blåton)."""
+    import numpy as np
+    try:
+        import cv2  # noqa: F401
+    except Exception:
+        return  # cv2 saknas (dev-maskin) → debayern faller tillbaka på gråskala; hoppa
+    from ..hal.real.cameras import _debayer_to_rgb
+    # R-pixlar på cv2:s BG-fas-position ([0::2,0::2]); under BG → rött, under RG → blått.
+    raw = np.zeros((32, 32), np.uint8)
+    raw[0::2, 0::2] = 230
+    rgb = _debayer_to_rgb(raw)
+    assert rgb.shape == (32, 32, 3) and rgb.dtype == np.uint8
+    r, g, b = (float(rgb[..., i].mean()) for i in range(3))
+    assert r > g and r > b, f"fel demosaic-fas: RGB-medel {r:.0f}/{g:.0f}/{b:.0f} (R ska dominera)"
 
 
 def test_encoder_line_trigger_resolves_node_names():
