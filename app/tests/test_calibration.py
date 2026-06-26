@@ -93,6 +93,59 @@ def test_runner_cancel():
         assert st.count_done("rig") == 0          # avbruten körning sparas inte
 
 
+def test_surface_color_calibration():
+    """Ytkamerans färgkalibrering: vitbalans + flat-field + 3×3-matris + apply + persistens."""
+    import numpy as np
+    from ..hal.real.surface_color import (SurfaceColorCalib, fit_white_balance,
+                                          fit_flat_field, fit_color_matrix)
+    # vitbalans: blå-svag neutral → blå-gain > 1, grön = 1, neutralt efter
+    neutral = np.tile([200.0, 200.0, 160.0], (50, 1))
+    wb = fit_white_balance(neutral)
+    assert wb[2] > wb[1] and abs(wb[1] - 1.0) < 1e-3
+    bal = neutral * wb
+    assert abs(bal[:, 0].mean() - bal[:, 2].mean()) < 2
+
+    # flat-field: höger halva mörkare → gain plattar ut
+    W = 200
+    white = np.ones((30, W, 3)) * 220.0
+    white[:, W // 2:, :] *= 0.6
+    flat = fit_flat_field(white)
+    corr = white[0] * flat
+    assert corr.std() / corr.mean() < 0.02
+
+    # 3×3-matris: grön-överhörning → matrisen återställer mot facit
+    facit = np.array([[200, 40, 40], [40, 170, 60], [40, 60, 200],
+                      [200, 200, 40], [128, 128, 128]], float)
+    skew = np.array([[1, 0, 0], [0.1, 1, 0.1], [0, 0, 0.9]])
+    meas = facit @ skew.T
+    ccm = fit_color_matrix(meas, facit)
+    assert np.abs(meas @ ccm.T - facit).mean() < 3
+
+    # full apply-kedja + spara/ladda-roundtrip + identitet
+    cal = SurfaceColorCalib(wb=wb, flat=flat, ccm=ccm)
+    img = (np.random.RandomState(0).rand(8, W, 3) * 255).astype(np.uint8)
+    out = cal.apply(img)
+    assert out.shape == img.shape and out.dtype == np.uint8
+    with tempfile.TemporaryDirectory() as d:
+        p = str(Path(d) / "c.npz"); cal.save(p)
+        cal2 = SurfaceColorCalib.load(p)
+        assert np.allclose(cal2.wb, cal.wb) and np.allclose(cal2.ccm, cal.ccm)
+        assert np.array_equal(cal2.apply(img), out)
+    assert np.array_equal(SurfaceColorCalib().apply(img), img)   # tom = identitet
+
+
+def test_surface_color_chart_segmentation():
+    """Färgtavle-matchning hittar fälten och matchar mot rätt facit."""
+    import numpy as np
+    from ..core.autocalib import match_color_chart, _CHART_FACIT
+    cols = [(255, 255, 255), (220, 30, 30), (30, 170, 60), (30, 60, 200)]
+    line = np.repeat(np.array(cols, float), 80, axis=0)
+    pairs = match_color_chart(line)
+    name_of = {tuple(v): k for k, v in _CHART_FACIT.items()}
+    found = {name_of[tuple(int(x) for x in f)] for _, f in pairs}
+    assert {"VIT", "ROD", "GRON", "BLA"}.issubset(found)
+
+
 if __name__ == "__main__":
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]
     ok = 0

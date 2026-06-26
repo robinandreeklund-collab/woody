@@ -91,10 +91,17 @@ CALIB_METHODS: dict[str, list] = {
          "sim": {"gain R/G/B": "1,00 / 1,14 / 1,31", "CCT": "5400 K"}},
         {"id": "flatfield", "title": "Flat-field / PRNU",
          "desc": "Jämn vit yta → per-pixel-gain över alla 4096 px (kompenserar "
-                 "vinjettering + LED-ojämnhet längs linjen).",
+                 "vinjettering + LED-ojämnhet OCH färgskugga längs linjen). Görs FÖRST.",
          "steps": [("Jämn vit yta i FOV", 1.0), ("Medla 200 rader", 2.0),
                    ("Beräkna per-pixel-gain", 1.0), ("Verifiera platthet", 0.5)],
          "sim": {"ojämnhet före": "18 %", "efter": "1,2 %"}},
+        {"id": "colormatrix", "title": "Färgmatris (3×3)",
+         "desc": "Färgtavla (rött/grönt/blått/…) → 3×3-matris som rättar grön/blå-"
+                 "överhörning (Bayer 2×grön) som vitbalans inte klarar. Körs EFTER "
+                 "flat-field + vitbalans, mot facit-RGB.",
+         "steps": [("Placera färgtavla i FOV", 1.0), ("Medla + segmentera fält", 1.5),
+                   ("Anpassa 3×3 mot facit", 1.0), ("Verifiera residual", 0.5)],
+         "sim": {"antal fält": "9", "residual ΔRGB": "3,4"}},
         {"id": "linesync", "title": "Encoder-synk (rader/mm)",
          "desc": "Mata känd sträcka med encoder-trigg → rader per mm. Mål: kvadratiska "
                  "pixlar (1 rad = 0,122 mm vid 4096 px / 500 mm).",

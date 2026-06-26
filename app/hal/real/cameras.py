@@ -11,6 +11,11 @@ import numpy as np
 
 from ..base import DeviceInfo, ProfileCameraIF, SurfaceCameraIF
 from ...geometry import RIG
+from .surface_color import SurfaceColorCalib
+
+# Ytkamerans färgkalibrering (flat-field + vitbalans + 3×3-matris) sparas hit och
+# laddas av GenICamSurfaceCamera.open(). Gitignored (data/). Skapas av kalibreringen.
+SURFACE_COLOR_PATH = "data/surface_color.npz"
 
 # delad Harvester-instans (laddar GenTL-producent en gång)
 _HARVESTER = None
@@ -324,10 +329,27 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         # Parametrar tonas av kalibreringen 'linesync' (divider = rader/mm).
         self._line_trigger: dict | None = dict(
             divider=1, multiplier=1, direction="forward", line_rate_hz=None)
+        # Färgkalibrering (flat-field + vitbalans + 3×3) — appliceras på debayrad RGB.
+        # _apply_color stängs av under kalibrering (då vill vi RÅ debayrad bild).
+        self._color = SurfaceColorCalib()
+        self._apply_color = True
 
     def info(self) -> DeviceInfo:
         return DeviceInfo("Ytkamera 4K färg (linjekamera)", "HT-GELM44C-T2 (4096 px, encoder-trig)",
                           "GigE Vision", self._connected)
+
+    def set_color_calib(self, calib: SurfaceColorCalib, save: bool = True) -> None:
+        """Sätt (och spara) färgkalibreringen — anropas av autocalib efter mätning."""
+        self._color = calib
+        if save:
+            try:
+                calib.save(SURFACE_COLOR_PATH)
+            except Exception:
+                pass
+
+    def set_color_apply(self, on: bool) -> None:
+        """Slå av färgkorrektionen tillfälligt (kalibreringen greppar RÅ debayrad bild)."""
+        self._apply_color = bool(on)
 
     def open(self) -> None:
         if self._connected and self._dev is not None:   # idempotent
@@ -361,6 +383,7 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         dev.set_float("AcquisitionLineRate", 2000.0)
         dev.set_float("AcquisitionFrameRate", 100.0)
         dev.start(height=12)                            # liten strip → snabb preview-grab
+        self._color = SurfaceColorCalib.load(SURFACE_COLOR_PATH)   # ev. sparad färgkalibrering
         self._dev = dev
         self._connected = True
 
@@ -436,6 +459,8 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
             return np.zeros((0, 3), np.uint8)
         if frame.ndim == 2:                            # Bayer-mosaik → debayra till färg-RGB (BG)
             frame = _debayer_to_rgb(frame)
+        if self._apply_color:                          # flat-field + vitbalans + färgmatris
+            frame = self._color.apply(frame)
         return frame.reshape(-1, 3).astype(np.uint8)
 
     def surface_image(self) -> np.ndarray:
@@ -443,7 +468,8 @@ class GenICamSurfaceCamera(SurfaceCameraIF):
         if self._connected and self._dev is not None:
             frame = self._dev.grab(timeout_ms=800)
             if frame is not None:
-                return _debayer_to_rgb(frame) if frame.ndim == 2 else frame.astype(np.uint8)
+                rgb = _debayer_to_rgb(frame) if frame.ndim == 2 else frame.astype(np.uint8)
+                return self._color.apply(rgb) if self._apply_color else rgb
         return np.array(self._rows, dtype=np.uint8) if self._rows else np.zeros((2, 2, 3), np.uint8)
 
     def close(self) -> None:

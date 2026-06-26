@@ -341,6 +341,34 @@ class CalibrationContext:
         self.scanner.surface.configure(BalanceRatioRed=gr, BalanceRatioGreen=gg,
                                        BalanceRatioBlue=gb)
 
+    def grab_surface_profiles(self, n: int = 100) -> np.ndarray:
+        """RÅ debayrade ytbilder (färgkorrektion AVSTÄNGD), medlade per bildruta över
+        rader → (N, W, 3). Bas för vitbalans/flat-field/färgmatris-kalibrering."""
+        surf = self.scanner.surface
+        seta = getattr(surf, "set_color_apply", None)
+        if seta: seta(False)
+        try:
+            out = []
+            for _ in range(max(1, n)):
+                f = np.asarray(surf.surface_image(), np.float64)
+                if f.ndim == 3 and f.shape[0] > 0 and f.shape[2] == 3:
+                    out.append(f.mean(axis=0))           # (W,3) medel över rader
+        finally:
+            if seta: seta(True)
+        return np.asarray(out, np.float64) if out else np.zeros((1, 1, 3))
+
+    def set_surface_color(self, wb=None, flat=None, ccm=None) -> None:
+        """Slå ihop nya delar i ytkamerans färgkalibrering, applicera + spara."""
+        from ..hal.real.surface_color import SurfaceColorCalib
+        surf = self.scanner.surface
+        cur = getattr(surf, "_color", None)
+        new = SurfaceColorCalib(
+            wb=wb if wb is not None else (cur.wb if cur is not None else None),
+            flat=flat if flat is not None else (cur.flat if cur is not None else None),
+            ccm=ccm if ccm is not None else (cur.ccm if cur is not None else None))
+        if hasattr(surf, "set_color_calib"):
+            surf.set_color_calib(new)
+
     # -- fält-IO (LED / laser / fotocell) --
     def led_on(self) -> bool:
         return bool(self.led.set(True)) if self.led is not None else False
@@ -418,13 +446,78 @@ def _prof_stripe_roi(ctx, dev):
         ctx.set_profile_roi_offset(dev, res.pop("_offset_y"))
     return res
 
+# Färgtavlans facit-RGB (tools/gen_fargtavla.py) — för färgmatris-anpassning.
+_CHART_FACIT = {
+    "VIT": (255, 255, 255), "GRA": (128, 128, 128), "SVART": (0, 0, 0),
+    "ROD": (220, 30, 30), "GRON": (30, 170, 60), "BLA": (30, 60, 200),
+    "CYAN": (0, 170, 200), "MAGENTA": (200, 30, 140), "GUL": (245, 215, 0),
+    "TRA": (205, 160, 110),
+}
+
+
+def match_color_chart(line: np.ndarray) -> list:
+    """Segmentera en ytlinje (W,3) i färgfält och matcha varje mot närmaste facit-RGB.
+    Returnerar [(uppmätt(3), facit(3)), …] för fält bredare än ~30 px (ej svart/golv)."""
+    a = np.asarray(line, np.float64)
+    k = 7                                                 # lätt utjämning (behåll skarpa kanter)
+    sm = np.stack([np.convolve(a[:, c], np.ones(k) / k, "same") for c in range(3)], 1)
+    d = np.r_[0.0, np.linalg.norm(np.diff(sm, axis=0), axis=1)]
+    thr = max(18.0, 0.25 * float(d.max()))                # adaptiv mot fält-kontrasten
+    raw = [0] + list(np.where(d > thr)[0]) + [len(sm)]
+    bnds = [raw[0]] + [x for i, x in enumerate(raw[1:-1], 1) if x - raw[i - 1] > 8] + [raw[-1]]
+    fk = list(_CHART_FACIT); fc = np.array([_CHART_FACIT[k] for k in fk], np.float64)
+    pairs = []
+    for x0, x1 in zip(bnds, bnds[1:]):
+        if x1 - x0 < 30:
+            continue
+        col = a[x0 + 5:x1 - 5].mean(axis=0)
+        if col.max() < 20:                                # hoppa svart/golv/skugga
+            continue
+        pairs.append((col, fc[int(np.argmin(np.linalg.norm(fc - col, axis=1)))]))
+    return pairs
+
+
 def _surf_whitebal(ctx, _dev):
-    res = white_balance(ctx.grab_surface_rows(100))
-    ctx.set_surface_wb(res.pop("_gain_r"), res.pop("_gain_g"), res.pop("_gain_b"))
-    return res
+    """Vitbalans i MJUKVARA: neutral referens fyller FOV → per-kanal-gain (R=G=B)."""
+    from ..hal.real.surface_color import fit_white_balance
+    prof = ctx.grab_surface_profiles(100)                 # (N,W,3) RÅ debayrad
+    wb = fit_white_balance(prof.reshape(-1, 3))
+    ctx.set_surface_color(wb=wb)
+    return {"gain R/G/B": f"{wb[0]:.2f} / {wb[1]:.2f} / {wb[2]:.2f}"}
+
 
 def _surf_flatfield(ctx, _dev):
-    return flat_field(ctx.grab_surface_rows(200))
+    """Flat-field i MJUKVARA: jämn vit yta → per-kolumn-gain (W,3) över 4096 px."""
+    from ..hal.real.surface_color import fit_flat_field
+    prof = ctx.grab_surface_profiles(200)                 # (N,W,3) RÅ
+    flat = fit_flat_field(prof)                           # (W,3)
+    pc = prof.mean(axis=0)                                # (W,3) före
+    m = float(pc.mean()) or 1e-6
+    before = float(pc.mean(axis=1).std() / m)
+    after = float((pc * flat).mean(axis=1).std() / m)
+    ctx.set_surface_color(flat=flat)
+    return {"ojämnhet före": f"{before*100:.1f} %", "efter": f"{after*100:.2f} %"}
+
+
+def _surf_colormatrix(ctx, _dev):
+    """3×3-färgmatris mot färgtavlan — rättar grön/blå-överhörning som vitbalans inte
+    klarar. Tillämpar ev. redan satt vitbalans+flat-field först, matar resten i matrisen."""
+    from ..hal.real.surface_color import fit_color_matrix
+    line = ctx.grab_surface_profiles(60).mean(axis=0)     # (W,3) RÅ medel
+    cur = getattr(ctx.scanner.surface, "_color", None)
+    if cur is not None:                                   # förkorrigera med wb+flat
+        if cur.flat is not None and cur.flat.shape[0] == line.shape[0]:
+            line = line * (cur.flat if cur.flat.ndim == 2 else cur.flat[:, None])
+        if cur.wb is not None:
+            line = line * cur.wb
+    pairs = match_color_chart(line)
+    if len(pairs) < 4:
+        return {"fel": "för få färgfält hittade — kontrollera färgtavla + jämnt ljus"}
+    meas = np.array([m for m, _ in pairs]); fac = np.array([f for _, f in pairs])
+    ccm = fit_color_matrix(meas, fac)
+    ctx.set_surface_color(ccm=ccm)
+    res = float(np.abs(np.clip(meas @ ccm.T, 0, 255) - fac).mean())
+    return {"antal fält": str(len(pairs)), "residual ΔRGB": f"{res:.1f}"}
 
 def _conv_speedstep(ctx, _dev):
     """Mät hastighets-stegsvar (0→mål mm/s) → stigtid/översläng/ripple. Bandet rör
@@ -602,6 +695,7 @@ AUTO_ROUTINES: dict = {
     ("prof_green", "stripe_roi"): _prof_stripe_roi,
     ("surface", "whitebal"):     _surf_whitebal,
     ("surface", "flatfield"):    _surf_flatfield,
+    ("surface", "colormatrix"):  _surf_colormatrix,
     ("conveyor", "speedstep"):   _conv_speedstep,
     ("conveyor", "beltsync"):    _conv_beltsync,
     ("lr400", "zero_d0"):        _lr400_zero_d0,
