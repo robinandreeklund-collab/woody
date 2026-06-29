@@ -59,7 +59,8 @@ class CamSource:
         self.gain_range = gain_range
         self.params = {"exposure": float(exposure), "gain": float(gain),
                        "height": 512, "dirty": True, "reopen": False,
-                       "wb_request": False, "wb_reset": False, "clean": True}
+                       "wb_request": False, "wb_reset": False, "clean": True,
+                       "stripe": False}
         self.wb = {"b": 1.0, "g": 1.0, "r": 1.0}
         self.auto = {"on": False, "plan": list(auto_plan), "i": 0, "wait": 0, "results": []}
         self.stats = {"mean": 0.0, "w": 0, "h": 0, "fps": 0.0, "focus": 0.0}
@@ -173,6 +174,38 @@ class CamSource:
             tab = ", ".join(f"{int(e)}{'*vit' if c >= 0.01 else ''}" for e, f, c in self.auto["results"])
             print(f"[{self.name}] auto svep [{tab}]us -> valde exp={int(best[0])}us")
 
+    def _overlay_stripe(self, raw, disp):
+        """Extrahera laserstripens profil (samma subpixel_centroid som mätpipelinen)
+        och rita den: tracker-kurva ovanpå stripen + förstorad profil-panel under.
+        RELATIV/okalibrerad (radposition, ej mm) — bevisar att profilen plockas ut."""
+        from app.processing.stripe import subpixel_centroid    # appens riktiga extraktion
+        h, w = raw.shape
+        step = max(1, w // 1400)                  # subsampla kolumner för fart
+        cols = np.arange(0, w, step)
+        cen = subpixel_centroid(raw[:, ::step].astype(np.float32))   # (cols,) rad eller NaN
+        valid = ~np.isnan(cen)
+        nval = int(valid.sum())
+        # 1) rita spårad centroid direkt på stripen (röd kurva ska ligga PÅ linjen)
+        idx = np.where(valid)[0]
+        for a, b in zip(idx[:-1], idx[1:]):
+            if b - a == 1:
+                cv2.line(disp, (int(cols[a]), int(cen[a])), (int(cols[b]), int(cen[b])), (0, 0, 255), 2)
+        # 2) förstorad profil-panel nederst (visar plankans form)
+        ph = max(150, h // 6)
+        panel = np.full((ph, w, 3), 25, np.uint8)
+        if nval > 10:
+            lo = float(np.nanmin(cen)); hi = float(np.nanmax(cen)); rng = max(hi - lo, 1e-3)
+            ynorm = (1.0 - (cen - lo) / rng) * (ph - 28) + 14
+            for a, b in zip(idx[:-1], idx[1:]):
+                if b - a == 1:
+                    cv2.line(panel, (int(cols[a]), int(ynorm[a])), (int(cols[b]), int(ynorm[b])), (80, 220, 80), 2)
+            cv2.putText(panel, f"PROFIL (relativ)  spann={rng:.1f}px  giltig={100 * nval / len(cols):.0f}%",
+                        (10, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
+        else:
+            cv2.putText(panel, "ingen stripe - tand GRON-laser + sank exponering (Exp -)",
+                        (10, ph // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 140, 255), 2)
+        return np.vstack([disp, panel])
+
     def process(self, raw, w, h, set_exp):
         """Gör en jpeg av en rå ram (mono eller Bayer) + uppdatera fokus/auto/stats."""
         with self._raw_lock:
@@ -222,6 +255,12 @@ class CamSource:
                     (12, int(64 * fs)), cv2.FONT_HERSHEY_SIMPLEX, fs, (0, 220, 255), max(2, int(fs * 1.5)))
         cv2.putText(disp, f"exp={self.params['exposure']:.0f}us gain={self.params['gain']:.0f} mean={raw.mean():.0f} {w}x{h} {self.stats['fps']:.1f}fps",
                     (12, int(98 * fs)), cv2.FONT_HERSHEY_SIMPLEX, fs * 0.7, (0, 255, 0), max(1, int(fs)))
+        if not self.color and self.params.get("stripe"):    # laserprofil-läge (profilkameror)
+            try:
+                disp = self._overlay_stripe(raw, disp)
+            except Exception as e:
+                cv2.putText(disp, f"stripe-fel: {str(e)[:40]}", (12, int(130 * fs)),
+                            cv2.FONT_HERSHEY_SIMPLEX, fs * 0.6, (0, 140, 255), 2)
         ok, jpg = cv2.imencode(".jpg", disp, [cv2.IMWRITE_JPEG_QUALITY, 80])
         if ok:
             self.set_latest(jpg.tobytes())
@@ -422,6 +461,10 @@ def _cam_html(s):
             f'<div class="bar"><a class="btn wb" href="/wb?cam={s.name}">Vitbalans (rikta mot vitt)</a>'
             f'<a class="btn wb" href="/wb/reset?cam={s.name}">Aterstall farg</a>'
             f'<a class="btn clean" href="/clean?cam={s.name}">Falskfarg-rensning</a></div>')
+    else:
+        color_bar = (
+            f'<div class="bar"><a class="btn auto" href="/stripe?cam={s.name}">'
+            f'Laserprofil pa/av</a></div>')
     return ("<!doctype html><html><head><meta charset=utf-8>"
             "<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=8, user-scalable=yes'>"
             f"<title>{s.label}</title><style>"
@@ -481,7 +524,7 @@ class H(BaseHTTPRequestHandler):
             s = SOURCES.get(p[len("/cam/"):])
             return self._html(_cam_html(s)) if s else (self.send_response(404), self.end_headers())
 
-        if p in ("/exp", "/gain", "/focus", "/full", "/wb", "/wb/reset", "/auto", "/clean"):
+        if p in ("/exp", "/gain", "/focus", "/full", "/wb", "/wb/reset", "/auto", "/clean", "/stripe"):
             s = self._src(q)
             if s is None:
                 self.send_response(404); self.end_headers(); return
@@ -501,6 +544,8 @@ class H(BaseHTTPRequestHandler):
                 s.start_auto()
             elif p == "/clean":
                 s.params["clean"] = not s.params["clean"]
+            elif p == "/stripe":
+                s.params["stripe"] = not s.params.get("stripe")
             return self._redirect(f"/cam/{s.name}")
 
         if p == "/raw.png":
