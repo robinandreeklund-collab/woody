@@ -1,0 +1,182 @@
+"""Genererar en syntetisk bräda: procedurell träyta + defekter.
+
+Returnerar lager som motsvarar de fysiska kanalerna i riggen:
+  - color       : HxWx3 uint8   (färgkamera -> kvist, blånad, märg)
+  - label       : HxW   uint8   (facit/ground truth, klass-id enligt config.CLASSES)
+  - height      : HxW   float   (laserprofil -> mått, vankant; mm över banan)
+  - fiber_angle : HxW   float32 (fiberriktning för tracheid; vinkel mot längdaxeln)
+  - knots       : lista (r, c, radie_px, dead) – kvistarnas lägen
+
+color/height/fiber_angle matar i sin tur de kompletterande sensorkanalerna:
+fotometrisk stereo (photometric.py), tracheid (tracheid.py) och undersidan
+(underside.py).
+
+Axlar: axel 0 = längs brädans LÄNGD (raderna), axel 1 = tvärs BREDDEN (kolumnerna).
+Kolumnaxeln är samma som matningsriktningen i sidled -> blir skanningsaxeln.
+"""
+import numpy as np
+
+
+def _box_blur(a: np.ndarray, k: int) -> np.ndarray:
+    """Enkel separabel box-blur utan externa beroenden."""
+    if k <= 1:
+        return a
+    ker = np.ones(k) / k
+    out = a.astype(float)
+    out = np.apply_along_axis(lambda m: np.convolve(m, ker, mode="same"), 0, out)
+    out = np.apply_along_axis(lambda m: np.convolve(m, ker, mode="same"), 1, out)
+    return out
+
+
+def _ellipse_mask(H, W, r0, c0, ra, rc):
+    rr, cc = np.ogrid[:H, :W]
+    return ((rr - r0) / ra) ** 2 + ((cc - c0) / rc) ** 2 <= 1.0
+
+
+def make_board(length_mm=1200.0, width_mm=125.0, thickness_mm=22.0,
+               mm_per_px=0.5, seed=0, subtle_defects=False):
+    """subtle_defects=True gör spricka och kvist nästan osynliga i FÄRG men
+    behåller full signatur i höjd (relief) och fiberriktning – så att de
+    kompletterande sensorkanalerna blir avgörande. Standard (False) ger den
+    färgtydliga brädan som övriga demos använder."""
+    rng = np.random.default_rng(seed)
+    knot_alpha = 0.28 if subtle_defects else 1.0   # färgstyrka för kvistar
+    H = int(round(length_mm / mm_per_px))
+    W = int(round(width_mm / mm_per_px))
+
+    clear = np.array([200, 170, 120], float)
+    grain_dark = np.array([150, 110, 70], float)
+
+    # --- Grundton med ådring som löper längs längden ---
+    rr, cc = np.mgrid[0:H, 0:W]
+    phase = np.cumsum(rng.normal(0, 0.02, H))          # ådringen vinglar sakta
+    lowfreq = _box_blur(rng.normal(0, 1.0, (H, W)), 9)  # mjukt brus
+    wl = max(3.0, 6.0 / mm_per_px)                     # ådringens våglängd i px
+    grain = 0.5 + 0.5 * np.sin(2 * np.pi * cc / wl + phase[:, None] + 0.6 * lowfreq)
+    t = (0.30 * grain + 0.08 * (lowfreq - lowfreq.min()) /
+         (np.ptp(lowfreq) + 1e-9))[..., None]
+    color = clear * (1 - t) + grain_dark * t
+    color += rng.normal(0, 4, (H, W, 3))               # sensorbrus
+
+    label = np.zeros((H, W), np.uint8)
+    height = np.full((H, W), thickness_mm, float)
+
+    # --- Kvistar (levande + döda) ---
+    knots = []  # (r0, c0, radie_px, dead) – används för fiberriktningen nedan
+    n_knots = rng.integers(3, 6)
+    for _ in range(n_knots):
+        r0 = rng.integers(int(0.05 * H), int(0.95 * H))
+        c0 = rng.integers(int(0.2 * W), int(0.8 * W))
+        ra = rng.integers(int(8 / mm_per_px), int(20 / mm_per_px))
+        rc = int(ra * rng.uniform(0.6, 1.0))
+        dead = rng.random() < 0.4
+        knots.append((r0, c0, max(ra, rc), dead))
+        m = _ellipse_mask(H, W, r0, c0, ra, rc)
+        if dead:
+            color[m] = (1 - knot_alpha) * color[m] + knot_alpha * np.array([70, 45, 30])
+            ring = _ellipse_mask(H, W, r0, c0, ra, rc) & ~_ellipse_mask(
+                H, W, r0, c0, ra * 0.8, rc * 0.8)
+            color[ring] = (1 - knot_alpha) * color[ring] + knot_alpha * np.array([35, 25, 20])
+            label[m] = 1                       # död kvist -> Kvist (1)
+        else:
+            color[m] = (1 - knot_alpha) * color[m] + knot_alpha * np.array([130, 85, 45])
+            label[m] = 1                       # levande kvist -> Kvist (1)
+
+    # --- Spricka längs längden (vinglig tunn linje) + fördjupning i höjd ---
+    if rng.random() < 0.8:
+        c_base = rng.integers(int(0.25 * W), int(0.75 * W))
+        amp = rng.uniform(2, 8) / mm_per_px
+        freq = rng.uniform(2, 5) / H
+        r = np.arange(H)
+        c_center = c_base + amp * np.sin(2 * np.pi * freq * r * 50) + \
+            np.cumsum(rng.normal(0, 0.2, H))
+        half = max(1, int(0.6 / mm_per_px))
+        for ri in range(H):
+            lo = int(np.clip(c_center[ri] - half, 0, W - 1))
+            hi = int(np.clip(c_center[ri] + half, 0, W - 1)) + 1
+            if subtle_defects:
+                color[ri, lo:hi] *= 0.93          # knappt synlig i färg ...
+            else:
+                color[ri, lo:hi] = np.array([40, 30, 25], float)
+            label[ri, lo:hi] = 2          # Spricka
+            height[ri, lo:hi] -= 4.0  # ... men full grop som laserprofilen ser
+
+    # --- Blånad (mjuk blågrå blotch, ådringen skiner igenom) ---
+    if rng.random() < 0.7:
+        r0 = rng.integers(int(0.1 * H), int(0.9 * H))
+        c0 = rng.integers(int(0.2 * W), int(0.8 * W))
+        ra = rng.integers(int(40 / mm_per_px), int(90 / mm_per_px))
+        rc = rng.integers(int(15 / mm_per_px), int(40 / mm_per_px))
+        m = _ellipse_mask(H, W, r0, c0, ra, rc).astype(float)
+        m = _box_blur(m, 11)
+        blue = np.array([120, 130, 145], float)
+        a = (0.55 * m)[..., None]
+        color = color * (1 - a) + blue * a
+        label[m > 0.4] = np.where(label[m > 0.4] == 0, 3, label[m > 0.4])   # Blånad
+
+    # --- Vankant längs ena långsidan (saknat material -> höjd faller mot 0) ---
+    if rng.random() < 0.6:
+        prof = (rng.uniform(4, 14) / mm_per_px) * (
+            0.6 + 0.4 * np.sin(np.linspace(0, np.pi * rng.uniform(1, 3), H)))
+        bark = np.array([110, 90, 70], float)
+        for ri in range(H):
+            wpx = int(prof[ri])
+            if wpx <= 0:
+                continue
+            color[ri, :wpx] = bark
+            label[ri, :wpx] = 4                                   # Vankant
+            height[ri, :wpx] = np.linspace(0, thickness_mm, wpx)  # ramp upp inåt
+
+    # --- Röta (mjuk brun-/missfärgad blotch, mörk i NIR) ---
+    if rng.random() < 0.45:
+        r0 = rng.integers(int(0.1 * H), int(0.9 * H))
+        c0 = rng.integers(int(0.25 * W), int(0.75 * W))
+        ra = rng.integers(int(30 / mm_per_px), int(70 / mm_per_px))
+        rc = rng.integers(int(15 / mm_per_px), int(35 / mm_per_px))
+        m = _box_blur(_ellipse_mask(H, W, r0, c0, ra, rc).astype(float), 9)
+        rot = np.array([120, 95, 70], float)
+        a = (0.5 * m)[..., None]
+        color = color * (1 - a) + rot * a
+        label[m > 0.4] = np.where(label[m > 0.4] == 0, 5, label[m > 0.4])   # Röta
+
+    # --- Hål / urslagen kvist (mörkt runt hål, höjd dippar) ---
+    if rng.random() < 0.3:
+        r0 = rng.integers(int(0.15 * H), int(0.85 * H))
+        c0 = rng.integers(int(0.25 * W), int(0.75 * W))
+        ra = rng.integers(int(6 / mm_per_px), int(14 / mm_per_px))
+        m = _ellipse_mask(H, W, r0, c0, ra, ra)
+        color[m] = np.array([25, 18, 14], float)
+        label[m] = 6                                              # Hål
+        height[m] -= 6.0
+
+    # --- Fiberriktning (grund för tracheid-effekten) ---
+    # Ådringen löper längs längden (axel 0) men böjer av kring kvistar som
+    # strömlinjer kring ett hinder. fiber_angle = vinkel mot längdaxeln (rad);
+    # 0 = perfekt längs längden, |vinkel| stor nära kvist = störd fiber.
+    fiber_angle = 0.05 * np.sin(2 * np.pi * rr / max(40.0, H / 5.0))  # mild vingling
+    for (kr, kc, kR, _dead) in knots:
+        dr = rr - kr
+        dc = cc - kc
+        falloff = (kR * kR) / (dr * dr + dc * dc + kR * kR)   # 1 vid centrum -> 0 (1/r^2)
+        swirl = np.arctan2(dc, dr)                            # radiell vinkel
+        fiber_angle += np.radians(40.0) * falloff * np.sin(swirl)
+    fiber_angle = fiber_angle.astype(np.float32)
+
+    color = np.clip(color, 0, 255).astype(np.uint8)
+
+    # NIR-kanal (~850 nm strobe): sund ved ljus, defekter mörkare. Blånad och
+    # röta/märg syns BÄST i NIR (penetrerar ytan) -> lättare att segmentera.
+    nir = np.full((H, W), 205.0)
+    nir += 0.35 * (color.astype(float).mean(2) - 175.0)   # följ ådringen svagt
+    nir[label == 1] *= 0.58     # kvist
+    nir[label == 2] *= 0.45     # spricka
+    nir[label == 3] *= 0.40     # blånad – kraftigt mörkare i NIR
+    nir[label == 4] *= 0.65     # vankant (bark)
+    nir[label == 5] *= 0.42     # röta – kraftigt mörkare i NIR
+    nir[label == 6] *= 0.50     # hål
+    nir += rng.normal(0, 3, (H, W))
+    nir = np.clip(nir, 0, 255).astype(np.uint8)
+
+    return {"color": color, "label": label, "height": height,
+            "fiber_angle": fiber_angle, "knots": knots, "nir": nir,
+            "mm_per_px": mm_per_px}

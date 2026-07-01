@@ -1,0 +1,9 @@
+# Hårdvaruberoenden (verkligt läge, Fas 4/5) — installeras på bänk-datorn.
+# Profil/ytkameror (GenICam, USB3 Vision + GigE Vision):
+harvesters>=1.4
+# (alternativ: python3-gi + aravis via systempaket)
+# Punktlaser LR400 (RS-485/Modbus) + transportör (Jrk G2):
+pymodbus>=3.5
+pyserial>=3.5
+# Hikrobot MVS-SDK (aarch64) installeras separat från leverantören och
+# pekas ut med env GENICAM_CTI (se docs/jetson-setup.md).

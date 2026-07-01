@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Virkesskanner — multisensor 3D</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <div id="left">
+      <div id="stage">
+        <canvas id="view"></canvas>
+
+        <div class="hud hud-tl">
+          <div class="eyebrow">Skanning → klassning → sågoptimering</div>
+          <h1>Multisensor virkesskanner</h1>
+        </div>
+
+        <div class="hud hud-bl">
+          <div class="phase"><span class="dot"></span> Mätram aktiv · <span id="hud-takt">60</span> brädor/min</div>
+        </div>
+      </div>
+
+      <div id="readout"></div>
+    </div>
+
+    <aside id="panel"></aside>
+  </div>
+
+  <script src="https://unpkg.com/three@0.157.0/build/three.min.js"></script>
+  <script src="js/config.js"></script>
+  <script src="js/textures.js"></script>
+  <script src="js/cutplan.js"></script>
+  <script src="js/scene.js"></script>
+  <script src="js/panel.js"></script>
+  <script src="js/readout.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

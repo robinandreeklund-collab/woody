@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VIRKE · Kontrollsystem — Dubbel-oblik laserskanner</title>
+<style>
+:root{
+  --bg:#0b0f14; --bg2:#0e141c; --panel:#111923; --panel2:#0d141d;
+  --line:#1d2a38; --line2:#27384a; --ink:#e7eef6; --ink2:#9fb2c6; --ink3:#61768c;
+  --cyan:#27d3e0; --teal:#34e6b5; --red:#ff4d5e; --green:#39e07b; --grn520:#52ff7a;
+  --amber:#ffb33d; --violet:#9a7bff; --blue:#4aa8ff;
+  --glow: 0 0 0.6px currentColor;
+  --r:14px; --r2:10px;
+  --mono:"SFMono-Regular",ui-monospace,"JetBrains Mono","Cascadia Code",Menlo,Consolas,monospace;
+  --sans:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; background:
+    radial-gradient(1200px 700px at 78% -8%, #122130 0%, transparent 55%),
+    radial-gradient(900px 600px at -8% 110%, #10202b 0%, transparent 55%),
+    var(--bg);
+  color:var(--ink); font-family:var(--sans); font-size:13px; line-height:1.35;
+  overflow:hidden; letter-spacing:.1px;
+}
+.app{display:flex; flex-direction:column; height:100vh; padding:12px; gap:12px}
+
+/* ---------- header ---------- */
+header{
+  display:flex; align-items:center; gap:18px; padding:12px 18px;
+  background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,0)) , var(--panel);
+  border:1px solid var(--line); border-radius:var(--r);
+  box-shadow:0 1px 0 rgba(255,255,255,.03) inset, 0 10px 30px rgba(0,0,0,.35);
+}
+.brand{display:flex; align-items:center; gap:13px; min-width:300px}
+.logo{width:38px;height:38px;border-radius:11px;
+  background:conic-gradient(from 210deg,var(--cyan),var(--teal),var(--violet),var(--cyan));
+  display:grid;place-items:center; box-shadow:0 0 22px rgba(39,211,224,.35);
+  position:relative; overflow:hidden}
+.logo::after{content:"";position:absolute;inset:3px;border-radius:8px;background:var(--panel)}
+.logo svg{position:relative;z-index:1}
+.brand h1{font-size:15px;margin:0;font-weight:650;letter-spacing:.3px}
+.brand .sub{font-size:10.5px;color:var(--ink3);font-family:var(--mono);letter-spacing:.4px;text-transform:uppercase}
+.hstats{display:flex;gap:10px;margin-left:auto;align-items:stretch}
+.kpi{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r2);
+  padding:7px 13px; min-width:96px; display:flex;flex-direction:column;gap:1px}
+.kpi .lab{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.7px}
+.kpi .val{font-family:var(--mono);font-size:17px;font-weight:600;color:var(--ink)}
+.kpi .val small{font-size:10px;color:var(--ink2);font-weight:400}
+.kpi .val.cyan{color:var(--cyan)} .kpi .val.teal{color:var(--teal)} .kpi .val.amber{color:var(--amber)}
+
+.status-pill{display:flex;align-items:center;gap:9px;padding:8px 15px;border-radius:999px;
+  font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.8px;
+  border:1px solid var(--line2);background:var(--panel2);text-transform:uppercase}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ink3);box-shadow:0 0 0 0 rgba(0,0,0,0)}
+.status-pill.run .dot{background:var(--teal);animation:pulse 1.4s infinite}
+.status-pill.run{color:var(--teal);border-color:rgba(52,230,181,.35)}
+.status-pill.idle .dot{background:var(--amber)} .status-pill.idle{color:var(--amber)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,230,181,.5)}70%{box-shadow:0 0 0 7px rgba(52,230,181,0)}100%{box-shadow:0 0 0 0 rgba(52,230,181,0)}}
+
+/* ---------- layout ---------- */
+.grid{flex:1;display:grid;gap:12px;min-height:0;
+  grid-template-columns: 1.55fr 1.15fr 0.95fr;
+  grid-template-rows: 1fr 1fr 1fr;
+  grid-template-areas:
+    "rig    surface  lr"
+    "cross  surface  feed"
+    "cross  profiles defects";
+}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0)),var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);position:relative;
+  display:flex;flex-direction:column;min-height:0;min-width:0;overflow:hidden;
+  box-shadow:0 10px 28px rgba(0,0,0,.28)}
+.card>.ttl{display:flex;align-items:center;gap:8px;padding:9px 13px 7px;flex:0 0 auto}
+.ttl .name{font-size:11px;font-weight:650;letter-spacing:.5px;text-transform:uppercase;color:var(--ink2)}
+.ttl .chip{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:6px;
+  background:var(--panel2);border:1px solid var(--line);color:var(--ink3);letter-spacing:.4px}
+.ttl .chip.live{color:var(--teal);border-color:rgba(52,230,181,.3)}
+.ttl .right{margin-left:auto;display:flex;gap:6px;align-items:center}
+.card .body{flex:1;min-height:0;position:relative;padding:0 13px 13px}
+.card canvas{width:100%;height:100%;display:block;border-radius:var(--r2)}
+
+#a-rig{grid-area:rig} #a-cross{grid-area:cross} #a-surface{grid-area:surface}
+#a-profiles{grid-area:profiles} #a-lr{grid-area:lr} #a-feed{grid-area:feed} #a-defects{grid-area:defects}
+
+/* LR gauges */
+.lr-wrap{display:flex;flex-direction:column;gap:9px;height:100%;padding-top:2px}
+.lr-row{flex:1;display:flex;align-items:center;gap:11px;background:var(--panel2);
+  border:1px solid var(--line);border-radius:var(--r2);padding:8px 12px;min-height:0}
+.lr-row .cv{height:100%;aspect-ratio:1.7;flex:0 0 auto}
+.lr-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.lr-meta .id{font-family:var(--mono);font-size:10px;color:var(--cyan);letter-spacing:.5px}
+.lr-meta .pos{font-size:9.5px;color:var(--ink3)}
+.lr-meta .mm{font-family:var(--mono);font-size:21px;font-weight:600;line-height:1}
+.lr-meta .mm small{font-size:11px;color:var(--ink2);font-weight:400}
+.lr-meta .dev{font-family:var(--mono);font-size:10px}
+
+/* feed */
+.feed-wrap{display:flex;flex-direction:column;gap:10px;height:100%}
+.feed-belt{flex:1;position:relative;border-radius:var(--r2);overflow:hidden;border:1px solid var(--line);min-height:0}
+.feed-stats{display:flex;gap:8px}
+.fstat{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:6px 9px}
+.fstat .l{font-size:9px;color:var(--ink3);text-transform:uppercase;letter-spacing:.5px}
+.fstat .v{font-family:var(--mono);font-size:14px;font-weight:600}
+
+/* defects + grade */
+.def-wrap{display:flex;flex-direction:column;height:100%;gap:9px}
+.grade{display:flex;align-items:center;gap:12px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:var(--r2);padding:10px 13px}
+.grade-badge{width:54px;height:54px;border-radius:13px;display:grid;place-items:center;flex:0 0 auto;
+  font-family:var(--mono);font-size:27px;font-weight:700;color:#06121a;
+  background:var(--ink3);transition:background .4s, box-shadow .4s;position:relative}
+.grade-meta{min-width:0}
+.grade-meta .gl{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px}
+.grade-meta .gt{font-size:14px;font-weight:650}
+.grade-meta .gr{font-size:10.5px;color:var(--ink2);margin-top:1px}
+.deflist{flex:1;overflow:auto;display:flex;flex-direction:column;gap:5px;padding-right:3px}
+.deflist::-webkit-scrollbar{width:6px}.deflist::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+.def{display:flex;align-items:center;gap:9px;padding:6px 9px;border-radius:8px;
+  background:var(--panel2);border:1px solid var(--line);animation:slidein .35s ease}
+@keyframes slidein{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.def .sw{width:9px;height:9px;border-radius:3px;flex:0 0 auto}
+.def .dn{font-size:11px;font-weight:600;flex:0 0 auto}
+.def .dd{font-size:10px;color:var(--ink3);font-family:var(--mono);margin-left:auto}
+.def-empty{color:var(--ink3);font-size:11px;text-align:center;padding:18px;font-style:italic}
+
+/* view tabs */
+.tabs{display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;margin-left:8px}
+.tab{padding:7px 16px;border-radius:8px;font-size:12px;font-weight:600;color:var(--ink3);cursor:pointer;
+  display:flex;align-items:center;gap:7px;transition:.15s;user-select:none;white-space:nowrap}
+.tab:hover{color:var(--ink2)}
+.tab.active{background:var(--panel);color:var(--ink);box-shadow:0 1px 8px rgba(0,0,0,.3)}
+.tab.active svg{color:var(--cyan)}
+.tab svg{display:block;opacity:.85}
+.hidden{display:none!important}
+
+/* sensor telemetry view */
+.sensorview{flex:1;min-height:0;overflow:auto;padding:2px;
+  display:grid;gap:12px;align-content:start;
+  grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+.sensorview::-webkit-scrollbar{width:8px}.sensorview::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px}
+.scard{background:linear-gradient(180deg,rgba(255,255,255,.022),rgba(255,255,255,0)),var(--panel);
+  border:1px solid var(--line);border-radius:var(--r);padding:13px;display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 8px 22px rgba(0,0,0,.25)}
+.scard-h{display:flex;align-items:flex-start;gap:10px}
+.scard-led{width:9px;height:9px;border-radius:50%;margin-top:4px;flex:0 0 auto;background:var(--ink3);transition:.3s}
+.scard-led.on{background:var(--teal);box-shadow:0 0 9px var(--teal);animation:pulse 1.6s infinite}
+.scard-led.warn{background:var(--amber);box-shadow:0 0 9px var(--amber)}
+.scard-tt{min-width:0;flex:1}
+.scard-tt .nm{font-size:12.5px;font-weight:650;letter-spacing:.2px}
+.scard-tt .md{font-family:var(--mono);font-size:10px;color:var(--ink3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scard-if{font-family:var(--mono);font-size:9px;padding:3px 8px;border-radius:6px;background:var(--panel2);
+  border:1px solid var(--line);color:var(--ink2);flex:0 0 auto;letter-spacing:.3px}
+.spark{height:42px;width:100%;border-radius:8px;background:var(--panel2);border:1px solid var(--line);display:block}
+.scard-rows{display:grid;grid-template-columns:1fr 1fr;gap:5px 14px}
+.srow{display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-bottom:1px solid var(--line);padding-bottom:3px}
+.srow .k{font-size:10px;color:var(--ink3);white-space:nowrap}
+.srow .v{font-family:var(--mono);font-size:11.5px;color:var(--ink);font-weight:600;text-align:right}
+.srow .v.live{color:var(--cyan)} .srow .v.spec{color:var(--ink2);font-weight:400}
+.srow.full{grid-column:1 / -1}
+.scard-tag{font-size:9px;font-family:var(--mono);color:var(--violet);letter-spacing:.4px;
+  background:rgba(154,123,255,.1);border:1px solid rgba(154,123,255,.25);border-radius:6px;padding:3px 7px;align-self:flex-start}
+
+/* footer controls */
+footer{display:flex;align-items:center;gap:14px;padding:11px 16px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:0 -2px 18px rgba(0,0,0,.25)}
+.btn{display:flex;align-items:center;gap:8px;padding:9px 17px;border-radius:10px;cursor:pointer;
+  font-family:var(--sans);font-size:13px;font-weight:600;border:1px solid var(--line2);
+  background:var(--panel2);color:var(--ink);transition:.15s;user-select:none}
+.btn:hover{border-color:var(--cyan);color:#fff}
+.btn.primary{background:linear-gradient(180deg,#2ee0d3,#16b6c6);color:#04222a;border-color:transparent;
+  box-shadow:0 4px 18px rgba(39,211,224,.35)}
+.btn.primary.stopmode{background:linear-gradient(180deg,#ff6373,#e23a4b);color:#2a0608;box-shadow:0 4px 18px rgba(255,77,94,.32)}
+.btn svg{display:block}
+.ctrl{display:flex;align-items:center;gap:10px}
+.ctrl label{font-size:10px;color:var(--ink3);text-transform:uppercase;letter-spacing:.6px}
+input[type=range]{-webkit-appearance:none;width:150px;height:4px;border-radius:3px;
+  background:var(--line2);outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--cyan);cursor:pointer;box-shadow:0 0 10px rgba(39,211,224,.6)}
+.ctrl .rv{font-family:var(--mono);font-size:13px;color:var(--cyan);min-width:62px}
+.foot-right{margin-left:auto;display:flex;gap:9px;align-items:center}
+.toggle{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--ink2);cursor:pointer;
+  padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:var(--panel2)}
+.toggle.on{color:var(--teal);border-color:rgba(52,230,181,.35)}
+.toggle .sw{width:30px;height:16px;border-radius:9px;background:var(--line2);position:relative;transition:.2s}
+.toggle.on .sw{background:rgba(52,230,181,.35)}
+.toggle .sw::after{content:"";position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;
+  background:var(--ink3);transition:.2s}
+.toggle.on .sw::after{left:16px;background:var(--teal)}
+.legend{display:flex;gap:11px;align-items:center;font-size:10px;color:var(--ink3)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="brand">
+      <div class="logo"><svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <path d="M2 14 L8 4 L11 9 L14 6 L18 14" stroke="#27d3e0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="14" cy="6" r="1.5" fill="#34e6b5"/></svg></div>
+      <div>
+        <h1>VIRKE · Kontrollsystem</h1>
+        <div class="sub">Dubbel-oblik laserskanner · Prototyp 500&nbsp;mm</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <div class="tab active" data-view="dash"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="5" height="5" rx="1"/><rect x="8" y="1" width="5" height="5" rx="1"/><rect x="1" y="8" width="5" height="5" rx="1"/><rect x="8" y="8" width="5" height="5" rx="1"/></svg>Översikt</div>
+      <div class="tab" data-view="sensors"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 7h2l1.5-4 3 8 2-6 1.5 2h2" stroke-linecap="round" stroke-linejoin="round"/></svg>Sensorer</div>
+    </div>
+    <div class="hstats">
+      <div class="kpi"><span class="lab">Genomflöde</span><span class="val cyan" id="kpi-tp">0 <small>br/min</small></span></div>
+      <div class="kpi"><span class="lab">Brädor</span><span class="val" id="kpi-count">0</span></div>
+      <div class="kpi"><span class="lab">Jetson last</span><span class="val teal" id="kpi-load">0 <small>%</small></span></div>
+      <div class="kpi"><span class="lab">Profiltakt</span><span class="val" id="kpi-rate">500 <small>Hz</small></span></div>
+      <div class="kpi"><span class="lab">Drifttid</span><span class="val" id="kpi-up">00:00</span></div>
+    </div>
+    <div class="status-pill idle" id="status"><span class="dot"></span><span id="status-txt">VÄNTAR</span></div>
+  </header>
+
+  <div class="grid">
+
+    <!-- RIG top-down -->
+    <div class="card" id="a-rig">
+      <div class="ttl"><span class="name">Rigg · ovanifrån</span>
+        <span class="chip">cross-feed</span>
+        <div class="right"><span class="chip live" id="rig-scan">SKANNAR</span></div></div>
+      <div class="body"><canvas id="c-rig"></canvas></div>
+    </div>
+
+    <!-- CROSS section -->
+    <div class="card" id="a-cross">
+      <div class="ttl"><span class="name">Tvärsnitt · live-profil Z(x)</span>
+        <span class="chip">θ 20° triangulering</span>
+        <div class="right"><span class="legend"><span><i style="background:var(--red)"></i>650</span><span><i style="background:var(--grn520)"></i>520</span></span></div></div>
+      <div class="body"><canvas id="c-cross"></canvas></div>
+    </div>
+
+    <!-- SURFACE line-scan -->
+    <div class="card" id="a-surface">
+      <div class="ttl"><span class="name">Ytkamera · 4K färg-radskanner</span>
+        <span class="chip">Huateng · GigE · 4096px</span>
+        <div class="right"><span class="chip live" id="surf-px">0 rader</span></div></div>
+      <div class="body"><canvas id="c-surface"></canvas></div>
+    </div>
+
+    <!-- PROFILE raw stripes -->
+    <div class="card" id="a-profiles">
+      <div class="ttl"><span class="name">Profilkameror · rå laserstripe</span>
+        <span class="chip">MV-CS050 mono ×2</span></div>
+      <div class="body"><canvas id="c-profiles"></canvas></div>
+    </div>
+
+    <!-- LR400 -->
+    <div class="card" id="a-lr">
+      <div class="ttl"><span class="name">Punktlaser · absolut tjocklek</span>
+        <span class="chip">3× LR400 · RS-485</span></div>
+      <div class="body"><div class="lr-wrap" id="lr-wrap"></div></div>
+    </div>
+
+    <!-- FEED -->
+    <div class="card" id="a-feed">
+      <div class="ttl"><span class="name">Matning · transportör</span>
+        <span class="chip">24V · Jrk G2</span></div>
+      <div class="body"><div class="feed-wrap">
+        <div class="feed-belt"><canvas id="c-feed"></canvas></div>
+        <div class="feed-stats">
+          <div class="fstat"><div class="l">Hastighet</div><div class="v cyan" id="f-speed">50 mm/s</div></div>
+          <div class="fstat"><div class="l">Position</div><div class="v" id="f-pos">0 mm</div></div>
+          <div class="fstat"><div class="l">Pitch</div><div class="v" id="f-pitch">0.10 mm</div></div>
+        </div>
+      </div></div>
+    </div>
+
+    <!-- DEFECTS + GRADE -->
+    <div class="card" id="a-defects">
+      <div class="ttl"><span class="name">Defekter & sortering</span>
+        <div class="right"><span class="chip" id="def-count">0</span></div></div>
+      <div class="body"><div class="def-wrap">
+        <div class="grade">
+          <div class="grade-badge" id="grade-badge">–</div>
+          <div class="grade-meta">
+            <div class="gl">Kvalitetsklass</div>
+            <div class="gt" id="grade-title">Inväntar bräda</div>
+            <div class="gr" id="grade-reason">—</div>
+          </div>
+        </div>
+        <div class="deflist" id="deflist"><div class="def-empty">Inga defekter registrerade</div></div>
+      </div></div>
+    </div>
+
+  </div>
+
+  <section class="sensorview hidden" id="sensorview"></section>
+
+  <footer>
+    <div class="btn primary" id="btn-run"><svg width="13" height="13" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1 L11 6 L2 11 Z"/></svg><span id="btn-run-txt">Starta</span></div>
+    <div class="btn" id="btn-next"><svg width="13" height="13" viewBox="0 0 12 12" fill="currentColor"><path d="M2 1 L8 6 L2 11 Z M9 1 H11 V11 H9 Z"/></svg>Nästa bräda</div>
+    <div class="ctrl">
+      <label>Matning</label>
+      <input type="range" id="sld-feed" min="10" max="120" value="50" step="5">
+      <span class="rv" id="rv-feed">50 mm/s</span>
+    </div>
+    <div class="ctrl">
+      <label>Profiltakt</label>
+      <input type="range" id="sld-rate" min="200" max="800" value="500" step="50">
+      <span class="rv" id="rv-rate">500 Hz</span>
+    </div>
+    <div class="foot-right">
+      <div class="legend">
+        <span><i style="background:var(--amber)"></i>kvist</span>
+        <span><i style="background:#7a5230"></i>vankant</span>
+        <span><i style="background:var(--blue)"></i>blånad</span>
+        <span><i style="background:var(--red)"></i>spricka</span>
+      </div>
+      <div class="toggle on" id="tg-auto"><span class="sw"></span>Auto-mata</div>
+    </div>
+  </footer>
+</div>
+
+<script>
+"use strict";
+/* ============================================================================
+   VIRKE kontrollsystem — realtidssimulering av dubbel-oblik laserskanner.
+   Hårdvara (exakt): 2× Hikrobot MV-CS050-10UM mono (650/520 bandpass, dubbel-oblik),
+   Huateng 4K färg-radkamera (GigE), 3× LR400 punktlaser (RS-485), 24V transportör
+   (Pololu Jrk G2), Jetson Orin Nano Super. Bräda 500×75×45 mm.
+   Allt ritas i canvas via requestAnimationFrame med offscreen-buffrar → 60 fps,
+   ingen per-frame omgenerering = inget hack.
+============================================================================ */
+
+// ---- bräddimensioner (mm) ----
+const BL = 500;          // längd (X, laserlinjens riktning)
+const BW = 75;           // bredd (Y, matningsled)
+const BT = 20;           // tjocklek (nominell, mm)
+const GAP = 25;          // mellanrum mellan brädor på bandet (mm)
+
+// ---- LR400 punktlaser-positioner längs X (mm) ----
+const LRPOS = [{id:"LR-V",pos:60,label:"vänster"},{id:"LR-C",pos:250,label:"centrum"},{id:"LR-H",pos:440,label:"höger"}];
+
+// ---- defekttyper ----
+const DEFS = {
+  knot:   {sv:"Kvist",      col:"#ffb33d", sw:"var(--amber)"},
+  wane:   {sv:"Vankant",    col:"#7a5230", sw:"#7a5230"},
+  crack:  {sv:"Spricka",    col:"#ff4d5e", sw:"var(--red)"},
+  stain:  {sv:"Blånad",     col:"#4aa8ff", sw:"var(--blue)"},
+  rot:    {sv:"Röta",       col:"#6b7a3a", sw:"#6b7a3a"},
+  hole:   {sv:"Hål",        col:"#202020", sw:"#444"},
+};
+
+/* ---------- seedad RNG för reproducerbar bräda ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* ============================================================================
+   BÖRDA-MODELL: genereras EN gång per bräda till offscreen-buffrar.
+============================================================================ */
+let board=null;
+function makeBoard(seed){
+  const rnd=mulberry32(seed);
+  const PPMM=2;                       // px per mm i buffrarna
+  const W=BL*PPMM, H=BW*PPMM;         // 1000 × 150
+  const surf=document.createElement("canvas"); surf.width=W; surf.height=H;
+  const sg=surf.getContext("2d");
+
+  // grundton trä (lätt variation board-till-board)
+  const baseHue=28+rnd()*10, baseL=58+rnd()*10;
+  const g=sg.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,`hsl(${baseHue},42%,${baseL}%)`);
+  g.addColorStop(1,`hsl(${baseHue-4},40%,${baseL-8}%)`);
+  sg.fillStyle=g; sg.fillRect(0,0,W,H);
+
+  // ådring (längsgående, böljande linjer)
+  sg.lineWidth=1;
+  for(let i=0;i<46;i++){
+    const y0=rnd()*H, amp=2+rnd()*7, fr=0.004+rnd()*0.01, ph=rnd()*7;
+    sg.strokeStyle=`hsla(${baseHue-6},38%,${baseL-14-rnd()*12}%,${0.18+rnd()*0.22})`;
+    sg.beginPath();
+    for(let x=0;x<=W;x+=6){sg.lineTo(x, y0+Math.sin(x*fr+ph)*amp);}
+    sg.stroke();
+  }
+
+  // höjdkarta (Float32, mm-avvikelse runt BT) + skevhet
+  const zmap=new Float32Array(W*H);
+  const bow=(rnd()-0.5)*3.0, cup=(rnd()-0.5)*2.4, twist=(rnd()-0.5)*2.6;
+  for(let y=0;y<H;y++){
+    const fy=y/H;                                   // 0..1 över bredden
+    for(let x=0;x<W;x++){
+      const fx=x/W;
+      let z=0;
+      z+=bow*Math.sin(Math.PI*fx);                  // bukt längs längden
+      z+=cup*(Math.cos(Math.PI*(fy-0.5))-0.6);      // kupa tvärs bredden
+      z+=twist*(fx-0.5)*(fy-0.5)*2;                 // vridning
+      z+=Math.sin(fx*70+fy*9)*0.18;                 // ytsträvhet (mikro)
+      zmap[y*W+x]=z;
+    }
+  }
+
+  // ---- defekter ----
+  const defects=[];
+  const addDef=(d)=>defects.push(d);
+
+  // kvistar
+  const nKnots=Math.floor(rnd()*5);
+  for(let i=0;i<nKnots;i++){
+    const cx=40+rnd()*(BL-80), cy=10+rnd()*(BW-20), r=4+rnd()*9;
+    addDef({type:"knot",x:cx,y:cy,r});
+    // rita på ytan
+    const px=cx*PPMM, py=cy*PPMM, pr=r*PPMM;
+    const kg=sg.createRadialGradient(px,py,1,px,py,pr);
+    kg.addColorStop(0,`hsl(26,55%,24%)`);kg.addColorStop(0.6,`hsl(28,48%,34%)`);kg.addColorStop(1,`hsla(28,45%,${baseL}%,0)`);
+    sg.fillStyle=kg; sg.beginPath(); sg.ellipse(px,py,pr,pr*0.8,rnd()*3,0,7); sg.fill();
+    sg.strokeStyle="hsl(24,50%,20%)";sg.lineWidth=1.4;sg.beginPath();sg.ellipse(px,py,pr*0.55,pr*0.42,0,0,7);sg.stroke();
+    // liten Z-grop
+    for(let yy=Math.max(0,(cy-r)*PPMM);yy<Math.min(H,(cy+r)*PPMM);yy++)
+      for(let xx=Math.max(0,(cx-r)*PPMM);xx<Math.min(W,(cx+r)*PPMM);xx++){
+        const dd=Math.hypot(xx/PPMM-cx,yy/PPMM-cy); if(dd<r) zmap[yy*W+xx]-=(1-dd/r)*0.8;
+      }
+  }
+
+  // vankant (saknad kant längs en sida över ett parti) — Z faller mot kanten
+  if(rnd()<0.55){
+    const side=rnd()<0.5?0:1;                       // y=0 eller y=BW
+    const x0=rnd()*BL*0.5, len=80+rnd()*200, depth=4+rnd()*(BT*0.5);
+    addDef({type:"wane",x:x0+len/2,y:side?BW-depth/2:depth/2,r:len/2,side,len,depth});
+    const py0=side?(BW-depth)*PPMM:0, py1=side?H:depth*PPMM;
+    sg.fillStyle="hsl(30,30%,30%)";
+    sg.beginPath();
+    sg.moveTo(x0*PPMM,side?H:0);
+    sg.lineTo((x0+len)*PPMM,side?H:0);
+    sg.lineTo((x0+len*0.8)*PPMM, side?(BW-depth)*PPMM:depth*PPMM);
+    sg.lineTo((x0+len*0.2)*PPMM, side?(BW-depth)*PPMM:depth*PPMM);
+    sg.closePath(); sg.fill();
+    for(let yy=Math.floor(py0);yy<Math.ceil(py1);yy++)for(let xx=x0*PPMM;xx<(x0+len)*PPMM;xx++){
+      const edgef=side?(yy/PPMM-(BW-depth))/depth:(depth-yy/PPMM)/depth;
+      if(edgef>0&&xx>=0&&xx<W&&yy>=0&&yy<H) zmap[yy*W+xx]-=edgef*depth*0.9;
+    }
+  }
+
+  // sprickor
+  const nCr=Math.floor(rnd()*3);
+  for(let i=0;i<nCr;i++){
+    const cx=30+rnd()*(BL-60), cy=8+rnd()*(BW-16), len=30+rnd()*120, ang=(rnd()-0.5)*0.5;
+    addDef({type:"crack",x:cx,y:cy,r:len/2,len});
+    sg.strokeStyle="rgba(10,8,8,.72)";sg.lineWidth=1+rnd()*1.3;
+    sg.beginPath();
+    let xx=cx*PPMM,yy=cy*PPMM; sg.moveTo(xx,yy);
+    const steps=14;
+    for(let s=0;s<steps;s++){xx+=Math.cos(ang)*len*PPMM/steps+(rnd()-0.5)*3;yy+=Math.sin(ang)*len*PPMM/steps+(rnd()-0.5)*3;sg.lineTo(xx,yy);}
+    sg.stroke();
+  }
+
+  // blånad (blåaktiga partier)
+  const nSt=Math.floor(rnd()*3);
+  for(let i=0;i<nSt;i++){
+    const cx=rnd()*BL,cy=rnd()*BW,r=20+rnd()*45;
+    addDef({type:"stain",x:cx,y:cy,r});
+    const px=cx*PPMM,py=cy*PPMM,pr=r*PPMM;
+    const stg=sg.createRadialGradient(px,py,1,px,py,pr);
+    stg.addColorStop(0,"hsla(210,40%,42%,.5)");stg.addColorStop(1,"hsla(210,40%,42%,0)");
+    sg.fillStyle=stg;sg.beginPath();sg.ellipse(px,py,pr,pr*0.7,rnd()*3,0,7);sg.fill();
+  }
+
+  // röta (sällsynt)
+  if(rnd()<0.25){
+    const cx=rnd()*BL,cy=rnd()*BW,r=25+rnd()*40;
+    addDef({type:"rot",x:cx,y:cy,r});
+    const px=cx*PPMM,py=cy*PPMM,pr=r*PPMM;
+    const rg=sg.createRadialGradient(px,py,1,px,py,pr);
+    rg.addColorStop(0,"hsla(70,25%,28%,.6)");rg.addColorStop(1,"hsla(70,25%,28%,0)");
+    sg.fillStyle=rg;sg.beginPath();sg.ellipse(px,py,pr,pr*0.8,0,0,7);sg.fill();
+  }
+
+  // hål (sällsynt)
+  if(rnd()<0.2){
+    const cx=30+rnd()*(BL-60),cy=10+rnd()*(BW-20),r=2+rnd()*4;
+    addDef({type:"hole",x:cx,y:cy,r});
+    sg.fillStyle="#15110d";sg.beginPath();sg.ellipse(cx*PPMM,cy*PPMM,r*PPMM,r*PPMM*0.9,0,0,7);sg.fill();
+    for(let yy=(cy-r)*PPMM;yy<(cy+r)*PPMM;yy++)for(let xx=(cx-r)*PPMM;xx<(cx+r)*PPMM;xx++){
+      const dd=Math.hypot(xx/PPMM-cx,yy/PPMM-cy);if(dd<r&&xx>=0&&xx<W&&yy>=0&&yy<H)zmap[yy*W+xx]-=(1-dd/r)*BT*0.5;
+    }
+  }
+
+  // höjdkarta-buffert (färglagd) för ev. overlay
+  const hmap=document.createElement("canvas");hmap.width=W;hmap.height=H;
+  const hg=hmap.getContext("2d");const img=hg.createImageData(W,H);
+  let zmin=1e9,zmax=-1e9;for(let i=0;i<zmap.length;i++){if(zmap[i]<zmin)zmin=zmap[i];if(zmap[i]>zmax)zmax=zmap[i];}
+  for(let i=0;i<zmap.length;i++){
+    const t=(zmap[i]-zmin)/(zmax-zmin+1e-6);
+    // turbo-ish colormap
+    const r=Math.round(34+t*221),gr=Math.round(60+Math.sin(t*Math.PI)*180),b=Math.round(220-t*180);
+    img.data[i*4]=r;img.data[i*4+1]=gr;img.data[i*4+2]=b;img.data[i*4+3]=255;
+  }
+  hg.putImageData(img,0,0);
+
+  return {seed,PPMM,W,H,surf,hmap,zmap,defects,bow,cup,twist,zmin,zmax,
+          thicknessAt(xmm,ymm){const xx=Math.min(W-1,Math.max(0,Math.round(xmm*PPMM)));const yy=Math.min(H-1,Math.max(0,Math.round(ymm*PPMM)));return BT+zmap[yy*W+xx];}};
+}
+
+/* ============================================================================
+   TILLSTÅND
+============================================================================ */
+const S={
+  running:false, auto:true, feed:50, rate:500,
+  posY:0,                  // matningsposition i mm (0..BW)
+  boardCount:0, startTime:0, upMs:0,
+  load:0, loadTarget:0, tp:0,
+  detected:[],             // defekter avslöjade hittills
+  grade:null,
+  phase:"idle",            // idle | scanning | done | gap
+  gapT:0,
+};
+let seedCounter=(Date.now()>>>0);
+
+/* ---------- canvas-hjälp: HiDPI ---------- */
+function fit(cv){const r=cv.getBoundingClientRect();const dpr=Math.min(2,window.devicePixelRatio||1);
+  cv.width=Math.max(2,Math.round(r.width*dpr));cv.height=Math.max(2,Math.round(r.height*dpr));
+  const c=cv.getContext("2d");c.setTransform(dpr,0,0,dpr,0,0);return{c,w:r.width,h:r.height};}
+
+const C={rig:e("c-rig"),cross:e("c-cross"),surface:e("c-surface"),profiles:e("c-profiles"),feed:e("c-feed")};
+function e(id){return document.getElementById(id)}
+
+/* ---------- LR400 gauges DOM ---------- */
+const lrEls=[];
+(function buildLR(){
+  const w=e("lr-wrap");
+  LRPOS.forEach((p,i)=>{
+    const row=document.createElement("div");row.className="lr-row";
+    row.innerHTML=`<canvas class="cv"></canvas>
+      <div class="lr-meta"><div class="id">${p.id} · RS-485 ch${i+1}</div>
+      <div class="pos">x = ${p.pos} mm (${p.label})</div>
+      <div class="mm"><span class="num">--.--</span> <small>mm</small></div>
+      <div class="dev">Δ —</div></div>`;
+    w.appendChild(row);
+    lrEls.push({cv:row.querySelector("canvas"),num:row.querySelector(".num"),dev:row.querySelector(".dev"),val:BT,target:BT,pos:p.pos});
+  });
+})();
+
+/* ============================================================================
+   RENDERING
+============================================================================ */
+function drawRig(dt){
+  const {c,w,h}=fit(C.rig);
+  c.clearRect(0,0,w,h);
+  // band-område: bräda ligger med längd horisontellt
+  const m=26, bx=m, by=h*0.30, bw=w-2*m, bh=h*0.40;
+  // transportband (vid längd-ändarna, dvs topp & botten i denna vy)
+  c.fillStyle="#0c121a";c.fillRect(bx,by-22,bw,16);c.fillRect(bx,by+bh+6,bw,16);
+  for(let i=0;i<2;i++){const yy=by-22+i*(bh+28);
+    c.strokeStyle="#1b2735";c.lineWidth=1;
+    for(let x=bx+ (S.beltPhase%18); x<bx+bw;x+=18){c.beginPath();c.moveTo(x,yy);c.lineTo(x,yy+16);c.stroke();}
+  }
+  // portalben (length-ändar)
+  c.fillStyle="#16212e";c.fillRect(bx-14,by-30,10,bh+60);c.fillRect(bx+bw+4,by-30,10,bh+60);
+  c.fillStyle="#1b2a3a";c.fillRect(bx-16,by-34,bw+32,7);  // top tvärbalk
+
+  // bräda (matas uppåt i vyn: posY 0..BW mappar)
+  if(board){
+    const progY = S.posY/BW;                          // 0..1
+    // brädans yta (visa redan-skannad del ljus, kommande dämpad)
+    c.save();
+    c.beginPath();c.rect(bx,by,bw,bh);c.clip();
+    // rita ytbufferten passande in i rektangeln (X→bredd, Y→höjd)
+    c.drawImage(board.surf,bx,by,bw,bh);
+    // dämpa kommande (ej skannad) del
+    const scanPx=by+bh*progY;
+    c.fillStyle="rgba(7,11,16,.55)";c.fillRect(bx,scanPx,bw,by+bh-scanPx);
+    c.restore();
+    c.strokeStyle="#26384a";c.lineWidth=1.5;c.strokeRect(bx,by,bw,bh);
+
+    // laserlinje (längs X) vid skannlinjen — glödande
+    if(S.phase==="scanning"){
+      const ly=by+bh*progY;
+      const grd=c.createLinearGradient(bx,ly-7,bx,ly+7);
+      grd.addColorStop(0,"rgba(255,60,80,0)");grd.addColorStop(0.5,"rgba(255,70,90,.95)");grd.addColorStop(1,"rgba(255,60,80,0)");
+      c.fillStyle=grd;c.fillRect(bx,ly-7,bw,14);
+      c.strokeStyle="#ff3850";c.lineWidth=1.6;c.shadowColor="#ff3850";c.shadowBlur=12;
+      c.beginPath();c.moveTo(bx,ly);c.lineTo(bx+bw,ly);c.stroke();
+      // grön sekundär (offset minimal — samma linje, andra huvudet)
+      c.strokeStyle="rgba(82,255,122,.5)";c.shadowColor="#52ff7a";c.beginPath();c.moveTo(bx,ly+1.5);c.lineTo(bx+bw,ly+1.5);c.stroke();
+      c.shadowBlur=0;
+      // LR400-punkter
+      LRPOS.forEach(p=>{const px=bx+bw*(p.pos/BL);
+        c.fillStyle="#27d3e0";c.beginPath();c.arc(px,ly,3,0,7);c.fill();
+        c.strokeStyle="rgba(39,211,224,.4)";c.beginPath();c.arc(px,ly,6,0,7);c.stroke();});
+    }
+  }
+  // huvud-etiketter
+  c.font="10px var(--mono),monospace";c.fillStyle="#61768c";c.textAlign="left";
+  c.fillText("RÖD 650 · vänster huvud",bx,by-40);
+  c.textAlign="right";c.fillText("GRÖN 520 · höger huvud",bx+bw,by-40);
+  c.textAlign="left";c.fillStyle="#3a4d62";
+  c.fillText("matning →",bx+4,by+bh+34);
+  S.beltPhase=(S.beltPhase||0)+(S.running?S.feed*dt*0.6:0);
+}
+
+function drawCross(){
+  const {c,w,h}=fit(C.cross);
+  c.clearRect(0,0,w,h);
+  const m=30, gx=m, gy=14, gw=w-m-14, gh=h-gy-26;
+  // rutnät
+  c.strokeStyle="#16222f";c.lineWidth=1;
+  for(let i=0;i<=5;i++){const y=gy+gh*i/5;c.beginPath();c.moveTo(gx,y);c.lineTo(gx+gw,y);c.stroke();}
+  c.fillStyle="#3a4d62";c.font="9px var(--mono),monospace";c.textAlign="right";
+  c.fillText((BT+15).toFixed(0),gx-4,gy+6);c.fillText(BT.toFixed(0),gx-4,gy+gh*0.5+3);c.fillText((BT-15).toFixed(0),gx-4,gy+gh-2);
+  c.save();c.translate(10,gy+gh/2);c.rotate(-Math.PI/2);c.textAlign="center";c.fillStyle="#61768c";c.fillText("Z (mm)",0,0);c.restore();
+  c.textAlign="center";c.fillText("x längs bräda (0–500 mm)",gx+gw/2,h-6);
+
+  if(board && S.phase!=="idle"){
+    const row=Math.min(board.H-1,Math.round(S.posY/BW*board.H));
+    const zToY=z=>gy+gh*(1-( (z-BT+15)/30 ));
+    // RÖD täcker vänster halva bäst, GRÖN höger — visa båda + sammanslagen
+    const N=160;
+    const sample=fx=>{const xx=Math.min(board.W-1,Math.round(fx*board.W));return BT+board.zmap[row*board.W+xx];};
+    // fylld area under sammanslagen profil
+    c.beginPath();c.moveTo(gx,gy+gh);
+    for(let i=0;i<=N;i++){const fx=i/N;c.lineTo(gx+gw*fx,zToY(sample(fx)));}
+    c.lineTo(gx+gw,gy+gh);c.closePath();
+    const ag=c.createLinearGradient(0,gy,0,gy+gh);ag.addColorStop(0,"rgba(39,211,224,.22)");ag.addColorStop(1,"rgba(39,211,224,0)");
+    c.fillStyle=ag;c.fill();
+    // RÖD profil (vänster→bättre), tona ut åt höger
+    function profile(col,alphaFn){c.lineWidth=1.6;c.beginPath();
+      for(let i=0;i<=N;i++){const fx=i/N;const y=zToY(sample(fx))+(Math.random()-0.5)*1.0;if(i===0)c.moveTo(gx+gw*fx,y);else c.lineTo(gx+gw*fx,y);}
+      c.strokeStyle=col;c.stroke();}
+    c.globalAlpha=0.55;profile("#ff4d5e");c.globalAlpha=0.55;profile("#52ff7a");c.globalAlpha=1;
+    // sammanslagen tydlig linje
+    c.beginPath();for(let i=0;i<=N;i++){const fx=i/N;const y=zToY(sample(fx));if(i===0)c.moveTo(gx+gw*fx,y);else c.lineTo(gx+gw*fx,y);}
+    c.strokeStyle="#27d3e0";c.lineWidth=2;c.shadowColor="#27d3e0";c.shadowBlur=6;c.stroke();c.shadowBlur=0;
+    // LR400 markörer
+    LRPOS.forEach(p=>{const fx=p.pos/BL;const y=zToY(sample(fx));c.fillStyle="#fff";c.beginPath();c.arc(gx+gw*fx,y,2.5,0,7);c.fill();});
+    // nominell linje
+    c.strokeStyle="rgba(159,178,198,.3)";c.setLineDash([4,4]);c.lineWidth=1;c.beginPath();c.moveTo(gx,zToY(BT));c.lineTo(gx+gw,zToY(BT));c.stroke();c.setLineDash([]);
+  }else{
+    c.fillStyle="#3a4d62";c.textAlign="center";c.fillText("ingen aktiv profil",gx+gw/2,gy+gh/2);
+  }
+}
+
+function drawSurface(){
+  const {c,w,h}=fit(C.surface);
+  c.clearRect(0,0,w,h);
+  c.fillStyle="#070b10";c.fillRect(0,0,w,h);
+  if(!board){c.fillStyle="#3a4d62";c.font="11px var(--sans)";c.textAlign="center";c.fillText("väntar på bräda…",w/2,h/2);return;}
+  // bygg upp uppifrån: visa rader 0..posY av ytbufferten, skalat till hela kortet
+  const progY=Math.min(1,S.posY/BW);
+  const srcH=Math.max(1,Math.round(board.H*progY));
+  const drawH=h*progY;
+  // bevarad bild
+  c.save();c.beginPath();c.rect(0,0,w,h);c.clip();
+  if(srcH>0) c.drawImage(board.surf,0,0,board.W,srcH, 0,0,w,drawH);
+  c.restore();
+  // skannfront (ljus rad)
+  if(S.phase==="scanning"){
+    const fy=drawH;
+    const grd=c.createLinearGradient(0,fy-10,0,fy+2);grd.addColorStop(0,"rgba(255,255,255,0)");grd.addColorStop(1,"rgba(255,255,255,.8)");
+    c.fillStyle=grd;c.fillRect(0,fy-10,w,10);
+    c.fillStyle="rgba(255,255,255,.9)";c.fillRect(0,fy-1.5,w,2.5);
+  }
+  // ramtext
+  c.fillStyle="rgba(159,178,198,.55)";c.font="9px var(--mono),monospace";c.textAlign="left";
+  c.fillText("0",2,h-4);c.textAlign="right";c.fillText("500 mm",w-3,h-4);
+}
+
+function drawProfiles(){
+  const {c,w,h}=fit(C.profiles);
+  c.clearRect(0,0,w,h);
+  // två rutor sida vid sida: RÖD-kamera & GRÖN-kamera rå-stripe
+  const gap=10, pw=(w-gap)/2;
+  const cams=[{x:0,col:"#ff4d5e",bg:"#1a0608",name:"RÖD 650 · vänster",side:0},
+              {x:pw+gap,col:"#52ff7a",bg:"#04140a",name:"GRÖN 520 · höger",side:1}];
+  const row=board?Math.min(board.H-1,Math.round(S.posY/BW*board.H)):0;
+  cams.forEach(cam=>{
+    c.fillStyle=cam.bg;c.fillRect(cam.x,0,pw,h);
+    c.strokeStyle="#1d2a38";c.strokeRect(cam.x+.5,.5,pw-1,h-1);
+    c.fillStyle="rgba(255,255,255,.55)";c.font="9px var(--mono),monospace";c.textAlign="left";
+    c.fillText(cam.name,cam.x+6,13);
+    if(board&&S.phase!=="idle"){
+      // stripen: x = position längs bräda; vertikalt = höjd (förskjuten av Z via triangulering)
+      const N=120, top=20, bh=h-top-8;
+      c.lineWidth=2.4;c.strokeStyle=cam.col;c.shadowColor=cam.col;c.shadowBlur=7;
+      c.beginPath();
+      for(let i=0;i<=N;i++){
+        const fx=i/N;const xx=Math.min(board.W-1,Math.round(fx*board.W));
+        const z=board.zmap[row*board.W+xx];
+        // ocklusion: rött huvud ser sämre på höger kant, grönt på vänster
+        const occ=cam.side===0?fx:(1-fx);
+        const yy=top+bh*0.5 - z*4 + Math.sin(fx*40)*0.4;
+        const px=cam.x+6+(pw-12)*fx;
+        if(occ>0.86 && (z<-2)){ c.stroke();c.beginPath();c.moveTo(px,yy); } // bryt vid skugga
+        else if(i===0)c.moveTo(px,yy);else c.lineTo(px,yy);
+      }
+      c.stroke();c.shadowBlur=0;
+      // skuggzon-etikett
+      c.fillStyle="rgba(255,255,255,.25)";c.font="8px var(--mono),monospace";
+      c.textAlign=cam.side===0?"right":"left";
+      c.fillText("ocklusion", cam.side===0?cam.x+pw-6:cam.x+6, h-6);
+    }
+  });
+}
+
+function drawFeed(){
+  const cv=C.feed;const {c,w,h}=fit(cv);
+  c.clearRect(0,0,w,h);
+  c.fillStyle="#0a1118";c.fillRect(0,0,w,h);
+  // band med rörliga ribbor
+  const ph=(S.beltPhase||0)%24;
+  c.strokeStyle="#16222f";c.lineWidth=2;
+  for(let x=-24+ph; x<w; x+=24){c.beginPath();c.moveTo(x,0);c.lineTo(x+8,h);c.stroke();}
+  // bräda som åker (representerad som block som rör sig vänster→höger genom mätzon)
+  const zoneX=w*0.5;
+  c.strokeStyle="rgba(39,211,224,.5)";c.setLineDash([3,3]);c.beginPath();c.moveTo(zoneX,0);c.lineTo(zoneX,h);c.stroke();c.setLineDash([]);
+  c.fillStyle="rgba(39,211,224,.7)";c.font="8px var(--mono),monospace";c.textAlign="center";c.fillText("MÄTZON",zoneX,10);
+  if(board){
+    const prog=S.posY/BW;                              // 0..1 genom zonen
+    const bwpx=w*0.34, bx=zoneX - bwpx + prog*bwpx;    // glider in
+    const bhpx=h*0.46, by=h*0.5-bhpx/2;
+    c.save();c.beginPath();c.rect(0,0,w,h);c.clip();
+    c.drawImage(board.surf,bx,by,bwpx,bhpx);
+    c.restore();
+    c.strokeStyle="#2a5a4a";c.strokeRect(bx,by,bwpx,bhpx);
+  }
+}
+
+function drawLR(){
+  lrEls.forEach(g=>{
+    const cv=g.cv;const {c,w,h}=fit(cv);c.clearRect(0,0,w,h);
+    // halvcirkel-mätare 30..60 mm
+    const cx=w*0.5,cy=h*0.92,R=Math.min(w*0.46,h*0.82);
+    const a0=Math.PI,a1=0;
+    c.lineWidth=Math.max(5,R*0.16);
+    c.strokeStyle="#16222f";c.beginPath();c.arc(cx,cy,R,a0,a1);c.stroke();
+    const lo=BT-15,hi=BT+15;const t=(g.val-lo)/(hi-lo);const ang=a0+(a1-a0)*Math.max(0,Math.min(1,t));
+    // nominellt-band runt 45
+    const near=Math.abs(g.val-BT)<1.2;
+    const col=near?"#34e6b5":(Math.abs(g.val-BT)<3?"#ffb33d":"#ff4d5e");
+    c.strokeStyle=col;c.shadowColor=col;c.shadowBlur=10;c.beginPath();c.arc(cx,cy,R,a0,ang);c.stroke();c.shadowBlur=0;
+    // nål
+    c.strokeStyle="#e7eef6";c.lineWidth=2;c.beginPath();c.moveTo(cx,cy);c.lineTo(cx+Math.cos(ang)*R*0.82,cy+Math.sin(ang)*R*0.82);c.stroke();
+    c.fillStyle="#e7eef6";c.beginPath();c.arc(cx,cy,3,0,7);c.fill();
+    // nominell-tick @45
+    const tn=(BT-lo)/(hi-lo),an=a0+(a1-a0)*tn;
+    c.strokeStyle="rgba(159,178,198,.5)";c.lineWidth=1.5;
+    c.beginPath();c.moveTo(cx+Math.cos(an)*R*0.86,cy+Math.sin(an)*R*0.86);c.lineTo(cx+Math.cos(an)*R*1.06,cy+Math.sin(an)*R*1.06);c.stroke();
+    // siffervärden
+    g.num.textContent=g.val.toFixed(2);
+    g.num.style.color=col;
+    const d=g.val-BT;g.dev.textContent="Δ "+(d>=0?"+":"")+d.toFixed(2)+" mm";
+    g.dev.style.color=col;
+  });
+}
+
+/* ============================================================================
+   SIMULERINGSLOGIK
+============================================================================ */
+function newBoard(){
+  board=makeBoard(seedCounter++);
+  S.posY=0;S.detected=[];S.grade=null;S.phase="scanning";
+  // töm defektlista
+  defListEl.innerHTML="";defEmpty();
+  gradeBadge.textContent="…";gradeBadge.style.background="var(--ink3)";
+  gradeTitle.textContent="Skannar…";gradeReason.textContent="mätning pågår";
+  S.loadTarget=58+Math.random()*22;
+}
+function finishBoard(){
+  S.phase="done";S.boardCount++;
+  computeGrade();
+  S.loadTarget=22+Math.random()*10;
+  if(S.auto){S.phase="gap";S.gapT=0;}
+}
+function computeGrade(){
+  // poäng utifrån avslöjade defekter
+  let score=100;const reasons=[];
+  const cnt={};
+  S.detected.forEach(d=>{cnt[d.type]=(cnt[d.type]||0)+1;
+    if(d.type==="knot")score-=Math.min(14,3+d.r);
+    if(d.type==="wane")score-=12;
+    if(d.type==="crack")score-=10+d.len*0.05;
+    if(d.type==="stain")score-=6;
+    if(d.type==="rot")score-=22;
+    if(d.type==="hole")score-=14;
+  });
+  // skevhet
+  const warp=Math.abs(board.bow)+Math.abs(board.cup)+Math.abs(board.twist);
+  if(warp>4){score-=(warp-4)*4;reasons.push(`skevhet ${warp.toFixed(1)} mm`);}
+  Object.keys(cnt).forEach(k=>reasons.push(`${cnt[k]}× ${DEFS[k].sv.toLowerCase()}`));
+  let g,gt,gc;
+  if(score>=85){g="A";gt="Klass A · A-virke";gc="#34e6b5";}
+  else if(score>=68){g="B";gt="Klass B · konstruktion";gc="#27d3e0";}
+  else if(score>=48){g="C";gt="Klass C · emballage";gc="#ffb33d";}
+  else{g="V";gt="Vrak · kasseras";gc="#ff4d5e";}
+  S.grade={g,gt,gc,score:Math.max(0,Math.round(score)),reasons};
+  gradeBadge.textContent=g;gradeBadge.style.background=gc;gradeBadge.style.boxShadow=`0 0 24px ${gc}88`;
+  gradeTitle.textContent=gt;
+  gradeReason.textContent=(reasons.length?reasons.join(" · ")+" · ":"")+`poäng ${S.grade.score}/100`;
+}
+
+const defListEl=e("deflist"),defCount=e("def-count");
+const gradeBadge=e("grade-badge"),gradeTitle=e("grade-title"),gradeReason=e("grade-reason");
+function defEmpty(){if(!S.detected.length)defListEl.innerHTML='<div class="def-empty">Inga defekter registrerade</div>';}
+function pushDef(d){
+  const def=DEFS[d.type];
+  const row=document.createElement("div");row.className="def";
+  row.innerHTML=`<span class="sw" style="background:${def.sw}"></span>
+    <span class="dn">${def.sv}</span>
+    <span class="dd">x${Math.round(d.x)} y${Math.round(d.y)} · ⌀${Math.round((d.r||1)*2)}mm</span>`;
+  defListEl.appendChild(row);
+  defCount.textContent=S.detected.length;
+}
+
+/* ============================================================================
+   SENSORVY — alla sensorers live-telemetri mot RIKTIGA databladsspecar.
+   Värdena simuleras nu, men varje fält och takt är härlett ur produktspeccen
+   (samma siffror vi kopplar in mot fysiska sensorer senare).
+============================================================================ */
+const MMPP_SURF = BL/4096;                              // ytkamera mm/px (0,122)
+const LATRES    = BL/2448;                              // profil mm/px längs linjen (0,204)
+const ZRES_UM   = Math.round(LATRES/Math.tan(20*Math.PI/180)*0.1*1000);  // ~Z-uppl @0,1px subpx
+const PROF_ROI  = 256;                                  // ROI-band rader (höjd) profilkamera
+const TLM = {};                                         // delade datatakter → Jetson summerar
+S.view="dash"; S.encoder=0;
+
+function profSensor(color){
+  const red=color==="red";
+  return {id:"prof"+color,
+    name:"Profilkamera "+(red?"RÖD 650":"GRÖN 520"),
+    model:"Hikrobot MV-CS050-10UM · mono", iface:"USB3 Vision",
+    tag:"datablad: Sony IMX264 · 5 MP global shutter",
+    spec:[["Upplösning","2448×2048"],["Pixel","3,45 µm"],["Slutare","global"],
+          ["Sensor","2/3″ IMX264"],["Filter","bandpass "+(red?"650":"520")+" nm"],["Lins","12 mm MVL-MF1228M"]],
+    live:[["fps","Bildtakt"],["centroid","Stripe-centroid"],["exp","Exponering"],["sub","Subpixel"],
+          ["zres","Z-upplösning"],["data","Datatakt"],["sig","Signal"],["temp","Temp"]],
+    spark:{label:"signal %",color:red?"#ff4d5e":"#52ff7a"},
+    read(){
+      const sc=S.phase==="scanning";
+      const dr=2448*PROF_ROI*S.rate/1e6; TLM["prof"+color]=sc?dr:0;
+      const zc=board&&sc?board.thicknessAt(LRPOS[1].pos,Math.min(BW-1,S.posY))-BT:0;
+      const centroid=1024 - zc/LATRES;
+      const occl=board&&sc?(red?S.posY/BW:1-S.posY/BW):0;     // ocklusion ena kanten
+      const sig=sc?(90 - occl*8 + Math.sin(performance.now()/700+(red?0:2))*3 + (Math.random()-.5)*2):0;
+      return {led:sc?"on":"", spark:sc?sig:0, vals:{
+        fps:(sc?S.rate:0)+" Hz", centroid:centroid.toFixed(1)+" px",
+        exp:Math.round(sc?1e6/S.rate*0.4:0)+" µs", sub:"0,05 px",
+        zres:"~"+ZRES_UM+" µm", data:(sc?dr:0).toFixed(0)+" MB/s",
+        sig:(sc?sig:0).toFixed(0)+" %", temp:(38+S.load*0.12).toFixed(0)+" °C"}};
+    }};
+}
+const surfaceSensor={id:"surf",
+  name:"Ytkamera · 4K färg-radskanner", model:"Huateng 4096×4 TDI · färg", iface:"GigE Vision",
+  tag:"datablad: 7 µm · ~8 kHz färg · M42",
+  spec:[["Upplösning","4096×4 TDI"],["Pixel","7,0 µm"],["Sensor","28,7 mm"],
+        ["Färg","RGB888 8-bit"],["Lins","20 mm ZLKC M42"],["Belysning","vitt LED-linjeljus"]],
+  live:[["rate","Radtakt"],["rows","Rader/bräda"],["mmpp","Upplösning"],["data","Datatakt"],["cap","Av kapacitet"],["light","Belysning"]],
+  spark:{label:"radtakt Hz",color:"#27d3e0"},
+  read(){
+    const sc=S.phase==="scanning";
+    const lr=sc?S.feed/MMPP_SURF:0; const dr=4096*3*lr/1e6; TLM.surf=dr;
+    return {led:sc?"on":"", spark:lr, vals:{
+      rate:lr.toFixed(0)+" Hz", rows:(board?Math.round(S.posY/MMPP_SURF):0)+" / "+Math.round(BW/MMPP_SURF),
+      mmpp:MMPP_SURF.toFixed(3).replace(".",",")+" mm/px", data:dr.toFixed(1)+" MB/s",
+      cap:(lr/8000*100).toFixed(1)+" %", light:(sc?100:0)+" %"}};
+  }};
+function lrSensor(i){const p=LRPOS[i];
+  return {id:"lr"+i, name:"Punktlaser "+p.id, model:"LR400 · CMOS-triangulering", iface:"RS-485 ch"+(i+1),
+    tag:"datablad: 60–400 mm · 8 µm",
+    spec:[["Mätområde","60–400 mm"],["Position","x = "+p.pos+" mm"],["Upplösning","8 µm"],["Protokoll","Modbus RTU"]],
+    live:[["thk","Tjocklek"],["dist","Avstånd"],["rate","Sampeltakt"],["dev","Δ nominell"]],
+    spark:{label:"tjocklek mm",color:"#34e6b5"},
+    read(){const g=lrEls[i];const sc=S.phase==="scanning";
+      const rate=sc?640+(Math.random()-.5)*30:0; const dist=100-(g.val-BT);
+      const d=g.val-BT;
+      return {led:sc?"on":"", spark:g.val, vals:{
+        thk:g.val.toFixed(2)+" mm", dist:dist.toFixed(2)+" mm",
+        rate:rate.toFixed(0)+" Hz", dev:(d>=0?"+":"")+d.toFixed(2)+" mm"}};
+    }};
+}
+const convSensor={id:"conv",
+  name:"Transportör · matning", model:"24 V DC borstad · 30 rpm", iface:"Pololu Jrk G2 · USB",
+  tag:"designval: 50 mm/s nominellt",
+  spec:[["Matarhjul","Ø ~50 mm"],["Drivare","Jrk G2 21v3"],["Spänning","24 V"],["Återkoppling","Hall/kvadratur"]],
+  live:[["spd","Hastighet"],["set","Börvärde"],["cur","Motorström"],["enc","Encoder"],["pwm","PWM-pådrag"],["dir","Riktning"]],
+  spark:{label:"hastighet mm/s",color:"#34e6b5"},
+  read(dt){const run=S.running&&S.phase!=="gap"&&S.phase!=="idle"; const spd=run?S.feed:0;
+    S.encoder+=spd*dt; const cur=run?(0.35+spd*0.004+(Math.random()-.5)*0.04):0.05;
+    return {led:run?"on":"", spark:spd, vals:{
+      spd:spd.toFixed(0)+" mm/s", set:S.feed+" mm/s", cur:cur.toFixed(2)+" A",
+      enc:Math.round(S.encoder)+" mm", pwm:(run?Math.round(spd/120*78+12):0)+" %", dir:run?"framåt":"stopp"}};
+  }};
+const jetSensor={id:"jet",
+  name:"Jetson Orin Nano Super", model:"1024 CUDA · 32 Tensor · 8 GB", iface:"aarch64 · JetPack",
+  tag:"beräkningsnod — total inström från alla kameror",
+  spec:[["GPU","Ampere 1024-kärnor"],["CPU","6× Cortex-A78AE"],["Minne","8 GB LPDDR5"],["Läge","MAXN Super 25 W"]],
+  live:[["cpu","CPU"],["gpu","GPU"],["ram","RAM"],["ingest","Total inström"],["pwr","Effekt"],["temp","Temp"]],
+  spark:{label:"GPU %",color:"#9a7bff"},
+  read(){const ingest=(TLM.profred||0)+(TLM.profgreen||0)+(TLM.surf||0);
+    const gpu=S.load, cpu=22+S.load*0.45+(Math.random()-.5)*3;
+    return {led:S.load>80?"warn":(S.running?"on":""), spark:gpu, vals:{
+      cpu:cpu.toFixed(0)+" %", gpu:gpu.toFixed(0)+" %", ram:(38+S.load*0.12).toFixed(0)+" %",
+      ingest:ingest.toFixed(0)+" MB/s", pwr:(7+S.load*0.16).toFixed(1)+" W", temp:(45+S.load*0.18).toFixed(0)+" °C"}};
+  }};
+
+const SENSORS=[profSensor("red"),profSensor("green"),surfaceSensor,lrSensor(0),lrSensor(1),lrSensor(2),convSensor,jetSensor];
+const sparks={}, liveSpans={};
+(function buildSensors(){
+  const sv=e("sensorview");
+  SENSORS.forEach(s=>{
+    let rows="";
+    s.spec.forEach(([k,v])=>rows+=`<div class="srow"><span class="k">${k}</span><span class="v spec">${v}</span></div>`);
+    s.live.forEach(([key,lab])=>rows+=`<div class="srow"><span class="k">${lab}</span><span class="v live" data-k="${s.id}:${key}">–</span></div>`);
+    const card=document.createElement("div");card.className="scard";
+    card.innerHTML=`<div class="scard-h"><span class="scard-led" data-led="${s.id}"></span>
+      <div class="scard-tt"><div class="nm">${s.name}</div><div class="md">${s.model}</div></div>
+      <span class="scard-if">${s.iface}</span></div>
+      <canvas class="spark" data-spark="${s.id}"></canvas>
+      <div class="scard-rows">${rows}</div>
+      <div class="scard-tag">${s.tag}</div>`;
+    sv.appendChild(card);
+    sparks[s.id]={cv:card.querySelector("[data-spark]"),buf:new Array(72).fill(null),color:s.spark.color,label:s.spark.label};
+    s._led=card.querySelector(`[data-led="${s.id}"]`);
+    s.live.forEach(([key])=>liveSpans[`${s.id}:${key}`]=card.querySelector(`[data-k="${s.id}:${key}"]`));
+  });
+})();
+function drawSpark(sp){
+  const {c,w,h}=fit(sp.cv);c.clearRect(0,0,w,h);
+  const n=sp.buf.length,pad=5;
+  let mn=Infinity,mx=-Infinity;for(const v of sp.buf){if(v==null)continue;if(v<mn)mn=v;if(v>mx)mx=v;}
+  c.fillStyle="rgba(159,178,198,.55)";c.font="8px var(--mono),monospace";c.textAlign="left";c.fillText(sp.label,pad+1,10);
+  if(mn===Infinity)return; if(mx-mn<1e-6){mx+=0.5;mn-=0.5;}
+  const X=i=>pad+(w-2*pad)*i/(n-1), Y=v=>h-pad-(h-2*pad)*(v-mn)/(mx-mn);
+  let started=false;c.beginPath();
+  for(let i=0;i<n;i++){const v=sp.buf[i];if(v==null)continue;const x=X(i),y=Y(v);if(!started){c.moveTo(x,y);started=true;}else c.lineTo(x,y);}
+  c.strokeStyle=sp.color;c.lineWidth=1.6;c.shadowColor=sp.color;c.shadowBlur=5;c.stroke();c.shadowBlur=0;
+  const lv=sp.buf[n-1];if(lv!=null){c.fillStyle=sp.color;c.beginPath();c.arc(X(n-1),Y(lv),2.4,0,7);c.fill();}
+}
+function updateSensors(dt){
+  SENSORS.forEach(s=>{
+    const r=s.read(dt);
+    for(const k in r.vals){const el=liveSpans[`${s.id}:${k}`];if(el&&el.textContent!==r.vals[k])el.textContent=r.vals[k];}
+    s._led.className="scard-led"+(r.led?" "+r.led:"");
+    const sp=sparks[s.id];sp.buf.push(r.spark);sp.buf.shift();drawSpark(sp);
+  });
+}
+
+/* ---------- huvudloop ---------- */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(0.05,(now-last)/1000);last=now;
+
+  if(S.running){
+    S.upMs+=dt*1000;
+    if(S.phase==="scanning"&&board){
+      const prevY=S.posY;
+      S.posY+=S.feed*dt;                       // mm/s
+      // avslöja defekter när skannlinjen passerar dem
+      board.defects.forEach(d=>{
+        if(!d._seen && d.y<=S.posY){d._seen=true;S.detected.push(d);pushDef(d);}
+      });
+      if(S.posY>=BW){S.posY=BW;finishBoard();}
+    } else if(S.phase==="gap"){
+      S.gapT+=dt; if(S.gapT>0.7){ if(S.auto) newBoard(); else S.phase="done"; }
+    }
+    // genomflöde (br/min) glidande
+    const cycle=(BW+GAP)/S.feed + 0.7;          // s per bräda
+    S.tp += ((60/cycle) - S.tp)*Math.min(1,dt*2);
+  }
+
+  // Jetson-last glättning
+  S.load += (S.loadTarget - S.load)*Math.min(1,dt*1.5);
+
+  // LR400 mål uppdateras från brädan vid aktuell skannlinje
+  if(board && (S.phase==="scanning")){
+    lrEls.forEach(g=>{g.target=board.thicknessAt(g.pos,Math.min(BW-1,S.posY));});
+  } else if(S.phase==="idle"){ lrEls.forEach(g=>g.target=BT); }
+  lrEls.forEach(g=>{ g.val+=(g.target-g.val)*Math.min(1,dt*8) + (Math.random()-0.5)*0.01; });
+
+  // ---- rita (endast aktiv vy) ----
+  if(S.view==="sensors"){ updateSensors(dt); }
+  else { drawRig(dt);drawCross();drawSurface();drawProfiles();drawFeed();drawLR(); }
+
+  // ---- HUD ----
+  e("kpi-tp").innerHTML=`${S.tp.toFixed(1)} <small>br/min</small>`;
+  e("kpi-count").textContent=S.boardCount;
+  e("kpi-load").innerHTML=`${Math.round(S.load)} <small>%</small>`;
+  e("kpi-rate").innerHTML=`${S.rate} <small>Hz</small>`;
+  const up=S.upMs/1000;e("kpi-up").textContent=`${String(Math.floor(up/60)).padStart(2,"0")}:${String(Math.floor(up%60)).padStart(2,"0")}`;
+  e("f-pos").textContent=`${Math.round(S.posY)} mm`;
+  e("f-speed").textContent=`${S.feed} mm/s`;
+  e("f-pitch").textContent=`${(S.feed/S.rate).toFixed(3)} mm`;
+  e("surf-px").textContent=`${Math.round(S.posY/BW*4096*BW/BL)} rader`;
+  const scanning=S.phase==="scanning";
+  e("rig-scan").textContent=scanning?"SKANNAR":"—";
+  e("rig-scan").classList.toggle("live",scanning);
+
+  requestAnimationFrame(loop);
+}
+
+/* ============================================================================
+   KONTROLLER
+============================================================================ */
+const statusEl=e("status"),statusTxt=e("status-txt"),btnRun=e("btn-run"),btnRunTxt=e("btn-run-txt");
+function setRunning(v){
+  S.running=v;
+  statusEl.classList.toggle("run",v);statusEl.classList.toggle("idle",!v);
+  statusTxt.textContent=v?"I DRIFT":"PAUSAD";
+  btnRunTxt.textContent=v?"Pausa":"Starta";
+  btnRun.classList.toggle("stopmode",v);
+  btnRun.querySelector("svg").innerHTML=v?'<rect x="2" y="1" width="3" height="10"/><rect x="7" y="1" width="3" height="10"/>':'<path d="M2 1 L11 6 L2 11 Z"/>';
+  if(v){ if(!S.startTime)S.startTime=performance.now(); if(S.phase==="idle"||!board)newBoard(); }
+}
+btnRun.onclick=()=>setRunning(!S.running);
+e("btn-next").onclick=()=>{ newBoard(); if(!S.running)setRunning(true); };
+e("tg-auto").onclick=function(){S.auto=!S.auto;this.classList.toggle("on",S.auto);};
+document.querySelectorAll(".tab").forEach(t=>t.onclick=()=>{
+  document.querySelectorAll(".tab").forEach(x=>x.classList.toggle("active",x===t));
+  S.view=t.dataset.view;
+  e("sensorview").classList.toggle("hidden",S.view!=="sensors");
+  document.querySelector(".grid").classList.toggle("hidden",S.view!=="dash");
+});
+const sf=e("sld-feed"),rf=e("rv-feed");sf.oninput=()=>{S.feed=+sf.value;rf.textContent=S.feed+" mm/s";};
+const sr=e("sld-rate"),rr=e("rv-rate");sr.oninput=()=>{S.rate=+sr.value;rr.textContent=S.rate+" Hz";};
+
+window.addEventListener("resize",()=>{});  // fit() läser storlek varje frame
+requestAnimationFrame(loop);
+// auto-starta direkt så vyn aldrig är tom — simuleringen kör på en gång
+setRunning(true);
+</script>
+</body>
+</html>

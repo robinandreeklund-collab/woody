@@ -1,0 +1,23 @@
+singleton Theme 1.0 Theme.qml
+singleton RigCal 1.0 RigCal.qml
+CamView3D 1.0 CamView3D.qml
+Card 1.0 Card.qml
+Btn 1.0 Btn.qml
+Kpi 1.0 Kpi.qml
+CtrlSlider 1.0 CtrlSlider.qml
+NavTab 1.0 NavTab.qml
+BoardImage 1.0 BoardImage.qml
+DashboardView 1.0 DashboardView.qml
+SensorsView 1.0 SensorsView.qml
+LogView 1.0 LogView.qml
+CalibrationView 1.0 CalibrationView.qml
+AnalysisView 1.0 AnalysisView.qml
+ProfilePlot 1.0 ProfilePlot.qml
+Board3DSoft 1.0 Board3DSoft.qml
+Board3DGpu 1.0 Board3DGpu.qml
+GradeDonut 1.0 GradeDonut.qml
+Sparkline 1.0 Sparkline.qml
+NodeTile 1.0 NodeTile.qml
+BoardOverlay 1.0 BoardOverlay.qml
+SimMultiHeadView 1.0 SimMultiHeadView.qml
+LrChart 1.0 LrChart.qml
