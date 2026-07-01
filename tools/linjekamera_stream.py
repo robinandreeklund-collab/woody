@@ -60,7 +60,7 @@ class CamSource:
         self.params = {"exposure": float(exposure), "gain": float(gain),
                        "height": 512, "dirty": True, "reopen": False,
                        "wb_request": False, "wb_reset": False, "clean": True,
-                       "stripe": False}
+                       "stripe": False, "binning": 1}
         self.wb = {"b": 1.0, "g": 1.0, "r": 1.0}
         self.auto = {"on": False, "plan": list(auto_plan), "i": 0, "wait": 0, "results": []}
         self.stats = {"mean": 0.0, "w": 0, "h": 0, "fps": 0.0, "focus": 0.0}
@@ -80,7 +80,7 @@ class CamSource:
             os.makedirs(CFG_DIR, exist_ok=True)
             with open(self.cfg_path, "w") as f:
                 json.dump({"exposure": self.params["exposure"], "gain": self.params["gain"],
-                           "wb": dict(self.wb)}, f, indent=2)
+                           "wb": dict(self.wb), "binning": int(self.params["binning"])}, f, indent=2)
         except Exception as e:
             print(f"[{self.name}] kan ej spara cfg:", e)
 
@@ -90,6 +90,7 @@ class CamSource:
                 d = json.load(f)
             self.params["exposure"] = float(d.get("exposure", self.params["exposure"]))
             self.params["gain"] = float(d.get("gain", self.params["gain"]))
+            self.params["binning"] = int(d.get("binning", self.params["binning"]))
             if isinstance(d.get("wb"), dict):
                 self.wb.update({k: float(v) for k, v in d["wb"].items()})
             print(f"[{self.name}] laddade sparade installningar:", d)
@@ -190,17 +191,40 @@ class CamSource:
         for a, b in zip(idx[:-1], idx[1:]):
             if b - a == 1:
                 cv2.line(disp, (int(cols[a]), int(cen[a])), (int(cols[b]), int(cen[b])), (0, 0, 255), 2)
+        # linjebredd (FWHM, px) = direkt fokusmått: minimera för skarpast linje.
+        # Mäts på samma subsamplade kolumner; halvmax-bredd runt toppen, median.
+        fwhm = float("nan")
+        if nval > 10:
+            sub = raw[:, ::step].astype(np.float32)
+            ssig = np.clip(sub - np.median(sub, axis=0, keepdims=True), 0, None)
+            sample = idx[:: max(1, len(idx) // 80)]      # ~80 kolumner räcker för stabil median
+            widths = []
+            for c in sample:
+                col = ssig[:, c]; m = float(col.max())
+                if m < 8:
+                    continue
+                above = np.where(col > m * 0.5)[0]
+                if above.size:
+                    widths.append(int(above[-1] - above[0] + 1))
+            if widths:
+                fwhm = float(np.median(widths))
         # 2) förstorad profil-panel nederst (visar plankans form)
-        ph = max(150, h // 6)
+        ph = max(180, h // 6)
         panel = np.full((ph, w, 3), 25, np.uint8)
         if nval > 10:
             lo = float(np.nanmin(cen)); hi = float(np.nanmax(cen)); rng = max(hi - lo, 1e-3)
-            ynorm = (1.0 - (cen - lo) / rng) * (ph - 28) + 14
+            ynorm = (1.0 - (cen - lo) / rng) * (ph - 60) + 50
             for a, b in zip(idx[:-1], idx[1:]):
                 if b - a == 1:
                     cv2.line(panel, (int(cols[a]), int(ynorm[a])), (int(cols[b]), int(ynorm[b])), (80, 220, 80), 2)
             cv2.putText(panel, f"PROFIL (relativ)  spann={rng:.1f}px  giltig={100 * nval / len(cols):.0f}%",
                         (10, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (200, 200, 200), 2)
+            # fokusmått: grönt <12 (skarpt), gult 12-22, rött >22 (suddigt)
+            if fwhm == fwhm:   # ej NaN
+                fcol = (80, 230, 80) if fwhm < 12 else (40, 210, 230) if fwhm < 22 else (60, 60, 255)
+                tag = "SKARP" if fwhm < 12 else "ok" if fwhm < 22 else "SUDDIG - fokusera"
+                cv2.putText(panel, f"FOKUS linjebredd {fwhm:.0f}px  [{tag}]  <-- minimera",
+                            (10, 56), cv2.FONT_HERSHEY_SIMPLEX, 0.9, fcol, 2)
         else:
             cv2.putText(panel, "ingen stripe - tand GRON-laser + sank exponering (Exp -)",
                         (10, ph // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 140, 255), 2)
@@ -349,6 +373,16 @@ class LineCamSource(CamSource):
             except Exception: pass
 
 
+def _soft_bin(raw, b):
+    """Mjukvaru-binning: summerar b×b-block (mono). Ger ~b² gånger signal
+    (klippt till 255) och b× mindre upplösning. Höjer svag laserlinje över
+    tröskeln så den detekteras vid kortare exponering."""
+    h, w = raw.shape
+    h2, w2 = h // b * b, w // b * b
+    r = raw[:h2, :w2].astype(np.uint16).reshape(h2 // b, b, w2 // b, b).sum(axis=(1, 3))
+    return np.clip(r, 0, 255).astype(np.uint8)
+
+
 class ProfileCamSource(CamSource):
     """Profilkamera (Hikrobot MV-CS050, mono) via MVS-SDK (USB3 Vision)."""
 
@@ -360,6 +394,7 @@ class ProfileCamSource(CamSource):
                          auto_plan=[50000, 100000, 200000, 350000, 500000],
                          tint=tint)
         self.serial = serial
+        self.params["binning"] = 2      # 2×2 Sum → ~4× ljus (ljussvag bakom bandpass)
 
     def _stream_once(self):
         # importera HAL:ens MVS-wrapper (sätter MVS-miljövariabler + laddar SDK lazy)
@@ -374,6 +409,9 @@ class ProfileCamSource(CamSource):
             return
         dev = MvsU3VCamera(self.serial)
         dev.open(pixel_format="Mono8")
+        # MV-CS050 stöder INTE hårdvaru-binning (Sony global-shutter). Binning görs
+        # därför i mjukvara per ram (_soft_bin) — 2×2-summa lyfter den ljussvaga
+        # laserlinjen över tröskeln så den detekteras vid kortare exponering.
         # full sensorram så man kan rikta/fokusera; offset nollställt
         dev.set_int("OffsetX", 0); dev.set_int("OffsetY", 0)
         wmax = dev.get_int_max("Width"); hmax = dev.get_int_max("Height")
@@ -397,6 +435,9 @@ class ProfileCamSource(CamSource):
                 raw = dev.grab(timeout_ms=tmo)
                 if raw is None:
                     continue
+                b = max(1, int(self.params["binning"]))
+                if b > 1:
+                    raw = _soft_bin(raw, b)     # mjukvaru-binning (kameran saknar hw-binning)
                 h, w = raw.shape
                 self.process(raw, w, h, set_exp)
         finally:
@@ -462,9 +503,11 @@ def _cam_html(s):
             f'<a class="btn wb" href="/wb/reset?cam={s.name}">Aterstall farg</a>'
             f'<a class="btn clean" href="/clean?cam={s.name}">Falskfarg-rensning</a></div>')
     else:
+        binlabel = f"Binning {s.params['binning']}x{s.params['binning']} (pa/av)"
         color_bar = (
             f'<div class="bar"><a class="btn auto" href="/stripe?cam={s.name}">'
-            f'Laserprofil pa/av</a></div>')
+            f'Laserprofil pa/av</a>'
+            f'<a class="btn wb" href="/bin?cam={s.name}">{binlabel}</a></div>')
     return ("<!doctype html><html><head><meta charset=utf-8>"
             "<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=8, user-scalable=yes'>"
             f"<title>{s.label}</title><style>"
@@ -524,7 +567,7 @@ class H(BaseHTTPRequestHandler):
             s = SOURCES.get(p[len("/cam/"):])
             return self._html(_cam_html(s)) if s else (self.send_response(404), self.end_headers())
 
-        if p in ("/exp", "/gain", "/focus", "/full", "/wb", "/wb/reset", "/auto", "/clean", "/stripe"):
+        if p in ("/exp", "/gain", "/focus", "/full", "/wb", "/wb/reset", "/auto", "/clean", "/stripe", "/bin"):
             s = self._src(q)
             if s is None:
                 self.send_response(404); self.end_headers(); return
@@ -546,6 +589,12 @@ class H(BaseHTTPRequestHandler):
                 s.params["clean"] = not s.params["clean"]
             elif p == "/stripe":
                 s.params["stripe"] = not s.params.get("stripe")
+            elif p == "/bin":
+                # växla 1 ↔ 2 (eller sätt ?d=N); capture-loopen öppnar om kameran
+                nb = int(float(q["d"])) if "d" in q else (1 if int(s.params["binning"]) > 1 else 2)
+                s.params["binning"] = max(1, nb)
+                s.params["dirty"] = True
+                s.save_cfg()
             return self._redirect(f"/cam/{s.name}")
 
         if p == "/raw.png":
