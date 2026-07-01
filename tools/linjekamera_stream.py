@@ -27,6 +27,7 @@ PORT = 8080
 LINE_CAM_ID = "ChinaVision-GELM44C-T2-076060623040"
 CAMERAS_JSON = "/home/admin/woody/data/cameras.json"
 CFG_DIR = "/home/admin/woody/data"
+SCAN_DIR = "/home/admin/woody/data/scans"     # sparade skanningar (rådata .npy + render .png)
 
 # Bayer-mönster: kamerans GenICam "BayerRG8" = OpenCV:s BG (förskjuten namnkonvention).
 # Verifierat mot färgtavla: BG ger rött=rött, blått=blått. EA = kantmedveten (mindre falskfärg).
@@ -60,7 +61,8 @@ class CamSource:
         self.params = {"exposure": float(exposure), "gain": float(gain),
                        "height": 512, "dirty": True, "reopen": False,
                        "wb_request": False, "wb_reset": False, "clean": True,
-                       "stripe": False, "binning": 1}
+                       "stripe": False, "binning": 1, "scan_req": 0}
+        self.scan = {"active": False, "rows": [], "target": 0, "png": None, "msg": "ingen skanning an"}
         self.wb = {"b": 1.0, "g": 1.0, "r": 1.0}
         self.auto = {"on": False, "plan": list(auto_plan), "i": 0, "wait": 0, "results": []}
         self.stats = {"mean": 0.0, "w": 0, "h": 0, "fps": 0.0, "focus": 0.0}
@@ -285,9 +287,47 @@ class CamSource:
             except Exception as e:
                 cv2.putText(disp, f"stripe-fel: {str(e)[:40]}", (12, int(130 * fs)),
                             cv2.FONT_HERSHEY_SIMPLEX, fs * 0.6, (0, 140, 255), 2)
+        # --- skanning: stapla profiler till en höjdkarta (profilkameror) ---
+        if not self.color:
+            self._scan_step(raw)
+
         ok, jpg = cv2.imencode(".jpg", disp, [cv2.IMWRITE_JPEG_QUALITY, 80])
         if ok:
             self.set_latest(jpg.tobytes())
+
+    def _scan_step(self, raw):
+        """Samla en profil per ram medan en skanning pågår; rendera vid mål."""
+        sr = int(self.params.get("scan_req", 0))
+        if sr > 0 and not self.scan["active"]:
+            self.scan.update(active=True, rows=[], target=sr, png=None, msg="skannar…")
+            self.params["scan_req"] = 0
+        if not self.scan["active"]:
+            return
+        from app.processing.stripe import subpixel_centroid
+        self.scan["rows"].append(subpixel_centroid(raw.astype(np.float32)))
+        self.scan["msg"] = f"skannar… {len(self.scan['rows'])}/{self.scan['target']}"
+        if len(self.scan["rows"]) >= self.scan["target"]:
+            n = len(self.scan["rows"])
+            try:
+                self.scan["png"] = _render_scan(self.scan["rows"])
+                saved = self._save_scan()          # rådata + png till disk
+                self.scan["msg"] = f"klar: {n} profiler  (sparad: {os.path.basename(saved)})"
+            except Exception as e:
+                self.scan["msg"] = f"render/spar-fel: {str(e)[:40]}"
+            self.scan["active"] = False
+
+    def _save_scan(self):
+        """Spara skanningen (rådata .npy + render .png) med tidsstämpel för analys."""
+        os.makedirs(SCAN_DIR, exist_ok=True)
+        ts = time.strftime("%Y%m%d_%H%M%S")
+        base = os.path.join(SCAN_DIR, f"scan_{self.name}_{ts}")
+        np.save(base + ".npy", np.array(self.scan["rows"], dtype=np.float32))   # (F, W) centroid-rader
+        if self.scan.get("png"):
+            with open(base + ".png", "wb") as f:
+                f.write(self.scan["png"])
+        self.scan["saved"] = base
+        print(f"[{self.name}] skanning sparad: {base}.npy ({len(self.scan['rows'])} profiler)")
+        return base
 
     def run(self):
         """Självläkande capture-loop — subklass implementerar _stream_once()."""
@@ -371,6 +411,39 @@ class LineCamSource(CamSource):
         finally:
             try: cam.stop_acquisition()
             except Exception: pass
+
+
+def _render_scan(rows):
+    """Stapla laserprofiler (lista av (W,) centroid-rader, NaN=ocklusion) till en
+    PNG: höjdkarta (topp-vy, turbo) + 3D-relief (hillshade). Ren OpenCV/numpy."""
+    cen = np.array(rows, dtype=np.float32)          # (F, W)
+    F, W = cen.shape
+    Z = -(cen - np.nanmedian(cen))                  # mindre rad = högre
+    for i in range(F):                              # fyll ocklusion radvis
+        m = ~np.isnan(Z[i])
+        Z[i] = np.interp(np.arange(W), np.where(m)[0], Z[i][m]) if m.sum() >= 2 else 0.0
+    Z = cv2.GaussianBlur(Z, (0, 0), 1.2)
+    zmin, zmax = float(Z.min()), float(Z.max()); rng = max(zmax - zmin, 1e-3)
+    heat = cv2.applyColorMap(np.clip((Z - zmin) / rng * 255, 0, 255).astype(np.uint8), cv2.COLORMAP_TURBO)
+    # hillshade: yt-normal (-gx,-gy,1) · ljusriktning
+    gy, gx = np.gradient(Z.astype(np.float32))
+    nn = np.sqrt(gx * gx + gy * gy + 1.0)
+    L = np.array([-0.6, -0.6, 0.52]); L /= np.linalg.norm(L)
+    illum = np.clip((-gx * L[0] - gy * L[1] + L[2]) / nn, 0, 1)
+    shade = cv2.applyColorMap((illum * 255).astype(np.uint8), cv2.COLORMAP_BONE)
+
+    def fit(img):
+        h, w = img.shape[:2]
+        return cv2.resize(img, (900, max(120, int(h * 900.0 / w))), interpolation=cv2.INTER_NEAREST)
+
+    def label(img, t):
+        img = fit(img); cv2.rectangle(img, (0, 0), (img.shape[1], 34), (0, 0, 0), -1)
+        cv2.putText(img, t, (10, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.66, (255, 255, 255), 2); return img
+
+    out = np.vstack([label(heat, f"Hojdkarta (topp-vy) - {F} profiler, hojdspann {zmax - zmin:.0f}px"),
+                     label(shade, "3D-relief (hillshade)")])
+    okk, png = cv2.imencode(".png", out)
+    return png.tobytes() if okk else None
 
 
 def _soft_bin(raw, b):
@@ -493,6 +566,29 @@ def _overview_html():
             "Nyp/dra för att zooma in i fullskärm.</p></body></html>")
 
 
+def _scanview_html(s):
+    active = s.scan["active"]; ready = s.scan.get("png") is not None
+    refresh = "<meta http-equiv=refresh content=1>" if active else ""
+    if ready and not active:
+        body = (f"<img src='/scan.png?cam={s.name}&t={int(time.monotonic())}' "
+                f"style='max-width:100%;border-radius:8px'>")
+    else:
+        body = "<p style='font-size:18px;color:#8fd'>Skannar — rör brädan under laserlinjen…</p>"
+    return ("<!doctype html><html><head><meta charset=utf-8>"
+            "<meta name='viewport' content='width=device-width, initial-scale=1'>"
+            f"{refresh}<title>Skanning {s.label}</title><style>"
+            "body{background:#0b0b0b;color:#eee;font-family:sans-serif;text-align:center;margin:0;padding:10px}"
+            ".bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}"
+            "a.btn{flex:1 1 40%;max-width:200px;padding:14px 8px;background:#b8742a;color:#fff;"
+            "text-decoration:none;border-radius:8px;font-size:17px;font-weight:bold}"
+            "a.btn.back{background:#3a6ea5}</style></head><body>"
+            f"<h3>3D-skanning — {s.label}</h3>"
+            f"<p style='color:#888'>{s.scan['msg']}</p>{body}"
+            f"<div class='bar'><a class='btn' href='/scan?cam={s.name}&n=150'>Skanna igen</a>"
+            f"<a class='btn back' href='/cam/{s.name}'>Tillbaka till kameran</a></div>"
+            "</body></html>")
+
+
 def _cam_html(s):
     color_bar = ""
     if s.color:
@@ -507,7 +603,9 @@ def _cam_html(s):
         color_bar = (
             f'<div class="bar"><a class="btn auto" href="/stripe?cam={s.name}">'
             f'Laserprofil pa/av</a>'
-            f'<a class="btn wb" href="/bin?cam={s.name}">{binlabel}</a></div>')
+            f'<a class="btn wb" href="/bin?cam={s.name}">{binlabel}</a></div>'
+            f'<div class="bar"><a class="btn foc" href="/scan?cam={s.name}&n=150">'
+            f'SKANNA (fanga 150 profiler)</a></div>')
     return ("<!doctype html><html><head><meta charset=utf-8>"
             "<meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=8, user-scalable=yes'>"
             f"<title>{s.label}</title><style>"
@@ -596,6 +694,27 @@ class H(BaseHTTPRequestHandler):
                 s.params["dirty"] = True
                 s.save_cfg()
             return self._redirect(f"/cam/{s.name}")
+
+        if p == "/scan":
+            s = self._src(q)
+            if s is None:
+                self.send_response(404); self.end_headers(); return
+            s.params["scan_req"] = max(10, int(q.get("n", 150)))
+            return self._redirect(f"/scanview?cam={s.name}")
+
+        if p == "/scanview":
+            s = self._src(q)
+            return self._html(_scanview_html(s)) if s else (self.send_response(404), self.end_headers())
+
+        if p == "/scan.png":
+            s = self._src(q)
+            png = s.scan.get("png") if s else None
+            if png is None:
+                self.send_response(503); self.end_headers(); return
+            self.send_response(200); self.send_header("Content-Type", "image/png")
+            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Content-Length", str(len(png))); self.end_headers()
+            self.wfile.write(png); return
 
         if p == "/raw.png":
             s = self._src(q)
